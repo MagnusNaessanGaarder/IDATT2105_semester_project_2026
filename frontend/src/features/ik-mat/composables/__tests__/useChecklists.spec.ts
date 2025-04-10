@@ -17,7 +17,7 @@ describe('useChecklists composable', () => {
   const mockTemplate = {
     templateId: 1,
     orgNumber: 123456789,
-    moduleType: 'IK_MAT' as const,
+    moduleType: 'FOOD' as const,
     title: 'Daily Cleaning',
     description: 'Daily cleaning checklist',
     frequency: 'DAILY' as const,
@@ -124,7 +124,7 @@ describe('useChecklists composable', () => {
     const createRequest = {
       title: 'New Template',
       description: 'Test',
-      moduleType: 'IK_MAT' as const,
+      moduleType: 'FOOD' as const,
       frequency: 'DAILY' as const,
       items: [],
     }
@@ -162,7 +162,7 @@ describe('useChecklists composable', () => {
     const updateData = {
       title: 'Updated Name',
       description: 'Updated description',
-      moduleType: 'IK_MAT' as const,
+      moduleType: 'FOOD' as const,
       frequency: 'DAILY' as const,
       items: [],
     }

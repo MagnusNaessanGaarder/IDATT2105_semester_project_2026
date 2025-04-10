@@ -24,4 +24,6 @@ public interface NotificationDeliveryRepository extends JpaRepository<Notificati
 
     List<NotificationDelivery> findTop100ByDeliveryChannelAndDeliveryStatusOrderByDeliveryIdAsc(
             DeliveryChannel channel, DeliveryStatus status);
+
+    void deleteByNotificationId(Long notificationId);
 }

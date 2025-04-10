@@ -318,7 +318,7 @@ const currentRange = computed(() => {
 })
 
 const isValidTemp = computed(() => {
-  const s = form.temperatureC.trim()
+  const s = String(form.temperatureC).trim()
   if (!s) return false
   const t = Number(s)
   return Number.isFinite(t)
@@ -326,7 +326,7 @@ const isValidTemp = computed(() => {
 
 const tempOutOfRange = computed(() => {
   if (!isValidTemp.value || !currentRange.value) return false
-  const t = Number(form.temperatureC.trim())
+  const t = Number(String(form.temperatureC).trim())
   const { min, max } = currentRange.value
   return (min != null && t < min) || (max != null && t > max)
 })
@@ -343,7 +343,7 @@ function onEmployeeChange(e: Event) {
 
 async function submit() {
   if (form.pointId === null || !isValidTemp.value) return
-  const t = Number(form.temperatureC.trim())
+  const t = Number(String(form.temperatureC).trim())
 
   isSubmitting.value = true
   actionError.value  = null

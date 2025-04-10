@@ -28,7 +28,7 @@ describe('checklists API', () => {
   const mockTemplate: ChecklistTemplate = {
     templateId: 1,
     orgNumber: 123456789,
-    moduleType: 'IK_MAT',
+    moduleType: 'FOOD',
     title: 'Daily Cleaning',
     description: 'Daily cleaning checklist',
     frequency: 'DAILY',
@@ -92,13 +92,13 @@ describe('checklists API', () => {
     const createRequest: ChecklistTemplateCreateRequest = {
       title: 'New Template',
       description: 'Test description',
-      moduleType: 'IK_MAT',
+      moduleType: 'FOOD',
       frequency: 'DAILY',
       items: [
         {
           label: 'Task 1',
           sortOrder: 1,
-          itemType: 'YES_NO',
+          itemType: 'BOOLEAN',
           isRequired: true,
         },
       ],
@@ -128,7 +128,7 @@ describe('checklists API', () => {
     const updateData = {
       title: 'Updated Name',
       description: 'Updated description',
-      moduleType: 'IK_MAT' as const,
+      moduleType: 'FOOD' as const,
       frequency: 'DAILY' as const,
       items: [],
     }

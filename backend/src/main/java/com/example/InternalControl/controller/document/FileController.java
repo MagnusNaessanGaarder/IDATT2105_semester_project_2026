@@ -231,6 +231,40 @@ public class FileController {
     }
   }
 
+  @PutMapping("/{documentId}")
+  @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+  @Operation(summary = "Update document metadata (title / description)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Document updated successfully"),
+      @ApiResponse(responseCode = "400", description = "Invalid input"),
+      @ApiResponse(responseCode = "401", description = "Not authenticated"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Document not found")
+  })
+  public ResponseEntity<OrganizationDocument> updateDocument(
+      @RequestHeader("X-Org-Number") Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable Long documentId,
+      @RequestBody Map<String, String> body) {
+
+    validateUserOrganizationAccess(userDetails.getUserId(), orgNumber);
+
+    OrganizationDocument doc = documentRepo.findByDocumentIdAndOrgNumber(documentId, orgNumber)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    String title = body.get("title");
+    String description = body.get("description");
+
+    if (title != null) {
+      doc.setTitle(sanitiseText(title, MAX_TITLE_LEN));
+    }
+    if (description != null) {
+      doc.setDescription(sanitiseText(description, MAX_DESC_LEN));
+    }
+
+    return ResponseEntity.ok(documentRepo.save(doc));
+  }
+
   @DeleteMapping("/{documentId}")
   @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   @Operation(summary = "Delete document (soft delete)")

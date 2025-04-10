@@ -136,7 +136,8 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
         run.setPerformedByUserId(userId);
 
         ChecklistRunItem existing = runItemRepository
-                .findByRunRunIdAndTemplateItemId(runId, itemId)
+                .findById(itemId)
+                .filter(i -> i.getRun() != null && i.getRun().getRunId().equals(runId))
                 .orElseThrow(() -> new EntityNotFoundException("Run item not found"));
 
         if (item.getBooleanValue() != null) {

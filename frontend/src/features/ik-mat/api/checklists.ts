@@ -15,7 +15,7 @@ export interface ChecklistTemplateItem {
   sortOrder: number
   label: string
   description?: string
-  itemType: 'YES_NO' | 'TEXT' | 'NUMERIC' | 'TEMPERATURE' | 'CHOICE'
+  itemType: 'BOOLEAN' | 'TEXT' | 'NUMBER' | 'TEMPERATURE' | 'CHOICE'
   isRequired?: boolean
   expectedText?: string
   expectedNumericMin?: number
@@ -26,10 +26,10 @@ export interface ChecklistTemplateItem {
 export interface ChecklistTemplate {
   templateId: number
   orgNumber: number
-  moduleType: 'IK_MAT' | 'IK_ALKOHOL'
+  moduleType: 'FOOD' | 'ALCOHOL'
   title: string
   description?: string
-  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM'
   isActive: boolean
   createdByUserId?: number
   createdAt?: string
@@ -40,16 +40,16 @@ export interface ChecklistTemplate {
 export interface ChecklistTemplateCreateRequest {
   title: string
   description?: string
-  moduleType: 'IK_MAT'
-  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+  moduleType: 'FOOD' | 'ALCOHOL'
+  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM'
   items: Omit<ChecklistTemplateItem, 'itemId' | 'templateId'>[]
 }
 
 export interface ChecklistTemplateUpdateRequest {
   title: string
   description?: string
-  moduleType: 'IK_MAT'
-  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+  moduleType: 'FOOD' | 'ALCOHOL'
+  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM'
   isActive?: boolean
   items: Omit<ChecklistTemplateItem, 'itemId' | 'templateId'>[]
 }

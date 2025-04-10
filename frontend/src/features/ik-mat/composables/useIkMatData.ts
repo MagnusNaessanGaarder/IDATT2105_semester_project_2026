@@ -104,7 +104,8 @@ const checklistStatusFromRun = (status: ChecklistRunApi['status']): Checklist['s
 
 const deviationStatus = (status: string): Deviation['status'] => {
   if (status === 'CLOSED') return 'resolved'
-  if (status === 'CORRECTIVE_ACTION_PLANNED' || status === 'UNDER_INVESTIGATION') return 'in-progress'
+  if (status === 'CORRECTIVE_ACTION_PLANNED' || status === 'UNDER_INVESTIGATION')
+    return 'in-progress'
   return 'open'
 }
 
@@ -192,7 +193,15 @@ const loadData = async (): Promise<void> => {
     error.value = null
 
     try {
-      const [templatesResponse, runsResponse, entriesResponse, pointsResponse, locationsResponse, deviationsResponse, documentsResponse] = await Promise.allSettled([
+      const [
+        templatesResponse,
+        runsResponse,
+        entriesResponse,
+        pointsResponse,
+        locationsResponse,
+        deviationsResponse,
+        documentsResponse,
+      ] = await Promise.allSettled([
         ikMatApi.getChecklistTemplatesByModule('FOOD'),
         ikMatApi.getChecklistRuns(),
         ikMatApi.getTemperatureEntries(),
@@ -207,7 +216,8 @@ const loadData = async (): Promise<void> => {
       const entries = entriesResponse.status === 'fulfilled' ? entriesResponse.value : []
       const temperatureLogPoints = pointsResponse.status === 'fulfilled' ? pointsResponse.value : []
       const locationList = locationsResponse.status === 'fulfilled' ? locationsResponse.value : []
-      const deviationReports = deviationsResponse.status === 'fulfilled' ? deviationsResponse.value : []
+      const deviationReports =
+        deviationsResponse.status === 'fulfilled' ? deviationsResponse.value : []
       const documents = documentsResponse.status === 'fulfilled' ? documentsResponse.value : []
 
       const locationById = new Map(locationList.map((location) => [location.locationId, location]))
@@ -228,7 +238,9 @@ const loadData = async (): Promise<void> => {
           return left - right
         })[0]
 
-        const itemByTemplateId = new Map((latestRun?.items ?? []).map((item) => [item.templateItemId, item]))
+        const itemByTemplateId = new Map(
+          (latestRun?.items ?? []).map((item) => [item.templateItemId, item]),
+        )
 
         const items: ChecklistItem[] = (template.items ?? []).map((item) => {
           const answer = itemByTemplateId.get(item.itemId)
@@ -246,7 +258,9 @@ const loadData = async (): Promise<void> => {
         const completionDate = latestRun?.completedAt ?? latestRun?.runDate ?? null
         const completionSplit = splitIsoDateTime(completionDate)
         const dueSplit = splitIsoDateTime(latestRun?.dueAt ?? null)
-        const location = latestRun?.locationId ? locationById.get(latestRun.locationId)?.name ?? null : null
+        const location = latestRun?.locationId
+          ? (locationById.get(latestRun.locationId)?.name ?? null)
+          : null
 
         return {
           id: template.templateId,
@@ -258,7 +272,9 @@ const loadData = async (): Promise<void> => {
           location,
           assignedTo: latestRun?.assignedToUserId ? `Bruker ${latestRun.assignedToUserId}` : null,
           items,
-          completed_by: latestRun?.performedByUserId ? `Bruker ${latestRun.performedByUserId}` : null,
+          completed_by: latestRun?.performedByUserId
+            ? `Bruker ${latestRun.performedByUserId}`
+            : null,
           completion_date: completionSplit.date || null,
           completion_time: completionSplit.time || null,
           due_date: dueSplit.date || null,
@@ -270,7 +286,11 @@ const loadData = async (): Promise<void> => {
 
       const mappedRecentChecks = runs
         .slice()
-        .sort((a, b) => new Date(b.completedAt ?? b.runDate ?? 0).getTime() - new Date(a.completedAt ?? a.runDate ?? 0).getTime())
+        .sort(
+          (a, b) =>
+            new Date(b.completedAt ?? b.runDate ?? 0).getTime() -
+            new Date(a.completedAt ?? a.runDate ?? 0).getTime(),
+        )
         .slice(0, 8)
         .map((run) => {
           const split = splitIsoDateTime(run.completedAt ?? run.runDate)
@@ -280,7 +300,12 @@ const loadData = async (): Promise<void> => {
             completed_by: run.performedByUserId ? `Bruker ${run.performedByUserId}` : 'Ukjent',
             completed_date: split.date,
             completed_time: split.time,
-            status: run.status === 'COMPLETED' ? 'completed' : run.status === 'OVERDUE' ? 'overdue' : 'pending',
+            status:
+              run.status === 'COMPLETED'
+                ? 'completed'
+                : run.status === 'OVERDUE'
+                  ? 'overdue'
+                  : 'pending',
           } satisfies RecentCheck
         })
 
@@ -290,14 +315,19 @@ const loadData = async (): Promise<void> => {
         .map((entry) => {
           const split = splitIsoDateTime(entry.measuredAt)
           const point = pointById.get(entry.logPointId)
-          const location = entry.locationId ? locationById.get(entry.locationId) : point?.locationId ? locationById.get(point.locationId) : undefined
+          const location = entry.locationId
+            ? locationById.get(entry.locationId)
+            : point?.locationId
+              ? locationById.get(point.locationId)
+              : undefined
           const reporterName = reporterFromNote(entry.noteText) ?? entry.recordedByName
           return {
             id: entry.entryId,
             log_point_id: entry.logPointId,
             log_point_name: entry.logPointName ?? point?.name ?? 'Ukjent malepunkt',
             location_id: entry.locationId ?? point?.locationId ?? null,
-            location: entry.locationName ?? point?.locationName ?? location?.name ?? 'Ukjent lokasjon',
+            location:
+              entry.locationName ?? point?.locationName ?? location?.name ?? 'Ukjent lokasjon',
             temperature_c: Number(entry.temperatureC),
             min_temp: Number(location?.tempMinC ?? 0),
             max_temp: Number(location?.tempMaxC ?? 4),
@@ -311,7 +341,9 @@ const loadData = async (): Promise<void> => {
 
       const mappedDeviations = deviationReports
         .slice()
-        .sort((a, b) => new Date(b.reportDate ?? 0).getTime() - new Date(a.reportDate ?? 0).getTime())
+        .sort(
+          (a, b) => new Date(b.reportDate ?? 0).getTime() - new Date(a.reportDate ?? 0).getTime(),
+        )
         .map((item) => {
           const reportSplit = splitIsoDateTime(item.reportDate)
           return {
@@ -324,27 +356,34 @@ const loadData = async (): Promise<void> => {
             reported_time: item.occurredTime ?? reportSplit.time,
             location: item.locationText ?? 'Ukjent lokasjon',
             immediate_action: item.immediateActionText ?? 'Ingen umiddelbar handling registrert',
-            corrective_action: item.correctiveActionText ?? 'Ingen korrigerende handling registrert',
+            corrective_action:
+              item.correctiveActionText ?? 'Ingen korrigerende handling registrert',
             status: deviationStatus(item.status),
             assigned_to_user_id: item.assignedToUserId ?? null,
           } satisfies Deviation
         })
 
-      const ccpPoints: HaccpPoint[] = templates.map((template) => {
-        const meta = parseHaccpMeta(template.description)
-        return {
-          id: template.templateId,
-          number: `CCP-${template.templateId}`,
-          name: meta?.name ?? template.title,
-          description: meta?.description ?? (template.description ?? 'Ingen beskrivelse registrert'),
-          hazards: meta?.hazards ?? ['Biologisk fare', 'Temperaturavvik'],
-          critical_limits: meta?.critical_limits ?? `${(template.items ?? []).filter((item) => item.isRequired).length} obligatoriske kontrollpunkter`,
-          monitoring: meta?.monitoring ?? frequencyLabel(template.frequency),
-          corrective_actions: meta?.corrective_actions ?? 'Registrer avvik og gjennomfør korrigerende tiltak',
-          verification: meta?.verification ?? 'Daglig gjennomgang av ansvarlig leder',
-          responsible: meta?.responsible ?? 'Driftsansvarlig',
-        }
-      }).slice(0, 12)
+      const ccpPoints: HaccpPoint[] = templates
+        .map((template) => {
+          const meta = parseHaccpMeta(template.description)
+          return {
+            id: template.templateId,
+            number: `CCP-${template.templateId}`,
+            name: meta?.name ?? template.title,
+            description:
+              meta?.description ?? template.description ?? 'Ingen beskrivelse registrert',
+            hazards: meta?.hazards ?? ['Biologisk fare', 'Temperaturavvik'],
+            critical_limits:
+              meta?.critical_limits ??
+              `${(template.items ?? []).filter((item) => item.isRequired).length} obligatoriske kontrollpunkter`,
+            monitoring: meta?.monitoring ?? frequencyLabel(template.frequency),
+            corrective_actions:
+              meta?.corrective_actions ?? 'Registrer avvik og gjennomfør korrigerende tiltak',
+            verification: meta?.verification ?? 'Daglig gjennomgang av ansvarlig leder',
+            responsible: meta?.responsible ?? 'Driftsansvarlig',
+          }
+        })
+        .slice(0, 12)
 
       const supportingDocs: SupportingDocument[] = documents
         .slice()
@@ -359,7 +398,9 @@ const loadData = async (): Promise<void> => {
 
       const alerts = mappedTemperature.filter((record) => record.status !== 'ok').length
 
-      dashboardStats.splice(0, dashboardStats.length,
+      dashboardStats.splice(
+        0,
+        dashboardStats.length,
         {
           label: 'Sjekklister',
           value: mappedChecklists.length,
@@ -373,7 +414,7 @@ const loadData = async (): Promise<void> => {
           color: alerts > 0 ? 'warning' : 'success',
         },
         {
-          label: 'Apne avvik',
+          label: 'Åpne avvik',
           value: mappedDeviations.filter((item) => item.status !== 'resolved').length,
           trend: 'neutral',
           color: 'warning',
@@ -393,8 +434,15 @@ const loadData = async (): Promise<void> => {
       haccpPlan.critical_control_points = ccpPoints
       haccpPlan.supporting_documents = supportingDocs
 
-      const failedCalls = [templatesResponse, runsResponse, entriesResponse, pointsResponse, locationsResponse, deviationsResponse, documentsResponse]
-        .filter((result) => result.status === 'rejected').length
+      const failedCalls = [
+        templatesResponse,
+        runsResponse,
+        entriesResponse,
+        pointsResponse,
+        locationsResponse,
+        deviationsResponse,
+        documentsResponse,
+      ].filter((result) => result.status === 'rejected').length
       const succeededCalls = 7 - failedCalls
 
       if (succeededCalls === 0) {
@@ -437,7 +485,11 @@ const reload = async () => {
   await loadData()
 }
 
-const toggleChecklistItem = async (checklistId: number, itemId: number, completed: boolean): Promise<void> => {
+const toggleChecklistItem = async (
+  checklistId: number,
+  itemId: number,
+  completed: boolean,
+): Promise<void> => {
   const checklist = checklists.find((entry) => entry.id === checklistId)
   if (!checklist) {
     throw new Error(`Checklist ${checklistId} not found`)
@@ -461,7 +513,9 @@ const toggleChecklistItem = async (checklistId: number, itemId: number, complete
   await reload()
 }
 
-const createTemperaturePoint = async (payload: TemperatureLogPointUpsertRequest): Promise<TemperatureLogPointApi> => {
+const createTemperaturePoint = async (
+  payload: TemperatureLogPointUpsertRequest,
+): Promise<TemperatureLogPointApi> => {
   const created = await ikMatApi.createTemperaturePoint(payload)
   await reload()
   return created
@@ -480,7 +534,10 @@ const createTemperaturePointWithLocation = async (
   return point
 }
 
-const updateTemperaturePoint = async (pointId: number, payload: TemperatureLogPointUpsertRequest): Promise<TemperatureLogPointApi> => {
+const updateTemperaturePoint = async (
+  pointId: number,
+  payload: TemperatureLogPointUpsertRequest,
+): Promise<TemperatureLogPointApi> => {
   const updated = await ikMatApi.updateTemperaturePoint(pointId, payload)
   await reload()
   return updated
@@ -507,13 +564,18 @@ const clearTemperatureMeasurementsForPoint = async (pointId: number): Promise<vo
   await reload()
 }
 
-const createTemperatureMeasurement = async (payload: TemperatureEntryCreateRequest): Promise<TemperatureEntryApi> => {
+const createTemperatureMeasurement = async (
+  payload: TemperatureEntryCreateRequest,
+): Promise<TemperatureEntryApi> => {
   const created = await ikMatApi.createTemperatureEntry(payload)
   await reload()
   return created
 }
 
-const updateTemperatureMeasurement = async (entryId: number, payload: TemperatureEntryUpdateRequest): Promise<TemperatureEntryApi> => {
+const updateTemperatureMeasurement = async (
+  entryId: number,
+  payload: TemperatureEntryUpdateRequest,
+): Promise<TemperatureEntryApi> => {
   const updated = await ikMatApi.updateTemperatureEntry(entryId, payload)
   await reload()
   return updated
@@ -525,7 +587,10 @@ const createDeviation = async (payload: DeviationUpsertRequest): Promise<Deviati
   return created
 }
 
-const updateDeviation = async (id: number, payload: DeviationUpsertRequest): Promise<DeviationApi> => {
+const updateDeviation = async (
+  id: number,
+  payload: DeviationUpsertRequest,
+): Promise<DeviationApi> => {
   const updated = await ikMatApi.updateDeviation(id, payload)
   await reload()
   return updated
@@ -572,16 +637,19 @@ const createHaccpControlPoint = async (point: {
   await reload()
 }
 
-const updateHaccpControlPoint = async (templateId: number, point: {
-  name: string
-  description: string
-  hazards: string[]
-  critical_limits: string
-  monitoring: string
-  corrective_actions: string
-  responsible: string
-  verification: string
-}): Promise<void> => {
+const updateHaccpControlPoint = async (
+  templateId: number,
+  point: {
+    name: string
+    description: string
+    hazards: string[]
+    critical_limits: string
+    monitoring: string
+    corrective_actions: string
+    responsible: string
+    verification: string
+  },
+): Promise<void> => {
   await ikMatApi.updateChecklistTemplate(templateId, {
     title: point.name,
     description: serializeHaccpMeta(point),
@@ -603,8 +671,14 @@ const deleteHaccpControlPoint = async (templateId: number): Promise<void> => {
   await reload()
 }
 
-const uploadSupportingDocument = async (file: File, title?: string, description?: string): Promise<void> => {
-  const uploaded = await ikMatApi.uploadDocument(file, 'procedure', 'haccp') as { documentId?: number }
+const uploadSupportingDocument = async (
+  file: File,
+  title?: string,
+  description?: string,
+): Promise<void> => {
+  const uploaded = (await ikMatApi.uploadDocument(file, 'procedure', 'haccp')) as {
+    documentId?: number
+  }
   if (uploaded?.documentId && (title || description)) {
     await ikMatApi.updateDocument(uploaded.documentId, {
       title: title?.trim() || file.name,
@@ -614,7 +688,10 @@ const uploadSupportingDocument = async (file: File, title?: string, description?
   await reload()
 }
 
-const updateSupportingDocument = async (documentId: number, payload: { title?: string; description?: string }): Promise<void> => {
+const updateSupportingDocument = async (
+  documentId: number,
+  payload: { title?: string; description?: string },
+): Promise<void> => {
   await ikMatApi.updateDocument(documentId, payload)
   await reload()
 }

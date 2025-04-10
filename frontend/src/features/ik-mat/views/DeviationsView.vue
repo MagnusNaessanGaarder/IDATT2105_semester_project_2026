@@ -4,16 +4,14 @@ import { client } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { getUsers, type User } from '@/features/admin/api/users'
 import DeviationReportForm from '@/shared/components/DeviationReportForm.vue'
-import { getOrgNumber } from '@/shared/utils/orgContext'
-import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 type DeviationStatus =
-    | 'DRAFT'
-    | 'REPORTED'
-    | 'UNDER_INVESTIGATION'
-    | 'CORRECTIVE_ACTION_PLANNED'
-    | 'CORRECTIVE_ACTION_COMPLETED'
-    | 'CLOSED'
+  | 'DRAFT'
+  | 'REPORTED'
+  | 'UNDER_INVESTIGATION'
+  | 'CORRECTIVE_ACTION_PLANNED'
+  | 'CORRECTIVE_ACTION_COMPLETED'
+  | 'CLOSED'
 
 type Severity = 'MINOR' | 'MAJOR' | 'CRITICAL'
 type ReportType = 'INCIDENT' | 'DISCREPANCY'
@@ -106,7 +104,7 @@ const filtered = computed(() => {
 })
 
 const selectedDeviation = computed(
-    () => filtered.value.find((d) => d.reportId === selectedId.value) ?? filtered.value[0] ?? null
+  () => filtered.value.find((d) => d.reportId === selectedId.value) ?? filtered.value[0] ?? null,
 )
 
 watch(filtered, (list) => {
@@ -136,9 +134,9 @@ async function assignReport() {
   assignError.value = null
   try {
     await client.post(
-        `/deviations/${d.reportId}/assign`,
-        {},
-        { params: { orgNumber: orgNumber.value, assignedToUserId: assignUserId.value } }
+      `/deviations/${d.reportId}/assign`,
+      {},
+      { params: { orgNumber: orgNumber.value, assignedToUserId: assignUserId.value } },
     )
     await refetchReport(d.reportId)
     const emp = employees.value.find((e) => e.userId === assignUserId.value)
@@ -175,13 +173,14 @@ async function startInvestigation() {
   actionError.value = null
   try {
     await client.put<DeviationReport>(
-        `/deviations/${d.reportId}/status`,
-        { status: 'UNDER_INVESTIGATION' },
-        { params: { orgNumber: orgNumber.value } }
+      `/deviations/${d.reportId}/status`,
+      { status: 'UNDER_INVESTIGATION' },
+      { params: { orgNumber: orgNumber.value } },
     )
     await refetchReport(d.reportId)
   } catch (err: unknown) {
-    const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response?.data?.message
+    const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response
+      ?.data?.message
     actionError.value = msg ? `Statusendring feilet: ${msg}` : 'Statusendring feilet.'
   } finally {
     actionLoading.value = false
@@ -191,7 +190,10 @@ async function startInvestigation() {
 async function submitAction() {
   const d = selectedDeviation.value
   if (!d || !orgNumber.value || !activeAction.value) return
-  if (!actionText.value.trim()) { actionError.value = 'Tekst er påkrevd.'; return }
+  if (!actionText.value.trim()) {
+    actionError.value = 'Tekst er påkrevd.'
+    return
+  }
 
   const endpoints: Record<NonNullable<typeof activeAction.value>, string> = {
     immediate: `/deviations/${d.reportId}/immediate-action`,
@@ -204,15 +206,16 @@ async function submitAction() {
   actionError.value = null
   try {
     await client.post<DeviationReport>(
-        endpoints[activeAction.value],
-        { actionText: actionText.value.trim() },
-        { params: { orgNumber: orgNumber.value } }
+      endpoints[activeAction.value],
+      { actionText: actionText.value.trim() },
+      { params: { orgNumber: orgNumber.value } },
     )
     await refetchReport(d.reportId)
     activeAction.value = null
     actionText.value = ''
   } catch (err: unknown) {
-    const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response?.data?.message
+    const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response
+      ?.data?.message
     actionError.value = msg ? `Feilet: ${msg}` : 'Handlingen feilet. Prøv igjen.'
   } finally {
     actionLoading.value = false
@@ -226,13 +229,14 @@ async function closeReport() {
   actionError.value = null
   try {
     await client.post<DeviationReport>(
-        `/deviations/${d.reportId}/close`,
-        {},
-        { params: { orgNumber: orgNumber.value } }
+      `/deviations/${d.reportId}/close`,
+      {},
+      { params: { orgNumber: orgNumber.value } },
     )
     await refetchReport(d.reportId)
   } catch (err: unknown) {
-    const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response?.data?.message
+    const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response
+      ?.data?.message
     actionError.value = msg ? `Lukking feilet: ${msg}` : 'Lukking feilet.'
   } finally {
     actionLoading.value = false
@@ -279,7 +283,11 @@ function reportTypeLabel(t: ReportType): string {
 
 function formatDate(d: string | null): string {
   if (!d) return '-'
-  return new Date(d).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(d).toLocaleDateString('nb-NO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 const filters: { key: FilterStatus; label: string }[] = [
@@ -311,11 +319,11 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 
     <div class="filter-row" role="tablist">
       <button
-          v-for="f in filters"
-          :key="f.key"
-          class="filter-chip"
-          :class="{ 'filter-chip--active': selectedStatus === f.key }"
-          @click="selectedStatus = f.key"
+        v-for="f in filters"
+        :key="f.key"
+        class="filter-chip"
+        :class="{ 'filter-chip--active': selectedStatus === f.key }"
+        @click="selectedStatus = f.key"
       >
         {{ f.label }}
       </button>
@@ -328,17 +336,23 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
       <aside class="panel panel--list" aria-label="Avviksliste">
         <div v-if="filtered.length === 0" class="empty-list">Ingen avvik matcher valgt filter.</div>
         <button
-            v-for="item in filtered"
-            :key="item.reportId"
-            class="list-item"
-            :class="{ 'list-item--active': selectedDeviation?.reportId === item.reportId }"
-            @click="selectDeviation(item.reportId)"
+          v-for="item in filtered"
+          :key="item.reportId"
+          class="list-item"
+          :class="{ 'list-item--active': selectedDeviation?.reportId === item.reportId }"
+          @click="selectDeviation(item.reportId)"
         >
           <p class="list-item__title">{{ item.title }}</p>
-          <p class="list-item__meta">{{ item.locationText ?? '-' }} · {{ formatDate(item.reportDate) }}</p>
+          <p class="list-item__meta">
+            {{ item.locationText ?? '-' }} · {{ formatDate(item.reportDate) }}
+          </p>
           <div class="list-item__chips">
-            <span class="chip" :class="`chip--${statusTone(item.status)}`">{{ statusLabel(item.status) }}</span>
-            <span class="chip" :class="`chip--${severityTone(item.severity)}`">{{ severityLabel(item.severity) }}</span>
+            <span class="chip" :class="`chip--${statusTone(item.status)}`">{{
+              statusLabel(item.status)
+            }}</span>
+            <span class="chip" :class="`chip--${severityTone(item.severity)}`">{{
+              severityLabel(item.severity)
+            }}</span>
           </div>
         </button>
       </aside>
@@ -348,9 +362,15 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
           <div>
             <h2 class="detail-title">{{ selectedDeviation.title }}</h2>
             <div class="detail-header__chips">
-              <span class="chip" :class="`chip--${statusTone(selectedDeviation.status)}`">{{ statusLabel(selectedDeviation.status) }}</span>
-              <span class="chip chip--neutral">{{ reportTypeLabel(selectedDeviation.reportType) }}</span>
-              <span class="chip" :class="`chip--${severityTone(selectedDeviation.severity)}`">{{ severityLabel(selectedDeviation.severity) }}</span>
+              <span class="chip" :class="`chip--${statusTone(selectedDeviation.status)}`">{{
+                statusLabel(selectedDeviation.status)
+              }}</span>
+              <span class="chip chip--neutral">{{
+                reportTypeLabel(selectedDeviation.reportType)
+              }}</span>
+              <span class="chip" :class="`chip--${severityTone(selectedDeviation.severity)}`">{{
+                severityLabel(selectedDeviation.severity)
+              }}</span>
               <span v-if="refreshing" class="chip chip--neutral">Oppdaterer…</span>
             </div>
           </div>
@@ -366,7 +386,8 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
           <div class="detail-field">
             <p class="detail-label">Hendelsesdato</p>
             <p class="detail-value">
-              {{ formatDate(selectedDeviation.occurredDate) }}{{ selectedDeviation.occurredTime ? ` kl. ${selectedDeviation.occurredTime}` : '' }}
+              {{ formatDate(selectedDeviation.occurredDate)
+              }}{{ selectedDeviation.occurredTime ? ` kl. ${selectedDeviation.occurredTime}` : '' }}
             </p>
           </div>
           <div class="detail-field">
@@ -388,24 +409,44 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
         </div>
 
         <div class="workflow">
-          <div class="workflow__step" :class="{ 'workflow__step--done': selectedDeviation.immediateActionText }">
+          <div
+            class="workflow__step"
+            :class="{ 'workflow__step--done': selectedDeviation.immediateActionText }"
+          >
             <p class="workflow__label">Umiddelbar handling</p>
-            <p v-if="selectedDeviation.immediateActionText" class="workflow__text">{{ selectedDeviation.immediateActionText }}</p>
+            <p v-if="selectedDeviation.immediateActionText" class="workflow__text">
+              {{ selectedDeviation.immediateActionText }}
+            </p>
             <p v-else class="workflow__empty">Ikke registrert</p>
           </div>
-          <div class="workflow__step" :class="{ 'workflow__step--done': selectedDeviation.causeAnalysisText }">
+          <div
+            class="workflow__step"
+            :class="{ 'workflow__step--done': selectedDeviation.causeAnalysisText }"
+          >
             <p class="workflow__label">Årsaksanalyse</p>
-            <p v-if="selectedDeviation.causeAnalysisText" class="workflow__text">{{ selectedDeviation.causeAnalysisText }}</p>
+            <p v-if="selectedDeviation.causeAnalysisText" class="workflow__text">
+              {{ selectedDeviation.causeAnalysisText }}
+            </p>
             <p v-else class="workflow__empty">Ikke registrert</p>
           </div>
-          <div class="workflow__step" :class="{ 'workflow__step--done': selectedDeviation.correctiveActionText }">
+          <div
+            class="workflow__step"
+            :class="{ 'workflow__step--done': selectedDeviation.correctiveActionText }"
+          >
             <p class="workflow__label">Korrigerende tiltak</p>
-            <p v-if="selectedDeviation.correctiveActionText" class="workflow__text">{{ selectedDeviation.correctiveActionText }}</p>
+            <p v-if="selectedDeviation.correctiveActionText" class="workflow__text">
+              {{ selectedDeviation.correctiveActionText }}
+            </p>
             <p v-else class="workflow__empty">Ikke registrert</p>
           </div>
-          <div class="workflow__step" :class="{ 'workflow__step--done': selectedDeviation.completionText }">
+          <div
+            class="workflow__step"
+            :class="{ 'workflow__step--done': selectedDeviation.completionText }"
+          >
             <p class="workflow__label">Fullføring</p>
-            <p v-if="selectedDeviation.completionText" class="workflow__text">{{ selectedDeviation.completionText }}</p>
+            <p v-if="selectedDeviation.completionText" class="workflow__text">
+              {{ selectedDeviation.completionText }}
+            </p>
             <p v-else class="workflow__empty">Ikke registrert</p>
           </div>
         </div>
@@ -415,65 +456,86 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 
           <div class="actions__btns">
             <button
-                v-if="selectedDeviation.status === 'REPORTED'"
-                class="action-btn action-btn--primary"
-                :disabled="actionLoading"
-                @click="startInvestigation"
+              v-if="selectedDeviation.status === 'REPORTED'"
+              class="action-btn action-btn--primary"
+              :disabled="actionLoading"
+              @click="startInvestigation"
             >
               {{ actionLoading ? 'Starter…' : 'Start etterforskning' }}
             </button>
 
             <template v-if="selectedDeviation.status === 'UNDER_INVESTIGATION'">
               <button
-                  v-if="!selectedDeviation.immediateActionText"
-                  class="action-btn"
-                  :class="{ 'action-btn--active': activeAction === 'immediate' }"
-                  @click="activeAction = activeAction === 'immediate' ? null : 'immediate'; actionText = ''"
+                v-if="!selectedDeviation.immediateActionText"
+                class="action-btn"
+                :class="{ 'action-btn--active': activeAction === 'immediate' }"
+                @click="
+                  activeAction = activeAction === 'immediate' ? null : 'immediate';
+                  actionText = ''
+                "
               >
                 Legg til umiddelbar handling
               </button>
               <button
-                  v-if="!selectedDeviation.causeAnalysisText"
-                  class="action-btn"
-                  :class="{ 'action-btn--active': activeAction === 'cause' }"
-                  @click="activeAction = activeAction === 'cause' ? null : 'cause'; actionText = ''"
+                v-if="!selectedDeviation.causeAnalysisText"
+                class="action-btn"
+                :class="{ 'action-btn--active': activeAction === 'cause' }"
+                @click="
+                  activeAction = activeAction === 'cause' ? null : 'cause';
+                  actionText = ''
+                "
               >
                 Legg til årsaksanalyse
               </button>
             </template>
 
             <button
-                v-if="(selectedDeviation.status === 'CORRECTIVE_ACTION_PLANNED' || (selectedDeviation.status === 'UNDER_INVESTIGATION' && selectedDeviation.immediateActionText && selectedDeviation.causeAnalysisText)) && !selectedDeviation.correctiveActionText"
-                class="action-btn"
-                :class="{ 'action-btn--active': activeAction === 'corrective' }"
-                @click="activeAction = activeAction === 'corrective' ? null : 'corrective'; actionText = ''"
+              v-if="
+                (selectedDeviation.status === 'CORRECTIVE_ACTION_PLANNED' ||
+                  (selectedDeviation.status === 'UNDER_INVESTIGATION' &&
+                    selectedDeviation.immediateActionText &&
+                    selectedDeviation.causeAnalysisText)) &&
+                !selectedDeviation.correctiveActionText
+              "
+              class="action-btn"
+              :class="{ 'action-btn--active': activeAction === 'corrective' }"
+              @click="
+                activeAction = activeAction === 'corrective' ? null : 'corrective';
+                actionText = ''
+              "
             >
               Legg til korrigerende tiltak
             </button>
 
             <button
-                v-if="selectedDeviation.status === 'CORRECTIVE_ACTION_PLANNED'"
-                class="action-btn"
-                :class="{ 'action-btn--active': activeAction === 'complete' }"
-                @click="activeAction = activeAction === 'complete' ? null : 'complete'; actionText = ''"
+              v-if="selectedDeviation.status === 'CORRECTIVE_ACTION_PLANNED'"
+              class="action-btn"
+              :class="{ 'action-btn--active': activeAction === 'complete' }"
+              @click="
+                activeAction = activeAction === 'complete' ? null : 'complete';
+                actionText = ''
+              "
             >
               Fullfør avvik
             </button>
 
             <button
-                v-if="selectedDeviation.status === 'CORRECTIVE_ACTION_COMPLETED'"
-                class="action-btn action-btn--close"
-                :disabled="actionLoading"
-                @click="closeReport"
+              v-if="selectedDeviation.status === 'CORRECTIVE_ACTION_COMPLETED'"
+              class="action-btn action-btn--close"
+              :disabled="actionLoading"
+              @click="closeReport"
             >
               Lukk avvik
             </button>
 
             <button
-                class="action-btn"
-                :class="{ 'action-btn--active': assignOpen }"
-                :disabled="actionLoading || assignLoading"
-                @click="assignOpen = !assignOpen; assignError = null"
+              class="action-btn"
+              :class="{ 'action-btn--active': assignOpen }"
+              :disabled="actionLoading || assignLoading"
+              @click="
+                assignOpen = !assignOpen;
+                assignError = null
+              "
             >
               {{ selectedDeviation.assignedToName ? 'Endre tildeling' : 'Tildel avvik' }}
             </button>
@@ -491,8 +553,20 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
             </select>
             <div class="action-form__footer">
               <p v-if="assignError" class="action-form__error">{{ assignError }}</p>
-              <button class="action-btn action-btn--ghost" @click="assignOpen = false; assignError = null">Avbryt</button>
-              <button class="action-btn action-btn--primary" :disabled="assignLoading || !assignUserId" @click="assignReport">
+              <button
+                class="action-btn action-btn--ghost"
+                @click="
+                  assignOpen = false;
+                  assignError = null
+                "
+              >
+                Avbryt
+              </button>
+              <button
+                class="action-btn action-btn--primary"
+                :disabled="assignLoading || !assignUserId"
+                @click="assignReport"
+              >
                 {{ assignLoading ? 'Lagrer…' : 'Lagre' }}
               </button>
             </div>
@@ -503,16 +577,29 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
               {{ actionLabels[activeAction] }}
             </label>
             <textarea
-                :id="`action-${selectedDeviation.reportId}`"
-                v-model="actionText"
-                class="action-form__textarea"
-                rows="3"
-                :placeholder="`Beskriv ${actionLabels[activeAction].toLowerCase()}…`"
+              :id="`action-${selectedDeviation.reportId}`"
+              v-model="actionText"
+              class="action-form__textarea"
+              rows="3"
+              :placeholder="`Beskriv ${actionLabels[activeAction].toLowerCase()}…`"
             />
             <div class="action-form__footer">
               <p v-if="actionError" class="action-form__error">{{ actionError }}</p>
-              <button class="action-btn action-btn--ghost" @click="activeAction = null; actionText = ''; actionError = null">Avbryt</button>
-              <button class="action-btn action-btn--primary" :disabled="actionLoading" @click="submitAction">
+              <button
+                class="action-btn action-btn--ghost"
+                @click="
+                  activeAction = null;
+                  actionText = '';
+                  actionError = null
+                "
+              >
+                Avbryt
+              </button>
+              <button
+                class="action-btn action-btn--primary"
+                :disabled="actionLoading"
+                @click="submitAction"
+              >
                 {{ actionLoading ? 'Lagrer…' : 'Lagre' }}
               </button>
             </div>
@@ -520,7 +607,9 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
         </div>
 
         <div v-if="selectedDeviation.status === 'CLOSED'" class="closed-banner">
-          Avvik lukket{{ selectedDeviation.closedAt ? ` ${formatDate(selectedDeviation.closedAt)}` : '' }}
+          Avvik lukket{{
+            selectedDeviation.closedAt ? ` ${formatDate(selectedDeviation.closedAt)}` : ''
+          }}
         </div>
       </article>
 
@@ -593,7 +682,10 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
   font-size: var(--font-size-sm);
   cursor: pointer;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .filter-chip:hover {
@@ -673,7 +765,9 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
   text-align: left;
   padding: 0.7rem 0.75rem;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
   width: 100%;
 }
 
@@ -716,11 +810,31 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
   font-weight: var(--font-weight-semibold);
 }
 
-.chip--good    { background: var(--color-success-bg); color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border)); }
-.chip--warn    { background: var(--color-warning-bg); color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 30%, var(--color-border)); }
-.chip--danger  { background: var(--color-danger); color: var(--color-danger-fg); border-color: var(--color-danger-hover); }
-.chip--info    { background: var(--color-info-bg);    color: var(--color-info);    border-color: color-mix(in srgb, var(--color-info)    30%, var(--color-border)); }
-.chip--neutral { background: var(--color-gray-100);   color: var(--color-gray-600); border-color: var(--color-border); }
+.chip--good {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+}
+.chip--warn {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, var(--color-border));
+}
+.chip--danger {
+  background: var(--color-danger);
+  color: var(--color-danger-fg);
+  border-color: var(--color-danger-hover);
+}
+.chip--info {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+  border-color: color-mix(in srgb, var(--color-info) 30%, var(--color-border));
+}
+.chip--neutral {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+  border-color: var(--color-border);
+}
 
 .detail-header {
   display: flex;
@@ -860,7 +974,9 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .action-btn:hover:not(:disabled) {

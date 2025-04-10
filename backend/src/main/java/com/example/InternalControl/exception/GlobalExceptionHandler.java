@@ -3,8 +3,10 @@ package com.example.InternalControl.exception;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -113,6 +115,29 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse(
             resolvedStatus.name(),
             ex.getReason() != null ? ex.getReason() : "Request failed",
+            LocalDateTime.now()));
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
+    String message = ex.getMostSpecificCause().getMessage();
+    log.warn("Data integrity violation: {}", message);
+    return ResponseEntity
+        .status(HttpStatus.CONFLICT)
+        .body(new ErrorResponse(
+            "DATA_CONFLICT",
+            "Operation violates a data constraint: " + message,
+            LocalDateTime.now()));
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ErrorResponse> handleUnreadableMessage(HttpMessageNotReadableException ex) {
+    log.warn("Unreadable request body: {}", ex.getMessage());
+    return ResponseEntity
+        .status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(
+            "INVALID_REQUEST_BODY",
+            "Request body is malformed or contains invalid values",
             LocalDateTime.now()));
   }
 

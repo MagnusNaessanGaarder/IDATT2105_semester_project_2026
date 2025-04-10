@@ -15,7 +15,6 @@ import com.example.InternalControl.repository.user.AppUserRepository;
 import com.example.InternalControl.repository.deviation.DeviationReportRepository;
 import com.example.InternalControl.repository.organization.LocationRepository;
 import com.example.InternalControl.repository.organization.OrganizationRepository;
-import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import com.example.InternalControl.service.audit.AuditLogService;
 import com.example.InternalControl.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
@@ -41,7 +40,6 @@ public class DeviationReportServiceImpl implements DeviationReportService {
     private final OrganizationRepository organizationRepository;
     private final LocationRepository locationRepository;
     private final AppUserRepository appUserRepository;
-    private final UserOrganizationRoleRepository userOrganizationRoleRepository;
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
 
@@ -467,20 +465,7 @@ public class DeviationReportServiceImpl implements DeviationReportService {
     }
 
     private void validateAssignableUserRole(Long userId, Integer orgNumber) {
-        if (userOrganizationRoleRepository == null) {
-            return;
-        }
-
-        boolean hasAllowedRole = userOrganizationRoleRepository.findByUserIdAndOrgNumber(userId, orgNumber)
-                .stream()
-                .map(userOrgRole -> userOrgRole.getRole())
-                .filter(role -> role != null && role.getRoleName() != null)
-                .map(role -> role.getRoleName().toUpperCase())
-                .anyMatch(roleName -> roleName.equals("ADMIN") || roleName.equals("MANAGER"));
-
-        if (!hasAllowedRole) {
-            throw new IllegalStateException("Deviation can only be assigned to a manager or admin");
-        }
+        // Any active member of the organization can be assigned a deviation
     }
 
     private void checkAndAdvanceStatus(DeviationReport report) {

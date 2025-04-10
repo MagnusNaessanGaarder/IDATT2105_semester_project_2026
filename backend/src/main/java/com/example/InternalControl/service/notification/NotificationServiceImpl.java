@@ -122,6 +122,7 @@ public class NotificationServiceImpl implements NotificationService {
             throw new EntityNotFoundException("Notification not found or not owned by user");
         }
 
+        deliveryRepository.deleteByNotificationId(notificationId);
         notificationRepository.delete(notification);
         log.info("Deleted notification {} for user {}", notificationId, userId);
     }

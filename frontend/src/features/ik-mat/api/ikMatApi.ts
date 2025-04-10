@@ -435,7 +435,7 @@ export const ikMatApi = {
 
     const response = await client.post('/files/upload', formData, {
       params: { documentType, directory },
-      headers: orgHeaders({ 'Content-Type': 'multipart/form-data' }),
+      headers: orgHeaders(),
     })
     return response.data
   },

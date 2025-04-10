@@ -100,6 +100,7 @@ const toggleControl = async (id: number) => {
     }
 
     let runId = selected.run_id
+    let runItemId = selected.run_item_id
 
     if (!runId) {
       if (!selected.template_id) {
@@ -117,11 +118,21 @@ const toggleControl = async (id: number) => {
       if (!runId) {
         return
       }
+
+      // Find the run item matching our template item in the newly created run
+      const matchingItem = createdRun.items?.find(
+        (item) => item.templateItemId === selected.template_item_id,
+      )
+      runItemId = matchingItem?.runItemId ?? null
+    }
+
+    if (!runItemId) {
+      return
     }
 
     const updatedItem = await updateRunItem(
       runId,
-      selected.template_item_id,
+      runItemId,
       orgNumber,
       !selected.is_checked,
     )

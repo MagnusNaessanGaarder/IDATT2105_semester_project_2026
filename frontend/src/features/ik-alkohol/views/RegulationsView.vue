@@ -30,8 +30,8 @@ const openLawDocument = async (law: (typeof laws.value)[number]) => {
   }
 
   try {
-    const previewUrl = await documentsApi.getPreviewUrl(orgNumber, law.documentId)
-    window.open(previewUrl, '_blank', 'noopener,noreferrer')
+    const { url } = await documentsApi.getDocumentLink(orgNumber, law.documentId)
+    window.open(url, '_blank', 'noopener,noreferrer')
   } catch (error) {
     console.error('Failed to open regulation document', error)
   }
