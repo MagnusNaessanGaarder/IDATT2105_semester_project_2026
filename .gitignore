@@ -11,6 +11,8 @@ lerna-debug.log*
 node_modules/
 frontend/node_modules/
 
+target/
+*/target/
 # Build output
 dist
 dist-ssr
@@ -24,9 +26,14 @@ coverage
 
 .cache
 
+# Devex
+DEV_NOTES.md
+frontend/DEV_NOTES.md
+frontend/VUE_NOTES.md
 
 # Editor directories and files
 .vscode/*
+/.vscode/*
 !.vscode/extensions.json
 .idea
 *.suo
@@ -56,3 +63,23 @@ test-results/
 Thumbs.db
 
 *.env
+
+# Backend build artifacts
+backend/InternalControl/target/
+backend/**/target/
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local env files
+.env.local
+.env.*.local
