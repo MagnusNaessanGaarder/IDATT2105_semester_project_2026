@@ -24,6 +24,8 @@ coverage
 
 .cache
 
+# Built files
+backend/InternalControl/target
 
 # Editor directories and files
 .vscode/*
