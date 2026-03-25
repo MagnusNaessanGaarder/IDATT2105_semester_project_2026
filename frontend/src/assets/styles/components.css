@@ -1,0 +1,55 @@
+/**
+ * Components - Fellestrekk for view-komponenter
+ * 
+ * Styling som går på tvers av alle view/pages.
+ * Disse klassene brukes i view-komponentene for konsistent layout.
+ * 
+ * Klasser:
+ * - .view-page: Wrapper for hele siden
+ * - .view-page__header: Tittel-område
+ * - .view-page__placeholder: Placeholder for ikke-implementerte seksjoner
+ */
+
+.view-page {
+  max-width: 75rem;
+  margin: 0 auto;
+}
+
+.view-page__header {
+  margin-bottom: 2rem;
+}
+
+.view-page__header h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-foreground);
+  margin-bottom: 0.5rem;
+}
+
+.view-page__subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-500);
+}
+
+.view-page__placeholder {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 3rem;
+  text-align: center;
+  color: var(--color-gray-500);
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.5rem;
+}
