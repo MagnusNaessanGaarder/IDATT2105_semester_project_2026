@@ -1,0 +1,77 @@
+/**
+ * Variables - CSS Custom Properties (Design Tokens)
+ * 
+ * Definerer alle farger, størrelser og avstander for applikasjonen.
+ * Brukes for konsistent design på tvers av alle komponenter.
+ * 
+ */
+:root {
+  --color-primary: #000000;
+  --color-primary-foreground: #ffffff;
+
+  --color-background: #f0f0f0;
+  --color-foreground: #000000;
+  --color-card: #ffffff;
+  --color-border: #cccccc;
+
+  --color-accent: #0066cc;
+  --color-accent-hover: #0052a3;
+  --color-focus: #0066cc;
+
+  --color-success: #008000;
+  --color-success-bg: #e6f2e6;
+  --color-warning: #cc9900;
+  --color-warning-bg: #fff5cc;
+  --color-danger: #cc0000;
+  --color-danger-bg: #ffe6e6;
+  --color-info: #0066cc;
+  --color-info-bg: #e6f0fa;
+
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f0f0f0;
+  --color-gray-200: #e0e0e0;
+  --color-gray-300: #cccccc;
+  --color-gray-400: #999999;
+  --color-gray-500: #666666;
+  --color-gray-600: #444444;
+  --color-gray-700: #333333;
+  --color-gray-800: #222222;
+  --color-gray-900: #000000;
+
+  --font-family: Arial, Helvetica, sans-serif;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 600;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  --radius-sm: 0px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  --transition-fast: 0.1s;
+  --transition-base: 0.2s;
+
+  --sidebar-width: 240px;
+  --topbar-height: 48px;
+  --touch-target: 40px;
+}
