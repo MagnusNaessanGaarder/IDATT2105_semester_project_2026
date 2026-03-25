@@ -1,45 +1,50 @@
 services:
-  # MySQL Database
-  # TODO: mysql (with volumes), network
-  #  mysql:
-  #    image: mysql:8.0
-  #    container_name:
-  #    environment:
-  #      MYSQL_ROOT_PASSWORD:
-  #      MYSQL_DATABASE:
-  #    ports:
-  #      - "3306:3306"
-  #    volumes:
-  #      - mysql_data:/var/lib/mysql
-  #      - ./backend/src/main/resources/db/migration:/docker-entrypoint-initdb.d
-  #
-  #  backend:
-  #    build:
-  #      context: ./backend
-  #      dockerfile:
-  #    container_name:
-  #    environment:
-  #      - SPRING_PROFILES_ACTIVE=prod
-  #      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/iksystem?useSSL=false&allowPublicKeyRetrieval=true
-  #      - SPRING_DATASOURCE_USERNAME=root
-  #      - SPRING_DATASOURCE_PASSWORD=root
-  #      - JWT_SECRET=${JWT_SECRET:-defaultSecretKeyChangeInProduction}
-  #    ports:
-  #      - "8080:8080"
-  #    depends_on:
-  #      mysql:
-  #        condition: service_healthy
-  #
+  db:
+    image: mysql:8.4
+    container_name: internal-control-db
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend/InternalControl
+      dockerfile: Dockerfile
+    container_name: internal-control-backend
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:
       context: ./frontend
-      dockerfile:
-    container_name:
+      dockerfile: Dockerfile
+    container_name: internal-control-frontend
     ports:
       - "80:80"
     depends_on:
       - backend
 
-#  mysql_data:
-#
+volumes:
+  mysql_data:

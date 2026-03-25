@@ -31,6 +31,10 @@ DEV_NOTES.md
 frontend/DEV_NOTES.md
 frontend/VUE_NOTES.md
 
+# Built files
+backend/InternalControl/target
+
+
 # Editor directories and files
 .vscode/*
 /.vscode/*
