@@ -152,7 +152,7 @@ const getIcon = (iconName: string) => {
 
 <style scoped>
 .nav-section {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 /* Section Header */
@@ -165,7 +165,7 @@ const getIcon = (iconName: string) => {
   background: transparent;
   border: none;
   border-left: 3px solid transparent;
-  transition: all 0.15s ease;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .section-header__content {
@@ -198,9 +198,9 @@ const getIcon = (iconName: string) => {
 }
 
 .section-header__label {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--color-gray-500);
 }
@@ -230,7 +230,7 @@ const getIcon = (iconName: string) => {
   border: none;
   cursor: pointer;
   color: var(--color-gray-500);
-  transition: all 0.15s ease;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
   border-radius: 4px;
 }
 
@@ -244,7 +244,7 @@ const getIcon = (iconName: string) => {
 }
 
 .chevron-icon {
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-base) ease;
 }
 
 .chevron-icon--rotated {
@@ -253,8 +253,8 @@ const getIcon = (iconName: string) => {
 
 /* Active state */
 .section-header--active {
-  background-color: var(--color-gray-100);
-  border-left-color: var(--color-gray-900);
+  background-color: #eef3f8;
+  border-left-color: var(--color-primary);
 }
 
 .section-header--active .section-header__icon,
@@ -298,13 +298,13 @@ const getIcon = (iconName: string) => {
   border: none;
   border-left: 3px solid transparent;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
   font-family: inherit;
   text-align: left;
 }
 
 .nav-item__label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-gray-500);
 }
@@ -325,13 +325,13 @@ const getIcon = (iconName: string) => {
 
 /* Active nav item */
 .nav-item--active {
-  background-color: var(--color-gray-100);
-  border-left-color: var(--color-gray-900);
+  background-color: #eef3f8;
+  border-left-color: var(--color-primary);
 }
 
 .nav-item--active .nav-item__label {
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: var(--color-primary);
 }
 
 /* Hover */
@@ -347,7 +347,7 @@ const getIcon = (iconName: string) => {
 /* Collapse transition */
 .collapse-enter-active,
 .collapse-leave-active {
-  transition: max-height 0.2s ease, opacity 0.2s ease;
+  transition: max-height var(--transition-base) ease, opacity var(--transition-base) ease;
   overflow: hidden;
 }
 
