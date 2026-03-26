@@ -36,30 +36,6 @@ const handleLogin = async () => {
 <template>
   <div class="login-page">
     <div class="login-container">
-      <!-- Mock-brukere info -->
-      <div class="mock-users-info">
-        <h3>Testbrukere (Mock-modus)</h3>
-        <div class="mock-user-list">
-          <div class="mock-user" @click="email = 'Tri@gmail.com'; password = 'Tri'">
-            <strong>Tri</strong> (Admin)<br>
-            <small>Tri@gmail.com / Tri</small>
-          </div>
-          <div class="mock-user" @click="email = 'kari@everest-sushi.no'; password = 'Test1234!'">
-            <strong>Kari Olsen</strong> (Admin)<br>
-            <small>kari@everest-sushi.no / Test1234!</small>
-          </div>
-          <div class="mock-user" @click="email = 'amir@everest-sushi.no'; password = 'Test1234!'">
-            <strong>Amir Patel</strong> (Manager)<br>
-            <small>amir@everest-sushi.no / Test1234!</small>
-          </div>
-          <div class="mock-user" @click="email = 'lina@everest-sushi.no'; password = 'Test1234!'">
-            <strong>Lina Nguyen</strong> (Staff)<br>
-            <small>lina@everest-sushi.no / Test1234!</small>
-          </div>
-        </div>
-        <p class="mock-hint">Klikk på en bruker for å fylle inn automatisk</p>
-      </div>
-
       <form class="login-form" @submit.prevent="handleLogin">
         <h2>Logg inn</h2>
 
@@ -287,7 +263,7 @@ const handleLogin = async () => {
   .login-form {
     padding: 24px;
   }
-  
+
   .mock-users-info {
     padding: 16px;
   }

@@ -124,7 +124,7 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
   const authStore = useAuthStore()
   
   if (to.meta.title) {
@@ -137,25 +137,22 @@ router.beforeEach(async (to, from, next) => {
     }
     
     if (!authStore.isAuthenticated) {
-      next({ name: 'Login', query: { redirect: to.fullPath } })
-      return
+      return { name: 'Login', query: { redirect: to.fullPath } }
     }
     
     if (to.meta.allowedRoles && to.meta.allowedRoles.length > 0) {
       const userRole = authStore.user?.role
       if (!userRole || !to.meta.allowedRoles.includes(userRole)) {
-        next({ name: 'Dashboard' })
-        return
+        return { name: 'Dashboard' }
       }
     }
   }
   
   if (to.name === 'Login' && authStore.isAuthenticated) {
-    next({ name: 'Dashboard' })
-    return
+    return { name: 'Dashboard' }
   }
   
-  next()
+  // Return nothing to allow navigation
 })
 
 export default router
