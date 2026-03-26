@@ -12,7 +12,6 @@ interface Section {
   key: string
   label: string
   icon: string
-  color: string
   dashboardRoute: string
   items: NavItem[]
 }
@@ -21,6 +20,7 @@ const props = defineProps<{
   section: Section
   isExpanded: boolean
   currentScreen: string
+  sectionKey: string
 }>()
 
 const emit = defineEmits<{
@@ -31,22 +31,23 @@ const emit = defineEmits<{
 
 // Check if this section is active (current screen is in this section)
 const isActive = computed(() => {
-  // Check if current screen is dashboard or any child item
-  const dashboardScreenId = props.section.key + '-dashboard'
+  // Section is active if any of its child items matches the current screen
   const itemIds = props.section.items.map(item => item.id)
-  
-  return props.currentScreen === dashboardScreenId || 
-         itemIds.includes(props.currentScreen)
+  return itemIds.includes(props.currentScreen)
 })
 
-// Navigate to dashboard and expand section
-const handleHeaderClick = () => {
-  emit('navigateDashboard', props.section.dashboardRoute)
-  if (!props.isExpanded) {
-    emit('toggle')
-  }
+// Check if a specific item is the active child
+const isItemActive = (itemId: string) => {
+  return props.currentScreen === itemId
 }
 
+// Navigate to dashboard and expand section
+
+// Navigate to dashboard and toggle section expansion
+const handleHeaderClick = () => {
+    emit('navigateDashboard', props.section.dashboardRoute)
+    emit('toggle')
+}
 // Just toggle expansion (without navigation)
 const handleToggleClick = (e: Event) => {
   e.stopPropagation()
@@ -132,9 +133,9 @@ const getIcon = (iconName: string) => {
         >
           <button
             class="nav-item"
-            :class="{ 'nav-item--active': currentScreen === item.id }"
+            :class="{ 'nav-item--active': isItemActive(item.id) }"
             @click="navigateToScreen(item.route)"
-            :aria-current="currentScreen === item.id ? 'page' : undefined"
+            :aria-current="isItemActive(item.id) ? 'page' : undefined"
           >
             <span class="nav-item__label">{{ item.label }}</span>
             <span 
@@ -164,8 +165,8 @@ const getIcon = (iconName: string) => {
   padding: 0;
   background: transparent;
   border: none;
-  border-left: 3px solid transparent;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  border-left: 4px solid transparent;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast) ease;
 }
 
 .section-header__content {
@@ -179,13 +180,6 @@ const getIcon = (iconName: string) => {
   cursor: pointer;
   font-family: inherit;
   text-align: left;
-}
-
-.section-header__content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
 }
 
 .section-header__icon {
@@ -254,7 +248,7 @@ const getIcon = (iconName: string) => {
 /* Active state */
 .section-header--active {
   background-color: #eef3f8;
-  border-left-color: var(--color-primary);
+  border-left-color: #0d7377;
 }
 
 .section-header--active .section-header__icon,
@@ -269,6 +263,7 @@ const getIcon = (iconName: string) => {
 /* Hover state */
 .section-header:hover {
   background-color: var(--color-gray-50);
+  transition: background-color var(--transition-fast);
 }
 
 .section-header:focus-visible {
@@ -296,11 +291,22 @@ const getIcon = (iconName: string) => {
   padding: 10px 16px 10px 44px;
   background: transparent;
   border: none;
-  border-left: 3px solid transparent;
+  border-left: 4px solid transparent;
   cursor: pointer;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  transition: background-color var(--transition-fast), 
+              border-color var(--transition-fast) ease,
+              transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   font-family: inherit;
   text-align: left;
+}
+
+.nav-item:hover {
+  background-color: var(--color-gray-50);
+  transform: translateX(2px);
+}
+
+.nav-item:active {
+  transform: translateX(1px);
 }
 
 .nav-item__label {
@@ -326,17 +332,12 @@ const getIcon = (iconName: string) => {
 /* Active nav item */
 .nav-item--active {
   background-color: #eef3f8;
-  border-left-color: var(--color-primary);
+  border-left-color: #0d7377;
 }
 
 .nav-item--active .nav-item__label {
   font-weight: 600;
-  color: var(--color-primary);
-}
-
-/* Hover */
-.nav-item:hover {
-  background-color: var(--color-gray-50);
+  color: #0d7377;
 }
 
 .nav-item:focus-visible {
