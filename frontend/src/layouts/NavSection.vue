@@ -76,13 +76,15 @@ const getIcon = (iconName: string) => {
     :class="{ 'nav-section--active': isActive }"
   >
     <!-- Section Header -->
-    <button 
+    <div 
       class="section-header"
       :class="{ 'section-header--active': isActive }"
-      :aria-expanded="isExpanded"
-      @click="handleHeaderClick"
     >
-      <div class="section-header__content">
+      <button 
+        class="section-header__content"
+        :aria-expanded="isExpanded"
+        @click="handleHeaderClick"
+      >
         <span class="section-header__icon" v-html="getIcon(section.icon)" />
         <span class="section-header__label">{{ section.label }}</span>
         <span 
@@ -91,7 +93,7 @@ const getIcon = (iconName: string) => {
         >
           {{ section.items.reduce((acc, item) => acc + (item.badge || 0), 0) }}
         </span>
-      </div>
+      </button>
       
       <!-- Toggle button -->
       <button 
@@ -112,7 +114,7 @@ const getIcon = (iconName: string) => {
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </button>
-    </button>
+    </div>
     
     <!-- Collapsible Items -->
     <transition name="collapse">
@@ -159,12 +161,22 @@ const getIcon = (iconName: string) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 0;
   background: transparent;
   border: none;
   border-left: 3px solid transparent;
-  cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.section-header__content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
   font-family: inherit;
   text-align: left;
 }
