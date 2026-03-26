@@ -47,7 +47,9 @@ const closeSidebar = () => {
   display: flex;
   min-height: 100vh;
   width: 100%;
-  background-color: var(--color-background);
+  background:
+    radial-gradient(circle at 8% 8%, rgba(203, 213, 225, 0.25), transparent 36%),
+    linear-gradient(180deg, #fbfdff 0%, var(--color-background) 100%);
 }
 
 .skip-link {
@@ -85,11 +87,29 @@ const closeSidebar = () => {
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-lg);
+  animation: content-fade-in 0.24s ease-out;
+}
+
+@keyframes content-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 768px) {
   .main-content {
     padding: var(--spacing-xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-content {
+    animation: none;
   }
 }
 </style>
