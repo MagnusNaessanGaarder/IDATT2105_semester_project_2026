@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useMotions } from '@vueuse/motion'
 import Sidebar from './Sidebar.vue'
 
 const isSidebarOpen = ref(false)
@@ -11,6 +12,9 @@ const toggleSidebar = () => {
 const closeSidebar = () => {
   isSidebarOpen.value = false
 }
+
+// Motion controls for main content
+const { mainContent } = useMotions()
 </script>
 
 <template>
@@ -35,6 +39,10 @@ const closeSidebar = () => {
         id="main-content" 
         class="main-content"
         tabindex="-1"
+        v-motion
+        :initial="{ opacity: 0, y: 12 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 320, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' } }"
+        :key="$route.fullPath"
       >
         <router-view />
       </main>
@@ -87,18 +95,6 @@ const closeSidebar = () => {
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-lg);
-  animation: content-fade-in 0.24s ease-out;
-}
-
-@keyframes content-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @media (min-width: 768px) {

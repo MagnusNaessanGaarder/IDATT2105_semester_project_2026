@@ -72,19 +72,39 @@ const isSectionExpanded = (key: string) => expandedSections.value.includes(key)
 const toggleSection = (key: string) => {
   const index = expandedSections.value.indexOf(key)
   if (index > -1) {
+    // Collapse if already expanded
     expandedSections.value.splice(index, 1)
   } else {
-    expandedSections.value.push(key)
+    // Collapse all other sections and expand this one
+    expandedSections.value = [key]
   }
 }
 
-const navigateToDashboard = (routeName: string) => {
+// Get parent section that contains the current screen
+const getParentSectionKey = (screenId: string): string | null => {
+  for (const section of sections.value) {
+    if (section.items.some(item => item.id === screenId)) {
+      return section.key
+    }
+  }
+  return null
+}
+
+const navigateToDashboard = (routeName: string, sectionKey: string) => {
   router.push({ name: routeName })
+  // Auto-expand the section when navigating to its dashboard
+  if (!isSectionExpanded(sectionKey)) {
+    toggleSection(sectionKey)
+  }
   emit('close')
 }
 
-const navigateToScreen = (routeName: string) => {
+const navigateToScreen = (routeName: string, sectionKey: string) => {
   router.push({ name: routeName })
+  // Auto-expand the section when navigating to a screen
+  if (!isSectionExpanded(sectionKey)) {
+    toggleSection(sectionKey)
+  }
   emit('close')
 }
 
@@ -123,9 +143,10 @@ const currentScreen = computed(() => {
         :section="section"
         :is-expanded="isSectionExpanded(section.key)"
         :current-screen="currentScreen"
+        :section-key="section.key"
         @toggle="toggleSection(section.key)"
-        @navigate-dashboard="navigateToDashboard"
-        @navigate-screen="navigateToScreen"
+        @navigate-dashboard="(route) => navigateToDashboard(route, section.key)"
+        @navigate-screen="(route) => navigateToScreen(route, section.key)"
       />
     </nav>
     
