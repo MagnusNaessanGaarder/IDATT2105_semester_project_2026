@@ -144,13 +144,14 @@ const currentScreen = computed(() => {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 240px;
-  background: #ffffff;
+  width: var(--sidebar-width);
+  background: var(--color-card);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   z-index: 50;
   transform: translateX(-100%);
+  transition: transform var(--transition-base) ease;
 }
 
 .sidebar--open {
@@ -168,13 +169,15 @@ const currentScreen = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 18px 16px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .app-title {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.01em;
+  color: var(--color-gray-900);
   margin: 0;
 }
 
@@ -198,15 +201,21 @@ const currentScreen = computed(() => {
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 10px 0;
 }
 
 .sidebar-footer {
   position: sticky;
   bottom: 0;
-  background: #ffffff;
+  background: var(--color-card);
   border-top: 1px solid var(--color-border);
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -6px 16px rgba(15, 23, 42, 0.04);
   z-index: 10;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
 }
 </style>
