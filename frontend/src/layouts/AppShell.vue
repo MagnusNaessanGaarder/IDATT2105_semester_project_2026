@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useMotions } from '@vueuse/motion'
 import Sidebar from './Sidebar.vue'
 
 const isSidebarOpen = ref(false)
@@ -11,6 +12,9 @@ const toggleSidebar = () => {
 const closeSidebar = () => {
   isSidebarOpen.value = false
 }
+
+// Motion controls for main content
+const { mainContent } = useMotions()
 </script>
 
 <template>
@@ -35,6 +39,10 @@ const closeSidebar = () => {
         id="main-content" 
         class="main-content"
         tabindex="-1"
+        v-motion
+        :initial="{ opacity: 0, y: 12 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 320, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' } }"
+        :key="$route.fullPath"
       >
         <router-view />
       </main>
@@ -47,7 +55,9 @@ const closeSidebar = () => {
   display: flex;
   min-height: 100vh;
   width: 100%;
-  background-color: var(--color-background);
+  background:
+    radial-gradient(circle at 8% 8%, rgba(203, 213, 225, 0.25), transparent 36%),
+    linear-gradient(180deg, #fbfdff 0%, var(--color-background) 100%);
 }
 
 .skip-link {
@@ -90,6 +100,12 @@ const closeSidebar = () => {
 @media (min-width: 768px) {
   .main-content {
     padding: var(--spacing-xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-content {
+    animation: none;
   }
 }
 </style>

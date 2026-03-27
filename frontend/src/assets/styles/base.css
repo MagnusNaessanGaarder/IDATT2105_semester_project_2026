@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 /**
  * Base - Globale base-styles og CSS reset
  * 
@@ -24,7 +26,7 @@ html {
 body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--color-foreground);
   background-color: var(--color-background);
   min-height: 100vh;
@@ -38,7 +40,7 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
   font-size: var(--font-size-3xl);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
 }
 
 h2 {
@@ -61,7 +63,7 @@ a {
 }
 
 a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 a:focus-visible {
@@ -74,6 +76,10 @@ button {
   cursor: pointer;
   border: none;
   background: transparent;
+}
+
+#app {
+  min-height: 100vh;
 }
 
 button:focus-visible {
