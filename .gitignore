@@ -37,6 +37,7 @@ backend/InternalControl/target
 
 # Editor directories and files
 .vscode/*
+*/.vscode
 /.vscode/*
 !.vscode/extensions.json
 .idea
