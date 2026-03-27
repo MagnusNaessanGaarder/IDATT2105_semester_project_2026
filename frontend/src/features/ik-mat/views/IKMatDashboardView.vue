@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import ikMatData from '@/data/ik-mat.json'
+
+const stats = ikMatData.dashboard.stats
+const recentChecks = ikMatData.dashboard.recent_checks
 </script>
 
 <template>
@@ -7,6 +11,15 @@
       <h1>IK-Mat Dashboard</h1>
       <p class="subtitle">Matsikkerhet og hygienekontroll</p>
     </header>
+
+    <section class="stats-grid" aria-label="Nøkkeltall for IK-Mat">
+      <article v-for="stat in stats" :key="stat.label" class="stat-card">
+        <p class="stat-card__label">{{ stat.label }}</p>
+        <p class="stat-card__value">
+          {{ stat.value }}<span v-if="stat.unit" class="stat-card__unit">{{ stat.unit }}</span>
+        </p>
+      </article>
+    </section>
     
     <div class="dashboard-grid">
       <div class="card">
@@ -41,6 +54,19 @@
         </router-link>
       </div>
     </div>
+
+    <section class="recent-section" aria-label="Siste gjennomførte kontroller">
+      <h2 class="recent-title">Siste kontroller</h2>
+      <ul class="recent-list">
+        <li v-for="check in recentChecks" :key="check.id" class="recent-item">
+          <div>
+            <p class="recent-item__name">{{ check.name }}</p>
+            <p class="recent-item__meta">{{ check.completed_by }} - {{ check.completed_date }} kl. {{ check.completed_time }}</p>
+          </div>
+          <span class="recent-item__status">{{ check.status === 'completed' ? 'Fullfort' : check.status }}</span>
+        </li>
+      </ul>
+    </section>
   </div>
 </template>
 
@@ -70,6 +96,91 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
+  margin-bottom: 2rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.stat-card__label {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.stat-card__value {
+  margin: 0.5rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-foreground);
+}
+
+.stat-card__unit {
+  margin-left: 0.25rem;
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.recent-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+}
+
+.recent-title {
+  margin: 0 0 1rem;
+  font-size: var(--text-lg);
+}
+
+.recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+}
+
+.recent-item__name {
+  margin: 0;
+  font-weight: 600;
+}
+
+.recent-item__meta {
+  margin: 0.25rem 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.recent-item__status {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-background);
+  background: #15803d;
 }
 
 .card {
