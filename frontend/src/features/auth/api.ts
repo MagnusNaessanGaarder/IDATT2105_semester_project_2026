@@ -48,10 +48,16 @@ export const authApi = {
 
       // Returner uten password
       const { password, ...userWithoutPassword } = user
+      const typedUser: User = {
+        id: String(userWithoutPassword.id),
+        email: userWithoutPassword.email,
+        name: userWithoutPassword.name,
+        role: userWithoutPassword.role as User['role'],
+      }
 
       return {
         token: `mock-jwt-${user.id}-${Date.now()}`,
-        user: userWithoutPassword as User,
+        user: typedUser,
       }
     }
 
