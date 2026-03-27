@@ -19,16 +19,16 @@ export const rules = {
     (v: any) => !!v || msg,
 
   minLength: (n: number, msg?: string) =>
-    (v: string) => v?.length >= n || msg ?? `Minimum ${n} tegn`,
+    (v: string) => v?.length >= n || (msg ?? `Minimum ${n} tegn`),
 
   maxLength: (n: number, msg?: string) =>
-    (v: string) => v?.length <= n || msg ?? `Maksimum ${n} tegn`,
+    (v: string) => v?.length <= n || (msg ?? `Maksimum ${n} tegn`),
 
   min: (n: number, msg?: string) =>
-    (v: number) => Number(v) >= n || msg ?? `Minimum ${n}`,
+    (v: number) => Number(v) >= n || (msg ?? `Minimum ${n}`),
 
   max: (n: number, msg?: string) =>
-    (v: number) => Number(v) <= n || msg ?? `Maksimum ${n}`,
+    (v: number) => Number(v) <= n || (msg ?? `Maksimum ${n}`),
 
   email: (msg: string = 'Ugyldig e-postadresse') =>
     (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || msg,
