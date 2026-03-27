@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import NavSection from './NavSection.vue'
@@ -83,28 +83,27 @@ const toggleSection = (key: string) => {
 // Get parent section that contains the current screen
 const getParentSectionKey = (screenId: string): string | null => {
   for (const section of sections.value) {
-    if (section.items.some(item => item.id === screenId)) {
+    if (section.dashboardRoute === screenId || section.items.some(item => item.route === screenId)) {
       return section.key
     }
   }
   return null
 }
 
-const navigateToDashboard = (routeName: string, sectionKey: string) => {
-  router.push({ name: routeName })
-  // Auto-expand the section when navigating to its dashboard
-  if (!isSectionExpanded(sectionKey)) {
-    toggleSection(sectionKey)
+const navigateToDashboard = (routeName: string) => {
+  if (currentScreen.value !== routeName) {
+    router.push({ name: routeName })
   }
+
   emit('close')
 }
 
 const navigateToScreen = (routeName: string, sectionKey: string) => {
-  router.push({ name: routeName })
-  // Auto-expand the section when navigating to a screen
-  if (!isSectionExpanded(sectionKey)) {
-    toggleSection(sectionKey)
+  if (currentScreen.value !== routeName) {
+    router.push({ name: routeName })
   }
+
+  expandedSections.value = [sectionKey]
   emit('close')
 }
 
@@ -112,6 +111,13 @@ const currentScreen = computed(() => {
   const routeName = route.name as string
   return routeName || ''
 })
+
+watch(currentScreen, (routeName) => {
+  const parentSection = getParentSectionKey(routeName)
+  if (parentSection) {
+    expandedSections.value = [parentSection]
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -143,9 +149,8 @@ const currentScreen = computed(() => {
         :section="section"
         :is-expanded="isSectionExpanded(section.key)"
         :current-screen="currentScreen"
-        :section-key="section.key"
         @toggle="toggleSection(section.key)"
-        @navigate-dashboard="(route) => navigateToDashboard(route, section.key)"
+        @navigate-dashboard="(route) => navigateToDashboard(route)"
         @navigate-screen="(route) => navigateToScreen(route, section.key)"
       />
     </nav>
@@ -222,7 +227,10 @@ const currentScreen = computed(() => {
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 0;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .sidebar-footer {
