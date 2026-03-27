@@ -1,4 +1,36 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import adminData from '@/data/admin.json'
+import UserCard from '../components/UserCard.vue'
+
+interface User {
+  id: number
+  name: string
+  email: string
+  role: 'ADMIN' | 'MANAGER' | 'STAFF'
+  department: string
+  status: 'active' | 'inactive'
+  created_date: string
+  certifications: string[]
+  certifications_valid: boolean
+  last_login: string
+}
+
+const users = ref<User[]>(adminData.users as User[])
+
+const handleEditUser = (user: User) => {
+  void user
+}
+
+const handleToggleUser = (user: User) => {
+  const idx = users.value.findIndex((u) => u.id === user.id)
+  if (idx > -1) {
+    const targetUser = users.value[idx]
+    if (targetUser) {
+      targetUser.status = user.status === 'active' ? 'inactive' : 'active'
+    }
+  }
+}
 </script>
 
 <template>
@@ -7,13 +39,21 @@
       <h1>Brukere</h1>
       <p class="subtitle">Administrer brukere og tilganger</p>
     </header>
-    
-    <div class="admin-badge">
-      <span class="badge">Kun Administrator</span>
+
+    <button class="create-btn">+ Opprett ny bruker</button>
+
+    <div class="users-grid">
+      <UserCard
+        v-for="user in users"
+        :key="user.id"
+        :user="user"
+        @edit="handleEditUser(user)"
+        @deactivate="handleToggleUser(user)"
+      />
     </div>
-    
-    <div class="content-placeholder">
-      <p>Brukeradministrasjon kommer her...</p>
+
+    <div v-if="users.length === 0" class="empty-state">
+      <p>Ingen brukere funnet</p>
     </div>
   </div>
 </template>
@@ -22,47 +62,64 @@
 .view-page {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .page-header {
-  margin-bottom: 16px;
+  margin-bottom: 2rem;
 }
 
 .page-header h1 {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 700;
   color: var(--color-foreground);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  font-size: var(--font-size-base);
-  color: var(--color-gray-500);
-}
-
-.admin-badge {
-  margin-bottom: 24px;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 12px;
-  background-color: var(--color-gray-100);
+  margin: 0;
+  font-size: var(--text-base);
   color: var(--color-gray-600);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: var(--radius-sm);
 }
 
-.content-placeholder {
+.create-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-foreground);
+  color: var(--color-background);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  transition: background-color var(--transition-fast);
+}
+
+.create-btn:hover {
+  background: var(--color-gray-900);
+}
+
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 48px;
-  text-align: center;
-  color: var(--color-gray-500);
+  color: var(--color-gray-600);
+}
+
+@media (max-width: 48rem) {
+  .users-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
