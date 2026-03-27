@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { motion } from 'motion-v'
 import { computed } from 'vue'
-import NavMenuItem from './NavMenuItem.vue'
+import NavMenuItem from '../components/NavMenuItem.vue'
 
 interface NavItem {
   id: string
@@ -38,6 +38,10 @@ const isMainActive = computed(() => {
   return props.section.items.some(item => item.route === props.currentScreen)
 })
 
+const isAnyChildActive = computed(() => {
+  return props.section.items.some((item) => item.route === props.currentScreen)
+})
+
 const sectionBadgeCount = computed(() => {
   return props.section.items.reduce((acc, item) => acc + (item.badge || 0), 0)
 })
@@ -48,8 +52,9 @@ const isItemActive = (routeName: string) => {
 }
 
 const handleHeaderClick = () => {
-  if (!isMainActive.value) {
+  if (isAnyChildActive.value) {
     emit('navigateDashboard', props.section.dashboardRoute)
+    return
   }
 
   emit('toggle')
@@ -123,21 +128,21 @@ const getIcon = (iconName: string) => {
 
 <style scoped>
 .nav-section {
-  margin-bottom: 6px;
+  margin-bottom: 0.375rem;
   width: 100%;
 }
 
 .submenu {
   overflow: hidden;
-  border-left: 1px solid var(--color-gray-200);
-  margin-left: 14px;
+  border-left: 0.0625rem solid var(--color-gray-200);
+  margin-left: 0.875rem;
 }
 
 .nav-items {
-  margin: 4px 0 0;
+  margin: 0.25rem 0 0;
   padding: 0;
   display: grid;
-  gap: 2px;
+  gap: 0.125rem;
 }
 
 .nav-item-wrapper {
@@ -159,7 +164,7 @@ const getIcon = (iconName: string) => {
 
 .collapse-enter-to,
 .collapse-leave-from {
-  max-height: 500px;
+  max-height: 31.25rem;
   opacity: 1;
 }
 
