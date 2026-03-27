@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { motion } from 'motion-v'
 import { computed } from 'vue'
+import NavMenuItem from './NavMenuItem.vue'
 
 interface NavItem {
   id: string
@@ -20,7 +22,6 @@ const props = defineProps<{
   section: Section
   isExpanded: boolean
   currentScreen: string
-  sectionKey: string
 }>()
 
 const emit = defineEmits<{
@@ -29,28 +30,28 @@ const emit = defineEmits<{
   navigateScreen: [routeName: string]
 }>()
 
-// Check if this section is active (current screen is in this section)
-const isActive = computed(() => {
-  // Section is active if any of its child items matches the current screen
-  const itemIds = props.section.items.map(item => item.id)
-  return itemIds.includes(props.currentScreen)
+const isMainActive = computed(() => {
+  if (props.currentScreen === props.section.dashboardRoute) {
+    return true
+  }
+
+  return props.section.items.some(item => item.route === props.currentScreen)
+})
+
+const sectionBadgeCount = computed(() => {
+  return props.section.items.reduce((acc, item) => acc + (item.badge || 0), 0)
 })
 
 // Check if a specific item is the active child
-const isItemActive = (itemId: string) => {
-  return props.currentScreen === itemId
+const isItemActive = (routeName: string) => {
+  return props.currentScreen === routeName
 }
 
-// Navigate to dashboard and expand section
-
-// Navigate to dashboard and toggle section expansion
 const handleHeaderClick = () => {
+  if (!isMainActive.value) {
     emit('navigateDashboard', props.section.dashboardRoute)
-    emit('toggle')
-}
-// Just toggle expansion (without navigation)
-const handleToggleClick = (e: Event) => {
-  e.stopPropagation()
+  }
+
   emit('toggle')
 }
 
@@ -72,277 +73,75 @@ const getIcon = (iconName: string) => {
 </script>
 
 <template>
-  <div 
+  <motion.div
     class="nav-section"
-    :class="{ 'nav-section--active': isActive }"
+    :class="{ 'nav-section--active': isMainActive }"
   >
-    <!-- Section Header -->
-    <div 
-      class="section-header"
-      :class="{ 'section-header--active': isActive }"
-    >
-      <button 
-        class="section-header__content"
-        :aria-expanded="isExpanded"
-        @click="handleHeaderClick"
-      >
-        <span class="section-header__icon" v-html="getIcon(section.icon)" />
-        <span class="section-header__label">{{ section.label }}</span>
-        <span 
-          v-if="section.items.some(i => i.badge)"
-          class="section-header__badge"
-        >
-          {{ section.items.reduce((acc, item) => acc + (item.badge || 0), 0) }}
-        </span>
-      </button>
-      
-      <!-- Toggle button -->
-      <button 
-        class="section-header__toggle"
-        @click="handleToggleClick"
-        :aria-label="isExpanded ? 'Kollaps seksjon' : 'Ekspander seksjon'"
-      >
-        <svg 
-          width="14" 
-          height="14" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          stroke-width="2"
-          class="chevron-icon"
-          :class="{ 'chevron-icon--rotated': !isExpanded }"
-        >
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </button>
-    </div>
+    <NavMenuItem
+      variant="main"
+      :label="section.label"
+      :icon="getIcon(section.icon)"
+      :badge="sectionBadgeCount"
+      :active="isMainActive"
+      :expanded="isExpanded"
+      @select="handleHeaderClick"
+    />
     
-    <!-- Collapsible Items -->
     <transition name="collapse">
-      <ul 
+      <motion.div
         v-show="isExpanded"
-        class="nav-items"
-        :id="`section-${section.key}-items`"
-        role="list"
-        :aria-label="`${section.label} menyelementer`"
+        class="submenu"
+        :initial="{ opacity: 0, y: -6 }"
+        :animate="{ opacity: 1, y: 0, transition: { duration: 0.22 } }"
       >
-        <li 
-          v-for="item in section.items" 
-          :key="item.id"
-          class="nav-item-wrapper"
+        <motion.div
+          class="nav-items"
+          :id="`section-${section.key}-items`"
+          role="group"
+          :aria-label="`${section.label} menyelementer`"
         >
-          <button
-            class="nav-item"
-            :class="{ 'nav-item--active': isItemActive(item.id) }"
-            @click="navigateToScreen(item.route)"
-            :aria-current="isItemActive(item.id) ? 'page' : undefined"
+          <motion.div
+            v-for="item in section.items"
+            :key="item.id"
+            class="nav-item-wrapper"
+            :initial="{ opacity: 0, x: -6 }"
+            :animate="{ opacity: 1, x: 0, transition: { duration: 0.18, delay: 0.03 * section.items.findIndex(i => i.id === item.id) } }"
           >
-            <span class="nav-item__label">{{ item.label }}</span>
-            <span 
-              v-if="item.badge"
-              class="nav-item__badge"
-            >
-              {{ item.badge }}
-            </span>
-          </button>
-        </li>
-      </ul>
+            <NavMenuItem
+              variant="sub"
+              :label="item.label"
+              :badge="item.badge || 0"
+              :active="isItemActive(item.route)"
+              @select="navigateToScreen(item.route)"
+            />
+          </motion.div>
+        </motion.div>
+      </motion.div>
     </transition>
-  </div>
+  </motion.div>
 </template>
 
 <style scoped>
 .nav-section {
   margin-bottom: 6px;
-}
-
-/* Section Header */
-.section-header {
   width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-left: 4px solid transparent;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast) ease;
 }
 
-.section-header__content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-}
-
-.section-header__icon {
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-gray-500);
-}
-
-.section-header__label {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--color-gray-500);
-}
-
-.section-header__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  background-color: #DC2626;
-  color: #FFFFFF;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 9999px;
-  margin-left: auto;
-}
-
-/* Toggle button */
-.section-header__toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--color-gray-500);
-  transition: background-color var(--transition-fast), color var(--transition-fast);
-  border-radius: 4px;
-}
-
-.section-header__toggle:hover {
-  background-color: var(--color-gray-100);
-}
-
-.section-header__toggle:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-.chevron-icon {
-  transition: transform var(--transition-base) ease;
-}
-
-.chevron-icon--rotated {
-  transform: rotate(-90deg);
-}
-
-/* Active state */
-.section-header--active {
-  background-color: #eef3f8;
-  border-left-color: #0d7377;
-}
-
-.section-header--active .section-header__icon,
-.section-header--active .section-header__label {
-  color: var(--color-gray-900);
-}
-
-.section-header--active .section-header__toggle {
-  color: var(--color-gray-900);
-}
-
-/* Hover state */
-.section-header:hover {
-  background-color: var(--color-gray-50);
-  transition: background-color var(--transition-fast);
-}
-
-.section-header:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: -2px;
-}
-
-/* Nav Items */
-.nav-items {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.submenu {
   overflow: hidden;
+  border-left: 1px solid var(--color-gray-200);
+  margin-left: 14px;
+}
+
+.nav-items {
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
 }
 
 .nav-item-wrapper {
   margin: 0;
-}
-
-.nav-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px 10px 44px;
-  background: transparent;
-  border: none;
-  border-left: 4px solid transparent;
-  cursor: pointer;
-  transition: background-color var(--transition-fast), 
-              border-color var(--transition-fast) ease,
-              transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  font-family: inherit;
-  text-align: left;
-}
-
-.nav-item:hover {
-  background-color: var(--color-gray-50);
-  transform: translateX(2px);
-}
-
-.nav-item:active {
-  transform: translateX(1px);
-}
-
-.nav-item__label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-gray-500);
-}
-
-.nav-item__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  background-color: #DC2626;
-  color: #FFFFFF;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 9999px;
-}
-
-/* Active nav item */
-.nav-item--active {
-  background-color: #eef3f8;
-  border-left-color: #0d7377;
-}
-
-.nav-item--active .nav-item__label {
-  font-weight: 600;
-  color: #0d7377;
-}
-
-.nav-item:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: -2px;
 }
 
 /* Collapse transition */
@@ -366,13 +165,6 @@ const getIcon = (iconName: string) => {
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .section-header,
-  .nav-item,
-  .section-header__toggle,
-  .chevron-icon {
-    transition: none;
-  }
-  
   .collapse-enter-active,
   .collapse-leave-active {
     transition: none;
