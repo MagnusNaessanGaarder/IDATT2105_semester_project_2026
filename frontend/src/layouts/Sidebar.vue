@@ -172,7 +172,7 @@ watch(currentScreen, (routeName) => {
   bottom: 0;
   width: var(--sidebar-width);
   background: var(--color-card);
-  border-right: 1px solid var(--color-border);
+  border-right: 0.0625rem solid var(--color-border);
   display: flex;
   flex-direction: column;
   z-index: 50;
@@ -184,7 +184,7 @@ watch(currentScreen, (routeName) => {
   transform: translateX(0);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 48rem) {
   .sidebar {
     position: static;
     transform: translateX(0);
@@ -195,8 +195,8 @@ watch(currentScreen, (routeName) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 16px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 1.125rem 1rem;
+  border-bottom: 0.0625rem solid var(--color-border);
 }
 
 .app-title {
@@ -211,14 +211,14 @@ watch(currentScreen, (routeName) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 2.5rem;
+  height: 2.5rem;
   background: transparent;
   border: none;
   cursor: pointer;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 48rem) {
   .close-btn {
     display: none;
   }
@@ -227,18 +227,18 @@ watch(currentScreen, (routeName) => {
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 0;
+  padding: 0.75rem 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .sidebar-footer {
   position: sticky;
   bottom: 0;
   background: var(--color-card);
-  border-top: 1px solid var(--color-border);
-  box-shadow: 0 -6px 16px rgba(15, 23, 42, 0.04);
+  border-top: 0.0625rem solid var(--color-border);
+  box-shadow: 0 -0.375rem 1rem rgba(15, 23, 42, 0.04);
   z-index: 10;
 }
 

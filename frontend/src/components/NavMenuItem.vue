@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { motion } from 'motion-v'
 
-const props = withDefaults(defineProps<{
-  variant: 'main' | 'sub'
-  label: string
-  active?: boolean
-  badge?: number
-  icon?: string
-  expanded?: boolean
-}>(), {
-  active: false,
-  badge: 0,
-  icon: '',
-  expanded: false,
-})
+const props = withDefaults(
+  defineProps<{
+    variant: 'main' | 'sub'
+    label: string
+    active?: boolean
+    badge?: number
+    icon?: string
+    expanded?: boolean
+  }> (), 
+  {
+    active: false,
+    badge: 0,
+    icon: '',
+    expanded: false,
+
+  }
+)
 
 const emit = defineEmits<{
   select: []
@@ -71,13 +75,13 @@ const handleSelect = () => {
 
 .menu-item__button {
   width: 100%;
-  min-height: 44px;
+  min-height: 2.75rem;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   background: transparent;
-  border: 1px solid transparent;
-  border-left: 4px solid transparent;
+  border: 0.0625rem solid transparent;
+  border-left: 0.25rem solid transparent;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
@@ -86,16 +90,16 @@ const handleSelect = () => {
 }
 
 .menu-item__button--main {
-  padding: 12px 16px;
+  padding: 0.75rem 1rem;
 }
 
 .menu-item__button--sub {
-  padding: 10px 16px 10px 44px;
+  padding: 0.625rem 1rem 0.625rem 2.75rem;
 }
 
 .menu-item__icon {
-  width: 18px;
-  height: 18px;
+  width: 1.125rem;
+  height: 1.125rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,13 +107,13 @@ const handleSelect = () => {
 }
 
 .menu-item__label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--color-gray-600);
 }
 
 .menu-item--main .menu-item__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -119,20 +123,20 @@ const handleSelect = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.375rem;
   background-color: #DC2626;
   color: #FFFFFF;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
-  border-radius: 9999px;
+  border-radius: 624.9375rem;
   margin-left: auto;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0.0625rem 0 rgba(0, 0, 0, 0.08);
 }
 
 .menu-item__chevron {
-  margin-left: 6px;
+  margin-left: 0.375rem;
   color: var(--color-gray-500);
   transform: rotate(-90deg);
   transition: transform var(--transition-base) ease, color var(--transition-fast);
@@ -168,8 +172,8 @@ const handleSelect = () => {
 }
 
 .menu-item__button:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: -2px;
+  outline: 0.125rem solid var(--color-focus);
+  outline-offset: -0.125rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
