@@ -1,4 +1,17 @@
 <script setup lang="ts">
+import alkoholData from '@/data/ik-alkohol.json'
+
+type DailyControl = {
+  id: number
+  name: string
+  is_checked: boolean
+}
+
+const dailyControls = alkoholData['daily-control'] as DailyControl[]
+const completedControls = dailyControls.filter((item) => item.is_checked).length
+const totalControls = dailyControls.length
+const certifications = alkoholData.certifications.employees
+const laws = alkoholData.law_framework.laws
 </script>
 
 <template>
@@ -7,6 +20,21 @@
       <h1>IK-Alkohol Dashboard</h1>
       <p class="subtitle">Ansvarlig alkoholservering</p>
     </header>
+
+    <section class="stats-grid" aria-label="Nokkelstatus for IK-Alkohol">
+      <article class="stat-card">
+        <p class="stat-card__label">Daglig kontroll</p>
+        <p class="stat-card__value">{{ completedControls }} / {{ totalControls }}</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-card__label">Ansatte i sertifiseringsoversikt</p>
+        <p class="stat-card__value">{{ certifications.length }}</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-card__label">Aktive lover og forskrifter</p>
+        <p class="stat-card__value">{{ laws.length }}</p>
+      </article>
+    </section>
     
     <div class="dashboard-grid">
       <div class="card">
@@ -62,6 +90,32 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.stat-card__label {
+  margin: 0;
+  color: var(--color-gray-600);
+  font-size: var(--text-sm);
+}
+
+.stat-card__value {
+  margin: 0.5rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
 }
 
 .card {
