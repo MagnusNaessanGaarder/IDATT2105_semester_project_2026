@@ -80,21 +80,20 @@ const handleSelect = () => {
   align-items: center;
   gap: 0.625rem;
   background: transparent;
-  border: 0.0625rem solid transparent;
-  border-left: 0.25rem solid transparent;
+  border: none;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
   border-radius: 0;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast) ease, color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .menu-item__button--main {
-  padding: 0.75rem 1rem;
+  padding: var(--spacing-md) var(--spacing-md);
 }
 
 .menu-item__button--sub {
-  padding: 0.625rem 1rem 0.625rem 2.75rem;
+  padding: var(--spacing-md) var(--spacing-md);
 }
 
 .menu-item__icon {
@@ -103,13 +102,14 @@ const handleSelect = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-gray-500);
+  color: var(--color-gray-400);
+  transition: color var(--transition-fast);
 }
 
 .menu-item__label {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--color-gray-600);
+  color: var(--color-gray-700);
 }
 
 .menu-item--main .menu-item__label {
@@ -126,8 +126,8 @@ const handleSelect = () => {
   min-width: 1.125rem;
   height: 1.125rem;
   padding: 0 0.375rem;
-  background-color: #DC2626;
-  color: #FFFFFF;
+  background-color: var(--color-danger);
+  color: var(--color-primary-foreground);
   font-size: 0.6875rem;
   font-weight: 700;
   border-radius: 624.9375rem;
@@ -137,7 +137,7 @@ const handleSelect = () => {
 
 .menu-item__chevron {
   margin-left: 0.375rem;
-  color: var(--color-gray-500);
+  color: var(--color-gray-400);
   transform: rotate(-90deg);
   transition: transform var(--transition-base) ease, color var(--transition-fast);
 }
@@ -152,22 +152,33 @@ const handleSelect = () => {
 
 .menu-item--sub .menu-item__button:hover {
   transition: background-color var(--transition-fast);
+  color: var(--color-primary);
 }
 
 .menu-item--active .menu-item__button {
-  background-color: #eef3f8;
-  border-left-color: #0d7377;
-  border-color: var(--color-gray-200);
+  background-color: var(--color-accent-hover);
+  border-left-color: var(--ik-mat-primary);
+  border-left-style: solid;
+  border-left-width: 0.25rem;
+  padding-left: calc(var(--spacing-md) - 0.25rem);
+  color: var(--color-primary);
 }
 
 .menu-item--active .menu-item__label,
-.menu-item--active .menu-item__icon,
 .menu-item--active .menu-item__chevron {
   color: var(--color-gray-900);
 }
 
+.menu-item--active .menu-item__icon {
+  color: var(--ik-mat-primary);
+}
+
+.menu-item--active .menu-item__chevron {
+  color: var(--ik-mat-primary);
+}
+
 .menu-item--sub.menu-item--active .menu-item__label {
-  color: #0d7377;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
