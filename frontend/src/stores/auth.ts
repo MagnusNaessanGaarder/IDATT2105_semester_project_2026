@@ -1,63 +1,160 @@
-import { ref, computed } from 'vue'
+/**
+ * useAuthStore.js - Pinia store for autentisering.
+ *
+ * Sentraliserer all auth-logikk:
+ * - Token-lagring i sessionStorage (oppgavekrav 4.7)
+ * - Brukerinfo (username, role)
+ * - Login/logout/register actions
+ * - Computed properties for auth-status
+ *
+ * sessionStorage valgt over localStorage fordi:
+ * - Tømmes når fanen lukkes (kortlevd sesjon)
+ * - Ikke delt mellom faner (sikrere)
+ * - Oppgaveteksten tillater dette eksplisitt
+ */
 import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
 import { authApi } from '@/features/auth/api'
-import type { User } from '@/types'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
-  const isAuthenticated = ref(false)
-  const hasCheckedAuth = ref(false)
+  // ======== State ========
+  const username = ref(sessionStorage.getItem('username') || null)
+  const role = ref(sessionStorage.getItem('role') || null)
+  const accessToken = ref(sessionStorage.getItem('accessToken') || null)
+  const loading = ref(false)
+  const error = ref(null)
 
-  const userRole = computed(() => user.value?.role ?? null)
-  const isAdmin = computed(() => user.value?.role === 'ADMIN')
-  const isManager = computed(() => ['ADMIN', 'MANAGER'].includes(user.value?.role ?? ''))
+  // ======== Computed ========
+  const isAuthenticated = computed(() => !!accessToken.value)
+  const isAdmin = computed(() => role.value === 'ADMIN')
+  const userDisplayName = computed(() => username.value || 'Gjest')
 
-  async function login(credentials: { email: string; password: string }) {
-    const { token, user: userData } = await authApi.login(credentials)
-    user.value = userData
-    isAuthenticated.value = true
-    sessionStorage.setItem('jwt_token', token)
-    sessionStorage.setItem('user', JSON.stringify(userData))
-  }
+  // ======== Actions ========
 
-  async function logout() {
-    await authApi.logout()
-    user.value = null
-    isAuthenticated.value = false
-    sessionStorage.removeItem('jwt_token')
-    sessionStorage.removeItem('user')
-  }
+  /**
+   * Logger inn bruker og lagrer tokens i sessionStorage.
+   */
+  async function login(credentials) {
+    loading.value = true
+    error.value = null
 
-  async function checkAuth() {
-    hasCheckedAuth.value = true
-    const token = sessionStorage.getItem('jwt_token')
-    const storedUser = sessionStorage.getItem('user')
-
-    if (token && storedUser) {
-      try {
-        user.value = JSON.parse(storedUser)
-        isAuthenticated.value = true
-      } catch {
-        sessionStorage.removeItem('jwt_token')
-        sessionStorage.removeItem('user')
-      }
+    try {
+      const response = await authApi.login(credentials)
+      setAuthData(response)
+      return response
+    } catch (err) {
+      error.value = parseError(err)
+      throw err
+    } finally {
+      loading.value = false
     }
   }
 
-  function hasRole(...roles: string[]) {
-    return roles.includes(user.value?.role ?? '')
+  /**
+   * Registrerer ny bruker og logger inn automatisk.
+   */
+  async function register(userData) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await authApi.register(userData)
+      setAuthData(response)
+      return response
+    } catch (err) {
+      error.value = parseError(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Logger ut bruker og fjerner alle tokens.
+   */
+  function logout() {
+    username.value = null
+    role.value = null
+    accessToken.value = null
+
+    sessionStorage.removeItem('accessToken')
+    sessionStorage.removeItem('refreshToken')
+    sessionStorage.removeItem('username')
+    sessionStorage.removeItem('role')
+  }
+
+  /**
+   * Sjekker om brukeren fortsatt er autentisert.
+   * Kaller refresh hvis access token er utløpt.
+   */
+  async function checkAuth() {
+    const token = sessionStorage.getItem('accessToken')
+    if (!token) {
+      logout()
+      return false
+    }
+
+    // Decode JWT payload for å sjekke utløpstid
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      const isExpired = payload.exp * 1000 < Date.now()
+
+      if (isExpired) {
+        const refreshToken = sessionStorage.getItem('refreshToken')
+        if (refreshToken) {
+          const response = await authApi.refresh(refreshToken)
+          setAuthData(response)
+          return true
+        } else {
+          logout()
+          return false
+        }
+      }
+      return true
+    } catch {
+      logout()
+      return false
+    }
+  }
+
+  // ======== Hjelpefunksjoner ========
+
+  function setAuthData(response) {
+    accessToken.value = response.accessToken
+    username.value = response.username
+    role.value = response.role
+
+    sessionStorage.setItem('accessToken', response.accessToken)
+    sessionStorage.setItem('refreshToken', response.refreshToken)
+    sessionStorage.setItem('username', response.username)
+    sessionStorage.setItem('role', response.role)
+  }
+
+  function parseError(err) {
+    if (err.response?.data?.error) {
+      return err.response.data.error
+    }
+    if (err.response?.data?.fieldErrors) {
+      return Object.values(err.response.data.fieldErrors).join(', ')
+    }
+    return 'Noe gikk galt. Prøv igjen.'
   }
 
   return {
-    user,
+    // State
+    username,
+    role,
+    accessToken,
+    loading,
+    error,
+    // Computed
     isAuthenticated,
-    hasCheckedAuth,
-    userRole,
     isAdmin,
-    isManager,
+    userDisplayName,
+    // Actions
     login,
+    register,
     logout,
     checkAuth,
-    hasRole,
   }
 })

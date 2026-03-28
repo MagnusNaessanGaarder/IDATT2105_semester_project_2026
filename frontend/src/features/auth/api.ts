@@ -29,11 +29,25 @@ const MOCK_USERS = [
 // Setter til true for å bruke mock, false for å kalle backend
 const USE_MOCK = true
 
+export interface AuthResponse {
+  accessToken: string
+  refreshToken: string
+  username: string
+  role: string
+}
+
+export interface RegisterData {
+  username: string
+  email: string
+  password: string
+  fullName?: string
+}
+
 export const authApi = {
   async login(credentials: {
     email: string
     password: string
-  }): Promise<{ token: string; user: User }> {
+  }): Promise<AuthResponse> {
     if (USE_MOCK) {
       // Simuler nettverksforsinkelse
       await new Promise((resolve) => setTimeout(resolve, 500))
@@ -46,17 +60,53 @@ export const authApi = {
         throw new Error('Ugyldig e-post eller passord')
       }
 
-      // Returner uten password
-      const { password, ...userWithoutPassword } = user
-
       return {
-        token: `mock-jwt-${user.id}-${Date.now()}`,
-        user: userWithoutPassword as User,
+        accessToken: `mock-jwt-${user.id}-${Date.now()}`,
+        refreshToken: `mock-refresh-${user.id}-${Date.now()}`,
+        username: user.name,
+        role: user.role,
       }
     }
 
     // Ekte backend-kall
     const response = await client.post('/auth/login', credentials)
+    return response.data
+  },
+
+  async register(userData: RegisterData): Promise<AuthResponse> {
+    if (USE_MOCK) {
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      
+      // Sjekk om bruker allerede eksisterer
+      if (MOCK_USERS.some(u => u.email === userData.email)) {
+        throw new Error('E-post er allerede registrert')
+      }
+
+      return {
+        accessToken: `mock-jwt-new-${Date.now()}`,
+        refreshToken: `mock-refresh-new-${Date.now()}`,
+        username: userData.username,
+        role: 'EMPLOYEE',
+      }
+    }
+
+    const response = await client.post('/auth/register', userData)
+    return response.data
+  },
+
+  async refresh(refreshToken: string): Promise<AuthResponse> {
+    if (USE_MOCK) {
+      await new Promise((resolve) => setTimeout(resolve, 200))
+      
+      return {
+        accessToken: `mock-jwt-refreshed-${Date.now()}`,
+        refreshToken: `mock-refresh-refreshed-${Date.now()}`,
+        username: sessionStorage.getItem('username') || 'Tri',
+        role: sessionStorage.getItem('role') || 'ADMIN',
+      }
+    }
+
+    const response = await client.post('/auth/refresh', { refreshToken })
     return response.data
   },
 
