@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { motion } from 'motion-v'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import NavSection from './NavSection.vue'
@@ -19,6 +20,33 @@ const authStore = useAuthStore()
 
 const expandedSections = ref<string[]>([])
 const user = computed(() => authStore.user)
+const isDesktop = ref(false)
+const prefersReducedMotion = ref(false)
+
+const fallbackBusinessName = 'Internkontroll'
+
+const businessLabel = computed(() => {
+  const email = user.value?.email
+  if (!email || !email.includes('@')) {
+    return fallbackBusinessName
+  }
+
+  const domain = email.split('@')[1]
+  if (!domain) {
+    return fallbackBusinessName
+  }
+
+  const rootDomain = domain.split('.')[0]
+
+  if (!rootDomain || ['gmail', 'outlook', 'hotmail', 'yahoo', 'icloud'].includes(rootDomain.toLowerCase())) {
+    return fallbackBusinessName
+  }
+
+  return rootDomain
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+})
 
 const sections = computed(() => [
   {
@@ -112,6 +140,40 @@ const currentScreen = computed(() => {
   return routeName || ''
 })
 
+const updateViewport = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  isDesktop.value = window.matchMedia('(min-width: 48rem)').matches
+  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+onMounted(() => {
+  updateViewport()
+  window.addEventListener('resize', updateViewport)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateViewport)
+})
+
+const sidebarAnimation = computed(() => {
+  const x = isDesktop.value || props.isOpen ? '0%' : '-100%'
+
+  return {
+    x,
+    transition: {
+      duration: prefersReducedMotion.value ? 0 : 0.22,
+    },
+  }
+})
+
+const sidebarInitial = computed(() => {
+  const x = isDesktop.value || props.isOpen ? '0%' : '-100%'
+  return { x }
+})
+
 watch(currentScreen, (routeName) => {
   const parentSection = getParentSectionKey(routeName)
   if (parentSection) {
@@ -121,14 +183,18 @@ watch(currentScreen, (routeName) => {
 </script>
 
 <template>
-  <aside 
+  <motion.aside
     class="sidebar"
-    :class="{ 'sidebar--open': isOpen }"
+    :initial="sidebarInitial"
+    :animate="sidebarAnimation"
     role="navigation"
     aria-label="Hovednavigasjon"
   >
     <div class="sidebar-header">
-      <h1 class="app-title">IK-Kontroll</h1>
+      <div class="brand-block">
+        <h1 class="app-title">IK-Kontroll</h1>
+        <p class="app-business">{{ businessLabel }}</p>
+      </div>
       <button 
         v-if="isOpen"
         class="close-btn"
@@ -161,90 +227,95 @@ watch(currentScreen, (routeName) => {
         :user="user"
       />
     </div>
-  </aside>
+  </motion.aside>
 </template>
 
 <style scoped>
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: var(--sidebar-width);
-  background: var(--color-card);
-  border-right: 0.0625rem solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  z-index: 50;
-  transform: translateX(-100%);
-  transition: transform var(--transition-base) ease;
-}
-
-.sidebar--open {
-  transform: translateX(0);
-}
-
-@media (min-width: 48rem) {
   .sidebar {
-    position: static;
-    transform: translateX(0);
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--color-card);
+    border-right: 0.0625rem solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
   }
-}
 
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.125rem 1rem;
-  border-bottom: 0.0625rem solid var(--color-border);
-}
+  @media (min-width: 48rem) {
+    .sidebar {
+      position: sticky;
+      top: 0;
+    }
+  }
 
-.app-title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.01em;
-  color: var(--color-gray-900);
-  margin: 0;
-}
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
+    border-bottom: 0.0625rem solid var(--color-border);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.02) 0%, rgba(15, 23, 42, 0) 100%);
+  }
 
-.close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
+  .brand-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 
-@media (min-width: 48rem) {
+  .app-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.02em;
+    color: var(--color-primary);
+    margin: 0;
+  }
+
+  .app-business {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-gray-500);
+    font-weight: var(--font-weight-medium);
+  }
+
   .close-btn {
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
   }
-}
 
-.sidebar-nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.75rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.sidebar-footer {
-  position: sticky;
-  bottom: 0;
-  background: var(--color-card);
-  border-top: 0.0625rem solid var(--color-border);
-  box-shadow: 0 -0.375rem 1rem rgba(15, 23, 42, 0.04);
-  z-index: 10;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sidebar {
-    transition: none;
+  @media (min-width: 48rem) {
+    .close-btn {
+      display: none;
+    }
   }
-}
+
+  .sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-sm) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .sidebar-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--color-card);
+    border-top: 0.0625rem solid var(--color-border);
+    box-shadow: 0 -0.375rem 1rem rgba(15, 23, 42, 0.04);
+    z-index: 10;
+  }
+
 </style>

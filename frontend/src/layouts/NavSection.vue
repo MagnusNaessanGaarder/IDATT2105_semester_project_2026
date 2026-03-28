@@ -128,21 +128,23 @@ const getIcon = (iconName: string) => {
 
 <style scoped>
 .nav-section {
-  margin-bottom: 0.375rem;
+  margin-bottom: 0;
   width: 100%;
 }
 
 .submenu {
   overflow: hidden;
-  border-left: 0.0625rem solid var(--color-gray-200);
-  margin-left: 0.875rem;
+  border-left: none;
+  margin-left: 0;
+  margin-top: 0;
+  background: none;
 }
 
 .nav-items {
-  margin: 0.25rem 0 0;
+  margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.125rem;
+  gap: 0;
 }
 
 .nav-item-wrapper {
