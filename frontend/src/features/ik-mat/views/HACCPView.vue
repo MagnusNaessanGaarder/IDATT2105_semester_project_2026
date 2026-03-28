@@ -1,43 +1,80 @@
 <script setup lang="ts">
-import ikMatData from '@/data/ik-mat.json'
+import { computed } from 'vue'
+import { useIkMatData } from '../composables/useIkMatData'
 
-const haccpPlan = ikMatData.haccp
+const { haccpPlan, formatDate } = useIkMatData()
+
+const ccpStatusSummary = computed(() => {
+  const total = haccpPlan.critical_control_points.length
+  const followUp = haccpPlan.critical_control_points.filter((point) => {
+    return point.name.toLowerCase().includes('varmholding') || point.name.toLowerCase().includes('nedkjøling')
+  }).length
+
+  return {
+    total,
+    followUp,
+    ok: total - followUp,
+  }
+})
 </script>
 
 <template>
-  <div class="view-page">
+  <div class="haccp-page">
     <header class="page-header">
       <h1>HACCP-plan</h1>
-      <p class="subtitle">Kritiske kontrollpunkter basert på Codex Alimentarius</p>
+      <p class="subtitle">{{ haccpPlan.plan_name }}</p>
+      <p class="meta">Versjon {{ haccpPlan.version }} · oppdatert {{ formatDate(haccpPlan.last_updated) }}</p>
     </header>
 
-    <section class="plan-summary">
-      <h2>{{ haccpPlan.plan_name }}</h2>
-      <p>Versjon {{ haccpPlan.version }} - Opprettet {{ haccpPlan.created_date }} - Sist oppdatert {{ haccpPlan.last_updated }}</p>
-    </section>
-
-    <section class="ccp-grid" aria-label="Kritiske kontrollpunkter">
-      <article v-for="point in haccpPlan.critical_control_points" :key="point.id" class="ccp-card">
-        <header class="ccp-card__header">
-          <p class="ccp-card__number">{{ point.number }}</p>
-          <h3 class="ccp-card__name">{{ point.name }}</h3>
-        </header>
-        <p class="ccp-card__desc">{{ point.description }}</p>
-        <p><strong>Farer:</strong> {{ point.hazards.join(', ') }}</p>
-        <p><strong>Kritiske grenser:</strong> {{ point.critical_limits }}</p>
-        <p><strong>Overvaking:</strong> {{ point.monitoring }}</p>
-        <p><strong>Korrigerende tiltak:</strong> {{ point.corrective_actions }}</p>
-        <p><strong>Verifisering:</strong> {{ point.verification }}</p>
-        <p><strong>Ansvarlig:</strong> {{ point.responsible }}</p>
+    <section class="summary-grid" aria-label="HACCP sammendrag">
+      <article class="summary-card summary-card--good">
+        <p>CCP OK</p>
+        <strong>{{ ccpStatusSummary.ok }}</strong>
+      </article>
+      <article class="summary-card summary-card--warn">
+        <p>Krever oppfølging</p>
+        <strong>{{ ccpStatusSummary.followUp }}</strong>
+      </article>
+      <article class="summary-card summary-card--info">
+        <p>Totale CCP</p>
+        <strong>{{ ccpStatusSummary.total }}</strong>
       </article>
     </section>
 
-    <section class="supporting-docs">
-      <h2>Stottedokumenter</h2>
+    <section class="table-card" aria-label="Kritiske kontrollpunkter">
+      <h2>Kritiske kontrollpunkter</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>CCP</th>
+            <th>Prosesstrinn</th>
+            <th>Farer</th>
+            <th>Kritisk grense</th>
+            <th>Overvåking</th>
+            <th>Korrigerende tiltak</th>
+            <th>Ansvarlig</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="point in haccpPlan.critical_control_points" :key="point.id">
+            <td>{{ point.number }}</td>
+            <td>{{ point.name }}</td>
+            <td>{{ point.hazards.join(', ') }}</td>
+            <td>{{ point.critical_limits }}</td>
+            <td>{{ point.monitoring }}</td>
+            <td>{{ point.corrective_actions }}</td>
+            <td>{{ point.responsible }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="docs-card" aria-label="Støttedokumenter">
+      <h2>Støttedokumenter</h2>
       <ul>
         <li v-for="doc in haccpPlan.supporting_documents" :key="doc.id">
-          <strong>{{ doc.name }}</strong>
-          <span> - Oppdatert {{ doc.date_updated }} - {{ doc.description }}</span>
+          <p>{{ doc.name }}</p>
+          <span>Oppdatert {{ formatDate(doc.date_updated) }} · {{ doc.description }}</span>
         </li>
       </ul>
     </section>
@@ -45,89 +82,147 @@ const haccpPlan = ikMatData.haccp
 </template>
 
 <style scoped>
-.view-page {
+.haccp-page {
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 1.25rem;
 }
 
 .page-header h1 {
+  margin: 0;
   font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-foreground);
-  margin-bottom: 8px;
+  color: var(--ik-mat-primary);
 }
 
 .subtitle {
-  font-size: var(--font-size-base);
+  margin: 0.35rem 0 0;
+  color: var(--color-foreground);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.meta {
+  margin: 0.2rem 0 0;
   color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
 }
 
-.plan-summary,
-.supporting-docs {
-  background: var(--color-card);
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.summary-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
+  background: var(--color-card);
+  padding: 0.8rem;
 }
 
-.plan-summary h2,
-.supporting-docs h2 {
-  margin: 0 0 0.75rem;
-}
-
-.plan-summary p {
+.summary-card p {
   margin: 0;
   color: var(--color-gray-600);
+  font-size: var(--font-size-xs);
 }
 
-.ccp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+.summary-card strong {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--color-foreground);
+  font-size: 1.45rem;
 }
 
-.ccp-card {
-  background: var(--color-card);
+.summary-card--good {
+  border-left: 0.25rem solid var(--color-success);
+}
+
+.summary-card--warn {
+  border-left: 0.25rem solid var(--color-warning);
+}
+
+.summary-card--info {
+  border-left: 0.25rem solid var(--color-info);
+}
+
+.table-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 1rem;
+  background: var(--color-card);
+  padding: 0.7rem;
+  overflow-x: auto;
+  margin-bottom: 0.95rem;
 }
 
-.ccp-card p {
-  margin: 0.4rem 0;
-  font-size: var(--text-sm);
+.table-card h2,
+.docs-card h2 {
+  margin: 0 0 0.65rem;
+  font-size: var(--font-size-base);
+  color: var(--color-foreground);
 }
 
-.ccp-card__header {
-  margin-bottom: 0.75rem;
+table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.ccp-card__number {
-  margin: 0;
-  font-size: var(--text-xs);
+th,
+td {
+  text-align: left;
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  vertical-align: top;
+}
+
+th {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
   text-transform: uppercase;
-  color: var(--color-gray-600);
+  letter-spacing: 0.04em;
 }
 
-.ccp-card__name {
-  margin: 0.25rem 0 0;
-  font-size: var(--text-base);
+td {
+  color: var(--color-foreground);
 }
 
-.ccp-card__desc {
-  color: var(--color-gray-600);
+.docs-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  padding: 0.8rem;
 }
 
-.supporting-docs ul {
+.docs-card ul {
   margin: 0;
-  padding-left: 1.25rem;
+  padding: 0;
+  list-style: none;
   display: grid;
-  gap: 0.5rem;
+  gap: 0.6rem;
+}
+
+.docs-card li {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem;
+  background: color-mix(in srgb, var(--color-accent) 45%, var(--color-card));
+}
+
+.docs-card p {
+  margin: 0;
+  color: var(--color-foreground);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.docs-card span {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
 }
 </style>

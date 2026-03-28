@@ -1,157 +1,286 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import ikMatData from '@/data/ik-mat.json'
-import ChecklistCard from '../components/ChecklistCard.vue'
+import { computed, ref } from 'vue'
+import { useIkMatData, type Checklist } from '../composables/useIkMatData'
 
-interface Checklist {
-  id: number
-  name: string
-  category: string
-  frequency: string
-  description: string
-  created_date: string
-  law_unit: string
-  items: Array<{
-    id: number
-    task: string
-    required: boolean
-    completed: boolean
-    notes: string | null
-  }>
-  completed_by: string | null
-  completion_date: string | null
-  completion_time: string | null
-  status: 'completed' | 'pending' | 'overdue'
+const { checklists, completionForChecklist } = useIkMatData()
+
+const selectedFrequency = ref<'Alle' | 'Daglig' | 'Ukentlig' | 'Månedlig'>('Alle')
+const expandedId = ref<number | null>(null)
+
+const checklistState = ref<Checklist[]>(checklists.map((item) => ({ ...item, items: item.items.map((task) => ({ ...task })) })))
+
+const frequencies = computed(() => ['Alle', 'Daglig', 'Ukentlig', 'Månedlig'] as const)
+
+const filtered = computed(() => {
+  if (selectedFrequency.value === 'Alle') {
+    return checklistState.value
+  }
+
+  return checklistState.value.filter((item) => item.frequency === selectedFrequency.value)
+})
+
+const sorted = computed(() => {
+  return [...filtered.value].sort((a, b) => completionForChecklist(a) - completionForChecklist(b))
+})
+
+const toggleExpanded = (id: number) => {
+  expandedId.value = expandedId.value === id ? null : id
 }
 
-const checklists = ref<Checklist[]>(ikMatData.checklists as Checklist[])
-const selectedCategory = ref<string>('all')
+const toggleTask = (checklistId: number, itemId: number) => {
+  checklistState.value = checklistState.value.map((checklist) => {
+    if (checklist.id !== checklistId) {
+      return checklist
+    }
 
-const categories = computed(() => {
-  const cats = new Set(checklists.value.map(c => c.category))
-  return Array.from(cats).sort()
-})
+    const updatedItems = checklist.items.map((task) => {
+      if (task.id !== itemId) {
+        return task
+      }
 
-const filteredChecklists = computed(() => {
-  if (selectedCategory.value === 'all') {
-    return checklists.value
-  }
-  return checklists.value.filter(c => c.category === selectedCategory.value)
-})
+      return {
+        ...task,
+        completed: !task.completed,
+      }
+    })
 
-const handleViewChecklist = (checklist: Checklist) => {
-  void checklist
+    return {
+      ...checklist,
+      items: updatedItems,
+      status: updatedItems.every((task) => task.completed) ? 'completed' : 'pending',
+    }
+  })
 }
 </script>
 
 <template>
-  <div class="view-page">
+  <div class="checklists-page">
     <header class="page-header">
       <h1>Sjekklister</h1>
-      <p class="subtitle">Daglige, ukentlige og månedlige kontroller</p>
+      <p class="subtitle">Operative kontrollpunkter sortert etter lavest progresjon</p>
     </header>
 
-    <div class="checklists-filters">
-      <button 
-        v-for="cat in ['all', ...categories]"
-        :key="cat"
-        class="filter-btn"
-        :class="{ 'filter-btn--active': selectedCategory === cat }"
-        @click="selectedCategory = cat"
+    <div class="filter-row" role="tablist" aria-label="Filtrer etter frekvens">
+      <button
+        v-for="frequency in frequencies"
+        :key="frequency"
+        class="filter-chip"
+        :class="{ 'filter-chip--active': selectedFrequency === frequency }"
+        @click="selectedFrequency = frequency"
       >
-        {{ cat === 'all' ? 'Alle' : cat }}
+        {{ frequency }}
       </button>
     </div>
 
-    <div class="checklists-grid">
-      <ChecklistCard 
-        v-for="checklist in filteredChecklists"
-        :key="checklist.id"
-        :checklist="checklist"
-        @view="handleViewChecklist(checklist)"
-      />
+    <div class="checklist-list">
+      <article v-for="checklist in sorted" :key="checklist.id" class="checklist-card">
+        <button class="checklist-head" :aria-expanded="expandedId === checklist.id" @click="toggleExpanded(checklist.id)">
+          <div>
+            <p class="checklist-head__title">{{ checklist.name }}</p>
+            <p class="checklist-head__meta">{{ checklist.frequency }} · {{ checklist.law_unit }}</p>
+          </div>
+
+          <div class="checklist-head__progress">
+            <div class="progress-track" role="progressbar" :aria-valuenow="completionForChecklist(checklist)" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-track__fill" :style="{ width: `${completionForChecklist(checklist)}%` }" />
+            </div>
+            <span>{{ completionForChecklist(checklist) }}%</span>
+          </div>
+        </button>
+
+        <div v-if="expandedId === checklist.id" class="checklist-body">
+          <p class="checklist-body__description">{{ checklist.description }}</p>
+
+          <ul class="task-list">
+            <li v-for="task in checklist.items" :key="task.id" class="task-row">
+              <label>
+                <input type="checkbox" :checked="task.completed" @change="toggleTask(checklist.id, task.id)" />
+                <span :class="{ 'task-done': task.completed }">{{ task.task }}</span>
+              </label>
+              <small v-if="task.notes">{{ task.notes }}</small>
+            </li>
+          </ul>
+        </div>
+      </article>
     </div>
 
-    <div v-if="filteredChecklists.length === 0" class="empty-state">
-      <p>Ingen sjekklister funnet</p>
-    </div>
+    <div v-if="sorted.length === 0" class="empty-state">Ingen sjekklister matcher valgt filter.</div>
   </div>
 </template>
 
 <style scoped>
-.view-page {
+.checklists-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  color: var(--color-foreground);
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-2xl);
+  color: var(--ik-mat-primary);
 }
 
 .subtitle {
-  margin: 0;
-  font-size: var(--text-base);
-  color: var(--color-gray-600);
+  margin: 0.35rem 0 0;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
 }
 
-.checklists-filters {
+.filter-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.filter-btn {
-  padding: 0.5rem 1rem;
-  background: var(--color-card);
+.filter-chip {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
+  padding: 0.4rem 0.8rem;
+  background: var(--color-card);
   color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
 }
 
-.filter-btn:hover {
-  background: var(--color-accent);
-  border-color: var(--color-border-focus);
+.filter-chip--active {
+  border-color: var(--ik-mat-primary);
+  background: var(--ik-mat-primary);
+  color: var(--color-primary-foreground);
 }
 
-.filter-btn--active {
-  background: var(--color-foreground);
-  color: var(--color-background);
-  border-color: var(--color-foreground);
-}
-
-.checklists-grid {
+.checklist-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 0.75rem;
+}
+
+.checklist-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  overflow: hidden;
+}
+
+.checklist-head {
+  border: 0;
+  background: transparent;
+  width: 100%;
+  padding: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  text-align: left;
+}
+
+.checklist-head__title {
+  margin: 0;
+  color: var(--color-foreground);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.checklist-head__meta {
+  margin: 0.25rem 0 0;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+}
+
+.checklist-head__progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 8rem;
+}
+
+.checklist-head__progress span {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+  font-weight: var(--font-weight-semibold);
+  min-width: 2.2rem;
+  text-align: right;
+}
+
+.progress-track {
+  height: 0.4rem;
+  flex: 1;
+  background: var(--color-gray-200);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-track__fill {
+  height: 100%;
+  background: var(--ik-mat-primary);
+  transition: width var(--transition-base);
+}
+
+.checklist-body {
+  border-top: 1px solid var(--color-border);
+  padding: 0.85rem 0.9rem;
+  background: color-mix(in srgb, var(--ik-mat-bg) 40%, var(--color-card));
+}
+
+.checklist-body__description {
+  margin: 0 0 0.7rem;
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+}
+
+.task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.task-row {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  padding: 0.55rem;
+}
+
+.task-row label {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  cursor: pointer;
+}
+
+.task-row input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.task-row span {
+  font-size: var(--font-size-sm);
+  color: var(--color-foreground);
+}
+
+.task-row small {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+}
+
+.task-done {
+  color: var(--color-gray-500);
+  text-decoration: line-through;
 }
 
 .empty-state {
-  text-align: center;
-  padding: 3rem 1.5rem;
-  background: var(--color-card);
+  margin-top: 0.9rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  background: var(--color-card);
   color: var(--color-gray-600);
-}
-
-@media (max-width: 48rem) {
-  .checklists-grid {
-    grid-template-columns: 1fr;
-  }
+  text-align: center;
+  padding: 1.2rem;
 }
 </style>
