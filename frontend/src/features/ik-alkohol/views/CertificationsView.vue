@@ -1,131 +1,123 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import alkoholData from '@/data/ik-alkohol.json'
+import { useAlkoholData } from '@/features/ik-alkohol/composables/useAlkoholData'
 
-type CertificateStatus = 'Gyldig' | 'Utløper snart' | 'Utgått'
-
-interface EmployeeCertificate {
-  name: string
-  expire_date: string
-}
-
-interface EmployeeCertification {
-  name: string
-  certifications: EmployeeCertificate[]
-}
-
-const certificationTypes = alkoholData.certifications.types
-const employees = alkoholData.certifications.employees as EmployeeCertification[]
-
-const SOON_DAYS = 30
-
-const getCertificate = (employee: EmployeeCertification, certificationName: string) => {
-  return employee.certifications.find((certificate) => certificate.name === certificationName)
-}
-
-const getCertificateStatus = (expireDate: string): CertificateStatus => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const expiry = new Date(expireDate)
-  expiry.setHours(0, 0, 0, 0)
-
-  const diffMs = expiry.getTime() - today.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffDays < 0) {
-    return 'Utgått'
-  }
-
-  if (diffDays <= SOON_DAYS) {
-    return 'Utløper snart'
-  }
-
-  return 'Gyldig'
-}
+const { certificationTypes, employees, certificateCounts, certificateStatus, formattedDate, totalCertificates } = useAlkoholData()
 
 const statusCount = computed(() => {
-  const counts: Record<CertificateStatus, number> = {
-    Gyldig: 0,
-    'Utløper snart': 0,
-    Utgått: 0,
+  return {
+    Gyldig: certificateCounts.Gyldig,
+    UtløperSnart: certificateCounts['Utløper snart'],
+    Utgått: certificateCounts.Utgått,
   }
-
-  employees.forEach((employee) => {
-    employee.certifications.forEach((certificate) => {
-      counts[getCertificateStatus(certificate.expire_date)] += 1
-    })
-  })
-
-  return counts
 })
 
-const formatDate = (value: string) => {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
+const rows = computed(() => {
+  return employees.flatMap((employee) => {
+    if (employee.certifications.length === 0) {
+      return [
+        {
+          employee: employee.name,
+          type: 'Ingen registrert',
+          status: 'Mangler',
+          expires: '-',
+        },
+      ]
+    }
 
-  return date.toLocaleDateString('nb-NO')
-}
+    return employee.certifications.map((certificate) => {
+      const status = certificateStatus(certificate.expire_date)
+
+      return {
+        employee: employee.name,
+        type: certificate.name,
+        status,
+        expires: formattedDate(certificate.expire_date),
+      }
+    })
+  })
+})
 </script>
 
 <template>
-  <div class="view-page">
+  <div class="certifications-page">
     <header class="page-header">
       <h1>Sertifiseringer</h1>
-      <p class="subtitle">Oversikt over kunnskapsprøver og bevillinger</p>
+      <p class="subtitle">Oversikt over kunnskapsprover og sertifiseringer for alkoholservering</p>
     </header>
 
     <section class="status-summary" aria-label="Sertifikatstatus oversikt">
       <article class="status-box status-box--valid">
         <p class="status-box__label">Gyldig</p>
         <p class="status-box__value">{{ statusCount.Gyldig }}</p>
+        <p class="status-box__meta">Av totalt {{ totalCertificates }} sertifikater</p>
       </article>
       <article class="status-box status-box--soon">
         <p class="status-box__label">Utløper snart</p>
-        <p class="status-box__value">{{ statusCount['Utløper snart'] }}</p>
+        <p class="status-box__value">{{ statusCount.UtløperSnart }}</p>
+        <p class="status-box__meta">Bor planlegges fornyet</p>
       </article>
       <article class="status-box status-box--expired">
         <p class="status-box__label">Utgått</p>
         <p class="status-box__value">{{ statusCount.Utgått }}</p>
+        <p class="status-box__meta">Krever oppfølging umiddelbart</p>
       </article>
     </section>
 
-    <section class="matrix-section">
-      <h2 class="matrix-title">Sertifiseringsmatrise</h2>
-      <div class="matrix-table" role="table" aria-label="Ansatte og sertifiseringer">
-        <div class="matrix-row matrix-row--head" role="row">
-          <div class="matrix-cell matrix-cell--name" role="columnheader">Ansatt</div>
-          <div v-for="type in certificationTypes" :key="type" class="matrix-cell" role="columnheader">{{ type }}</div>
-        </div>
-        <div v-for="employee in employees" :key="employee.name" class="matrix-row" role="row">
-          <div class="matrix-cell matrix-cell--name" role="cell">{{ employee.name }}</div>
-          <div v-for="type in certificationTypes" :key="`${employee.name}-${type}`" class="matrix-cell" role="cell">
-            <template v-if="getCertificate(employee, type)">
-              <span
-                class="status-pill"
-                :class="{
-                  'status-pill--soon': getCertificateStatus(getCertificate(employee, type)!.expire_date) === 'Utløper snart',
-                  'status-pill--expired': getCertificateStatus(getCertificate(employee, type)!.expire_date) === 'Utgått',
-                }"
-              >
-                {{ getCertificateStatus(getCertificate(employee, type)!.expire_date) }}
-              </span>
-              <p class="expiry-date">Utløper: {{ formatDate(getCertificate(employee, type)!.expire_date) }}</p>
-            </template>
-            <template v-else>
-              <span class="status-pill status-pill--missing">Mangler</span>
-            </template>
-          </div>
-        </div>
+    <section class="type-strip" aria-label="Sertifiseringstyper">
+      <p class="type-strip__label">Typer i systemet:</p>
+      <ul>
+        <li v-for="type in certificationTypes" :key="type">{{ type }}</li>
+      </ul>
+    </section>
+
+    <section class="matrix-section" aria-label="Personellsertifiseringer">
+      <h2 class="matrix-title">Personell sertifiseringer</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ansatt</th>
+              <th>Sertifikat</th>
+              <th>Gyldig til</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in rows" :key="`${row.employee}-${row.type}`">
+              <td>{{ row.employee }}</td>
+              <td>{{ row.type }}</td>
+              <td>{{ row.expires }}</td>
+              <td>
+                <span
+                  class="status-pill"
+                  :class="{
+                    'status-pill--soon': row.status === 'Utløper snart',
+                    'status-pill--expired': row.status === 'Utgått',
+                    'status-pill--missing': row.status === 'Mangler',
+                  }"
+                >
+                  {{ row.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box">
+        <h3>Krav til kunnskapsprove</h3>
+        <p>
+          Alle som selger, skjenker eller utleverer alkohol skal ha bestatt kunnskapsprove.
+          Oversikten er laget fra dummy-data i ik-alkohol.json for utvikling og demo.
+        </p>
       </div>
     </section>
   </div>
 </template>
 
 <style scoped>
-.view-page {
+.certifications-page {
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -137,12 +129,12 @@ const formatDate = (value: string) => {
 .page-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  color: var(--color-foreground);
+  color: var(--ik-alkohol-primary);
   margin-bottom: 8px;
 }
 
 .subtitle {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--color-gray-500);
 }
 
@@ -162,8 +154,10 @@ const formatDate = (value: string) => {
 
 .status-box__label {
   margin: 0;
-  font-size: var(--text-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .status-box__value {
@@ -172,16 +166,51 @@ const formatDate = (value: string) => {
   font-weight: 700;
 }
 
+.status-box__meta {
+  margin: 0.35rem 0 0;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+}
+
 .status-box--valid {
-  border-left: 0.25rem solid #15803d;
+  border-left: 0.25rem solid var(--color-success);
 }
 
 .status-box--soon {
-  border-left: 0.25rem solid #b45309;
+  border-left: 0.25rem solid var(--color-warning);
 }
 
 .status-box--expired {
-  border-left: 0.25rem solid #b91c1c;
+  border-left: 0.25rem solid var(--color-danger);
+}
+
+.type-strip {
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.type-strip__label {
+  margin: 0;
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+}
+
+.type-strip ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.type-strip li {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: #f8fafc;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
 }
 
 .matrix-section {
@@ -193,68 +222,86 @@ const formatDate = (value: string) => {
 
 .matrix-title {
   margin: 0 0 1rem;
-  font-size: var(--text-lg);
+  font-size: var(--font-size-lg);
 }
 
-.matrix-table {
-  display: grid;
-  gap: 0.5rem;
+.table-wrap {
+  overflow-x: auto;
+  margin-bottom: 14px;
 }
 
-.matrix-row {
-  display: grid;
-  grid-template-columns: minmax(10rem, 1.5fr) repeat(2, minmax(10rem, 1fr));
-  gap: 0.5rem;
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.matrix-row--head .matrix-cell {
-  font-weight: 700;
-  color: var(--color-foreground);
+.table-wrap th {
+  text-align: left;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: var(--font-size-xs);
 }
 
-.matrix-cell {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 0.65rem;
-  font-size: var(--text-sm);
-  background: var(--color-accent);
-}
-
-.matrix-cell--name {
-  font-weight: 600;
-  background: var(--color-card);
+.table-wrap td {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
 }
 
 .status-pill {
   display: inline-block;
   padding: 0.2rem 0.45rem;
   border-radius: var(--radius-sm);
-  color: var(--color-background);
-  background: #15803d;
-  font-size: var(--text-xs);
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+  font-size: var(--font-size-xs);
   font-weight: 600;
 }
 
 .status-pill--soon {
-  background: #b45309;
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
 }
 
 .status-pill--expired {
-  background: #b91c1c;
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
 }
 
 .status-pill--missing {
-  background: #6b7280;
+  color: var(--color-gray-600);
+  background: var(--color-gray-100);
+  border-color: var(--color-border);
 }
 
-.expiry-date {
-  margin: 0.35rem 0 0;
-  font-size: var(--text-xs);
-  color: var(--color-gray-600);
+.info-box {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+}
+
+.info-box h3 {
+  margin: 0 0 4px;
+  font-size: var(--font-size-base);
+  color: #1e3a8a;
+}
+
+.info-box p {
+  margin: 0;
+  color: #1e3a8a;
+  font-size: var(--font-size-sm);
 }
 
 @media (max-width: 48rem) {
-  .matrix-row {
+  .status-summary {
     grid-template-columns: 1fr;
   }
 }
