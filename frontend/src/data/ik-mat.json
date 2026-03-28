@@ -14,7 +14,7 @@
         "color": "warning"
       },
       {
-        "label": "Komplianse",
+        "label": "Samsvar",
         "value": 94,
         "unit": "%",
         "trend": "neutral",
@@ -225,7 +225,7 @@
     {
       "id": 3,
       "title": "Dårlig pakking av varer",
-      "description": "Noen varene hadde sprekkete pakninger ved mottak",
+      "description": "Noen varer hadde sprekkete pakninger ved mottak",
       "severity": "medium",
       "reported_by": "Mottak",
       "reported_date": "2024-06-01",
