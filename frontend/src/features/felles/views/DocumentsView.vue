@@ -1,161 +1,345 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import fellesData from '@/data/felles.json'
-import DocumentCard from '../components/DocumentCard.vue'
+import { useFellesData } from '../composables/useFellesData'
 
-interface DocumentItem {
-  id: number
-  name: string
-  category: string
-  file_type: string
-  uploaded_by: string
-  uploaded_date: string
-  size: string
-  version: string
-  status: 'active' | 'archived'
-  description: string
-}
-
-const documents = ref<DocumentItem[]>(fellesData.documents as DocumentItem[])
+const data = useFellesData()
 const selectedCategory = ref<string>('all')
+const query = ref('')
 
 const categories = computed(() => {
-  const unique = new Set(documents.value.map((doc) => doc.category))
+  const unique = new Set(data.documents.map((doc) => doc.category))
   return Array.from(unique)
 })
 
 const filteredDocuments = computed(() => {
-  if (selectedCategory.value === 'all') {
-    return documents.value
-  }
+  return data.documents.filter((doc) => {
+    const matchesCategory = selectedCategory.value === 'all' || doc.category === selectedCategory.value
+    const search = query.value.trim().toLowerCase()
+    const matchesQuery =
+      search.length === 0 ||
+      doc.name.toLowerCase().includes(search) ||
+      doc.description.toLowerCase().includes(search) ||
+      doc.uploaded_by.toLowerCase().includes(search)
 
-  return documents.value.filter((doc) => doc.category === selectedCategory.value)
+    return matchesCategory && matchesQuery
+  })
 })
 
-const handleOpenDocument = (document: DocumentItem) => {
-  void document
-}
+const storageUsage = computed(() => {
+  const totalMb = data.documents.reduce((sum, doc) => {
+    const numeric = Number.parseFloat(doc.size)
+    return Number.isFinite(numeric) ? sum + numeric : sum
+  }, 0)
 
-const handleDownloadDocument = (document: DocumentItem) => {
-  void document
-}
+  return `${totalMb.toFixed(1)} MB`
+})
+
+const latestUpload = computed(() => {
+  return data.sortedDocuments[0] ? data.formatDate(data.sortedDocuments[0].uploaded_date) : '-'
+})
 </script>
 
 <template>
-  <div class="view-page">
+  <div class="view-page documents-view">
     <header class="page-header">
-      <h1>Dokumenter</h1>
-      <p class="subtitle">Sentralisert lagring av policyer og opplæringsmateriale</p>
+      <div>
+        <h1>Dokumenter</h1>
+        <p class="subtitle">Sentralisert lagring av retningslinjer, prosedyrer og opplæringsfiler</p>
+      </div>
+      <button class="upload-btn" type="button">Last opp dokument</button>
     </header>
 
-    <div class="documents-filters">
-      <button
-        class="filter-btn"
-        :class="{ 'filter-btn--active': selectedCategory === 'all' }"
-        @click="selectedCategory = 'all'"
-      >
-        Alle
-      </button>
-      <button
-        v-for="category in categories"
-        :key="category"
-        class="filter-btn"
-        :class="{ 'filter-btn--active': selectedCategory === category }"
-        @click="selectedCategory = category"
-      >
-        {{ category }}
-      </button>
-    </div>
+    <section class="documents-stats" aria-label="Dokumentstatistikk">
+      <article class="documents-stat">
+        <strong>{{ categories.length }}</strong>
+        <span>Kategorier</span>
+      </article>
+      <article class="documents-stat">
+        <strong>{{ data.documents.length }}</strong>
+        <span>Dokumenter totalt</span>
+      </article>
+      <article class="documents-stat">
+        <strong>{{ latestUpload }}</strong>
+        <span>Sist oppdatert</span>
+      </article>
+      <article class="documents-stat">
+        <strong>{{ storageUsage }}</strong>
+        <span>Lagring brukt</span>
+      </article>
+    </section>
 
-    <div class="documents-grid">
-      <DocumentCard
-        v-for="document in filteredDocuments"
-        :key="document.id"
-        :document="document"
-        @view="handleOpenDocument(document)"
-        @download="handleDownloadDocument(document)"
-      />
-    </div>
+    <section class="documents-toolbar" aria-label="Dokumentfiltre">
+      <input v-model="query" type="search" placeholder="Søk i dokumenter" class="search-input" />
+      <div class="category-tabs">
+        <button class="category-tab" :class="{ 'category-tab--active': selectedCategory === 'all' }" @click="selectedCategory = 'all'">
+          Alle
+        </button>
+        <button
+          v-for="category in categories"
+          :key="category"
+          class="category-tab"
+          :class="{ 'category-tab--active': selectedCategory === category }"
+          @click="selectedCategory = category"
+        >
+          {{ category }}
+        </button>
+      </div>
+    </section>
 
-    <div v-if="filteredDocuments.length === 0" class="empty-state">
-      <p>Ingen dokumenter matcher valgt filter</p>
-    </div>
+    <section aria-label="Kategorier" class="category-grid">
+      <article v-for="category in categories" :key="category" class="category-card">
+        <h2>{{ category }}</h2>
+        <p>{{ data.documents.filter((doc) => doc.category === category).length }} filer</p>
+      </article>
+    </section>
+
+    <section class="table-wrapper" aria-label="Dokumentliste">
+      <table>
+        <thead>
+          <tr>
+            <th>Filnavn</th>
+            <th>Kategori</th>
+            <th>Størrelse</th>
+            <th>Opplastet av</th>
+            <th>Dato</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="document in filteredDocuments" :key="document.id">
+            <td>
+              <p class="table-title">{{ document.name }}</p>
+              <p class="table-subtitle">v{{ document.version }} · {{ document.file_type }}</p>
+            </td>
+            <td>{{ document.category }}</td>
+            <td>{{ document.size }}</td>
+            <td>{{ document.uploaded_by }}</td>
+            <td>{{ data.formatDate(document.uploaded_date) }}</td>
+            <td>
+              <span class="status-pill" :class="{ 'status-pill--active': document.status === 'active' }">
+                {{ document.status === 'active' ? 'Aktiv' : 'Arkivert' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section v-if="filteredDocuments.length === 0" class="empty-state">
+      <p>Ingen dokumenter matcher filtreringen.</p>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.view-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+.documents-view {
+  display: grid;
+  gap: 1rem;
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: var(--text-2xl);
+  font-size: var(--font-size-3xl);
   font-weight: 700;
-  color: var(--color-foreground);
-  margin-bottom: 0.5rem;
+  letter-spacing: -0.015em;
 }
 
 .subtitle {
-  margin: 0;
-  font-size: var(--text-base);
-  color: var(--color-gray-600);
+  margin-top: 0.4rem;
+  color: var(--color-gray-500);
 }
 
-.documents-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-}
-
-.filter-btn {
+.upload-btn {
+  min-height: 2.75rem;
   padding: 0.5rem 1rem;
-  background: var(--color-card);
+  border-radius: var(--radius-md);
+  background: var(--color-foreground);
+  color: var(--color-background);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.documents-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.documents-stat {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
+  background: var(--color-card);
+  text-align: center;
+  padding: 0.85rem;
+}
+
+.documents-stat strong {
+  font-size: var(--font-size-xl);
+  color: var(--color-gray-900);
+}
+
+.documents-stat span {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+}
+
+.documents-toolbar {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.search-input {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-gray-50);
+  min-height: 2.6rem;
+  padding: 0 0.85rem;
+  color: var(--color-gray-700);
+}
+
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.category-tab {
+  min-height: 2.15rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-gray-600);
-  cursor: pointer;
-  transition: all var(--transition-base);
 }
 
-.filter-btn:hover {
-  background: var(--color-accent);
-}
-
-.filter-btn--active {
+.category-tab--active {
   background: var(--color-foreground);
   color: var(--color-background);
   border-color: var(--color-foreground);
 }
 
-.documents-grid {
+.category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.category-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 0.75rem;
+}
+
+.category-card h2 {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-800);
+}
+
+.category-card p {
+  margin-top: 0.2rem;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+}
+
+.table-wrapper {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-gray-100);
+  vertical-align: middle;
+}
+
+th {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gray-500);
+  background: var(--color-gray-50);
+}
+
+.table-title {
+  color: var(--color-gray-900);
+  font-size: var(--font-size-sm);
+}
+
+.table-subtitle {
+  margin-top: 0.15rem;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+}
+
+.status-pill {
+  display: inline-flex;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.status-pill--active {
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .empty-state {
   text-align: center;
-  padding: 3rem 1.5rem;
+  padding: 2rem;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   color: var(--color-gray-600);
 }
 
 @media (max-width: 48rem) {
-  .documents-grid {
-    grid-template-columns: 1fr;
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
+
+  .documents-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  th:nth-child(n + 3),
+  td:nth-child(n + 3) {
+    display: none;
+  }
+
 }
 </style>

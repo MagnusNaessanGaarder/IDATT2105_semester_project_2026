@@ -1,22 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import fellesData from '@/data/felles.json'
-import NotificationCard from '../components/NotificationCard.vue'
+import { useRouter } from 'vue-router'
+import { type NotificationItem, useFellesData } from '../composables/useFellesData'
 
-interface NotificationItem {
-  id: number
-  title: string
-  message: string
-  type: 'warning' | 'info' | 'success' | 'error'
-  priority: 'low' | 'medium' | 'high'
-  created_date: string
-  created_time: string
-  read: boolean
-  action_url: string | null
-  action_label: string | null
-}
+const router = useRouter()
+const data = useFellesData()
 
-const notifications = ref<NotificationItem[]>(fellesData.notifications as NotificationItem[])
+const notifications = ref<NotificationItem[]>([...data.sortedNotifications])
 const filter = ref<'all' | 'unread' | 'high-priority'>('all')
 
 const filteredNotifications = computed(() => {
@@ -31,6 +21,16 @@ const filteredNotifications = computed(() => {
   return notifications.value
 })
 
+const actionableNotifications = computed(() => {
+  return filteredNotifications.value.filter((item) => item.action_url)
+})
+
+const informationalNotifications = computed(() => {
+  return filteredNotifications.value.filter((item) => !item.action_url)
+})
+
+const unreadCount = computed(() => notifications.value.filter((item) => !item.read).length)
+
 const markAsRead = (notificationId: number) => {
   const notification = notifications.value.find((item) => item.id === notificationId)
   if (notification) {
@@ -38,101 +38,166 @@ const markAsRead = (notificationId: number) => {
   }
 }
 
+const markAllAsRead = () => {
+  notifications.value = notifications.value.map((item) => ({
+    ...item,
+    read: true,
+  }))
+}
+
 const dismissNotification = (notificationId: number) => {
   notifications.value = notifications.value.filter((item) => item.id !== notificationId)
 }
 
 const handleAction = (notification: NotificationItem) => {
-  void notification
+  if (!notification.action_url) {
+    return
+  }
+
+  if (notification.action_url.includes('ik-mat/deviations')) {
+    router.push({ name: 'Deviations' })
+    return
+  }
+
+  if (notification.action_url.includes('ik-mat/temperature')) {
+    router.push({ name: 'Temperature' })
+    return
+  }
+
+  if (notification.action_url.includes('felles/reports')) {
+    router.push({ name: 'Reports' })
+    return
+  }
+
+  if (notification.action_url.includes('admin/certifications')) {
+    router.push({ name: 'Certifications' })
+    return
+  }
+
+  router.push({ name: 'Notifications' })
+}
+
+const priorityLabel = (priority: NotificationItem['priority']): string => {
+  if (priority === 'high') return 'Høy'
+  if (priority === 'medium') return 'Middels'
+  return 'Lav'
 }
 </script>
 
 <template>
-  <div class="view-page">
+  <div class="view-page notifications-view">
     <header class="page-header">
-      <h1>Varsler</h1>
-      <p class="subtitle">Varsler og påminnelser</p>
+      <div>
+        <h1>Varsler</h1>
+        <p class="subtitle">{{ unreadCount }} uleste varsler</p>
+      </div>
+      <button class="mark-all-btn" type="button" @click="markAllAsRead">Marker alle som lest</button>
     </header>
 
-    <div class="notifications-filters">
-      <button class="filter-btn" :class="{ 'filter-btn--active': filter === 'all' }" @click="filter = 'all'">
-        Alle
-      </button>
-      <button class="filter-btn" :class="{ 'filter-btn--active': filter === 'unread' }" @click="filter = 'unread'">
-        Uleste
-      </button>
-      <button
-        class="filter-btn"
-        :class="{ 'filter-btn--active': filter === 'high-priority' }"
-        @click="filter = 'high-priority'"
-      >
-        Høy prioritet
-      </button>
-    </div>
+    <section class="notifications-filters" aria-label="Varselfiltre">
+      <button class="filter-btn" :class="{ 'filter-btn--active': filter === 'all' }" @click="filter = 'all'">Alle</button>
+      <button class="filter-btn" :class="{ 'filter-btn--active': filter === 'unread' }" @click="filter = 'unread'">Uleste</button>
+      <button class="filter-btn" :class="{ 'filter-btn--active': filter === 'high-priority' }" @click="filter = 'high-priority'">Høy prioritet</button>
+    </section>
 
-    <div class="notifications-list">
-      <NotificationCard
-        v-for="notification in filteredNotifications"
-        :key="notification.id"
-        :notification="notification"
-        @read="markAsRead(notification.id)"
-        @dismiss="dismissNotification(notification.id)"
-        @action="handleAction(notification)"
-      />
-    </div>
+    <section class="notification-panel">
+      <h2>Krever handling</h2>
+      <ul class="notification-list">
+        <li v-for="notification in actionableNotifications" :key="notification.id" class="notification-item" :class="{ 'notification-item--unread': !notification.read }">
+          <button class="notification-item__main" @click="handleAction(notification)">
+            <span class="notification-item__dot" :class="`notification-item__dot--${data.notificationTone(notification.type)}`" />
+            <span>
+              <strong>{{ notification.title }}</strong>
+              <small>{{ notification.message }}</small>
+            </span>
+            <time>{{ notification.created_time }}</time>
+          </button>
+          <div class="notification-item__actions">
+            <span class="priority-pill" :class="`priority-pill--${notification.priority}`">{{ priorityLabel(notification.priority) }}</span>
+            <button type="button" class="mini-btn" @click="markAsRead(notification.id)" v-if="!notification.read">Lest</button>
+            <button type="button" class="mini-btn mini-btn--danger" @click="dismissNotification(notification.id)">Fjern</button>
+          </div>
+        </li>
+      </ul>
+    </section>
 
-    <div v-if="filteredNotifications.length === 0" class="empty-state">
-      <p>Ingen varsler matcher valgt filter</p>
-    </div>
+    <section class="notification-panel">
+      <h2>Informasjon</h2>
+      <ul class="notification-list">
+        <li v-for="notification in informationalNotifications" :key="notification.id" class="notification-item" :class="{ 'notification-item--unread': !notification.read }">
+          <div class="notification-item__main notification-item__main--static">
+            <span class="notification-item__dot" :class="`notification-item__dot--${data.notificationTone(notification.type)}`" />
+            <span>
+              <strong>{{ notification.title }}</strong>
+              <small>{{ notification.message }}</small>
+            </span>
+            <time>{{ notification.created_time }}</time>
+          </div>
+          <div class="notification-item__actions">
+            <span class="priority-pill" :class="`priority-pill--${notification.priority}`">{{ priorityLabel(notification.priority) }}</span>
+            <button type="button" class="mini-btn" @click="markAsRead(notification.id)" v-if="!notification.read">Lest</button>
+            <button type="button" class="mini-btn mini-btn--danger" @click="dismissNotification(notification.id)">Fjern</button>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section v-if="filteredNotifications.length === 0" class="empty-state">
+      <p>Ingen varsler matcher filtreringen.</p>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.view-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+.notifications-view {
+  display: grid;
+  gap: 1rem;
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  color: var(--color-foreground);
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-3xl);
+  letter-spacing: -0.015em;
 }
 
 .subtitle {
-  margin: 0;
-  font-size: var(--text-base);
-  color: var(--color-gray-600);
+  margin-top: 0.4rem;
+  color: var(--color-gray-500);
+}
+
+.mark-all-btn {
+  min-height: 2.65rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
 }
 
 .notifications-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
+  gap: 0.5rem;
 }
 
 .filter-btn {
-  padding: 0.5rem 1rem;
-  background: var(--color-card);
+  min-height: 2.25rem;
+  padding: 0.35rem 0.75rem;
+  background: #fff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
   color: var(--color-gray-600);
-}
-
-.filter-btn:hover {
-  background: var(--color-accent);
 }
 
 .filter-btn--active {
@@ -141,19 +206,169 @@ const handleAction = (notification: NotificationItem) => {
   border-color: var(--color-foreground);
 }
 
-.notifications-list {
+.notification-panel {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 0.9rem;
+}
+
+.notification-panel h2 {
+  margin: 0 0 0.7rem;
+  font-size: var(--font-size-lg);
+}
+
+.notification-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.notification-item {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 0.65rem;
+}
+
+.notification-item--unread {
+  background: var(--color-gray-50);
+}
+
+.notification-item__main {
+  border: none;
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: left;
+}
+
+.notification-item__main--static {
+  pointer-events: none;
+}
+
+.notification-item__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+}
+
+.notification-item__dot--red {
+  background: var(--color-danger);
+}
+
+.notification-item__dot--amber {
+  background: var(--color-warning);
+}
+
+.notification-item__dot--blue {
+  background: var(--color-info);
+}
+
+.notification-item__dot--green {
+  background: var(--color-success);
+}
+
+.notification-item strong {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-900);
+}
+
+.notification-item small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--color-gray-600);
+  font-size: var(--font-size-xs);
+}
+
+.notification-item time {
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+}
+
+.notification-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.priority-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.priority-pill--high {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.priority-pill--medium {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.priority-pill--low {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.mini-btn {
+  min-height: 1.95rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--color-gray-700);
+  font-size: var(--font-size-xs);
+}
+
+.mini-btn--danger {
+  border-color: #fecaca;
+  color: #b91c1c;
 }
 
 .empty-state {
   text-align: center;
-  padding: 3rem 1.5rem;
+  padding: 2rem;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   color: var(--color-gray-600);
+}
+
+@media (max-width: 48rem) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .notification-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .notification-item__main {
+    grid-template-columns: auto 1fr;
+  }
+
+  .notification-item time {
+    grid-column: 2;
+  }
+
+  .notification-item__actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 }
 </style>
