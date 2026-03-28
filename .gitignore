@@ -31,8 +31,16 @@ DEV_NOTES.md
 frontend/DEV_NOTES.md
 frontend/VUE_NOTES.md
 
+AGENTS.md
+ai-*.md
+AI_*.md
+*.ai.md
+docs/ai-*/
 # Built files
-backend/InternalControl/target
+backend/target
+backend/.project
+backend/.env
+backend/.classpath
 
 
 # Editor directories and files
@@ -65,6 +73,7 @@ test-results/
 
 # OS files
 .DS_Store
+*/.DS_Store
 Thumbs.db
 
 *.env
@@ -72,10 +81,15 @@ Thumbs.db
 # Backend build artifacts
 backend/InternalControl/target/
 backend/**/target/
+backend/bin/
 
 # IDE
 .idea/
 *.iml
+.classpath
+.project
+.factorypath
+.settings/
 
 # OS
 .DS_Store
