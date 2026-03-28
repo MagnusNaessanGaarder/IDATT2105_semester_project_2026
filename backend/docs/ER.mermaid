@@ -1,0 +1,222 @@
+erDiagram
+    organization {
+        int org_number PK
+        varchar legal_name
+        varchar contact_email
+        tinyint is_active
+    }
+    organization_settings {
+        int org_number PK
+        varchar timezone_name
+        tinyint enable_food_module
+        tinyint enable_alcohol_module
+    }
+    location {
+        bigint location_id PK
+        int org_number FK
+        varchar name
+        varchar location_type
+        decimal temp_min_c
+    }
+    app_user {
+        bigint user_id PK
+        varchar display_name
+        varchar email
+        tinyint is_active
+    }
+    app_user_local_credential {
+        bigint credential_id PK
+        bigint user_id FK
+        varchar password_hash
+        tinyint must_change_pw
+        datetime locked_until
+    }
+    app_user_refresh_token {
+        bigint token_id PK
+        bigint user_id FK
+        char token_hash
+        datetime expires_at
+        datetime revoked_at
+    }
+    app_user_identity {
+        bigint identity_id PK
+        bigint user_id FK
+        varchar provider_name
+        varchar provider_user_id
+    }
+    user_organization {
+        bigint user_id FK
+        int org_number FK
+        tinyint is_active
+        datetime joined_at
+    }
+    role {
+        bigint role_id PK
+        varchar role_name
+        tinyint is_system_role
+    }
+    permission {
+        bigint permission_id PK
+        varchar permission_key
+    }
+    role_permission {
+        bigint role_id FK
+        bigint permission_id FK
+    }
+    user_organization_role {
+        bigint user_id FK
+        int org_number FK
+        bigint role_id FK
+        datetime assigned_at
+    }
+    organization_document {
+        bigint document_id PK
+        int org_number FK
+        varchar document_type
+        varchar title
+        int current_version
+    }
+    organization_document_version {
+        bigint document_version_id PK
+        bigint document_id FK
+        int version_number
+        varchar azure_blob_name
+        bigint file_size_bytes
+    }
+    training_record {
+        bigint training_record_id PK
+        bigint user_id FK
+        int org_number FK
+        varchar training_type
+        varchar status
+        datetime expires_at
+    }
+    checklist_template {
+        bigint template_id PK
+        int org_number FK
+        varchar module_type
+        varchar title
+        varchar frequency
+    }
+    checklist_template_item {
+        bigint item_id PK
+        bigint template_id FK
+        int sort_order
+        varchar label
+        varchar item_type
+    }
+    checklist_run {
+        bigint run_id PK
+        bigint template_id FK
+        int org_number FK
+        bigint location_id FK
+        varchar status
+        date run_date
+    }
+    checklist_run_item {
+        bigint run_item_id PK
+        bigint run_id FK
+        bigint template_item_id FK
+        tinyint boolean_value
+        tinyint is_deviation
+    }
+    temperature_log_point {
+        bigint log_point_id PK
+        int org_number FK
+        bigint location_id FK
+        varchar name
+    }
+    temperature_log_entry {
+        bigint entry_id PK
+        bigint log_point_id FK
+        bigint recorded_by_user_id FK
+        datetime measured_at
+        decimal temperature_c
+        tinyint is_alert
+    }
+    deviation_report {
+        bigint report_id PK
+        int org_number FK
+        bigint reported_by_user_id FK
+        varchar severity
+        varchar status
+        bigint location_id FK
+    }
+    deviation_report_document {
+        bigint report_id FK
+        bigint document_id FK
+    }
+    notification {
+        bigint notification_id PK
+        int org_number FK
+        bigint user_id FK
+        varchar notification_type
+        tinyint is_read
+    }
+    notification_delivery {
+        bigint delivery_id PK
+        bigint notification_id FK
+        varchar delivery_channel
+        varchar delivery_status
+    }
+    export_job {
+        bigint export_job_id PK
+        int org_number FK
+        bigint requested_by_user_id FK
+        varchar export_type
+        varchar status
+    }
+    audit_log {
+        bigint audit_log_id PK
+        int org_number FK
+        bigint acted_by_user_id FK
+        varchar action_type
+        varchar entity_type
+    }
+
+    organization ||--|| organization_settings : "settings"
+    organization ||--o{ location : "has"
+    organization ||--o{ user_organization : "members"
+    organization ||--o{ organization_document : "owns"
+    organization ||--o{ checklist_template : "defines"
+    organization ||--o{ checklist_run : "runs"
+    organization ||--o{ temperature_log_point : "monitors"
+    organization ||--o{ deviation_report : "reports"
+    organization ||--o{ training_record : "tracks"
+    organization ||--o{ notification : "sends"
+    organization ||--o{ export_job : "exports"
+    organization ||--o{ audit_log : "audits"
+
+    app_user ||--o{ user_organization : "joins"
+    app_user ||--o| app_user_local_credential : "credentials"
+    app_user ||--o{ app_user_refresh_token : "tokens"
+    app_user ||--o{ app_user_identity : "identity"
+    app_user ||--o{ notification : "receives"
+    app_user ||--o{ audit_log : "acted by"
+
+    user_organization ||--o{ user_organization_role : "has roles"
+    user_organization ||--o{ training_record : "completes"
+
+    role ||--o{ user_organization_role : "assigned in"
+    role ||--o{ role_permission : "grants"
+    permission ||--o{ role_permission : "in"
+
+    organization_document ||--o{ organization_document_version : "versions"
+    organization_document ||--o{ deviation_report_document : "attached to"
+    organization_document ||--o{ training_record : "certifies"
+
+    checklist_template ||--o{ checklist_template_item : "items"
+    checklist_template ||--o{ checklist_run : "executed as"
+    checklist_template_item ||--o{ checklist_run_item : "answered in"
+    checklist_run ||--o{ checklist_run_item : "contains"
+    checklist_run }o--o| location : "at"
+
+    location ||--o{ temperature_log_point : "has points"
+    location ||--o{ deviation_report : "incident at"
+
+    temperature_log_point ||--o{ temperature_log_entry : "records"
+    app_user ||--o{ temperature_log_entry : "recorded by"
+
+    deviation_report ||--o{ deviation_report_document : "has docs"
+    notification ||--o{ notification_delivery : "delivered via"
+    
