@@ -1,226 +1,339 @@
 <script setup lang="ts">
-import ikMatData from '@/data/ik-mat.json'
+import { computed } from 'vue'
+import { useIkMatData } from '../composables/useIkMatData'
 
-const stats = ikMatData.dashboard.stats
-const recentChecks = ikMatData.dashboard.recent_checks
+const {
+  dashboardStats,
+  recentChecks,
+  checklists,
+  temperatureRecords,
+  deviations,
+  completionForChecklist,
+  isTemperatureInRange,
+  formatDate,
+} = useIkMatData()
+
+const openDeviations = computed(() => deviations.filter((item) => item.status !== 'resolved'))
+
+const checklistCompletion = computed(() => {
+  if (checklists.length === 0) {
+    return 0
+  }
+
+  const sum = checklists.reduce((acc, checklist) => acc + completionForChecklist(checklist), 0)
+  return Math.round(sum / checklists.length)
+})
+
+const temperatureAlerts = computed(() => {
+  return temperatureRecords.filter((record) => !isTemperatureInRange(record))
+})
+
+const cardTone = (color: 'success' | 'warning' | 'info') => {
+  if (color === 'success') {
+    return 'stat-card--success'
+  }
+
+  if (color === 'warning') {
+    return 'stat-card--warning'
+  }
+
+  return 'stat-card--info'
+}
 </script>
 
 <template>
-  <div class="ikmat-dashboard">
+  <div class="ik-mat-dashboard">
     <header class="page-header">
-      <h1>IK-Mat Dashboard</h1>
-      <p class="subtitle">Matsikkerhet og hygienekontroll</p>
+      <h1>IK-MAT</h1>
+      <p class="subtitle">Everest Sushi &amp; Fusion - internkontroll for matsikkerhet og hygiene</p>
     </header>
 
-    <section class="stats-grid" aria-label="Nøkkeltall for IK-Mat">
-      <article v-for="stat in stats" :key="stat.label" class="stat-card">
+    <section class="stats-grid" aria-label="Nøkkeltall for IK-MAT">
+      <article v-for="stat in dashboardStats" :key="stat.label" class="stat-card" :class="cardTone(stat.color)">
         <p class="stat-card__label">{{ stat.label }}</p>
         <p class="stat-card__value">
           {{ stat.value }}<span v-if="stat.unit" class="stat-card__unit">{{ stat.unit }}</span>
         </p>
       </article>
     </section>
-    
-    <div class="dashboard-grid">
-      <div class="card">
-        <h2>Sjekklister</h2>
-        <p>Oversikt over daglige, ukentlige og månedlige sjekklister</p>
-        <router-link :to="{ name: 'Checklists' }" class="btn">
-          Se sjekklister
-        </router-link>
-      </div>
-      
-      <div class="card">
-        <h2>Temperatur</h2>
-        <p>Registrering og overvåking av matlagringstemperaturer</p>
-        <router-link :to="{ name: 'Temperature' }" class="btn">
-          Registrer temperatur
-        </router-link>
-      </div>
-      
-      <div class="card">
-        <h2>Avvik</h2>
-        <p>Rapportering og oppfølging av avvik fra standarder</p>
-        <router-link :to="{ name: 'Deviations' }" class="btn">
-          Se avvik
-        </router-link>
-      </div>
-      
-      <div class="card">
-        <h2>HACCP-plan</h2>
-        <p>Oversikt over kritiske kontrollpunkter</p>
-        <router-link :to="{ name: 'HACCP' }" class="btn">
-          Se HACCP-plan
-        </router-link>
-      </div>
-    </div>
 
-    <section class="recent-section" aria-label="Siste gjennomførte kontroller">
-      <h2 class="recent-title">Siste kontroller</h2>
-      <ul class="recent-list">
-        <li v-for="check in recentChecks" :key="check.id" class="recent-item">
-          <div>
-            <p class="recent-item__name">{{ check.name }}</p>
-            <p class="recent-item__meta">{{ check.completed_by }} - {{ check.completed_date }} kl. {{ check.completed_time }}</p>
-          </div>
-          <span class="recent-item__status">{{ check.status === 'completed' ? 'Fullfort' : check.status }}</span>
-        </li>
-      </ul>
+    <section class="quick-actions" aria-label="Snarveier">
+      <router-link :to="{ name: 'Checklists' }" class="action-card">
+        <h2>Sjekklister</h2>
+        <p>Følg daglige, ukentlige og manedlige kontroller med tydelig progresjon.</p>
+      </router-link>
+      <router-link :to="{ name: 'Temperature' }" class="action-card">
+        <h2>Temperatur</h2>
+        <p>Hold oversikt over kjøle- og frysesoner med avvik i sanntid.</p>
+      </router-link>
+      <router-link :to="{ name: 'Deviations' }" class="action-card">
+        <h2>Avvik</h2>
+        <p>Prioriter åpne hendelser og dokumenter korrigerende tiltak.</p>
+      </router-link>
+      <router-link :to="{ name: 'HACCP' }" class="action-card">
+        <h2>HACCP-plan</h2>
+        <p>Se kritiske kontrollpunkter, grenser og ansvar fordelt i teamet.</p>
+      </router-link>
+    </section>
+
+    <section class="details-grid" aria-label="Detaljoversikt">
+      <article class="panel-card">
+        <header class="panel-card__header">
+          <h2>Siste kontroller</h2>
+          <span class="status-chip status-chip--good">{{ checklistCompletion }}% ferdig</span>
+        </header>
+        <ul class="item-list">
+          <li v-for="check in recentChecks" :key="check.id" class="item-row">
+            <div>
+              <p class="item-row__title">{{ check.name }}</p>
+              <p class="item-row__meta">{{ check.completed_by }} · {{ formatDate(check.completed_date) }} kl. {{ check.completed_time }}</p>
+            </div>
+            <span class="status-chip" :class="check.status === 'completed' ? 'status-chip--good' : 'status-chip--warn'">
+              {{ check.status === 'completed' ? 'Fullført' : 'Mangler' }}
+            </span>
+          </li>
+        </ul>
+      </article>
+
+      <article class="panel-card">
+        <header class="panel-card__header">
+          <h2>Operative varsler</h2>
+          <span class="status-chip" :class="temperatureAlerts.length > 0 ? 'status-chip--danger' : 'status-chip--good'">
+            {{ temperatureAlerts.length }} temperaturavvik
+          </span>
+        </header>
+
+        <ul class="item-list">
+          <li v-for="record in temperatureRecords.slice(0, 4)" :key="record.id" class="item-row">
+            <div>
+              <p class="item-row__title">{{ record.location }}</p>
+              <p class="item-row__meta">{{ record.temperature_c }}°C · grense {{ record.min_temp }} til {{ record.max_temp }}°C</p>
+            </div>
+            <span class="status-chip" :class="isTemperatureInRange(record) ? 'status-chip--good' : 'status-chip--danger'">
+              {{ isTemperatureInRange(record) ? 'OK' : 'Avvik' }}
+            </span>
+          </li>
+        </ul>
+      </article>
+
+      <article class="panel-card details-grid__span-2">
+        <header class="panel-card__header">
+          <h2>Ãpne avvik</h2>
+          <span class="status-chip" :class="openDeviations.length > 0 ? 'status-chip--warn' : 'status-chip--good'">
+            {{ openDeviations.length }} aktive
+          </span>
+        </header>
+
+        <ul class="item-list">
+          <li v-for="deviation in openDeviations" :key="deviation.id" class="item-row">
+            <div>
+              <p class="item-row__title">{{ deviation.title }}</p>
+              <p class="item-row__meta">{{ deviation.location }} · meldt {{ formatDate(deviation.reported_date) }} kl. {{ deviation.reported_time }}</p>
+            </div>
+            <span class="status-chip" :class="deviation.severity === 'high' ? 'status-chip--danger' : 'status-chip--warn'">
+              {{ deviation.severity === 'high' ? 'Hoy' : 'Medium' }}
+            </span>
+          </li>
+        </ul>
+      </article>
     </section>
   </div>
 </template>
 
 <style scoped>
-.ikmat-dashboard {
+.ik-mat-dashboard {
   max-width: 1200px;
   margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 1.75rem;
 }
 
 .page-header h1 {
+  margin: 0;
   font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--ikmat-primary);
-  margin-bottom: 8px;
+  color: var(--ik-mat-primary);
 }
 
 .subtitle {
-  font-size: var(--font-size-base);
+  margin: 0.4rem 0 0;
   color: var(--color-gray-500);
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-bottom: 2rem;
+  font-size: var(--font-size-sm);
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
 }
 
 .stat-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 1rem;
+  padding: 0.95rem;
+}
+
+.stat-card--success {
+  border-left: 0.25rem solid var(--color-success);
+}
+
+.stat-card--warning {
+  border-left: 0.25rem solid var(--color-warning);
+}
+
+.stat-card--info {
+  border-left: 0.25rem solid var(--color-info);
 }
 
 .stat-card__label {
   margin: 0;
-  font-size: var(--text-sm);
   color: var(--color-gray-600);
+  font-size: var(--font-size-xs);
 }
 
 .stat-card__value {
-  margin: 0.5rem 0 0;
-  font-size: 1.75rem;
-  font-weight: 700;
+  margin: 0.45rem 0 0;
   color: var(--color-foreground);
+  font-size: 1.6rem;
+  font-weight: var(--font-weight-bold);
 }
 
 .stat-card__unit {
-  margin-left: 0.25rem;
-  font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  margin-left: 0.2rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
 }
 
-.recent-section {
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+.action-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 1.25rem;
+  padding: 1rem;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.recent-title {
-  margin: 0 0 1rem;
-  font-size: var(--text-lg);
+.action-card:hover {
+  border-color: color-mix(in srgb, var(--ik-mat-primary) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--ik-mat-bg) 45%, var(--color-card));
 }
 
-.recent-list {
-  list-style: none;
+.action-card h2 {
   margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.75rem;
+  font-size: var(--font-size-base);
+  color: var(--color-foreground);
 }
 
-.recent-item {
+.action-card p {
+  margin: 0.4rem 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.details-grid__span-2 {
+  grid-column: 1 / -1;
+}
+
+.panel-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  padding: 0.9rem;
+}
+
+.panel-card__header {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
   align-items: center;
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-accent);
+  margin-bottom: 0.75rem;
 }
 
-.recent-item__name {
+.panel-card__header h2 {
   margin: 0;
-  font-weight: 600;
-}
-
-.recent-item__meta {
-  margin: 0.25rem 0 0;
-  font-size: var(--text-sm);
-  color: var(--color-gray-600);
-}
-
-.recent-item__status {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  color: var(--color-background);
-  background: #15803d;
-}
-
-.card {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-}
-
-.card h2 {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-foreground);
-  margin-bottom: 8px;
-}
-
-.card p {
   font-size: var(--font-size-base);
-  color: var(--color-gray-500);
-  margin-bottom: 16px;
+  color: var(--color-foreground);
 }
 
-.btn {
-  display: inline-flex;
+.item-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
   align-items: center;
-  padding: 10px 16px;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--ikmat-primary);
-  background: var(--ikmat-bg);
-  border: 1px solid var(--ikmat-primary);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  transition: all var(--transition-fast);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem;
+  background: color-mix(in srgb, var(--color-accent) 50%, var(--color-card));
 }
 
-.btn:hover {
-  background: var(--ikmat-primary);
-  color: white;
-  text-decoration: none;
+.item-row__title {
+  margin: 0;
+  color: var(--color-foreground);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.item-row__meta {
+  margin: 0.2rem 0 0;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+}
+
+.status-chip {
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.45rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.status-chip--good {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+}
+
+.status-chip--warn {
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+}
+
+.status-chip--danger {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+}
+
+@media (max-width: 56rem) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

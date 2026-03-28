@@ -1,141 +1,297 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import ikMatData from '@/data/ik-mat.json'
-import DeviationCard from '../components/DeviationCard.vue'
+import { computed, ref } from 'vue'
+import { useIkMatData } from '../composables/useIkMatData'
 
-interface Deviation {
-  id: number
-  title: string
-  description: string
-  severity: 'low' | 'medium' | 'high'
-  reported_by: string
-  reported_date: string
-  reported_time: string
-  location: string
-  immediate_action: string
-  corrective_action: string
-  status: 'open' | 'in-progress' | 'resolved'
-}
+const { deviations, formatDate } = useIkMatData()
 
-const deviations = ref<Deviation[]>(ikMatData.deviations as Deviation[])
-const selectedStatus = ref<string>('all')
+const selectedStatus = ref<'all' | 'open' | 'in-progress' | 'resolved'>('all')
+const selectedId = ref<number | null>(deviations[0]?.id ?? null)
 
-const statuses = ['open', 'in-progress', 'resolved']
-
-const filteredDeviations = computed(() => {
+const filtered = computed(() => {
   if (selectedStatus.value === 'all') {
-    return deviations.value
+    return deviations
   }
-  return deviations.value.filter(d => d.status === selectedStatus.value)
+
+  return deviations.filter((item) => item.status === selectedStatus.value)
 })
 
-const handleViewDeviation = (deviation: Deviation) => {
-  void deviation
+const selectedDeviation = computed(() => {
+  return filtered.value.find((item) => item.id === selectedId.value) ?? filtered.value[0] ?? null
+})
+
+const statusLabel = (status: 'open' | 'in-progress' | 'resolved') => {
+  if (status === 'open') {
+    return 'Åpen'
+  }
+
+  if (status === 'in-progress') {
+    return 'Pågår'
+  }
+
+  return 'Løst'
+}
+
+const severityLabel = (severity: 'low' | 'medium' | 'high') => {
+  if (severity === 'high') {
+    return 'Hoy'
+  }
+
+  if (severity === 'medium') {
+    return 'Medium'
+  }
+
+  return 'Lav'
 }
 </script>
 
 <template>
-  <div class="view-page">
+  <div class="deviations-page">
     <header class="page-header">
       <h1>Avvik</h1>
-      <p class="subtitle">Registrere og følge opp avvik fra rutiner</p>
+      <p class="subtitle">Registrer, prioriter og lukk avvik i en samlet arbeidsflate</p>
     </header>
 
-    <div class="deviations-filters">
-      <button 
-        v-for="status in ['all', ...statuses]"
-        :key="status"
-        class="filter-btn"
-        :class="{ 'filter-btn--active': selectedStatus === status }"
-        @click="selectedStatus = status"
-      >
-        {{ status === 'all' ? 'Alle' : status === 'open' ? 'Åpne' : status === 'in-progress' ? 'Under behandling' : 'Løst' }}
-      </button>
+    <div class="filter-row" role="tablist" aria-label="Filtrer avvik">
+      <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'all' }" @click="selectedStatus = 'all'">Alle</button>
+      <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'open' }" @click="selectedStatus = 'open'">Ãpne</button>
+      <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'in-progress' }" @click="selectedStatus = 'in-progress'">Pågår</button>
+      <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'resolved' }" @click="selectedStatus = 'resolved'">Løste</button>
     </div>
 
-    <div class="deviations-list">
-      <DeviationCard 
-        v-for="deviation in filteredDeviations"
-        :key="deviation.id"
-        :deviation="deviation"
-        @view="handleViewDeviation(deviation)"
-      />
-    </div>
+    <section class="deviations-layout">
+      <aside class="deviation-list" aria-label="Avviksliste">
+        <button
+          v-for="item in filtered"
+          :key="item.id"
+          class="deviation-list__item"
+          :class="{ 'deviation-list__item--active': selectedDeviation?.id === item.id }"
+          @click="selectedId = item.id"
+        >
+          <p class="deviation-list__title">{{ item.title }}</p>
+          <p class="deviation-list__meta">{{ item.location }} · {{ formatDate(item.reported_date) }}</p>
+          <div class="deviation-list__chips">
+            <span class="status-chip" :class="item.status === 'resolved' ? 'status-chip--good' : item.status === 'in-progress' ? 'status-chip--warn' : 'status-chip--danger'">
+              {{ statusLabel(item.status) }}
+            </span>
+            <span class="status-chip" :class="item.severity === 'high' ? 'status-chip--danger' : item.severity === 'medium' ? 'status-chip--warn' : 'status-chip--info'">
+              {{ severityLabel(item.severity) }}
+            </span>
+          </div>
+        </button>
+      </aside>
 
-    <div v-if="filteredDeviations.length === 0" class="empty-state">
-      <p>Ingen avvik funnet</p>
-    </div>
+      <article class="deviation-detail" v-if="selectedDeviation">
+        <header class="deviation-detail__header">
+          <h2>{{ selectedDeviation.title }}</h2>
+          <span class="status-chip" :class="selectedDeviation.status === 'resolved' ? 'status-chip--good' : selectedDeviation.status === 'in-progress' ? 'status-chip--warn' : 'status-chip--danger'">
+            {{ statusLabel(selectedDeviation.status) }}
+          </span>
+        </header>
+
+        <p class="deviation-detail__description">{{ selectedDeviation.description }}</p>
+
+        <div class="detail-grid">
+          <div>
+            <p class="detail-label">Meldt av</p>
+            <p>{{ selectedDeviation.reported_by }}</p>
+          </div>
+          <div>
+            <p class="detail-label">Tidspunkt</p>
+            <p>{{ formatDate(selectedDeviation.reported_date) }} kl. {{ selectedDeviation.reported_time }}</p>
+          </div>
+          <div>
+            <p class="detail-label">Umiddelbar handling</p>
+            <p>{{ selectedDeviation.immediate_action }}</p>
+          </div>
+          <div>
+            <p class="detail-label">Korrigerende tiltak</p>
+            <p>{{ selectedDeviation.corrective_action }}</p>
+          </div>
+        </div>
+      </article>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.view-page {
+.deviations-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  color: var(--color-foreground);
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-2xl);
+  color: var(--ik-mat-primary);
 }
 
 .subtitle {
-  margin: 0;
-  font-size: var(--text-base);
-  color: var(--color-gray-600);
+  margin: 0.35rem 0 0;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
 }
 
-.deviations-filters {
+.filter-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.filter-btn {
-  padding: 0.5rem 1rem;
-  background: var(--color-card);
+.filter-chip {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-base);
+  padding: 0.4rem 0.8rem;
+  background: var(--color-card);
   color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
 }
 
-.filter-btn:hover {
-  background: var(--color-accent);
-  border-color: var(--color-border-focus);
+.filter-chip--active {
+  border-color: var(--ik-mat-primary);
+  background: var(--ik-mat-primary);
+  color: var(--color-primary-foreground);
 }
 
-.filter-btn--active {
-  background: var(--color-foreground);
-  color: var(--color-background);
-  border-color: var(--color-foreground);
+.deviations-layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) 1fr;
+  gap: 0.85rem;
 }
 
-.deviations-list {
+.deviation-list {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  padding: 0.5rem;
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+}
+
+.deviation-list__item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  text-align: left;
+  padding: 0.65rem;
+}
+
+.deviation-list__item--active {
+  border-color: color-mix(in srgb, var(--ik-mat-primary) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--ik-mat-bg) 40%, var(--color-card));
+}
+
+.deviation-list__title {
+  margin: 0;
+  color: var(--color-foreground);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.deviation-list__meta {
+  margin: 0.2rem 0 0;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+}
+
+.deviation-list__chips {
+  margin-top: 0.45rem;
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 0.4rem;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 3rem 1.5rem;
-  background: var(--color-card);
+.deviation-detail {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  background: var(--color-card);
+  padding: 0.9rem;
+}
+
+.deviation-detail__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.deviation-detail__header h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-foreground);
+}
+
+.deviation-detail__description {
+  margin: 0;
   color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+}
+
+.detail-grid {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.detail-label {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detail-grid p {
+  margin: 0.2rem 0 0;
+  color: var(--color-foreground);
+  font-size: var(--font-size-sm);
+}
+
+.status-chip {
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.45rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.status-chip--good {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border));
+}
+
+.status-chip--warn {
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+}
+
+.status-chip--danger {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+}
+
+.status-chip--info {
+  color: var(--color-info);
+  background: var(--color-info-bg);
+  border-color: color-mix(in srgb, var(--color-info) 35%, var(--color-border));
+}
+
+@media (max-width: 62rem) {
+  .deviations-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
