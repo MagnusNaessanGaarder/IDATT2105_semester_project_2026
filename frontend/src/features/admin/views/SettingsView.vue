@@ -1,189 +1,275 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import adminData from '@/data/admin.json'
+import { computed, ref } from 'vue'
+import { type AuditLogEntry, type SettingItem, useAdminData } from '../composables/useAdminData'
 
-interface SettingItem {
-  id: string
-  label: string
-  description: string
-  type: 'select' | 'toggle' | 'number' | 'info'
-  current_value: unknown
-  options?: string[]
-  min?: number
-  max?: number
+const data = useAdminData()
+
+const settingsState = ref({
+  system: JSON.parse(JSON.stringify(data.settings.system)),
+  notification_preferences: JSON.parse(JSON.stringify(data.settings.notification_preferences)),
+  security: JSON.parse(JSON.stringify(data.settings.security)),
+  backup: JSON.parse(JSON.stringify(data.settings.backup)),
+}) as {
+  value: {
+    system: { section_title: string; items: SettingItem[] }
+    notification_preferences: { section_title: string; items: SettingItem[] }
+    security: { section_title: string; items: SettingItem[] }
+    backup: { section_title: string; items: SettingItem[] }
+  }
 }
 
-interface SettingSection {
-  section_title: string
-  items: SettingItem[]
+const query = ref('')
+
+const sections = computed(() => [
+  settingsState.value.system,
+  settingsState.value.notification_preferences,
+  settingsState.value.security,
+  settingsState.value.backup,
+])
+
+const filteredAuditLog = computed(() => {
+  const search = query.value.trim().toLowerCase()
+  return data.sortedAuditLog.filter((entry) => {
+    if (search.length === 0) {
+      return true
+    }
+
+    return (
+      entry.user.toLowerCase().includes(search) ||
+      entry.action.toLowerCase().includes(search) ||
+      entry.details.toLowerCase().includes(search) ||
+      entry.resource.toLowerCase().includes(search)
+    )
+  })
+})
+
+const updateSetting = (sectionIndex: number, itemId: string, nextValue: unknown) => {
+  const section = sections.value[sectionIndex]
+  if (!section) {
+    return
+  }
+
+  const item = section.items.find((entry) => entry.id === itemId)
+  if (!item) {
+    return
+  }
+
+  item.current_value = nextValue
 }
 
-const systemSettings = ref(adminData.settings.system as SettingSection)
-const notificationSettings = ref(adminData.settings.notification_preferences as SettingSection)
-const securitySettings = ref(adminData.settings.security as SettingSection)
-const auditLogSample = adminData.audit_log_sample
+const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.timestamp)
 </script>
 
 <template>
-  <div class="view-page">
+  <div class="view-page settings-view">
     <header class="page-header">
-      <h1>Innstillinger</h1>
-      <p class="subtitle">Systeminnstillinger og konfigurasjon</p>
+      <div>
+        <h1>Innstillinger</h1>
+        <p class="subtitle">Konfigurer system, varslinger, sikkerhet og sikkerhetskopi</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn--secondary" type="button">Eksporter data</button>
+        <button class="btn btn--primary" type="button">Lagre endringer</button>
+      </div>
     </header>
 
-    <div class="settings-sections">
-      <section class="settings-section">
-        <h2 class="settings-title">{{ systemSettings.section_title }}</h2>
-        <div class="settings-items">
-          <div v-for="item in systemSettings.items" :key="item.id" class="setting-item">
-            <div class="setting-header">
-              <label class="setting-label">{{ item.label }}</label>
-              <p class="setting-description">{{ item.description }}</p>
-            </div>
-            <div v-if="item.type === 'select'" class="setting-control">
-              <select :value="item.current_value as string" class="setting-select">
-                <option v-for="opt in item.options" :key="opt">{{ opt }}</option>
-              </select>
-            </div>
-            <div v-else-if="item.type === 'toggle'" class="setting-control">
-              <input type="checkbox" :checked="Boolean(item.current_value)" class="setting-toggle">
-            </div>
-            <div v-else-if="item.type === 'number'" class="setting-control">
-              <input
-                type="number"
-                :value="Number(item.current_value)"
-                :min="item.min"
-                :max="item.max"
-                class="setting-input"
-              >
-            </div>
-            <div v-else class="setting-info">{{ item.current_value }}</div>
-          </div>
-        </div>
-      </section>
+    <section class="settings-summary" aria-label="Systemoversikt">
+      <article class="summary-card">
+        <strong>{{ sections.length }}</strong>
+        <span>Konfigurasjonsseksjoner</span>
+      </article>
+      <article class="summary-card">
+        <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'toggle').length }}</strong>
+        <span>Brytere</span>
+      </article>
+      <article class="summary-card">
+        <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'number').length }}</strong>
+        <span>Numeriske felt</span>
+      </article>
+      <article class="summary-card">
+        <strong>{{ data.auditLog.length }}</strong>
+        <span>Revisjonshendelser</span>
+      </article>
+    </section>
 
-      <section class="settings-section">
-        <h2 class="settings-title">{{ notificationSettings.section_title }}</h2>
+    <section class="settings-grid" aria-label="Konfigurasjonspanel">
+      <article v-for="(section, sectionIndex) in sections" :key="section.section_title" class="settings-section">
+        <h2 class="settings-title">{{ section.section_title }}</h2>
         <div class="settings-items">
-          <div v-for="item in notificationSettings.items" :key="item.id" class="setting-item">
+          <div v-for="item in section.items" :key="item.id" class="setting-item">
             <div class="setting-header">
-              <label class="setting-label">{{ item.label }}</label>
-              <p class="setting-description">{{ item.description }}</p>
+              <label :for="item.id" class="setting-label">{{ item.label }}</label>
+              <p v-if="item.description" class="setting-description">{{ item.description }}</p>
             </div>
+
             <div class="setting-control">
-              <input type="checkbox" :checked="Boolean(item.current_value)" class="setting-toggle">
-            </div>
-          </div>
-        </div>
-      </section>
+              <select
+                v-if="item.type === 'select'"
+                :id="item.id"
+                class="setting-select"
+                :value="String(item.current_value)"
+                @change="updateSetting(sectionIndex, item.id, ($event.target as HTMLSelectElement).value)"
+              >
+                <option v-for="option in item.options" :key="option">{{ option }}</option>
+              </select>
 
-      <section class="settings-section">
-        <h2 class="settings-title">{{ securitySettings.section_title }}</h2>
-        <div class="settings-items">
-          <div v-for="item in securitySettings.items" :key="item.id" class="setting-item">
-            <div class="setting-header">
-              <label class="setting-label">{{ item.label }}</label>
-              <p class="setting-description">{{ item.description }}</p>
-            </div>
-            <div v-if="item.type === 'toggle'" class="setting-control">
-              <input type="checkbox" :checked="Boolean(item.current_value)" class="setting-toggle">
-            </div>
-            <div v-else-if="item.type === 'number'" class="setting-control">
+              <label v-else-if="item.type === 'toggle'" class="toggle-wrap">
+                <input
+                  :id="item.id"
+                  type="checkbox"
+                  :checked="Boolean(item.current_value)"
+                  @change="updateSetting(sectionIndex, item.id, ($event.target as HTMLInputElement).checked)"
+                >
+                <span>{{ Boolean(item.current_value) ? 'På' : 'Av' }}</span>
+              </label>
+
               <input
+                v-else-if="item.type === 'number'"
+                :id="item.id"
+                class="setting-input"
                 type="number"
                 :value="Number(item.current_value)"
                 :min="item.min"
                 :max="item.max"
-                class="setting-input"
+                @change="updateSetting(sectionIndex, item.id, Number(($event.target as HTMLInputElement).value))"
               >
+
+              <span v-else class="setting-info">{{ String(item.current_value) }}</span>
             </div>
           </div>
         </div>
-      </section>
+      </article>
+    </section>
 
-      <section class="settings-section">
-        <h2 class="settings-title">Siste hendelser (audit log)</h2>
-        <div class="audit-log">
-          <article v-for="entry in auditLogSample" :key="entry.id" class="audit-log__item">
-            <p class="audit-log__title">{{ entry.action }} - {{ entry.resource }}</p>
-            <p class="audit-log__meta">{{ entry.timestamp }} - {{ entry.user }} - {{ entry.result }}</p>
-            <p class="audit-log__details">{{ entry.details }}</p>
-          </article>
-        </div>
-      </section>
-    </div>
+    <section class="audit-section">
+      <header class="audit-header">
+        <h2>Revisjonslogg</h2>
+        <input v-model="query" class="audit-search" type="search" placeholder="Søk i hendelser" />
+      </header>
 
-    <div class="settings-footer">
-      <button class="btn btn--primary">Lagre endringer</button>
-      <button class="btn btn--secondary">Avbryt</button>
-    </div>
+      <div class="audit-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tid</th>
+              <th>Bruker</th>
+              <th>Handling</th>
+              <th>Ressurs</th>
+              <th>Detaljer</th>
+              <th>Resultat</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="entry in filteredAuditLog" :key="entry.id">
+              <td>{{ asDateTime(entry) }}</td>
+              <td>{{ entry.user }}</td>
+              <td>{{ entry.action }}</td>
+              <td>{{ entry.resource }}</td>
+              <td>{{ entry.details }}</td>
+              <td>
+                <span class="result-pill" :class="{ 'result-pill--ok': entry.result === 'SUCCESS' }">
+                  {{ entry.result }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.view-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+.settings-view {
+  display: grid;
+  gap: 1rem;
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: var(--text-2xl);
+  font-size: var(--font-size-3xl);
   font-weight: 700;
-  color: var(--color-foreground);
-  margin-bottom: 0.5rem;
+  letter-spacing: -0.015em;
 }
 
 .subtitle {
-  margin: 0;
-  font-size: var(--text-base);
-  color: var(--color-gray-600);
+  margin-top: 0.4rem;
+  color: var(--color-gray-500);
 }
 
-.settings-sections {
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.settings-summary {
   display: grid;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.summary-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  text-align: center;
+  padding: 0.85rem;
+}
+
+.summary-card strong {
+  color: var(--color-gray-900);
+  font-size: var(--font-size-xl);
+}
+
+.summary-card span {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-xs);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 .settings-section {
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 1.5rem;
+  padding: 0.9rem;
 }
 
 .settings-title {
-  margin: 0 0 1rem;
-  font-size: var(--text-lg);
+  margin: 0 0 0.75rem;
+  font-size: var(--font-size-lg);
   font-weight: 600;
-  color: var(--color-foreground);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 1rem;
 }
 
 .settings-items {
   display: grid;
-  gap: 1.5rem;
+  gap: 0.8rem;
 }
 
 .setting-item {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 1rem;
+  gap: 0.8rem;
   align-items: center;
-  padding: 1rem 0;
+  padding: 0.6rem 0;
   border-bottom: 1px solid var(--color-border);
 }
 
 .setting-item:last-child {
   border-bottom: none;
-  padding-bottom: 0;
 }
 
 .setting-header {
@@ -193,14 +279,14 @@ const auditLogSample = adminData.audit_log_sample
 }
 
 .setting-label {
-  font-size: var(--text-base);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--color-foreground);
 }
 
 .setting-description {
   margin: 0;
-  font-size: var(--text-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-gray-600);
 }
 
@@ -211,74 +297,115 @@ const auditLogSample = adminData.audit_log_sample
 
 .setting-select,
 .setting-input {
-  padding: 0.5rem 0.75rem;
-  background: var(--color-accent);
+  min-height: 2.3rem;
+  padding: 0 0.7rem;
+  background: var(--color-gray-50);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-foreground);
 }
 
-.setting-select:focus,
-.setting-input:focus {
-  outline: none;
-  border-color: var(--color-foreground);
+.toggle-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
 }
 
-.setting-toggle {
-  width: 1.5rem;
-  height: 1.5rem;
-  cursor: pointer;
+.toggle-wrap input {
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .setting-info {
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-gray-600);
-  padding: 0.5rem 0.75rem;
-  background: var(--color-accent);
+  padding: 0.4rem 0.65rem;
+  background: var(--color-gray-100);
   border-radius: var(--radius-sm);
 }
 
-.audit-log {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.audit-log__item {
+.audit-section {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-accent);
+  border-radius: var(--radius-md);
+  background: #fff;
   padding: 0.75rem;
 }
 
-.audit-log__title {
-  margin: 0;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-foreground);
-}
-
-.audit-log__meta,
-.audit-log__details {
-  margin: 0.25rem 0 0;
-  font-size: var(--text-xs);
-  color: var(--color-gray-600);
-}
-
-.settings-footer {
+.audit-header {
   display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.75rem;
+}
+
+.audit-header h2 {
+  font-size: var(--font-size-lg);
+}
+
+.audit-search {
+  min-height: 2.4rem;
+  min-width: 14rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-gray-50);
+  padding: 0 0.75rem;
+}
+
+.audit-table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.65rem;
+  border-bottom: 1px solid var(--color-gray-100);
+  vertical-align: top;
+}
+
+th {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--color-gray-50);
+}
+
+td {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+}
+
+.result-pill {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.result-pill--ok {
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
+  min-height: 2.7rem;
+  padding: 0.45rem 0.95rem;
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-base);
 }
 
 .btn--primary {
@@ -291,22 +418,42 @@ const auditLogSample = adminData.audit_log_sample
 }
 
 .btn--secondary {
-  background: var(--color-card);
-  color: var(--color-foreground);
+  background: #fff;
+  color: var(--color-gray-700);
   border: 1px solid var(--color-border);
 }
 
-.btn--secondary:hover {
-  background: var(--color-accent);
-}
-
 @media (max-width: 48rem) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn {
+    flex: 1;
+  }
+
+  .settings-summary,
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
   .setting-item {
     grid-template-columns: 1fr;
   }
 
-  .settings-footer {
+  .audit-header {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .audit-search {
+    width: 100%;
+    min-width: 0;
   }
 }
 </style>
