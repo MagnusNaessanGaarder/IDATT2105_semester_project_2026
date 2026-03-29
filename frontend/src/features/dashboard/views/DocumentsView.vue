@@ -44,7 +44,7 @@ const latestUpload = computed(() => {
     <header class="page-header">
       <div>
         <h1>Dokumenter</h1>
-        <p class="subtitle">Sentralisert lagring av retningslinjer, prosedyrer og opplæringsfiler</p>
+        <p class="subtitle">Dokumentregister med versjonshistorikk og opplastingsinformasjon</p>
       </div>
       <button class="upload-btn" type="button">Last opp dokument</button>
     </header>
@@ -97,6 +97,7 @@ const latestUpload = computed(() => {
       <table>
         <thead>
           <tr>
+            <th>Dokumentnr.</th>
             <th>Filnavn</th>
             <th>Kategori</th>
             <th>Størrelse</th>
@@ -107,6 +108,7 @@ const latestUpload = computed(() => {
         </thead>
         <tbody>
           <tr v-for="document in filteredDocuments" :key="document.id">
+            <td>#{{ document.id }}</td>
             <td>
               <p class="table-title">{{ document.name }}</p>
               <p class="table-subtitle">v{{ document.version }} · {{ document.file_type }}</p>
@@ -173,7 +175,7 @@ const latestUpload = computed(() => {
 }
 
 .documents-stat {
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   text-align: center;
@@ -193,7 +195,7 @@ const latestUpload = computed(() => {
 }
 
 .documents-toolbar {
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   padding: 0.75rem;
@@ -203,7 +205,7 @@ const latestUpload = computed(() => {
 
 .search-input {
   width: 100%;
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-gray-50);
   min-height: 2.6rem;
@@ -222,7 +224,7 @@ const latestUpload = computed(() => {
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-md);
   background: #fff;
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-gray-600);
@@ -241,7 +243,7 @@ const latestUpload = computed(() => {
 }
 
 .category-card {
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   padding: 0.75rem;
@@ -260,7 +262,7 @@ const latestUpload = computed(() => {
 }
 
 .table-wrapper {
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   overflow-x: auto;
@@ -275,7 +277,7 @@ th,
 td {
   padding: 0.75rem;
   text-align: left;
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 0.0625rem solid var(--color-gray-100);
   vertical-align: middle;
 }
 
@@ -301,7 +303,7 @@ th {
 .status-pill {
   display: inline-flex;
   padding: 0.2rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 62.4375rem;
   background: var(--color-gray-100);
   color: var(--color-gray-600);
   font-size: var(--font-size-xs);
@@ -317,7 +319,7 @@ th {
   text-align: center;
   padding: 2rem;
   background: var(--color-card);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-lg);
   color: var(--color-gray-600);
 }

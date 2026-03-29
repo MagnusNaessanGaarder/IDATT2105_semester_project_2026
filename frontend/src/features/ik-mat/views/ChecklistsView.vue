@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useIkMatData, type Checklist } from '../composables/useIkMatData'
+import { useIkMatData, type Checklist } from '@/features/ik-mat/composables/useIkMatData'
 
 const { checklists, completionForChecklist } = useIkMatData()
 
-const selectedFrequency = ref<'Alle' | 'Daglig' | 'Ukentlig' | 'Månedlig'>('Alle')
+const selectedFrequency = ref('Alle')
 const expandedId = ref<number | null>(null)
 
 const checklistState = ref<Checklist[]>(checklists.map((item) => ({ ...item, items: item.items.map((task) => ({ ...task })) })))
 
-const frequencies = computed(() => ['Alle', 'Daglig', 'Ukentlig', 'Månedlig'] as const)
+const frequencies = computed(() => {
+  const fromData = Array.from(new Set(checklistState.value.map((item) => item.frequency)))
+  return ['Alle', ...fromData]
+})
 
 const filtered = computed(() => {
   if (selectedFrequency.value === 'Alle') {
@@ -57,7 +60,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
   <div class="checklists-page">
     <header class="page-header">
       <h1>Sjekklister</h1>
-      <p class="subtitle">Operative kontrollpunkter sortert etter lavest progresjon</p>
+      <p class="subtitle">Operative kontrollpunkter for daglig og periodisk oppfølging</p>
     </header>
 
     <div class="filter-row" role="tablist" aria-label="Filtrer etter frekvens">
@@ -77,7 +80,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
         <button class="checklist-head" :aria-expanded="expandedId === checklist.id" @click="toggleExpanded(checklist.id)">
           <div>
             <p class="checklist-head__title">{{ checklist.name }}</p>
-            <p class="checklist-head__meta">{{ checklist.frequency }} · {{ checklist.law_unit }}</p>
+            <p class="checklist-head__meta">Sjekkliste {{ checklist.id }} · {{ checklist.frequency }} · {{ checklist.law_unit }}</p>
           </div>
 
           <div class="checklist-head__progress">
@@ -110,7 +113,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
 
 <style scoped>
 .checklists-page {
-  max-width: 1200px;
+  max-width: 75rem;
   margin: 0 auto;
 }
 
@@ -138,7 +141,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
 }
 
 .filter-chip {
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.4rem 0.8rem;
   background: var(--color-card);
@@ -158,7 +161,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
 }
 
 .checklist-card {
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   overflow: hidden;
@@ -208,7 +211,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
   height: 0.4rem;
   flex: 1;
   background: var(--color-gray-200);
-  border-radius: 999px;
+  border-radius: 62.4375rem;
   overflow: hidden;
 }
 
@@ -219,7 +222,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
 }
 
 .checklist-body {
-  border-top: 1px solid var(--color-border);
+  border-top: 0.0625rem solid var(--color-border);
   padding: 0.85rem 0.9rem;
   background: color-mix(in srgb, var(--ik-mat-bg) 40%, var(--color-card));
 }
@@ -239,7 +242,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
 }
 
 .task-row {
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-card);
   padding: 0.55rem;
@@ -276,7 +279,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
 
 .empty-state {
   margin-top: 0.9rem;
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   color: var(--color-gray-600);

@@ -28,8 +28,8 @@ withDefaults(defineProps<Props>(), {
 .base-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;

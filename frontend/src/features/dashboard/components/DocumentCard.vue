@@ -26,6 +26,15 @@ const fileIcon = () => {
   if (props.document.file_type === 'Excel') return '📊'
   return '📋'
 }
+
+const formattedUploadDate = () => {
+  const parsed = new Date(props.document.uploaded_date)
+  if (Number.isNaN(parsed.getTime())) {
+    return props.document.uploaded_date
+  }
+
+  return parsed.toLocaleDateString('nb-NO')
+}
 </script>
 
 <template>
@@ -45,7 +54,7 @@ const fileIcon = () => {
         <span class="document-card__size">{{ document.size }}</span>
       </div>
       <p class="document-card__upload-info">
-        Lastet opp av {{ document.uploaded_by }} den {{ document.uploaded_date }}
+        Dokument #{{ document.id }} · Lastet opp av {{ document.uploaded_by }} den {{ formattedUploadDate() }}
       </p>
     </div>
 
@@ -59,7 +68,7 @@ const fileIcon = () => {
 <style scoped>
 .document-card {
   background: var(--color-card);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: all var(--transition-base);
@@ -80,7 +89,7 @@ const fileIcon = () => {
   display: flex;
   gap: 1rem;
   padding: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 0.0625rem solid var(--color-border);
 }
 
 .document-card__icon {
@@ -152,7 +161,7 @@ const fileIcon = () => {
   display: flex;
   gap: 0.5rem;
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--color-border);
+  border-top: 0.0625rem solid var(--color-border);
 }
 
 .document-card__action-btn {

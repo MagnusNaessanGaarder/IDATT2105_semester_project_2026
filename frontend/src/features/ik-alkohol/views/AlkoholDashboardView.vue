@@ -37,7 +37,7 @@ const staffRows = computed(() => {
     return {
       name: employee.name,
       status,
-      detail: `${latestCertificate.name} - utlop ${formattedDate(latestCertificate.expire_date)}`,
+      detail: `${latestCertificate.name} - utløper ${formattedDate(latestCertificate.expire_date)}`,
       tone: status === 'Gyldig' ? 'good' : status === 'Utløper snart' ? 'warn' : 'danger',
     }
   })
@@ -48,7 +48,7 @@ const staffRows = computed(() => {
   <div class="alkohol-dashboard">
     <header class="page-header">
       <h1>IK-Alkohol</h1>
-      <p class="subtitle">Internkontroll etter alkoholloven og skjenkeforskriften</p>
+      <p class="subtitle">Internkontroll for ansvarlig alkoholservering</p>
     </header>
 
     <section v-if="staffWithExpired.length > 0" class="alert-strip" aria-live="polite">
@@ -65,7 +65,7 @@ const staffRows = computed(() => {
         <p class="stat-card__meta">{{ completionRate }}% fullført i dag</p>
       </article>
       <article class="stat-card">
-        <p class="stat-card__label">Sertifiseringer</p>
+        <p class="stat-card__label">Fullførte sertifiseringer</p>
         <p class="stat-card__value">{{ certificateCounts.Gyldig }}</p>
         <p class="stat-card__meta">Gyldige av totalt {{ certificateCounts.Gyldig + certificateCounts['Utløper snart'] + certificateCounts.Utgått }}</p>
       </article>
@@ -108,7 +108,7 @@ const staffRows = computed(() => {
           <li v-for="item in latestControls" :key="item.id" :class="{ 'detail-row--ok': item.is_checked }" class="detail-row">
             <div>
               <p class="detail-row__title">{{ item.name }}</p>
-              <p class="detail-row__meta">{{ item.law_unit }} - {{ item.employee }}</p>
+              <p class="detail-row__meta">{{ item.law_unit }} · Ansvarlig: {{ item.employee }}</p>
             </div>
             <span :class="{ 'tag--pending': !item.is_checked }" class="tag">{{ item.is_checked ? 'Fullført' : 'Mangler' }}</span>
           </li>
@@ -133,19 +133,19 @@ const staffRows = computed(() => {
 
 <style scoped>
 .alkohol-dashboard {
-  max-width: 1200px;
+  max-width: 75rem;
   margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
 }
 
 .page-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--ik-alkohol-primary);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 
 .subtitle {
@@ -154,12 +154,12 @@ const staffRows = computed(() => {
 }
 
 .alert-strip {
-  border: 1px solid #fecaca;
+  border: 0.0625rem solid #fecaca;
   background: #fee2e2;
   color: #7f1d1d;
-  padding: 12px 16px;
+  padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 .alert-strip p {
@@ -168,16 +168,16 @@ const staffRows = computed(() => {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .stat-card {
   background: var(--color-card);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 14px;
+  padding: 0.875rem;
 }
 
 .stat-card__label {
@@ -189,7 +189,7 @@ const staffRows = computed(() => {
 }
 
 .stat-card__value {
-  margin: 8px 0 4px;
+  margin: 0.5rem 0 0.25rem;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-foreground);
@@ -203,16 +203,16 @@ const staffRows = computed(() => {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(13.75rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .action-card {
   background: var(--color-card);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: 1rem;
   box-shadow: var(--shadow-sm);
   text-decoration: none;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
@@ -220,7 +220,7 @@ const staffRows = computed(() => {
 
 .action-card:hover {
   border-color: var(--ik-alkohol-primary);
-  transform: translateY(-1px);
+  transform: translateY(-0.0625rem);
   box-shadow: var(--shadow-md);
 }
 
@@ -237,7 +237,7 @@ const staffRows = computed(() => {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
   color: var(--color-foreground);
-  margin: 6px 0;
+  margin: 0.375rem 0;
 }
 
 .action-card p {
@@ -248,34 +248,34 @@ const staffRows = computed(() => {
 
 .details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr));
+  gap: 0.75rem;
 }
 
 .detail-card {
   background: var(--color-card);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 14px;
+  padding: 0.875rem;
 }
 
 .detail-card h2 {
-  margin: 0 0 10px;
+  margin: 0 0 0.625rem;
   font-size: var(--font-size-base);
 }
 
 .detail-card ul {
   display: grid;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--color-border);
+  gap: 0.5rem;
+  padding: 0.625rem;
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-sm);
   background: #f8fafc;
 }
@@ -296,17 +296,17 @@ const staffRows = computed(() => {
 }
 
 .detail-row__meta {
-  margin: 2px 0 0;
+  margin: 0.125rem 0 0;
   font-size: var(--font-size-xs);
   color: var(--color-gray-500);
 }
 
 .tag {
-  padding: 4px 8px;
+  padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
   background: var(--color-success-bg);
   color: var(--color-success);
-  border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+  border: 0.0625rem solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;

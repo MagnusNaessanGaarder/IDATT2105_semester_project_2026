@@ -90,13 +90,13 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 16px;
+  padding: 1rem;
 }
 
 .modal {
   background: white;
   width: 100%;
-  max-width: 500px;
+  max-width: 31.25rem;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -105,12 +105,12 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 1rem;
+  border-bottom: 0.0625rem solid var(--color-border);
 }
 
 .modal__title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
   margin: 0;
 }
@@ -119,8 +119,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -132,14 +132,14 @@ onUnmounted(() => {
 }
 
 .modal__content {
-  padding: 16px;
+  padding: 1rem;
 }
 
 .modal__footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 16px;
-  border-top: 1px solid var(--color-border);
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 0.0625rem solid var(--color-border);
 }
 </style>

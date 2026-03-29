@@ -60,7 +60,7 @@ const handleClick = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0.5rem;
   font-family: inherit;
   font-weight: 600;
   border: none;
@@ -105,18 +105,18 @@ const handleClick = () => {
 }
 
 .base-button--sm {
-  padding: 6px 12px;
-  font-size: 14px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
 }
 
 .base-button--md {
-  padding: 10px 16px;
-  font-size: 16px;
+  padding: 0.625rem 1rem;
+  font-size: 1rem;
 }
 
 .base-button--lg {
-  padding: 14px 24px;
-  font-size: 18px;
+  padding: 0.875rem 1.5rem;
+  font-size: 1.125rem;
 }
 
 .base-button--disabled {
@@ -125,9 +125,9 @@ const handleClick = () => {
 }
 
 .base-button__spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid currentColor;
+  width: 1rem;
+  height: 1rem;
+  border: 0.125rem solid currentColor;
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;

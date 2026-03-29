@@ -97,26 +97,26 @@ const handleLogin = async () => {
   align-items: center;
   justify-content: center;
   background: #f0f0f0;
-  padding: 24px;
+  padding: 1.5rem;
 }
 
 .login-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 25rem;
 }
 
 /* Mock Users Info */
 .mock-users-info {
   background: #f0f9ff;
-  border: 1px solid #bae6fd;
+  border: 0.0625rem solid #bae6fd;
   border-radius: var(--radius-md);
-  padding: 20px;
-  margin-bottom: 24px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .mock-users-info h3 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #0369a1;
   text-transform: uppercase;
@@ -126,24 +126,24 @@ const handleLogin = async () => {
 .mock-user-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .mock-user {
   background: white;
-  border: 1px solid #e0f2fe;
+  border: 0.0625rem solid #e0f2fe;
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  padding: 0.625rem 0.75rem;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 
 .mock-user:hover {
   background: #f0f9ff;
   border-color: #7dd3fc;
-  transform: translateX(4px);
+  transform: translateX(0.25rem);
 }
 
 .mock-user strong {
@@ -152,12 +152,12 @@ const handleLogin = async () => {
 
 .mock-user small {
   color: #64748b;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .mock-hint {
-  margin: 12px 0 0 0;
-  font-size: 11px;
+  margin: 0.75rem 0 0 0;
+  font-size: 0.6875rem;
   color: #64748b;
   text-align: center;
   font-style: italic;
@@ -166,9 +166,9 @@ const handleLogin = async () => {
 /* Form */
 .login-form {
   background: var(--color-card);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 32px;
+  padding: 2rem;
   box-shadow: var(--shadow-md);
 }
 
@@ -176,7 +176,7 @@ const handleLogin = async () => {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-foreground);
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
   text-align: center;
 }
 
@@ -184,9 +184,9 @@ const handleLogin = async () => {
 .error-message {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
   background-color: var(--color-danger-bg);
   color: var(--color-danger-fg);
   border-radius: var(--radius-md);
@@ -195,7 +195,7 @@ const handleLogin = async () => {
 
 /* Form Group */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {
@@ -203,16 +203,16 @@ const handleLogin = async () => {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-foreground);
-  margin-bottom: 6px;
+  margin-bottom: 0.375rem;
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 0.625rem 0.75rem;
   font-size: var(--font-size-base);
   color: var(--color-foreground);
   background: var(--color-gray-50);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
 }
@@ -220,7 +220,7 @@ const handleLogin = async () => {
 .form-group input:focus {
   outline: none;
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 0.1875rem rgba(59, 130, 246, 0.1);
   background: var(--color-card);
 }
 
@@ -231,8 +231,8 @@ const handleLogin = async () => {
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: 12px 20px;
-  margin-top: 8px;
+  padding: 0.75rem 1.25rem;
+  margin-top: 0.5rem;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary-foreground);
@@ -245,7 +245,7 @@ const handleLogin = async () => {
 
 .login-btn:hover:not(:disabled) {
   background: var(--color-gray-800);
-  transform: translateY(-1px);
+  transform: translateY(-0.0625rem);
   box-shadow: var(--shadow-md);
 }
 
@@ -259,13 +259,13 @@ const handleLogin = async () => {
 }
 
 /* Responsive */
-@media (max-width: 480px) {
+@media (max-width: 30rem) {
   .login-form {
-    padding: 24px;
+    padding: 1.5rem;
   }
 
   .mock-users-info {
-    padding: 16px;
+    padding: 1rem;
   }
 }
 </style>

@@ -73,7 +73,7 @@ const handleLogout = async () => {
   align-items: center;
   justify-content: space-between;
   padding: 0.875rem 1rem;
-  min-height: 60px;
+  min-height: 3.75rem;
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.01) 0%, rgba(15, 23, 42, 0) 100%);
 }
 
@@ -86,18 +86,18 @@ const handleLogout = async () => {
 }
 
 .user-avatar {
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, var(--color-info) 0%, var(--color-primary) 100%);
   color: var(--color-primary-foreground);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.8125rem;
   border-radius: var(--radius-lg);
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 0.125rem 0.25rem rgba(15, 23, 42, 0.08);
 }
 
 .user-details {
@@ -108,7 +108,7 @@ const handleLogout = async () => {
 }
 
 .user-name {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-foreground);
   white-space: nowrap;
@@ -117,7 +117,7 @@ const handleLogout = async () => {
 }
 
 .user-role {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--color-gray-500);
 }
 
@@ -125,8 +125,8 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
   padding: 0.5rem;
   background: transparent;
   border: none;
@@ -143,8 +143,8 @@ const handleLogout = async () => {
 }
 
 .logout-btn:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: -2px;
+  outline: 0.125rem solid var(--color-focus);
+  outline-offset: -0.125rem;
   background-color: var(--color-danger-bg);
 }
 </style>

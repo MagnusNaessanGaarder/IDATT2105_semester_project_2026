@@ -298,19 +298,19 @@ const filteredControls = computed(() => {
 
 <style scoped>
 .daily-control-page {
-  max-width: 1200px;
+  max-width: 75rem;
   margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 32px;
+  margin-bottom: 2rem;
 }
 
 .page-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--ik-alkohol-primary);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 
 .subtitle {
@@ -328,7 +328,7 @@ const filteredControls = computed(() => {
 .filter-btn {
   padding: 0.5rem 1rem;
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   background: var(--color-card);
   color: var(--color-gray-600);
   font-size: var(--font-size-sm);
@@ -352,7 +352,7 @@ const filteredControls = computed(() => {
   align-items: center;
   justify-content: space-between;
   background: var(--color-card);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 1.4rem;
 }
@@ -366,7 +366,7 @@ const filteredControls = computed(() => {
 .add-item-btn {
   margin-top: 1rem;
   padding: 0.65rem 1rem;
-  border: 1px solid var(--ik-alkohol-primary);
+  border: 0.0625rem solid var(--ik-alkohol-primary);
   background: color-mix(in srgb, var(--ik-alkohol-primary) 7%, var(--color-card));
   color: var(--ik-alkohol-primary);
   font-weight: var(--font-weight-semibold);
@@ -391,7 +391,7 @@ const filteredControls = computed(() => {
 
 .control-form input,
 .control-form textarea {
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);
   padding: 0.55rem 0.7rem;
   border-radius: var(--radius-sm);
   background: var(--color-card);
@@ -405,7 +405,7 @@ const filteredControls = computed(() => {
 }
 
 .modal-btn {
-  border: 1px solid var(--ik-alkohol-primary);
+  border: 0.0625rem solid var(--ik-alkohol-primary);
   background: var(--ik-alkohol-primary);
   color: #fff;
   border-radius: var(--radius-sm);
@@ -431,7 +431,7 @@ const filteredControls = computed(() => {
 
 .attachment-btn {
   margin-top: 0.6rem;
-  border: 1px solid var(--ik-alkohol-primary);
+  border: 0.0625rem solid var(--ik-alkohol-primary);
   color: var(--ik-alkohol-primary);
   background: transparent;
   padding: 0.5rem 0.7rem;

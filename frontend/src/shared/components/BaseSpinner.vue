@@ -37,34 +37,34 @@ withDefaults(defineProps<Props>(), {
 }
 
 .base-spinner__circle {
-  border: 2px solid var(--color-gray-300);
+  border: 0.125rem solid var(--color-gray-300);
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .base-spinner--sm .base-spinner__circle {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
 }
 
 .base-spinner--md .base-spinner__circle {
-  width: 24px;
-  height: 24px;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .base-spinner--lg .base-spinner__circle {
-  width: 40px;
-  height: 40px;
-  border-width: 3px;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-width: 0.1875rem;
 }
 
 .sr-only {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: 0.0625rem;
+  height: 0.0625rem;
   padding: 0;
-  margin: -1px;
+  margin: -0.0625rem;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
