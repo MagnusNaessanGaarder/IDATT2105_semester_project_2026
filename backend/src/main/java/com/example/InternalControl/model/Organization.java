@@ -7,6 +7,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * JPA Entity mapping to organization table.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Entity
 @Table(name = "organization")
 @Getter

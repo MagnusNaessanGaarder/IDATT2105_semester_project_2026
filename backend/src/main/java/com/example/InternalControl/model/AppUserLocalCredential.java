@@ -7,6 +7,13 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * JPA Entity mapping to app_user_local_credential table.
+ * Separate table for security reasons.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Entity
 @Table(name = "app_user_local_credential")
 @Getter

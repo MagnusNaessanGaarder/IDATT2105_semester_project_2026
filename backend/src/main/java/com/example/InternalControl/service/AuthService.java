@@ -10,7 +10,7 @@ import com.example.InternalControl.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +22,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+/**
+ * Service for authentication.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -31,7 +37,7 @@ public class AuthService {
     private final AppUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final AuthenticationProvider authenticationProvider;
+    private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
 
     @Transactional
@@ -79,7 +85,7 @@ public class AuthService {
         logger.info("Login attempt: {}", request.email());
 
         try {
-            Authentication authentication = authenticationProvider.authenticate(
+            Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.email(), request.password())
             );
 
@@ -112,10 +118,6 @@ public class AuthService {
             }
             
             throw new BadCredentialsException("Invalid email or password");
-        } catch (Exception e) {
-            logger.error("Unexpected error during login for {}: {}", request.email(), e.getClass().getName());
-            logger.error("Exception message: {}", e.getMessage());
-            throw e;
         }
     }
 

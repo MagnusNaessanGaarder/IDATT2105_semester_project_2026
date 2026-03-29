@@ -32,14 +32,36 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
-*.iml
-.classpath
-.project
-.factorypath
-.settings/
+# Environment files
+.env
+.env.local
+.env.*.local
+
+.cache
+
+# Devex
+DEV_NOTES.md
+frontend/DEV_NOTES.md
+frontend/VUE_NOTES.md
+
+AGENTS.md
+ai-*.md
+AI_*.md
+*.ai.md
+docs/ai-*/
+# Built files
+backend/target
+backend/.project
+backend/.env
+backend/.classpath
+
+
+# Editor directories and files
+.vscode/*
+*/.vscode
+/.vscode/*
+!.vscode/extensions.json
+.idea
 *.suo
 *.ntvs*
 *.njsproj
@@ -56,32 +78,34 @@ test-results/
 # Vite
 *.timestamp-*-*.mjs
 
-# AI Tools
-.clawhub/
-.claw/
-.openclaw/
-.cursor/
-.copilot/
-*.prompt.md
-prompts/
-.aider*
-.ai-history/
-chat-exports/
-conversations/
-skills/
+# OS files
+.DS_Store
+*/.DS_Store
+Thumbs.db
 
-# Project specific
-AGENTS.md
-SOUL.md
-IDENTITY.md
-USER.md
-HEARTBEAT.md
-TOOLS.md
-ai-*.md
-AI_*.md
-*.ai.md
-docs/ai-*/
-DEV_NOTES.md
-frontend/DEV_NOTES.md
-frontend/VUE_NOTES.md
-docs/DEV_NOTES/
+*.env
+
+# Backend build artifacts
+backend/InternalControl/target/
+backend/**/target/
+backend/bin/
+
+# IDE
+.idea/
+*.iml
+.classpath
+.project
+.factorypath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local env files
+.env.local
+.env.*.local

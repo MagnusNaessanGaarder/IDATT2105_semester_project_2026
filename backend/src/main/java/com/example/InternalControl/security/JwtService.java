@@ -15,6 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Service for JWT token generation and validation.
+ * Only class with access to the secret key.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 public class JwtService {
 

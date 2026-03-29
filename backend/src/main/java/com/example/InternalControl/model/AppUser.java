@@ -7,6 +7,13 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+/**
+ * JPA Entity mapping to app_user table
+ * No passwords
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Entity
 @Table(name="app_user")
 @AllArgsConstructor

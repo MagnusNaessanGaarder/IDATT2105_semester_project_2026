@@ -13,7 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,6 +29,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for AuthService
+ * Tests business logic with mocked dependencies
+ */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthService Tests")
 class AuthServiceTest {
@@ -43,7 +47,7 @@ class AuthServiceTest {
     private JwtService jwtService;
 
     @Mock
-    private AuthenticationProvider authenticationProvider;
+    private AuthenticationManager authenticationManager;
 
     @Mock
     private CustomUserDetailsService userDetailsService;
@@ -127,7 +131,7 @@ class AuthServiceTest {
         Authentication authentication = mock(Authentication.class);
         UserDetails userDetails = new User("test@example.com", "password", Collections.emptyList());
         
-        when(authenticationProvider.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
             .thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
@@ -149,7 +153,7 @@ class AuthServiceTest {
     @DisplayName("Should throw exception when login with invalid credentials")
     void shouldThrowExceptionWhenLoginWithInvalidCredentials() {
         // Given
-        when(authenticationProvider.authenticate(any()))
+        when(authenticationManager.authenticate(any()))
             .thenThrow(new BadCredentialsException("Invalid credentials"));
         when(userRepository.findByEmailWithCredentials(any())).thenReturn(Optional.empty());
 

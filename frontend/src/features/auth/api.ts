@@ -44,6 +44,20 @@ export interface RegisterData {
   password: string
 }
 
+export interface AuthResponse {
+  accessToken: string
+  refreshToken: string
+  username: string
+  role: string
+}
+
+export interface RegisterData {
+  username: string
+  email: string
+  password: string
+  fullName?: string
+}
+
 export const authApi = {
   async login(credentials: {
     email: string
@@ -64,7 +78,7 @@ export const authApi = {
       return {
         accessToken: `mock-jwt-${user.id}-${Date.now()}`,
         refreshToken: `mock-refresh-${user.id}-${Date.now()}`,
-        email: user.email,
+        username: user.name,
         role: user.role,
       }
     }
@@ -86,7 +100,7 @@ export const authApi = {
       return {
         accessToken: `mock-jwt-new-${Date.now()}`,
         refreshToken: `mock-refresh-new-${Date.now()}`,
-        email: userData.email,
+        username: userData.username,
         role: 'EMPLOYEE',
       }
     }
@@ -102,7 +116,7 @@ export const authApi = {
       return {
         accessToken: `mock-jwt-refreshed-${Date.now()}`,
         refreshToken: `mock-refresh-refreshed-${Date.now()}`,
-        email: sessionStorage.getItem('email') || 'Tri@gmail.com',
+        username: sessionStorage.getItem('username') || 'Tri',
         role: sessionStorage.getItem('role') || 'ADMIN',
       }
     }

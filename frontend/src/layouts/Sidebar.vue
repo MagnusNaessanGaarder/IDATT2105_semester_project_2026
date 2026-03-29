@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import NavSection from './NavSection.vue'
@@ -72,19 +72,38 @@ const isSectionExpanded = (key: string) => expandedSections.value.includes(key)
 const toggleSection = (key: string) => {
   const index = expandedSections.value.indexOf(key)
   if (index > -1) {
+    // Collapse if already expanded
     expandedSections.value.splice(index, 1)
   } else {
-    expandedSections.value.push(key)
+    // Collapse all other sections and expand this one
+    expandedSections.value = [key]
   }
 }
 
+// Get parent section that contains the current screen
+const getParentSectionKey = (screenId: string): string | null => {
+  for (const section of sections.value) {
+    if (section.dashboardRoute === screenId || section.items.some(item => item.route === screenId)) {
+      return section.key
+    }
+  }
+  return null
+}
+
 const navigateToDashboard = (routeName: string) => {
-  router.push({ name: routeName })
+  if (currentScreen.value !== routeName) {
+    router.push({ name: routeName })
+  }
+
   emit('close')
 }
 
-const navigateToScreen = (routeName: string) => {
-  router.push({ name: routeName })
+const navigateToScreen = (routeName: string, sectionKey: string) => {
+  if (currentScreen.value !== routeName) {
+    router.push({ name: routeName })
+  }
+
+  expandedSections.value = [sectionKey]
   emit('close')
 }
 
@@ -92,6 +111,13 @@ const currentScreen = computed(() => {
   const routeName = route.name as string
   return routeName || ''
 })
+
+watch(currentScreen, (routeName) => {
+  const parentSection = getParentSectionKey(routeName)
+  if (parentSection) {
+    expandedSections.value = [parentSection]
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -124,8 +150,8 @@ const currentScreen = computed(() => {
         :is-expanded="isSectionExpanded(section.key)"
         :current-screen="currentScreen"
         @toggle="toggleSection(section.key)"
-        @navigate-dashboard="navigateToDashboard"
-        @navigate-screen="navigateToScreen"
+        @navigate-dashboard="(route) => navigateToDashboard(route)"
+        @navigate-screen="(route) => navigateToScreen(route, section.key)"
       />
     </nav>
     
@@ -144,13 +170,14 @@ const currentScreen = computed(() => {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 240px;
-  background: #ffffff;
+  width: var(--sidebar-width);
+  background: var(--color-card);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   z-index: 50;
   transform: translateX(-100%);
+  transition: transform var(--transition-base) ease;
 }
 
 .sidebar--open {
@@ -168,13 +195,15 @@ const currentScreen = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 18px 16px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .app-title {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.01em;
+  color: var(--color-gray-900);
   margin: 0;
 }
 
@@ -198,15 +227,24 @@ const currentScreen = computed(() => {
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .sidebar-footer {
   position: sticky;
   bottom: 0;
-  background: #ffffff;
+  background: var(--color-card);
   border-top: 1px solid var(--color-border);
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -6px 16px rgba(15, 23, 42, 0.04);
   z-index: 10;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
 }
 </style>

@@ -4,7 +4,7 @@ run: run-docker run-backend run-frontend
 	@echo "All services started"
 
 run-backend:
-	@cd backend && export $(grep -v '^#' .env | xargs) && ./mvnw spring-boot:run
+	@cd backend && ./run.sh
 run-frontend:
 	@cd frontend && npm run dev
 

@@ -3,6 +3,12 @@ package com.example.InternalControl.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * JPA Entity mapping to role table.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Entity
 @Table(name = "role")
 @Getter

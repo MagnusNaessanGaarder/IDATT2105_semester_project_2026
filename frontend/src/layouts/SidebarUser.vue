@@ -72,9 +72,9 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 14px 16px;
   min-height: 64px;
-  background: #FFFFFF;
+  background: var(--color-card);
 }
 
 .user-info {
@@ -91,11 +91,11 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000000;
-  color: #FFFFFF;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
   font-weight: 600;
   font-size: 13px;
-  border-radius: 2px;
+  border-radius: 4px;
   flex-shrink: 0;
 }
 
@@ -132,7 +132,7 @@ const handleLogout = async () => {
   border-radius: 4px;
   color: var(--color-gray-500);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
   flex-shrink: 0;
 }
 
