@@ -1,16 +1,27 @@
 services:
   mysql:
     image: mysql:8.4
-    container_name: ik-mysql
+    container_name: ik-mysql-dev
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "3306:3306"
+    # Comment out network_mode if not on vpn (for dev)
+    # network_mode: host
+    # Standard config ( without VPN):
+    # ports:
+    #   - "3306:3306"
+    # volumes:
+    #   - mysql-dev-data:/var/lib/mysql
+    #   - ./mysql-vpn.cnf:/etc/mysql/conf.d/vpn.cnf:ro
+
+    # VPN config (uncomment these 3 lines if you're on VPN):
+    network_mode: host
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mysql-dev-data:/var/lib/mysql
+      - ./mysql-vpn.cnf:/etc/mysql/conf.d/vpn.cnf:ro
+
     healthcheck:
       test:
         [
@@ -32,7 +43,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ik-backend
+    container_name: ik-backend-dev
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
@@ -47,18 +58,5 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: ik-frontend
-    environment:
-      VITE_API_URL: http://localhost:${SERVER_PORT:-8080}/api
-    ports:
-      - "${FRONTEND_PORT:-5173}:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
-
 volumes:
-  mysql-data:
+  mysql-dev-data:

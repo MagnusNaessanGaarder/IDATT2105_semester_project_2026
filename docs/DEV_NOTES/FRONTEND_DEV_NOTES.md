@@ -209,11 +209,11 @@ src/
 **1. Ingen kryss-imports mellom features**
 
 ```typescript
-// ❌ FORBUDT: Ikke importer på tvers av features
+// [ ] FORBUDT: Ikke importer på tvers av features
 import { useChecklist } from '@features/ik-mat/composables/useChecklist'
 // Inni ik-alkohol!
 
-// ✅ RIKTIG: Bruk shared eller dupliser
+// [x] RIKTIG: Bruk shared eller dupliser
 import { useApi } from '@shared/composables/useApi'
 // Generelt nok til å deles
 ```
@@ -389,7 +389,7 @@ todo:;
 **Hvorfor dette gir A:** Props dokumenterer komponentens API og skaper kontrakter som fanger feil tidlig.
 
 ```typescript
-// ✅ RIKTIG - Full definisjon med validering
+// [x] RIKTIG - Full definisjon med validering
 const props = defineProps({
   // Påkrevd props tvinger parent til å sende data
   title: { type: String, required: true },
@@ -406,7 +406,7 @@ const props = defineProps({
   items: { type: Array, default: () => [] },
 })
 
-// ❌ FEIL - Type-only gir ingen validering
+// [ ] FEIL - Type-only gir ingen validering
 const props = defineProps({
   title: String,
   items: { type: Array, default: [] }, // BUG: Delt state mellom instanser!
@@ -415,17 +415,17 @@ const props = defineProps({
 
 **Hva sensor ser etter:**
 
-- ✅ `required` på kritiske props
-- ✅ `validator` på enum-verdier (status, type, rolle)
-- ✅ Funksjon for Array/Object `default: () => []`
-- ✅ Tydelige prop-navn som dokumenterer hensikt
+- [x] `required` på kritiske props
+- [x] `validator` på enum-verdier (status, type, rolle)
+- [x] Funksjon for Array/Object `default: () => []`
+- [x] Tydelige prop-navn som dokumenterer hensikt
 
 ### Emits - Hendelser opp til parent
 
 **Hvorfor dette gir A:** Emits opprettholder enveis dataflyt (parent → child via props, child → parent via emits).
 
 ```typescript
-// ✅ RIKTIG - Med payload-validering
+// [x] RIKTIG - Med payload-validering
 const emit = defineEmits({
   // Validering sikrer at parent får forventet format
   save: (data) => {
@@ -441,7 +441,7 @@ function handleSave() {
   emit('save', formData) // Parent bestemmer hva som skjer
 }
 
-// ❌ FEIL - Direkte mutering av props
+// [ ] FEIL - Direkte mutering av props
 function handleSave() {
   props.title = 'Ny tittel' // MUTASJON FORBUDT! Props er read-only
 }
@@ -457,10 +457,10 @@ function handleSave() {
 ### Template-regler
 
 ```vue
-<!-- ✅ OK -->
+<!-- [x] OK -->
 <button @click="handleSubmit">Send</button>
 
-<!-- ❌ FEIL -->
+<!-- [ ] FEIL -->
 <button @click="items.push(newItem)">Send</button>
 
 <!-- v-model -->
@@ -488,12 +488,12 @@ Tenk på det som en "hook" som trekker ut logikk fra komponenter:
 
 | Scenario                          | Bruk                  | Ikke bruk       |
 | --------------------------------- | --------------------- | --------------- |
-| **API-kall for én feature**       | ✅ Composable         | ❌ Pinia Store  |
-| **Skjema-håndtering**             | ✅ Composable         | ❌ Store        |
-| **Feature-spesifikk state**       | ✅ Composable         | ❌ Store        |
-| **Global state (auth)**           | ❌ Composable         | ✅ Pinia Store  |
-| **UI-state (modal åpen)**         | ✅ Composable (lokal) | ❌ Global state |
-| **Del logikk mellom komponenter** | ✅ Composable         | ❌ Mixins       |
+| **API-kall for én feature**       | [x] Composable         | [ ] Pinia Store  |
+| **Skjema-håndtering**             | [x] Composable         | [ ] Store        |
+| **Feature-spesifikk state**       | [x] Composable         | [ ] Store        |
+| **Global state (auth)**           | [ ] Composable         | [x] Pinia Store  |
+| **UI-state (modal åpen)**         | [x] Composable (lokal) | [ ] Global state |
+| **Del logikk mellom komponenter** | [x] Composable         | [ ] Mixins       |
 
 **Huskeregel:**
 
@@ -569,9 +569,9 @@ export const useXxxStore = defineStore('uniktId', () => {
 
 **Bruk når:**
 
-- ✅ Data trengs av mange forskjellige komponenter/features
-- ✅ Data skal huskes når bruker bytter side
-- ✅ Data er "sannheten" for hele appen (f.eks. innlogget bruker)
+- [x] Data trengs av mange forskjellige komponenter/features
+- [x] Data skal huskes når bruker bytter side
+- [x] Data er "sannheten" for hele appen (f.eks. innlogget bruker)
 
 ```typescript
 // stores/auth.ts - Global fordi alle trenger å vite om bruker
@@ -1072,13 +1072,13 @@ const { can } = usePermissions()
 
 ```vue
 <template>
-  <!-- ✅ Vue 3 escaper automatisk {{ }} -->
+  <!-- [x] Vue 3 escaper automatisk {{ }} -->
   <p>{{ userInput }}</p>
 
-  <!-- ❌ ALDRI gjør dette med brukerinput! -->
+  <!-- [ ] ALDRI gjør dette med brukerinput! -->
   <div v-html="userInput"></div>
 
-  <!-- ✅ Kun hvis du kontrollerer innholdet 100% -->
+  <!-- [x] Kun hvis du kontrollerer innholdet 100% -->
   <div v-html="sanitizedContent"></div>
 </template>
 
@@ -1108,7 +1108,7 @@ const client = axios.create({
 })
 
 // Ikke eksponer sensitive env-variabler
-// ❌ console.log(import.meta.env)  // ALDRI!
+// [ ] console.log(import.meta.env)  // ALDRI!
 ```
 
 ### A07: Authentication
@@ -1206,14 +1206,14 @@ const { values, errors, validate } = useForm(
 
 | Tiltak                     | Hva sensor ser etter                                 |
 | -------------------------- | ---------------------------------------------------- |
-| ✅ JWT i `sessionStorage`  | Ikke localStorage, med kort levetid                  |
-| ✅ Route guards            | Autentisering + autorisering på alle ruter           |
-| ✅ Input-validering        | Frontend + backend, ikke blindt stole på brukerinput |
-| ✅ XSS-beskyttelse         | Aldri `v-html` med brukerinput, auto-escaping        |
-| ✅ CSRF-tokens             | For state-changing requests                          |
-| ✅ Ikke logg sensitivt     | ALDRI logg tokens, passord, personinfo               |
-| ✅ HTTPS-only              | I produksjon, aldri HTTP                             |
-| ✅ Content Security Policy | Headers som begrenser script-kilder                  |
+| [x] JWT i `sessionStorage`  | Ikke localStorage, med kort levetid                  |
+| [x] Route guards            | Autentisering + autorisering på alle ruter           |
+| [x] Input-validering        | Frontend + backend, ikke blindt stole på brukerinput |
+| [x] XSS-beskyttelse         | Aldri `v-html` med brukerinput, auto-escaping        |
+| [x] CSRF-tokens             | For state-changing requests                          |
+| [x] Ikke logg sensitivt     | ALDRI logg tokens, passord, personinfo               |
+| [x] HTTPS-only              | I produksjon, aldri HTTP                             |
+| [x] Content Security Policy | Headers som begrenser script-kilder                  |
 
 ### Sanitering (hvis nødvendig)
 
@@ -1276,7 +1276,7 @@ const userComment = sanitizeInput(formData.comment)
 
 ## 17. Sjekkliste (basert på oppgavetekst)
 
-### ⚠️ KRITISK (fra oppgaven)
+### OBS: KRITISK (fra oppgaven)
 
 - [ ] **Ingen ufullstendig funksjonalitet** (blir ikke evaluert)
 - [ ] Full-stack fungerer: Login → Sjekklister → Temperatur → Avvik
@@ -1291,40 +1291,40 @@ const userComment = sanitizeInput(formData.comment)
 
 **Arkitektur (30% av karakter):**
 
-- ✅ Feature-first struktur med tydelig ansvarsfordeling
-- ✅ Props/Emits mønster (ikke mutering av props)
-- ✅ Pinia kun for global state, composables for lokal
-- ✅ BEM-konsistent CSS uten spesifisitetsproblemer
-- ✅ Separation of Concerns: View→Component→Composable→API
+- [x] Feature-first struktur med tydelig ansvarsfordeling
+- [x] Props/Emits mønster (ikke mutering av props)
+- [x] Pinia kun for global state, composables for lokal
+- [x] BEM-konsistent CSS uten spesifisitetsproblemer
+- [x] Separation of Concerns: View→Component→Composable→API
 
 **Kodekvalitet (25% av karakter):**
 
-- ✅ Full props-definisjon med validators
-- ✅ Emits med payload-validering
-- ✅ TypeScript types på alt
-- ✅ Ingen logikk i templates
-- ✅ DRY prinsippet - gjenbruk via composables
+- [x] Full props-definisjon med validators
+- [x] Emits med payload-validering
+- [x] TypeScript types på alt
+- [x] Ingen logikk i templates
+- [x] DRY prinsippet - gjenbruk via composables
 
 **Sikkerhet (20% av karakter):**
 
-- ✅ JWT i sessionStorage
-- ✅ Route guards på alle beskyttede ruter
-- ✅ Input-validering (frontend + backend)
-- ✅ XSS-beskyttelse (aldri v-html med brukerinput)
-- ✅ CSRF-tokens for state-changing requests
+- [x] JWT i sessionStorage
+- [x] Route guards på alle beskyttede ruter
+- [x] Input-validering (frontend + backend)
+- [x] XSS-beskyttelse (aldri v-html med brukerinput)
+- [x] CSRF-tokens for state-changing requests
 
 **UU & Testing (15% av karakter):**
 
-- ✅ WCAG AAA: 44px touch targets, kontrast 7:1
-- ✅ Alle inputs har labels, synlig fokus
-- ✅ 50%+ coverage (70%+ for A)
-- ✅ E2E-tester for kritiske flyter
+- [x] WCAG AAA: 44px touch targets, kontrast 7:1
+- [x] Alle inputs har labels, synlig fokus
+- [x] 50%+ coverage (70%+ for A)
+- [x] E2E-tester for kritiske flyter
 
 **Dokumentasjon (10% av karakter):**
 
-- ✅ README med kjøreinstruksjoner
-- ✅ API-dok (Swagger)
-- ✅ Denne guiden følges
+- [x] README med kjøreinstruksjoner
+- [x] API-dok (Swagger)
+- [x] Denne guiden følges
 
 ### Funksjonalitet (Everest-spesifikt)
 

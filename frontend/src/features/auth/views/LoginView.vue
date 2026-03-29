@@ -7,8 +7,8 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const email = ref('Tri@gmail.com')
-const password = ref('Tri')
+const email = ref('admin@everest-sushi.no')
+const password = ref('Test1234!')
 const error = ref('')
 const isLoading = ref(false)
 
@@ -22,7 +22,7 @@ const handleLogin = async () => {
       password: password.value,
     })
 
-    // Omdiriger til ønsket side eller dashboard
+    // redirect to dashboard
     const redirect = route.query.redirect as string
     router.push(redirect || { name: 'Dashboard' })
   } catch (e) {
