@@ -1,4 +1,11 @@
-import axios from 'axios'
+import axios, { InternalAxiosRequestConfig } from 'axios'
+
+// Extend Axios config type to allow _retry property
+declare module 'axios' {
+  interface InternalAxiosRequestConfig {
+    _retry?: boolean
+  }
+}
 
 export const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
@@ -10,7 +17,7 @@ export const client = axios.create({
 
 // Add JWT token to all requests
 client.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = sessionStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -38,7 +45,7 @@ const processQueue = (error: any, token: string | null = null) => {
 client.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config
+    const originalRequest: InternalAxiosRequestConfig = error.config
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Skip refresh for auth endpoints

@@ -5,13 +5,19 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/features/auth/api'
 
+// Custom error type for auth errors
+interface AuthError {
+  message: string
+  code?: string
+}
+
 export const useAuthStore = defineStore('auth', () => {
   // Store
   const email = ref<string | null>(sessionStorage.getItem('email') || null)
   const role = ref<string | null>(sessionStorage.getItem('role') || null)
   const accessToken = ref<string | null>(sessionStorage.getItem('accessToken') || null)
   const loading = ref(false)
-  const error = ref<string | null>(null)
+  const error = ref<AuthError | null>(null)
   const hasCheckedAuth = ref(false)
 
   // Computed
@@ -101,7 +107,13 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Decode JWT payload to check expiration
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
+      const payload = decodeJwtPayload(token)
+      if (!payload || !payload.exp) {
+        logout()
+        hasCheckedAuth.value = true
+        return false
+      }
+      
       const isExpired = payload.exp * 1000 < Date.now()
 
       if (isExpired) {
@@ -136,6 +148,22 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Helpers
 
+  function decodeJwtPayload(token: string): { exp?: number } | null {
+    try {
+      const parts = token.split('.')
+      if (parts.length !== 3) return null
+      
+      // Base64url decode (replace URL-safe chars and add padding)
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      const padding = '='.repeat((4 - base64.length % 4) % 4)
+      const decoded = atob(base64 + padding)
+      
+      return JSON.parse(decoded)
+    } catch {
+      return null
+    }
+  }
+
   function setAuthData(response: {
     accessToken: string
     refreshToken: string
@@ -152,14 +180,17 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem('role', response.role)
   }
 
-  function parseError(err: any): string {
+  function parseError(err: any): AuthError {
     if (err.response?.data?.error) {
-      return err.response.data.error
+      return { message: err.response.data.error }
     }
     if (err.response?.data?.fieldErrors) {
-      return Object.values(err.response.data.fieldErrors).join(', ')
+      return { message: Object.values(err.response.data.fieldErrors).join(', ') }
     }
-    return 'Something went wrong. Please try again.'
+    if (err.message) {
+      return { message: err.message }
+    }
+    return { message: 'Something went wrong. Please try again.' }
   }
 
   return {

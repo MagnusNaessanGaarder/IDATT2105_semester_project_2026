@@ -1,83 +1,46 @@
 # Internal Control System
 
-Semesteroppgave i IDATT2105 - Fullstack applikasjon for internkontroll i matbedrifter.
+Semester project for IDATT2105 - Fullstack application for internal control in service businesses.
 
-## Teknologier
+## Quick Start
 
-- **Backend:** Java 25, Spring Boot 4.0, MySQL 8.4, JWT
-- **Frontend:** Vue 3, TypeScript, Vite, Pinia
-- **Testing:** JUnit, Mockito, Vitest, Cypress
-
-## Komme i gang
-
-### Krav
-
-- Java 25+
-- Node.js 22+
-- Docker & Docker Compose
-- Maven
-
-### Starte utviklingsmiljø
-
-```bash
-# Clone repo
-git clone <repo-url>
-cd IDATT2105_semester_project_2026
-
-# Kopier env-malen
+Spør Tri om .env
 cp .env.example .env
 
-# Start alt (MySQL + Backend + Frontend)
-./start.sh
-```
+# Start all services (MySQL + Backend + Frontend)
 
-Applikasjonen er nå tilgjengelig på:
+./start.sh
+
+````
+
+Access the application:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8080
-- Swagger UI: http://localhost:8080/swagger-ui.html
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
 
-### Standard bruker
-
+**Test user:**
 - Email: `admin@everest-sushi.no`
-- Passord: `Test1234!`
+- Password: `Test1234!`
 
 ## Testing
 
-### Backend
+**Backend:**
 ```bash
 cd backend
-./mvnw test -Dtest="!*IntegrationTest"
-```
+./mvnw test
+````
 
-### Frontend
+**Frontend:**
+
 ```bash
 cd frontend
 npm run test:unit -- --run
 npm run test:e2e
 ```
 
-## Prosjektstruktur
+## Requirements
 
-```
-.
-├── backend/         # Spring Boot applikasjon
-├── frontend/        # Vue.js applikasjon
-├── docs/           # Dokumentasjon
-├── compose-dev.yml # Docker Compose for utvikling
-└── start.sh        # Hurtigstart-script
-```
-
-## CI/CD
-
-GitHub Actions kjører automatisk tester ved push og pull requests:
-- **Backend CI:** Kompilerer og kjører unit-tester
-- **Frontend CI:** Kjører unit-tester og bygg
-
-## Team
-
-- Tri Tac Le
-- [Andre teammedlemmer]
-
-## Lisens
-
-Privat - NTNU semesteroppgave
+- Java 25+
+- Node.js 22+
+- Docker & Docker Compose
+- Maven
