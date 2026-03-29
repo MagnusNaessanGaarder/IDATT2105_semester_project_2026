@@ -33,7 +33,7 @@ const statusLabel = (status: 'open' | 'in-progress' | 'resolved') => {
 
 const severityLabel = (severity: 'low' | 'medium' | 'high') => {
   if (severity === 'high') {
-    return 'Hoy'
+    return 'Høy'
   }
 
   if (severity === 'medium') {
@@ -53,7 +53,7 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
 
     <div class="filter-row" role="tablist" aria-label="Filtrer avvik">
       <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'all' }" @click="selectedStatus = 'all'">Alle</button>
-      <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'open' }" @click="selectedStatus = 'open'">Ãpne</button>
+      <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'open' }" @click="selectedStatus = 'open'">Åpne</button>
       <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'in-progress' }" @click="selectedStatus = 'in-progress'">Pågår</button>
       <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'resolved' }" @click="selectedStatus = 'resolved'">Løste</button>
     </div>
