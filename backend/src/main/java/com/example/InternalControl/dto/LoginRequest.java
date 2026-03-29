@@ -3,12 +3,6 @@ package com.example.InternalControl.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-/**
- * DTO for login requests.
- *
- * @author TriTacLe
- * @since 1.0
- */
 public record LoginRequest(
         @NotBlank(message = "Email is required")
         @Email(message = "Invalid email format")

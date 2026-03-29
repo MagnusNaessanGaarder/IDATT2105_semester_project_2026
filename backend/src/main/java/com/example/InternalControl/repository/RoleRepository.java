@@ -6,12 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * Repository for Role entities.
- *
- * @author TriTacLe
- * @since 1.0
- */
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
     

@@ -15,13 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
-/**
- * Service for loading user details 
- * Used by Spring Security during authentication.
- *
- * @author TriTacLe
- * @since 1.0
- */
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {

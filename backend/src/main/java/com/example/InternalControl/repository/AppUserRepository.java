@@ -8,12 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * Repository for AppUser entities.
- *
- * @author TriTacLe
- * @since 1.0
- */
 @Repository
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
