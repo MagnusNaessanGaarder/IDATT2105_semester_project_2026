@@ -12,12 +12,6 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for JwtService.
- *
- * @author TriTacLe
- * @since 1.0
- */
 class JwtServiceTest {
 
     private JwtService jwtService;

@@ -15,13 +15,6 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Integration tests using Java 11+ HttpClient.
- * Requires the server to be running separately.
- *
- * @author TriTacLe
- * @since 1.0
- */
 @SpringBootTest
 class AuthHttpIntegrationTest {
 
