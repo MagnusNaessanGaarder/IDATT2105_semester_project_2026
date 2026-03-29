@@ -30,11 +30,19 @@ const MOCK_USERS = [
 // ! Bruker da mock data på client-side og ingen tilkobling mot backend 
 const USE_MOCK = false // process.env.USE_MOCK 
 
+export interface OrganizationRole {
+  orgNumber: number
+  orgName: string
+  role: string
+  joinedAt: string
+}
+
 export interface AuthResponse {
   accessToken: string
   refreshToken: string
   email: string
   role: string
+  organizations: OrganizationRole[]
 }
 
 export interface RegisterData {
@@ -42,20 +50,6 @@ export interface RegisterData {
   email: string
   phone?: string
   password: string
-}
-
-export interface AuthResponse {
-  accessToken: string
-  refreshToken: string
-  username: string
-  role: string
-}
-
-export interface RegisterData {
-  username: string
-  email: string
-  password: string
-  fullName?: string
 }
 
 export const authApi = {
@@ -78,8 +72,9 @@ export const authApi = {
       return {
         accessToken: `mock-jwt-${user.id}-${Date.now()}`,
         refreshToken: `mock-refresh-${user.id}-${Date.now()}`,
-        username: user.name,
+        email: user.email,
         role: user.role,
+        organizations: [{ orgNumber: 937219997, orgName: 'Everest Sushi', role: user.role, joinedAt: new Date().toISOString() }]
       }
     }
 
@@ -100,8 +95,9 @@ export const authApi = {
       return {
         accessToken: `mock-jwt-new-${Date.now()}`,
         refreshToken: `mock-refresh-new-${Date.now()}`,
-        username: userData.username,
+        email: userData.email,
         role: 'EMPLOYEE',
+        organizations: [{ orgNumber: 937219997, orgName: 'Everest Sushi', role: 'EMPLOYEE', joinedAt: new Date().toISOString() }]
       }
     }
 
@@ -116,8 +112,9 @@ export const authApi = {
       return {
         accessToken: `mock-jwt-refreshed-${Date.now()}`,
         refreshToken: `mock-refresh-refreshed-${Date.now()}`,
-        username: sessionStorage.getItem('username') || 'Tri',
+        email: sessionStorage.getItem('email') || 'test@example.com',
         role: sessionStorage.getItem('role') || 'ADMIN',
+        organizations: [{ orgNumber: 937219997, orgName: 'Everest Sushi', role: 'ADMIN', joinedAt: new Date().toISOString() }]
       }
     }
 
