@@ -4,32 +4,17 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/features/auth/api'
-import type { RegisterData } from '@/features/auth/api'
 
-type AuthRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
-
-interface AuthUser {
-  id: string
-  name: string
-  email: string
-  role: AuthRole
+interface AuthError {
+  message: string
+  code?: string
 }
 
 interface JwtPayload {
   exp?: number
 }
 
-type LoginCredentials = Parameters<typeof authApi.login>[0]
-type AuthResponse = Awaited<ReturnType<typeof authApi.login>>
-
-// Custom error type for auth errors
-interface AuthError {
-  message: string
-  code?: string
-}
-
 export const useAuthStore = defineStore('auth', () => {
-  // Store
   const email = ref<string | null>(sessionStorage.getItem('email') || null)
   const role = ref<string | null>(sessionStorage.getItem('role') || null)
   const accessToken = ref<string | null>(sessionStorage.getItem('accessToken') || null)
@@ -37,7 +22,6 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref<AuthError | null>(null)
   const hasCheckedAuth = ref(false)
 
-  // Computed
   const isAuthenticated = computed(() => !!accessToken.value)
   const isAdmin = computed(() => role.value === 'ADMIN')
   const userDisplayName = computed(() => {
@@ -56,11 +40,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   })
 
-  // Actions
-
-  /**
-   * Logs in user and stores tokens in sessionStorage.
-   */
   async function login(credentials: { email: string; password: string }) {
     loading.value = true
     error.value = null
@@ -77,9 +56,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Registers new user and logs in automatically.
-   */
   async function register(userData: { email: string; password: string; name?: string }) {
     loading.value = true
     error.value = null
@@ -96,9 +72,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Logs out user and removes all tokens.
-   */
   function logout() {
     email.value = null
     role.value = null
@@ -108,13 +81,8 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('refreshToken')
     sessionStorage.removeItem('email')
     sessionStorage.removeItem('role')
-    hasCheckedAuth.value = true
   }
 
-  /**
-   * Checks if user is still authenticated.
-   * Calls refresh if access token is expired.
-   */
   async function checkAuth() {
     const token = sessionStorage.getItem('accessToken')
     if (!token) {
@@ -123,30 +91,14 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     }
 
-    // Decode JWT payload to check expiration
     try {
-<<<<<<< HEAD
       const payload = decodeJwtPayload(token)
-      if (!payload || !payload.exp) {
+      if (!payload || typeof payload.exp !== 'number') {
         logout()
         hasCheckedAuth.value = true
         return false
       }
-      
-=======
-      const tokenPayload = token.split('.')[1]
-      if (!tokenPayload) {
-        logout()
-        return false
-      }
 
-      const payload = JSON.parse(atob(tokenPayload)) as JwtPayload
-      if (typeof payload.exp !== 'number') {
-        logout()
-        return false
-      }
-
->>>>>>> cda3f39dd653208464109e44f6720c140db5c55c
       const isExpired = payload.exp * 1000 < Date.now()
 
       if (isExpired) {
@@ -161,10 +113,6 @@ export const useAuthStore = defineStore('auth', () => {
           hasCheckedAuth.value = true
           return false
         }
-
-        const response = await authApi.refresh(refreshToken)
-        setAuthData(response)
-        return true
       }
       hasCheckedAuth.value = true
       return true
@@ -175,27 +123,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Checks if user has any of the specified roles.
-   */
   function hasRole(...roles: string[]): boolean {
     if (!role.value) return false
     return roles.includes(role.value)
   }
 
-  // Helpers
-
-  function decodeJwtPayload(token: string): { exp?: number } | null {
+  function decodeJwtPayload(token: string): JwtPayload | null {
     try {
       const parts = token.split('.')
       if (parts.length !== 3) return null
-      
-      // Base64url decode (replace URL-safe chars and add padding)
+
       const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
       const padding = '='.repeat((4 - base64.length % 4) % 4)
       const decoded = atob(base64 + padding)
-      
-      return JSON.parse(decoded)
+
+      return JSON.parse(decoded) as JwtPayload
     } catch {
       return null
     }
@@ -215,34 +157,14 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem('refreshToken', response.refreshToken)
     sessionStorage.setItem('email', response.email)
     sessionStorage.setItem('role', response.role)
-    hasCheckedAuth.value = true
   }
 
   function parseError(err: any): AuthError {
     if (err.response?.data?.error) {
       return { message: err.response.data.error }
     }
-<<<<<<< HEAD
     if (err.response?.data?.fieldErrors) {
       return { message: Object.values(err.response.data.fieldErrors).join(', ') }
-=======
-
-    const maybeErr = err as {
-      response?: {
-        data?: {
-          error?: string
-          fieldErrors?: Record<string, string>
-        }
-      }
-    }
-
-    if (maybeErr.response?.data?.error) {
-      return maybeErr.response.data.error
-    }
-
-    if (maybeErr.response?.data?.fieldErrors) {
-      return Object.values(maybeErr.response.data.fieldErrors).join(', ')
->>>>>>> cda3f39dd653208464109e44f6720c140db5c55c
     }
     if (err.message) {
       return { message: err.message }
@@ -251,19 +173,16 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    // State
     email,
     role,
     accessToken,
     loading,
     error,
     hasCheckedAuth,
-    // Computed
     isAuthenticated,
     isAdmin,
     userDisplayName,
     user,
-    // Actions
     login,
     register,
     logout,
