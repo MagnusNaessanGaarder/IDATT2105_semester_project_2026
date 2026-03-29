@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { motion } from 'motion-v'
 
-const props = withDefaults(defineProps<{
-  variant: 'main' | 'sub'
-  label: string
-  active?: boolean
-  badge?: number
-  icon?: string
-  expanded?: boolean
-}>(), {
-  active: false,
-  badge: 0,
-  icon: '',
-  expanded: false,
-})
+const props = withDefaults(
+  defineProps<{
+    variant: 'main' | 'sub'
+    label: string
+    active?: boolean
+    badge?: number
+    icon?: string
+    expanded?: boolean
+  }> (), 
+  {
+    active: false,
+    badge: 0,
+    icon: '',
+    expanded: false,
+
+  }
+)
 
 const emit = defineEmits<{
   select: []
@@ -71,45 +75,45 @@ const handleSelect = () => {
 
 .menu-item__button {
   width: 100%;
-  min-height: 44px;
+  min-height: 2.75rem;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   background: transparent;
-  border: 1px solid transparent;
-  border-left: 4px solid transparent;
+  border: none;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
   border-radius: 0;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast) ease, color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .menu-item__button--main {
-  padding: 12px 16px;
+  padding: var(--spacing-md) var(--spacing-md);
 }
 
 .menu-item__button--sub {
-  padding: 10px 16px 10px 44px;
+  padding: var(--spacing-md) var(--spacing-md);
 }
 
 .menu-item__icon {
-  width: 18px;
-  height: 18px;
+  width: 1.125rem;
+  height: 1.125rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-gray-500);
+  color: var(--color-gray-400);
+  transition: color var(--transition-fast);
 }
 
 .menu-item__label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--color-gray-600);
+  color: var(--color-gray-700);
 }
 
 .menu-item--main .menu-item__label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -119,21 +123,21 @@ const handleSelect = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
-  background-color: #DC2626;
-  color: #FFFFFF;
-  font-size: 11px;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.375rem;
+  background-color: var(--color-danger);
+  color: var(--color-primary-foreground);
+  font-size: 0.6875rem;
   font-weight: 700;
-  border-radius: 9999px;
+  border-radius: 624.9375rem;
   margin-left: auto;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0.0625rem 0 rgba(0, 0, 0, 0.08);
 }
 
 .menu-item__chevron {
-  margin-left: 6px;
-  color: var(--color-gray-500);
+  margin-left: 0.375rem;
+  color: var(--color-gray-400);
   transform: rotate(-90deg);
   transition: transform var(--transition-base) ease, color var(--transition-fast);
 }
@@ -148,28 +152,39 @@ const handleSelect = () => {
 
 .menu-item--sub .menu-item__button:hover {
   transition: background-color var(--transition-fast);
+  color: var(--color-primary);
 }
 
 .menu-item--active .menu-item__button {
-  background-color: #eef3f8;
-  border-left-color: #0d7377;
-  border-color: var(--color-gray-200);
+  background-color: var(--color-accent-hover);
+  border-left-color: var(--ik-mat-primary);
+  border-left-style: solid;
+  border-left-width: 0.25rem;
+  padding-left: calc(var(--spacing-md) - 0.25rem);
+  color: var(--color-primary);
 }
 
 .menu-item--active .menu-item__label,
-.menu-item--active .menu-item__icon,
 .menu-item--active .menu-item__chevron {
   color: var(--color-gray-900);
 }
 
+.menu-item--active .menu-item__icon {
+  color: var(--ik-mat-primary);
+}
+
+.menu-item--active .menu-item__chevron {
+  color: var(--ik-mat-primary);
+}
+
 .menu-item--sub.menu-item--active .menu-item__label {
-  color: #0d7377;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
 .menu-item__button:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: -2px;
+  outline: 0.125rem solid var(--color-focus);
+  outline-offset: -0.125rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

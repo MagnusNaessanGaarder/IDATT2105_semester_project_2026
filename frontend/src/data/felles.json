@@ -1,0 +1,221 @@
+{
+  "dashboard": {
+    "stats": [
+      {
+        "label": "Ansatte",
+        "value": 12,
+        "trend": "neutral",
+        "color": "info"
+      },
+      {
+        "label": "Åpne varsler",
+        "value": 3,
+        "trend": "up",
+        "color": "warning"
+      },
+      {
+        "label": "Oppgjørte avvik",
+        "value": 8,
+        "trend": "up",
+        "color": "success"
+      },
+      {
+        "label": "Sertifikater gyldige",
+        "value": 11,
+        "unit": "/12",
+        "trend": "neutral",
+        "color": "info"
+      }
+    ],
+    "quick_actions": [
+      {
+        "title": "Opprett rapport",
+        "icon": "FileText",
+        "route": "Reports"
+      },
+      {
+        "title": "Last opp dokument",
+        "icon": "Upload",
+        "route": "Documents"
+      },
+      {
+        "title": "Se varsler",
+        "icon": "AlertCircle",
+        "route": "Notifications"
+      }
+    ]
+  },
+  "reports": [
+    {
+      "id": 1,
+      "title": "Månedlig kontrollrapport - Mai",
+      "type": "monthly",
+      "created_by": "Kjøkkensjef",
+      "created_date": "2024-05-31",
+      "period": "2024-05-01 til 2024-05-31",
+      "status": "finalized",
+      "sections": [
+        {
+          "name": "Sammendrag",
+          "content": "Mai hadde 94% komplianse. 2 avvik rapportert og løst."
+        },
+        {
+          "name": "IK-Mat",
+          "content": "Alle temperaturer innenfor grenser. 1 avvik vedr. pakking."
+        },
+        {
+          "name": "IK-Alkohol",
+          "content": "Alle sertifikater gyldige. Ingen overtredelser registrert."
+        }
+      ],
+      "file_url": "reports/2024-05-kontrollrapport.pdf",
+      "file_size": "2.5 MB"
+    },
+    {
+      "id": 2,
+      "title": "Avvik og korreksjoner - Q2",
+      "type": "deviation",
+      "created_by": "Leder",
+      "created_date": "2024-06-15",
+      "period": "2024-04-01 til 2024-06-30",
+      "status": "draft",
+      "sections": [
+        {
+          "name": "Oversikt",
+          "content": "6 avvik rapportert i Q2, 5 løst, 1 under behandling"
+        }
+      ],
+      "file_url": null,
+      "file_size": null
+    },
+    {
+      "id": 3,
+      "title": "HACCP Revisjon",
+      "type": "haccp",
+      "created_by": "Kjøkkensjef",
+      "created_date": "2024-01-10",
+      "period": "Årlig",
+      "status": "finalized",
+      "sections": [
+        {
+          "name": "CCP-analyse",
+          "content": "Alle 3 CCPer kontrolleres daglig/ukentlig"
+        }
+      ],
+      "file_url": "reports/haccp-revisjon-2024.pdf",
+      "file_size": "3.2 MB"
+    }
+  ],
+  "documents": [
+    {
+      "id": 1,
+      "name": "HACCP-plan 2024",
+      "category": "HACCP",
+      "file_type": "PDF",
+      "uploaded_by": "Kjøkkensjef",
+      "uploaded_date": "2024-01-15",
+      "size": "2.4 MB",
+      "version": "2.1",
+      "status": "active",
+      "description": "Oppdatert HACCP-plan for 2024"
+    },
+    {
+      "id": 2,
+      "name": "Alkoholloven Oppsummering",
+      "category": "Lovverk",
+      "file_type": "PDF",
+      "uploaded_by": "Leder",
+      "uploaded_date": "2024-02-01",
+      "size": "1.2 MB",
+      "version": "1.0",
+      "status": "active",
+      "description": "Samlet oversikt over relevante lovbestemmelser"
+    },
+    {
+      "id": 3,
+      "name": "Rengjøringsprogram",
+      "category": "Prosedyrer",
+      "file_type": "PDF",
+      "uploaded_by": "Kjøkkensjef",
+      "uploaded_date": "2024-03-10",
+      "size": "0.8 MB",
+      "version": "1.5",
+      "status": "active",
+      "description": "Detaljert program for rengjøring av kjøkkenet"
+    },
+    {
+      "id": 4,
+      "name": "Allergen Prosedyrer",
+      "category": "Prosedyrer",
+      "file_type": "PDF",
+      "uploaded_by": "Kjøkkensjef",
+      "uploaded_date": "2024-03-20",
+      "size": "0.6 MB",
+      "version": "2.0",
+      "status": "active",
+      "description": "Håndtering av allergener i restauranten"
+    },
+    {
+      "id": 5,
+      "name": "Leverandørliste",
+      "category": "Leverandører",
+      "file_type": "Excel",
+      "uploaded_by": "Innkjøp",
+      "uploaded_date": "2024-05-01",
+      "size": "0.2 MB",
+      "version": "3.2",
+      "status": "active",
+      "description": "Aktuelle godkjente leverandører"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "title": "Sertifikat utløper snart",
+      "message": "Maria B. sitt sertifikat for alkoholloven utløper om 30 dager",
+      "type": "warning",
+      "priority": "high",
+      "created_date": "2024-06-01",
+      "created_time": "09:30",
+      "read": false,
+      "action_url": "admin/certifications",
+      "action_label": "Se sertifikater"
+    },
+    {
+      "id": 2,
+      "title": "Avvik registrert",
+      "message": "Nytt avvik: Dårlig pakking av varer ved mottak",
+      "type": "info",
+      "priority": "medium",
+      "created_date": "2024-06-01",
+      "created_time": "10:30",
+      "read": false,
+      "action_url": "ik-mat/deviations",
+      "action_label": "Vis avvik"
+    },
+    {
+      "id": 3,
+      "title": "Rapport klar til gjennomgang",
+      "message": "Månedlig rapport for mai er klar til godkjenning",
+      "type": "info",
+      "priority": "medium",
+      "created_date": "2024-05-31",
+      "created_time": "16:00",
+      "read": true,
+      "action_url": "felles/reports",
+      "action_label": "Vis rapport"
+    },
+    {
+      "id": 4,
+      "title": "Temperaturavvik",
+      "message": "Serveringsbuffet hadde temperaturer utenfor grenser",
+      "type": "warning",
+      "priority": "high",
+      "created_date": "2024-05-28",
+      "created_time": "12:15",
+      "read": true,
+      "action_url": "ik-mat/temperature",
+      "action_label": "Vis temperaturer"
+    }
+  ]
+}

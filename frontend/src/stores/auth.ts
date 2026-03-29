@@ -4,6 +4,23 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/features/auth/api'
+import type { RegisterData } from '@/features/auth/api'
+
+type AuthRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
+
+interface AuthUser {
+  id: string
+  name: string
+  email: string
+  role: AuthRole
+}
+
+interface JwtPayload {
+  exp?: number
+}
+
+type LoginCredentials = Parameters<typeof authApi.login>[0]
+type AuthResponse = Awaited<ReturnType<typeof authApi.login>>
 
 // Custom error type for auth errors
 interface AuthError {
@@ -91,6 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('refreshToken')
     sessionStorage.removeItem('email')
     sessionStorage.removeItem('role')
+    hasCheckedAuth.value = true
   }
 
   /**
@@ -107,6 +125,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Decode JWT payload to check expiration
     try {
+<<<<<<< HEAD
       const payload = decodeJwtPayload(token)
       if (!payload || !payload.exp) {
         logout()
@@ -114,6 +133,20 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
       
+=======
+      const tokenPayload = token.split('.')[1]
+      if (!tokenPayload) {
+        logout()
+        return false
+      }
+
+      const payload = JSON.parse(atob(tokenPayload)) as JwtPayload
+      if (typeof payload.exp !== 'number') {
+        logout()
+        return false
+      }
+
+>>>>>>> cda3f39dd653208464109e44f6720c140db5c55c
       const isExpired = payload.exp * 1000 < Date.now()
 
       if (isExpired) {
@@ -128,6 +161,10 @@ export const useAuthStore = defineStore('auth', () => {
           hasCheckedAuth.value = true
           return false
         }
+
+        const response = await authApi.refresh(refreshToken)
+        setAuthData(response)
+        return true
       }
       hasCheckedAuth.value = true
       return true
@@ -178,14 +215,34 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem('refreshToken', response.refreshToken)
     sessionStorage.setItem('email', response.email)
     sessionStorage.setItem('role', response.role)
+    hasCheckedAuth.value = true
   }
 
   function parseError(err: any): AuthError {
     if (err.response?.data?.error) {
       return { message: err.response.data.error }
     }
+<<<<<<< HEAD
     if (err.response?.data?.fieldErrors) {
       return { message: Object.values(err.response.data.fieldErrors).join(', ') }
+=======
+
+    const maybeErr = err as {
+      response?: {
+        data?: {
+          error?: string
+          fieldErrors?: Record<string, string>
+        }
+      }
+    }
+
+    if (maybeErr.response?.data?.error) {
+      return maybeErr.response.data.error
+    }
+
+    if (maybeErr.response?.data?.fieldErrors) {
+      return Object.values(maybeErr.response.data.fieldErrors).join(', ')
+>>>>>>> cda3f39dd653208464109e44f6720c140db5c55c
     }
     if (err.message) {
       return { message: err.message }
