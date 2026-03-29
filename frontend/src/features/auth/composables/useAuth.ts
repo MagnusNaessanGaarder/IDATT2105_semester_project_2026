@@ -1,8 +1,5 @@
 /**
- * useAuth.ts - Composable for auth-relatert funksjonalitet i komponenter.
- *
- * Bruk i enhver komponent:
- *   const { isAuthenticated, isAdmin, logout } = useAuth()
+ * Composable for auth-relatert funksjonalitet i komponenter.
  */
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
@@ -11,11 +8,8 @@ import { storeToRefs } from 'pinia'
 export function useAuth() {
   const authStore = useAuthStore()
   const router = useRouter()
-  const { isAuthenticated, isAdmin, username, role, loading, error } = storeToRefs(authStore)
+  const { isAuthenticated, isAdmin, email, role, loading, error } = storeToRefs(authStore)
 
-  /**
-   * Logger ut og redirecter til login-siden.
-   */
   function logoutAndRedirect() {
     authStore.logout()
     router.push('/login')
@@ -23,13 +17,13 @@ export function useAuth() {
 
   /**
    * Decoder JWT payload uten å verifisere signatur.
-   * Nyttig for å vise brukerinfo på frontend.
-   * NB: Aldri stol på dette for sikkerhet — backend validerer alltid.
+   * NBAldri stol på dette for sikkerhet - backend validerer alltid.
    */
-  function decodeToken(token: string | null) {
+  function decodeToken(token: string | null | undefined) {
     if (!token) return null
     try {
       const payload = token.split('.')[1]
+      if (!payload) return null
       return JSON.parse(atob(payload))
     } catch {
       return null
@@ -53,7 +47,7 @@ export function useAuth() {
   return {
     isAuthenticated,
     isAdmin,
-    username,
+    email,
     role,
     loading,
     error,

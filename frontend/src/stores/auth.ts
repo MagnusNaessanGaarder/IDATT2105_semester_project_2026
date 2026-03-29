@@ -1,40 +1,43 @@
 /**
- * useAuthStore.js - Pinia store for autentisering.
- *
- * Sentraliserer all auth-logikk:
- * - Token-lagring i sessionStorage (oppgavekrav 4.7)
- * - Brukerinfo (username, role)
- * - Login/logout/register actions
- * - Computed properties for auth-status
- *
- * sessionStorage valgt over localStorage fordi:
- * - Tømmes når fanen lukkes (kortlevd sesjon)
- * - Ikke delt mellom faner (sikrere)
- * - Oppgaveteksten tillater dette eksplisitt
+ * Pinia store for autentisering.
+ * Sentraliserer all auth-logikk
+ * Token-lagring i sessionStorage (oppgavekrav 4.7)
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/features/auth/api'
 
 export const useAuthStore = defineStore('auth', () => {
-  // ======== State ========
-  const username = ref(sessionStorage.getItem('username') || null)
+  const email = ref(sessionStorage.getItem('email') || null)
   const role = ref(sessionStorage.getItem('role') || null)
   const accessToken = ref(sessionStorage.getItem('accessToken') || null)
   const loading = ref(false)
-  const error = ref(null)
+  const error = ref<Error | null>(null)
+  const hasCheckedAuth = ref(false)
 
-  // ======== Computed ========
   const isAuthenticated = computed(() => !!accessToken.value)
   const isAdmin = computed(() => role.value === 'ADMIN')
-  const userDisplayName = computed(() => username.value || 'Gjest')
+  const userDisplayName = computed(() => {
+    if (email.value) {
+      return email.value.split('@')[0]
+    }
+    return 'Gjest'
+  })
 
-  // ======== Actions ========
+  const user = computed(() => {
+    if (!email.value) return null
+    return {
+      id: '',
+      name: userDisplayName.value,
+      email: email.value,
+      role: role.value,
+    }
+  })
 
   /**
    * Logger inn bruker og lagrer tokens i sessionStorage.
    */
-  async function login(credentials) {
+  async function login(credentials: { email: string; password: string }) {
     loading.value = true
     error.value = null
 
@@ -53,7 +56,12 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Registrerer ny bruker og logger inn automatisk.
    */
-  async function register(userData) {
+  async function register(userData: {
+    fullName: string
+    email: string
+    password: string
+    phone?: string
+  }) {
     loading.value = true
     error.value = null
 
@@ -73,13 +81,13 @@ export const useAuthStore = defineStore('auth', () => {
    * Logger ut bruker og fjerner alle tokens.
    */
   function logout() {
-    username.value = null
+    email.value = null
     role.value = null
     accessToken.value = null
 
     sessionStorage.removeItem('accessToken')
     sessionStorage.removeItem('refreshToken')
-    sessionStorage.removeItem('username')
+    sessionStorage.removeItem('email')
     sessionStorage.removeItem('role')
   }
 
@@ -88,6 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
    * Kaller refresh hvis access token er utløpt.
    */
   async function checkAuth() {
+    hasCheckedAuth.value = true
     const token = sessionStorage.getItem('accessToken')
     if (!token) {
       logout()
@@ -96,7 +105,12 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Decode JWT payload for å sjekke utløpstid
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
+      const payloadPart = token.split('.')[1]
+      if (!payloadPart) {
+        logout()
+        return false
+      }
+      const payload = JSON.parse(atob(payloadPart))
       const isExpired = payload.exp * 1000 < Date.now()
 
       if (isExpired) {
@@ -117,20 +131,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // ======== Hjelpefunksjoner ========
-
-  function setAuthData(response) {
+  function setAuthData(response: {
+    accessToken: string
+    refreshToken: string
+    email: string
+    role: string
+  }) {
     accessToken.value = response.accessToken
-    username.value = response.username
+    email.value = response.email
     role.value = response.role
 
     sessionStorage.setItem('accessToken', response.accessToken)
     sessionStorage.setItem('refreshToken', response.refreshToken)
-    sessionStorage.setItem('username', response.username)
+    sessionStorage.setItem('email', response.email)
     sessionStorage.setItem('role', response.role)
   }
 
-  function parseError(err) {
+  function parseError(err: any) {
     if (err.response?.data?.error) {
       return err.response.data.error
     }
@@ -140,21 +157,25 @@ export const useAuthStore = defineStore('auth', () => {
     return 'Noe gikk galt. Prøv igjen.'
   }
 
+  function hasRole(...allowedRoles: string[]) {
+    return allowedRoles.includes(role.value || '')
+  }
+
   return {
-    // State
-    username,
+    email,
     role,
     accessToken,
     loading,
     error,
-    // Computed
+    hasCheckedAuth,
     isAuthenticated,
     isAdmin,
     userDisplayName,
-    // Actions
+    user,
     login,
     register,
     logout,
     checkAuth,
+    hasRole,
   }
 })

@@ -1,9 +1,7 @@
 /**
- * client.ts - Axios-instans med JWT interceptors.
- *
+ * Axios-instance med JWT interceptors.
  * Request interceptor:  Legger til "Authorization: Bearer <token>" på alle requests.
  * Response interceptor: Fanger 401, prøver token refresh, re-sender original request.
- *
  * OWASP: Token lagres i sessionStorage (kortlevd, per-tab).
  */
 import axios from 'axios'
@@ -16,7 +14,7 @@ export const client = axios.create({
   },
 })
 
-// ======== Request Interceptor ========
+// req interceptors
 // Legger til JWT token på alle utgående requests
 client.interceptors.request.use(
   (config) => {
@@ -26,10 +24,10 @@ client.interceptors.request.use(
     }
     return config
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 )
 
-// ======== Response Interceptor ========
+// res interceptors
 // Håndterer 401 (utløpt token) med automatisk refresh
 let isRefreshing = false
 let failedQueue: { resolve: (value: string) => void; reject: (reason: any) => void }[] = []
@@ -75,7 +73,7 @@ client.interceptors.response.use(
       const refreshToken = sessionStorage.getItem('refreshToken')
 
       if (!refreshToken) {
-        // Ingen refresh token - logg ut
+        // Ingen refresh token  logg ut
         sessionStorage.removeItem('accessToken')
         sessionStorage.removeItem('refreshToken')
         window.location.href = '/login'
@@ -85,7 +83,7 @@ client.interceptors.response.use(
       try {
         const response = await axios.post(
           `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/auth/refresh`,
-          { refreshToken }
+          { refreshToken },
         )
 
         const { accessToken, refreshToken: newRefreshToken } = response.data
@@ -99,7 +97,7 @@ client.interceptors.response.use(
 
         return client(originalRequest)
       } catch (refreshError) {
-        // Refresh feilet - logg ut
+        // Refresh feilet,  logg ut
         processQueue(refreshError, null)
         sessionStorage.removeItem('accessToken')
         sessionStorage.removeItem('refreshToken')
@@ -111,5 +109,5 @@ client.interceptors.response.use(
     }
 
     return Promise.reject(error)
-  }
+  },
 )

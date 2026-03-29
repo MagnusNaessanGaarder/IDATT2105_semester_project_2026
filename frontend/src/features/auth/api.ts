@@ -26,21 +26,22 @@ const MOCK_USERS = [
   },
 ]
 
-// Setter til true for å bruke mock, false for å kalle backend
-const USE_MOCK = true
+// ! Setter til true for å bruke mock
+// ! Bruker da mock data på client-side og ingen tilkobling mot backend 
+const USE_MOCK = false // process.env.USE_MOCK 
 
 export interface AuthResponse {
   accessToken: string
   refreshToken: string
-  username: string
+  email: string
   role: string
 }
 
 export interface RegisterData {
-  username: string
+  fullName: string
   email: string
+  phone?: string
   password: string
-  fullName?: string
 }
 
 export const authApi = {
@@ -63,7 +64,7 @@ export const authApi = {
       return {
         accessToken: `mock-jwt-${user.id}-${Date.now()}`,
         refreshToken: `mock-refresh-${user.id}-${Date.now()}`,
-        username: user.name,
+        email: user.email,
         role: user.role,
       }
     }
@@ -85,7 +86,7 @@ export const authApi = {
       return {
         accessToken: `mock-jwt-new-${Date.now()}`,
         refreshToken: `mock-refresh-new-${Date.now()}`,
-        username: userData.username,
+        email: userData.email,
         role: 'EMPLOYEE',
       }
     }
@@ -101,7 +102,7 @@ export const authApi = {
       return {
         accessToken: `mock-jwt-refreshed-${Date.now()}`,
         refreshToken: `mock-refresh-refreshed-${Date.now()}`,
-        username: sessionStorage.getItem('username') || 'Tri',
+        email: sessionStorage.getItem('email') || 'Tri@gmail.com',
         role: sessionStorage.getItem('role') || 'ADMIN',
       }
     }

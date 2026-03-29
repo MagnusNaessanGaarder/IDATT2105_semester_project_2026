@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Backend startup script
-# usage: cd backend && ./run run
 set -e
 
 MODE=${1:-dev}
