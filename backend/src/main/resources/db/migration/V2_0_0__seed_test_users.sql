@@ -24,7 +24,7 @@ INSERT INTO app_user (display_name, email, phone, is_active, created_at, updated
 -- Credentials (Password: Test1234!)
 INSERT INTO app_user_local_credential (user_id, password_hash, must_change_pw, last_changed_at, failed_attempts, created_at, updated_at)
 SELECT user_id, 
-       '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.VTtYA.qGZvKG6G',
+       '$2a$10$5unaQ9xbIbpZ6hGsft6X5.GqaT9.tCTHjHYkqvTvMCGfGcXooEs5a',
        0, NOW(), 0, NOW(), NOW()
 FROM app_user;
 
