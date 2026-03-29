@@ -1,70 +1,46 @@
 /**
- * useAuthStore.js - Pinia store for autentisering.
- *
- * Sentraliserer all auth-logikk:
- * - Token-lagring i sessionStorage (oppgavekrav 4.7)
- * - Brukerinfo (username, role)
- * - Login/logout/register actions
- * - Computed properties for auth-status
- *
- * sessionStorage valgt over localStorage fordi:
- * - Tommes nar fanen lukkes (kortlevd sesjon)
- * - Ikke delt mellom faner (sikrere)
- * - Oppgaveteksten tillater dette eksplisitt
+ * Pinia store for authentication.
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/features/auth/api'
-import type { RegisterData } from '@/features/auth/api'
 
-type AuthRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
-
-interface AuthUser {
-  id: string
-  name: string
-  email: string
-  role: AuthRole
+interface AuthError {
+  message: string
+  code?: string
 }
 
 interface JwtPayload {
   exp?: number
 }
 
-type LoginCredentials = Parameters<typeof authApi.login>[0]
-type AuthResponse = Awaited<ReturnType<typeof authApi.login>>
-
 export const useAuthStore = defineStore('auth', () => {
-  // ======== State ========
-  const username = ref(sessionStorage.getItem('username') || null)
-  const role = ref(sessionStorage.getItem('role') || null)
-  const accessToken = ref(sessionStorage.getItem('accessToken') || null)
+  const email = ref<string | null>(sessionStorage.getItem('email') || null)
+  const role = ref<string | null>(sessionStorage.getItem('role') || null)
+  const accessToken = ref<string | null>(sessionStorage.getItem('accessToken') || null)
   const loading = ref(false)
-  const error = ref<string | null>(null)
+  const error = ref<AuthError | null>(null)
   const hasCheckedAuth = ref(false)
 
-  // ======== Computed ========
   const isAuthenticated = computed(() => !!accessToken.value)
   const isAdmin = computed(() => role.value === 'ADMIN')
-  const userDisplayName = computed(() => username.value || 'Gjest')
-  const user = computed<AuthUser | null>(() => {
-    if (!username.value) {
-      return null
+  const userDisplayName = computed(() => {
+    if (email.value) {
+      return email.value.split('@')[0]
     }
-
+    return 'Gjest'
+  })
+  const user = computed(() => {
+    if (!email.value) return null
     return {
-      id: username.value,
-      name: username.value,
-      email: username.value,
-      role: (role.value as AuthRole) ?? 'EMPLOYEE',
+      id: '',
+      name: email.value.split('@')[0],
+      email: email.value,
+      role: role.value,
     }
   })
 
-  // ======== Actions ========
-
-  /**
-   * Logger inn bruker og lagrer tokens i sessionStorage.
-   */
-  async function login(credentials: LoginCredentials) {
+  async function login(credentials: { email: string; password: string }) {
     loading.value = true
     error.value = null
 
@@ -72,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.login(credentials)
       setAuthData(response)
       return response
-    } catch (err) {
+    } catch (err: any) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -80,10 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Registrerer ny bruker og logger inn automatisk.
-   */
-  async function register(userData: RegisterData) {
+  async function register(userData: { email: string; password: string; name?: string }) {
     loading.value = true
     error.value = null
 
@@ -91,7 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.register(userData)
       setAuthData(response)
       return response
-    } catch (err) {
+    } catch (err: any) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -99,42 +72,30 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Logger ut bruker og fjerner alle tokens.
-   */
   function logout() {
-    username.value = null
+    email.value = null
     role.value = null
     accessToken.value = null
 
     sessionStorage.removeItem('accessToken')
     sessionStorage.removeItem('refreshToken')
-    sessionStorage.removeItem('username')
+    sessionStorage.removeItem('email')
     sessionStorage.removeItem('role')
-    hasCheckedAuth.value = true
   }
 
-  /**
-   * Sjekker om brukeren fortsatt er autentisert.
-   * Kaller refresh hvis access token er utlopet.
-   */
   async function checkAuth() {
     const token = sessionStorage.getItem('accessToken')
     if (!token) {
       logout()
+      hasCheckedAuth.value = true
       return false
     }
 
     try {
-      const tokenPayload = token.split('.')[1]
-      if (!tokenPayload) {
+      const payload = decodeJwtPayload(token)
+      if (!payload || typeof payload.exp !== 'number') {
         logout()
-        return false
-      }
-
-      const payload = JSON.parse(atob(tokenPayload)) as JwtPayload
-      if (typeof payload.exp !== 'number') {
-        logout()
+        hasCheckedAuth.value = true
         return false
       }
 
@@ -142,85 +103,86 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (isExpired) {
         const refreshToken = sessionStorage.getItem('refreshToken')
-        if (!refreshToken) {
+        if (refreshToken) {
+          const response = await authApi.refresh(refreshToken)
+          setAuthData(response)
+          hasCheckedAuth.value = true
+          return true
+        } else {
           logout()
+          hasCheckedAuth.value = true
           return false
         }
-
-        const response = await authApi.refresh(refreshToken)
-        setAuthData(response)
-        return true
       }
-
       hasCheckedAuth.value = true
       return true
     } catch {
       logout()
+      hasCheckedAuth.value = true
       return false
     }
   }
 
-  // ======== Hjelpefunksjoner ========
+  function hasRole(...roles: string[]): boolean {
+    if (!role.value) return false
+    return roles.includes(role.value)
+  }
 
-  function setAuthData(response: AuthResponse) {
+  function decodeJwtPayload(token: string): JwtPayload | null {
+    try {
+      const parts = token.split('.')
+      if (parts.length !== 3) return null
+
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      const padding = '='.repeat((4 - base64.length % 4) % 4)
+      const decoded = atob(base64 + padding)
+
+      return JSON.parse(decoded) as JwtPayload
+    } catch {
+      return null
+    }
+  }
+
+  function setAuthData(response: {
+    accessToken: string
+    refreshToken: string
+    email: string
+    role: string
+  }) {
     accessToken.value = response.accessToken
-    username.value = response.username
+    email.value = response.email
     role.value = response.role
 
     sessionStorage.setItem('accessToken', response.accessToken)
     sessionStorage.setItem('refreshToken', response.refreshToken)
-    sessionStorage.setItem('username', response.username)
+    sessionStorage.setItem('email', response.email)
     sessionStorage.setItem('role', response.role)
-    hasCheckedAuth.value = true
   }
 
-  function parseError(err: unknown): string {
-    if (typeof err !== 'object' || err === null) {
-      return 'Noe gikk galt. Prov igjen.'
+  function parseError(err: any): AuthError {
+    if (err.response?.data?.error) {
+      return { message: err.response.data.error }
     }
-
-    const maybeErr = err as {
-      response?: {
-        data?: {
-          error?: string
-          fieldErrors?: Record<string, string>
-        }
-      }
+    if (err.response?.data?.fieldErrors) {
+      return { message: Object.values(err.response.data.fieldErrors).join(', ') }
     }
-
-    if (maybeErr.response?.data?.error) {
-      return maybeErr.response.data.error
+    if (err.message) {
+      return { message: err.message }
     }
-
-    if (maybeErr.response?.data?.fieldErrors) {
-      return Object.values(maybeErr.response.data.fieldErrors).join(', ')
-    }
-
-    return 'Noe gikk galt. Prov igjen.'
-  }
-
-  function hasRole(...roles: AuthRole[]): boolean {
-    if (!role.value) {
-      return false
-    }
-
-    return roles.includes(role.value as AuthRole)
+    return { message: 'Something went wrong. Please try again.' }
   }
 
   return {
-    // State
-    username,
+    email,
     role,
     accessToken,
     loading,
     error,
-    // Computed
+    hasCheckedAuth,
     isAuthenticated,
     isAdmin,
     userDisplayName,
     user,
-    hasCheckedAuth,
-    // Actions
     login,
     register,
     logout,

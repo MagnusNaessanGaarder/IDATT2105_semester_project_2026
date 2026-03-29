@@ -142,7 +142,7 @@ router.beforeEach(async (to, from) => {
     
     if (to.meta.allowedRoles && to.meta.allowedRoles.length > 0) {
       const userRole = authStore.user?.role
-      if (!userRole || !to.meta.allowedRoles.includes(userRole)) {
+      if (!userRole || !to.meta.allowedRoles.includes(userRole as 'ADMIN' | 'MANAGER' | 'EMPLOYEE')) {
         return { name: 'Dashboard' }
       }
     }
@@ -152,7 +152,6 @@ router.beforeEach(async (to, from) => {
     return { name: 'Dashboard' }
   }
   
-  // Return nothing to allow navigation
 })
 
 export default router
