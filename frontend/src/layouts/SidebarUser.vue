@@ -74,7 +74,7 @@ const handleLogout = async () => {
   justify-content: space-between;
   padding: 0.875rem 1rem;
   min-height: 60px;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.01) 0%, rgba(15, 23, 42, 0) 100%);
+  background: var(--color-card);
 }
 
 .user-info {

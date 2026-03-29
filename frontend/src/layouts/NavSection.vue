@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { motion } from 'motion-v'
 import { computed } from 'vue'
-import NavMenuItem from '../components/NavMenuItem.vue'
+import NavMenuItem from './NavMenuItem.vue'
 
 interface NavItem {
   id: string
@@ -52,9 +52,8 @@ const isItemActive = (routeName: string) => {
 }
 
 const handleHeaderClick = () => {
-  if (isAnyChildActive.value) {
+  if (!isMainActive.value) {
     emit('navigateDashboard', props.section.dashboardRoute)
-    return
   }
 
   emit('toggle')
