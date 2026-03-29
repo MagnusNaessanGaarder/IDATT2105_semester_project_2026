@@ -1,11 +1,3 @@
-/**
- * client.ts - Axios-instans med JWT interceptors.
- *
- * Request interceptor:  Legger til "Authorization: Bearer <token>" på alle requests.
- * Response interceptor: Fanger 401, prøver token refresh, re-sender original request.
- *
- * OWASP: Token lagres i sessionStorage (kortlevd, per-tab).
- */
 import axios from 'axios'
 
 export const client = axios.create({
@@ -16,8 +8,7 @@ export const client = axios.create({
   },
 })
 
-// ======== Request Interceptor ========
-// Legger til JWT token på alle utgående requests
+// Add JWT token to all requests
 client.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem('accessToken')
@@ -29,8 +20,7 @@ client.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// ======== Response Interceptor ========
-// Håndterer 401 (utløpt token) med automatisk refresh
+// Handle 401 errors with automatic token refresh
 let isRefreshing = false
 let failedQueue: { resolve: (value: string) => void; reject: (reason: any) => void }[] = []
 
@@ -50,14 +40,13 @@ client.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
-    // Hvis 401 og ikke allerede prøvd refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Ikke prøv refresh på auth-endepunkter
+      // Skip refresh for auth endpoints
       if (originalRequest.url?.includes('/auth/')) {
         return Promise.reject(error)
       }
 
-      // Hvis allerede holder på å refreshe, legg i kø
+      // Queue requests while refreshing
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -75,7 +64,6 @@ client.interceptors.response.use(
       const refreshToken = sessionStorage.getItem('refreshToken')
 
       if (!refreshToken) {
-        // Ingen refresh token - logg ut
         sessionStorage.removeItem('accessToken')
         sessionStorage.removeItem('refreshToken')
         window.location.href = '/login'
@@ -92,14 +80,11 @@ client.interceptors.response.use(
 
         sessionStorage.setItem('accessToken', accessToken)
         sessionStorage.setItem('refreshToken', newRefreshToken)
-
-        // Oppdater header og re-send original request
         originalRequest.headers.Authorization = `Bearer ${accessToken}`
         processQueue(null, accessToken)
 
         return client(originalRequest)
       } catch (refreshError) {
-        // Refresh feilet - logg ut
         processQueue(refreshError, null)
         sessionStorage.removeItem('accessToken')
         sessionStorage.removeItem('refreshToken')

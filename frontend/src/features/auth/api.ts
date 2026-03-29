@@ -1,7 +1,7 @@
 import { client } from '@/api/client'
 import type { User } from '@/types'
 
-// Mock-brukere for testing uten backend
+// Mock users for testing without backend
 const MOCK_USERS = [
   {
     id: 1,
@@ -64,7 +64,7 @@ export const authApi = {
     password: string
   }): Promise<AuthResponse> {
     if (USE_MOCK) {
-      // Simuler nettverksforsinkelse
+      // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 500))
 
       const user = MOCK_USERS.find(
@@ -72,7 +72,7 @@ export const authApi = {
       )
 
       if (!user) {
-        throw new Error('Ugyldig e-post eller passord')
+        throw new Error('Invalid email or password')
       }
 
       return {
@@ -83,7 +83,7 @@ export const authApi = {
       }
     }
 
-    // Ekte backend-kall
+    // Real backend call
     const response = await client.post('/auth/login', credentials)
     return response.data
   },
@@ -92,9 +92,9 @@ export const authApi = {
     if (USE_MOCK) {
       await new Promise((resolve) => setTimeout(resolve, 500))
       
-      // Sjekk om bruker allerede eksisterer
+      // Check if user already exists
       if (MOCK_USERS.some(u => u.email === userData.email)) {
-        throw new Error('E-post er allerede registrert')
+        throw new Error('Email is already registered')
       }
 
       return {
@@ -135,12 +135,12 @@ export const authApi = {
 
   async me(): Promise<User> {
     if (USE_MOCK) {
-      // Hent fra sessionStorage
+      // Get from sessionStorage
       const storedUser = sessionStorage.getItem('user')
       if (storedUser) {
         return JSON.parse(storedUser)
       }
-      throw new Error('Ikke innlogget')
+      throw new Error('Not logged in')
     }
     const response = await client.get('/auth/me')
     return response.data

@@ -1,3 +1,19 @@
+# AI tool directories and files
+.clawhub/
+.openclaw/
+skills/
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
+MEMORY.md
+AGENTS.md
+ai-*.md
+AI_*.md
+*.ai.md
+docs/ai-*/
+
 # Dependencies
 node_modules/
 
@@ -32,41 +48,25 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
-# Environment files
-.env
-.env.local
-.env.*.local
-
-.cache
-
 # Devex
 DEV_NOTES.md
 frontend/DEV_NOTES.md
 frontend/VUE_NOTES.md
 
-AGENTS.md
-ai-*.md
-AI_*.md
-*.ai.md
-docs/ai-*/
-# Built files
-backend/target
-backend/.project
-backend/.env
-backend/.classpath
-
-
-# Editor directories and files
+# IDE
 .vscode/*
-*/.vscode
-/.vscode/*
 !.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.idea/
+*.iml
+.classpath
+.project
+.factorypath
+.settings/
+
+# Backend build artifacts
+backend/.project
+backend/.classpath
+backend/.env
 
 # Testing
 /cypress/videos/
@@ -77,35 +77,3 @@ test-results/
 
 # Vite
 *.timestamp-*-*.mjs
-
-# OS files
-.DS_Store
-*/.DS_Store
-Thumbs.db
-
-*.env
-
-# Backend build artifacts
-backend/InternalControl/target/
-backend/**/target/
-backend/bin/
-
-# IDE
-.idea/
-*.iml
-.classpath
-.project
-.factorypath
-.settings/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-npm-debug.log*
-
-# Local env files
-.env.local
-.env.*.local

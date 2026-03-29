@@ -1,40 +1,44 @@
 /**
- * useAuthStore.js - Pinia store for autentisering.
- *
- * Sentraliserer all auth-logikk:
- * - Token-lagring i sessionStorage (oppgavekrav 4.7)
- * - Brukerinfo (username, role)
- * - Login/logout/register actions
- * - Computed properties for auth-status
- *
- * sessionStorage valgt over localStorage fordi:
- * - Tømmes når fanen lukkes (kortlevd sesjon)
- * - Ikke delt mellom faner (sikrere)
- * - Oppgaveteksten tillater dette eksplisitt
+ * Pinia store for authentication.
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/features/auth/api'
 
 export const useAuthStore = defineStore('auth', () => {
-  // ======== State ========
-  const username = ref(sessionStorage.getItem('username') || null)
-  const role = ref(sessionStorage.getItem('role') || null)
-  const accessToken = ref(sessionStorage.getItem('accessToken') || null)
+  // Store
+  const email = ref<string | null>(sessionStorage.getItem('email') || null)
+  const role = ref<string | null>(sessionStorage.getItem('role') || null)
+  const accessToken = ref<string | null>(sessionStorage.getItem('accessToken') || null)
   const loading = ref(false)
-  const error = ref(null)
+  const error = ref<string | null>(null)
+  const hasCheckedAuth = ref(false)
 
-  // ======== Computed ========
+  // Computed
   const isAuthenticated = computed(() => !!accessToken.value)
   const isAdmin = computed(() => role.value === 'ADMIN')
-  const userDisplayName = computed(() => username.value || 'Gjest')
+  const userDisplayName = computed(() => {
+    if (email.value) {
+      return email.value.split('@')[0]
+    }
+    return 'Gjest'
+  })
+  const user = computed(() => {
+    if (!email.value) return null
+    return {
+      id: '',
+      name: email.value.split('@')[0],
+      email: email.value,
+      role: role.value,
+    }
+  })
 
-  // ======== Actions ========
+  // Actions
 
   /**
-   * Logger inn bruker og lagrer tokens i sessionStorage.
+   * Logs in user and stores tokens in sessionStorage.
    */
-  async function login(credentials) {
+  async function login(credentials: { email: string; password: string }) {
     loading.value = true
     error.value = null
 
@@ -42,7 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.login(credentials)
       setAuthData(response)
       return response
-    } catch (err) {
+    } catch (err: any) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -51,9 +55,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Registrerer ny bruker og logger inn automatisk.
+   * Registers new user and logs in automatically.
    */
-  async function register(userData) {
+  async function register(userData: { email: string; password: string; name?: string }) {
     loading.value = true
     error.value = null
 
@@ -61,7 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.register(userData)
       setAuthData(response)
       return response
-    } catch (err) {
+    } catch (err: any) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -70,31 +74,32 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Logger ut bruker og fjerner alle tokens.
+   * Logs out user and removes all tokens.
    */
   function logout() {
-    username.value = null
+    email.value = null
     role.value = null
     accessToken.value = null
 
     sessionStorage.removeItem('accessToken')
     sessionStorage.removeItem('refreshToken')
-    sessionStorage.removeItem('username')
+    sessionStorage.removeItem('email')
     sessionStorage.removeItem('role')
   }
 
   /**
-   * Sjekker om brukeren fortsatt er autentisert.
-   * Kaller refresh hvis access token er utløpt.
+   * Checks if user is still authenticated.
+   * Calls refresh if access token is expired.
    */
   async function checkAuth() {
     const token = sessionStorage.getItem('accessToken')
     if (!token) {
       logout()
+      hasCheckedAuth.value = true
       return false
     }
 
-    // Decode JWT payload for å sjekke utløpstid
+    // Decode JWT payload to check expiration
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
       const isExpired = payload.exp * 1000 < Date.now()
@@ -104,57 +109,77 @@ export const useAuthStore = defineStore('auth', () => {
         if (refreshToken) {
           const response = await authApi.refresh(refreshToken)
           setAuthData(response)
+          hasCheckedAuth.value = true
           return true
         } else {
           logout()
+          hasCheckedAuth.value = true
           return false
         }
       }
+      hasCheckedAuth.value = true
       return true
     } catch {
       logout()
+      hasCheckedAuth.value = true
       return false
     }
   }
 
-  // ======== Hjelpefunksjoner ========
+  /**
+   * Checks if user has any of the specified roles.
+   */
+  function hasRole(...roles: string[]): boolean {
+    if (!role.value) return false
+    return roles.includes(role.value)
+  }
 
-  function setAuthData(response) {
+  // Helpers
+
+  function setAuthData(response: {
+    accessToken: string
+    refreshToken: string
+    email: string
+    role: string
+  }) {
     accessToken.value = response.accessToken
-    username.value = response.username
+    email.value = response.email
     role.value = response.role
 
     sessionStorage.setItem('accessToken', response.accessToken)
     sessionStorage.setItem('refreshToken', response.refreshToken)
-    sessionStorage.setItem('username', response.username)
+    sessionStorage.setItem('email', response.email)
     sessionStorage.setItem('role', response.role)
   }
 
-  function parseError(err) {
+  function parseError(err: any): string {
     if (err.response?.data?.error) {
       return err.response.data.error
     }
     if (err.response?.data?.fieldErrors) {
       return Object.values(err.response.data.fieldErrors).join(', ')
     }
-    return 'Noe gikk galt. Prøv igjen.'
+    return 'Something went wrong. Please try again.'
   }
 
   return {
     // State
-    username,
+    email,
     role,
     accessToken,
     loading,
     error,
+    hasCheckedAuth,
     // Computed
     isAuthenticated,
     isAdmin,
     userDisplayName,
+    user,
     // Actions
     login,
     register,
     logout,
     checkAuth,
+    hasRole,
   }
 })
