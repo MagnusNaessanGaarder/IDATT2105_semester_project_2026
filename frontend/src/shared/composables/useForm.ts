@@ -34,7 +34,7 @@ export function useForm<T extends Record<string, any>>(
 
     for (const [field, rules] of Object.entries(validationRules)) {
       for (const rule of rules) {
-        const result = rule(values[field], values)
+        const result = rule(values[field], values as T)
         if (result !== true) {
           errors[field] = result
           isValid = false
@@ -57,7 +57,7 @@ export function useForm<T extends Record<string, any>>(
 
     isSubmitting.value = true
     try {
-      await onSubmit({ ...values })
+      await onSubmit({ ...values } as T)
       return true
     } catch {
       return false
