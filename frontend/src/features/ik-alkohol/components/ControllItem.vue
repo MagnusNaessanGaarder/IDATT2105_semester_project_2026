@@ -139,13 +139,13 @@
     .control-card__header {
         display: flex;
         flex-direction: column;
-        gap: 0.625rem;
+        gap: 10px;
         margin-bottom: 0.5rem;
     }
 
     .control-card__checkbox {
         border-radius: var(--radius-sm);
-        border: 0.0625rem solid var(--color-gray-300);
+        border: 1px solid var(--color-gray-300);
         height: 100%;
         background: #ffffff;
         color: #ffffff;
@@ -188,7 +188,7 @@
         font-size: var(--font-size-xs);
         color: var(--color-success);
         background: var(--color-success-bg);
-        border: 0.0625rem solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+        border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
         padding: 0.25rem 0.5rem;
         border-radius: var(--radius-sm);
         white-space: nowrap;
@@ -213,7 +213,7 @@
 
     .options-menu__trigger {
         aspect-ratio: 1 / 1;
-        border: 0.0625rem solid var(--color-border);
+        border: 1px solid var(--color-border);
         background: var(--color-card);
         border-radius: var(--radius-sm);
         display: inline-flex;
@@ -241,7 +241,7 @@
         z-index: 20;
         min-width: 9rem;
         background: var(--color-card);
-        border: 0.0625rem solid var(--color-border);
+        border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
         box-shadow: var(--shadow-sm);
         overflow: hidden;
@@ -266,7 +266,7 @@
     }
 
     .control-card__law {
-        margin: 0.125rem 0 0;
+        margin: 2px 0 0;
         font-size: var(--font-size-xs);
         color: var(--color-gray-500);
     }
@@ -279,7 +279,7 @@
 
     .control-card__meta-row {
         display: flex;
-        gap: 0.625rem;
+        gap: 10px;
         flex-wrap: wrap;
     }
 

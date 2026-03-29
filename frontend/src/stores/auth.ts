@@ -15,23 +15,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/features/auth/api'
-import type { RegisterData } from '@/features/auth/api'
-
-type AuthRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
-
-interface AuthUser {
-  id: string
-  name: string
-  email: string
-  role: AuthRole
-}
-
-interface JwtPayload {
-  exp?: number
-}
-
-type LoginCredentials = Parameters<typeof authApi.login>[0]
-type AuthResponse = Awaited<ReturnType<typeof authApi.login>>
 
 export const useAuthStore = defineStore('auth', () => {
   // ======== State ========
@@ -39,32 +22,19 @@ export const useAuthStore = defineStore('auth', () => {
   const role = ref(sessionStorage.getItem('role') || null)
   const accessToken = ref(sessionStorage.getItem('accessToken') || null)
   const loading = ref(false)
-  const error = ref<string | null>(null)
-  const hasCheckedAuth = ref(false)
+  const error = ref(null)
 
   // ======== Computed ========
   const isAuthenticated = computed(() => !!accessToken.value)
   const isAdmin = computed(() => role.value === 'ADMIN')
   const userDisplayName = computed(() => username.value || 'Gjest')
-  const user = computed<AuthUser | null>(() => {
-    if (!username.value) {
-      return null
-    }
-
-    return {
-      id: username.value,
-      name: username.value,
-      email: username.value,
-      role: (role.value as AuthRole) ?? 'EMPLOYEE',
-    }
-  })
 
   // ======== Actions ========
 
   /**
    * Logger inn bruker og lagrer tokens i sessionStorage.
    */
-  async function login(credentials: LoginCredentials) {
+  async function login(credentials) {
     loading.value = true
     error.value = null
 
@@ -83,7 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Registrerer ny bruker og logger inn automatisk.
    */
-  async function register(userData: RegisterData) {
+  async function register(userData) {
     loading.value = true
     error.value = null
 
@@ -111,7 +81,6 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('refreshToken')
     sessionStorage.removeItem('username')
     sessionStorage.removeItem('role')
-    hasCheckedAuth.value = true
   }
 
   /**
@@ -127,18 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Decode JWT payload for å sjekke utløpstid
     try {
-      const tokenPayload = token.split('.')[1]
-      if (!tokenPayload) {
-        logout()
-        return false
-      }
-
-      const payload = JSON.parse(atob(tokenPayload)) as JwtPayload
-      if (typeof payload.exp !== 'number') {
-        logout()
-        return false
-      }
-
+      const payload = JSON.parse(atob(token.split('.')[1]))
       const isExpired = payload.exp * 1000 < Date.now()
 
       if (isExpired) {
@@ -152,7 +110,6 @@ export const useAuthStore = defineStore('auth', () => {
           return false
         }
       }
-      hasCheckedAuth.value = true
       return true
     } catch {
       logout()
@@ -162,7 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ======== Hjelpefunksjoner ========
 
-  function setAuthData(response: AuthResponse) {
+  function setAuthData(response) {
     accessToken.value = response.accessToken
     username.value = response.username
     role.value = response.role
@@ -171,38 +128,16 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem('refreshToken', response.refreshToken)
     sessionStorage.setItem('username', response.username)
     sessionStorage.setItem('role', response.role)
-    hasCheckedAuth.value = true
   }
 
-  function parseError(err: unknown): string {
-    if (typeof err !== 'object' || err === null) {
-      return 'Noe gikk galt. Prov igjen.'
+  function parseError(err) {
+    if (err.response?.data?.error) {
+      return err.response.data.error
     }
-
-    const maybeErr = err as {
-      response?: {
-        data?: {
-          error?: string
-          fieldErrors?: Record<string, string>
-        }
-      }
+    if (err.response?.data?.fieldErrors) {
+      return Object.values(err.response.data.fieldErrors).join(', ')
     }
-
-    if (maybeErr.response?.data?.error) {
-      return maybeErr.response.data.error
-    }
-    if (maybeErr.response?.data?.fieldErrors) {
-      return Object.values(maybeErr.response.data.fieldErrors).join(', ')
-    }
-    return 'Noe gikk galt. Prov igjen.'
-  }
-
-  function hasRole(...roles: AuthRole[]): boolean {
-    if (!role.value) {
-      return false
-    }
-
-    return roles.includes(role.value as AuthRole)
+    return 'Noe gikk galt. Prøv igjen.'
   }
 
   return {
@@ -216,13 +151,10 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     isAdmin,
     userDisplayName,
-    user,
-    hasCheckedAuth,
     // Actions
     login,
     register,
     logout,
     checkAuth,
-    hasRole,
   }
 })

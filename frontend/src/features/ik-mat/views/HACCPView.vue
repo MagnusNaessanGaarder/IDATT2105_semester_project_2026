@@ -83,7 +83,7 @@ const ccpStatusSummary = computed(() => {
 
 <style scoped>
 .haccp-page {
-  max-width: 75rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -118,7 +118,7 @@ const ccpStatusSummary = computed(() => {
 }
 
 .summary-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   padding: 0.8rem;
@@ -150,7 +150,7 @@ const ccpStatusSummary = computed(() => {
 }
 
 .table-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   padding: 0.7rem;
@@ -174,7 +174,7 @@ th,
 td {
   text-align: left;
   padding: 0.55rem;
-  border-bottom: 0.0625rem solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
   vertical-align: top;
 }
@@ -191,7 +191,7 @@ td {
 }
 
 .docs-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   padding: 0.8rem;
@@ -206,7 +206,7 @@ td {
 }
 
 .docs-card li {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 0.65rem;
   background: color-mix(in srgb, var(--color-accent) 45%, var(--color-card));

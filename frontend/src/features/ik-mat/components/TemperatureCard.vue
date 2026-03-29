@@ -87,7 +87,7 @@ const isWithinRange = computed(() => {
 <style scoped>
 .temperature-card {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: box-shadow var(--transition-base), border-color var(--transition-base);
@@ -117,7 +117,7 @@ const isWithinRange = computed(() => {
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  border-bottom: 0.0625rem solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .temperature-card__location {
@@ -252,7 +252,7 @@ const isWithinRange = computed(() => {
 .temperature-card__footer {
   padding: 1rem 1.5rem;
   background: var(--color-accent);
-  border-top: 0.0625rem solid var(--color-border);
+  border-top: 1px solid var(--color-border);
 }
 
 .temperature-card__datetime {

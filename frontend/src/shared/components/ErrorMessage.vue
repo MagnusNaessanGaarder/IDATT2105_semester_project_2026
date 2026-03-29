@@ -55,10 +55,10 @@ const emit = defineEmits<{
 .error-message {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 12px;
+  padding: 16px;
   background: var(--color-danger-bg);
-  border-left: 0.1875rem solid var(--color-danger);
+  border-left: 3px solid var(--color-danger);
 }
 
 .error-message__icon {
@@ -73,13 +73,13 @@ const emit = defineEmits<{
 .error-message__text {
   margin: 0;
   color: var(--color-danger);
-  font-size: 0.875rem;
+  font-size: 14px;
 }
 
 .error-message__retry {
-  margin-top: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
+  margin-top: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
   background: var(--color-danger);
   color: white;
   border: none;

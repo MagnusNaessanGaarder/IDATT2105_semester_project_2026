@@ -59,19 +59,19 @@ const fillStyle = computed(() => {
 
 <style scoped>
 .progress-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
-  padding: 0.875rem;
-  margin-bottom: 0.75rem;
+  padding: 14px;
+  margin-bottom: 12px;
 }
 
 .progress-card__head {
   display: flex;
   justify-content: space-between;
-  gap: 0.625rem;
+  gap: 10px;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .progress-card__label {
@@ -82,17 +82,17 @@ const fillStyle = computed(() => {
 }
 
 .status-pill {
-  padding: 0.25rem 0.5rem;
+  padding: 4px 8px;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  border: 0.0625rem solid transparent;
+  border: 1px solid transparent;
 }
 
 .progress-track {
-  height: 0.5rem;
+  height: 8px;
   background: var(--color-gray-200);
-  border-radius: 62.4375rem;
+  border-radius: 999px;
   overflow: hidden;
 }
 
@@ -103,7 +103,7 @@ const fillStyle = computed(() => {
 }
 
 .progress-card__meta {
-  margin: 0.5rem 0 0;
+  margin: 8px 0 0;
   font-size: var(--font-size-xs);
   color: var(--color-gray-500);
 }

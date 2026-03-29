@@ -17,7 +17,7 @@
 }
 
 html {
-  font-size: 1rem;
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -67,8 +67,8 @@ a:hover {
 }
 
 a:focus-visible {
-  outline: 0.125rem solid var(--color-focus);
-  outline-offset: 0.125rem;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 button {
@@ -83,8 +83,8 @@ button {
 }
 
 button:focus-visible {
-  outline: 0.125rem solid var(--color-focus);
-  outline-offset: 0.125rem;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 input, textarea, select {
@@ -104,10 +104,10 @@ img {
 
 .sr-only {
   position: absolute;
-  width: 0.0625rem;
-  height: 0.0625rem;
+  width: 1px;
+  height: 1px;
   padding: 0;
-  margin: -0.0625rem;
+  margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
@@ -119,8 +119,8 @@ img {
 }
 
 *:focus-visible {
-  outline: 0.125rem solid var(--color-focus);
-  outline-offset: 0.125rem;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 ::selection {
@@ -129,8 +129,8 @@ img {
 }
 
 ::-webkit-scrollbar {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -139,7 +139,7 @@ img {
 
 ::-webkit-scrollbar-thumb {
   background-color: var(--color-gray-300);
-  border-radius: 0.25rem;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

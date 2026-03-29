@@ -1,323 +1,247 @@
 {
-  "organization": [
+  "users": [
     {
-      "org_number": 937219997,
-      "legal_name": "Everest Sushi & Fusion AS",
-      "display_name": "Everest Sushi",
-      "contact_email": "kontakt@everest-sushi.no",
-      "contact_phone": "12345678",
-      "is_active": 1,
-      "created_at": "2024-01-01T08:00:00",
-      "updated_at": "2024-06-01T08:00:00"
+      "id": 1,
+      "name": "Anna Nielsen",
+      "email": "anna.nielsen@everest.no",
+      "role": "ADMIN",
+      "department": "Ledelse",
+      "status": "active",
+      "created_date": "2023-01-15",
+      "certifications": ["Kunnskapsprøve alkoholloven", "Grunnleggende hygieneopplæring"],
+      "certifications_valid": true,
+      "last_login": "2024-06-01T14:30:00"
+    },
+    {
+      "id": 2,
+      "name": "Per Hansen",
+      "email": "per.hansen@everest.no",
+      "role": "MANAGER",
+      "department": "Kjøkken",
+      "status": "active",
+      "created_date": "2023-02-01",
+      "certifications": ["Grunnleggende hygieneopplæring"],
+      "certifications_valid": true,
+      "last_login": "2024-06-01T13:15:00"
+    },
+    {
+      "id": 3,
+      "name": "Maria Bergersen",
+      "email": "maria.b@everest.no",
+      "role": "STAFF",
+      "department": "Kjøkken",
+      "status": "active",
+      "created_date": "2023-03-10",
+      "certifications": ["Kunnskapsprøve alkoholloven", "Grunnleggende hygieneopplæring"],
+      "certifications_valid": true,
+      "last_login": "2024-06-01T15:45:00"
+    },
+    {
+      "id": 4,
+      "name": "Ola Nilsen",
+      "email": "ola.n@everest.no",
+      "role": "STAFF",
+      "department": "Bar",
+      "status": "active",
+      "created_date": "2023-04-20",
+      "certifications": ["Kunnskapsprøve alkoholloven"],
+      "certifications_valid": true,
+      "last_login": "2024-06-01T16:20:00"
+    },
+    {
+      "id": 5,
+      "name": "Kari Larsen",
+      "email": "kari.l@everest.no",
+      "role": "STAFF",
+      "department": "Kjøkken",
+      "status": "active",
+      "created_date": "2023-05-05",
+      "certifications": ["Grunnleggende hygieneopplæring"],
+      "certifications_valid": true,
+      "last_login": "2024-05-31T10:00:00"
+    },
+    {
+      "id": 6,
+      "name": "Lars Pettersen",
+      "email": "lars.p@everest.no",
+      "role": "STAFF",
+      "department": "Bar",
+      "status": "active",
+      "created_date": "2023-06-12",
+      "certifications": ["Kunnskapsprøve alkoholloven", "Grunnleggende hygieneopplæring"],
+      "certifications_valid": true,
+      "last_login": "2024-06-01T12:30:00"
+    },
+    {
+      "id": 7,
+      "name": "Karin Olsen",
+      "email": "karin.o@everest.no",
+      "role": "STAFF",
+      "department": "Bar",
+      "status": "inactive",
+      "created_date": "2023-07-01",
+      "certifications": [],
+      "certifications_valid": false,
+      "last_login": "2024-04-15T18:00:00"
+    },
+    {
+      "id": 8,
+      "name": "Rune Solberg",
+      "email": "rune.s@everest.no",
+      "role": "STAFF",
+      "department": "Service",
+      "status": "active",
+      "created_date": "2024-01-10",
+      "certifications": [],
+      "certifications_valid": false,
+      "last_login": "2024-06-01T11:00:00"
     }
   ],
-  "organization_settings": [
-    {
-      "org_number": 937219997,
-      "timezone_name": "Europe/Oslo",
-      "locale_code": "nb-NO",
-      "enable_food_module": 1,
-      "enable_alcohol_module": 1,
-      "default_temp_min_c": 0.0,
-      "default_temp_max_c": 4.0,
-      "reminder_email_enabled": 1,
-      "notification_email": "admin@everest-sushi.no",
-      "retention_user_months": 24,
-      "retention_audit_months": 36,
-      "created_at": "2024-01-01T08:00:00",
-      "updated_at": "2024-06-01T08:00:00"
+  "settings": {
+    "system": {
+      "section_title": "Systeminnstillinger",
+      "items": [
+        {
+          "id": "language",
+          "label": "Språk",
+          "description": "Velg systemspråk",
+          "type": "select",
+          "current_value": "Norwegian",
+          "options": ["Norwegian", "English", "Swedish"]
+        },
+        {
+          "id": "timezone",
+          "label": "Tidssone",
+          "description": "Velg tidssone for registreringer",
+          "type": "select",
+          "current_value": "Europe/Oslo",
+          "options": ["Europe/Oslo", "UTC", "Europe/Stockholm", "Europe/Copenhagen"]
+        },
+        {
+          "id": "date_format",
+          "label": "Datoformat",
+          "description": "Format for datovisning",
+          "type": "select",
+          "current_value": "dd.MM.yyyy",
+          "options": ["dd.MM.yyyy", "yyyy-MM-dd", "MM/dd/yyyy"]
+        }
+      ]
+    },
+    "notification_preferences": {
+      "section_title": "Varslingsinnstillinger",
+      "items": [
+        {
+          "id": "email_critical",
+          "label": "E-post for kritiske varsler",
+          "description": "Motta e-post ved kritiske hendelser",
+          "type": "toggle",
+          "current_value": true
+        },
+        {
+          "id": "email_updates",
+          "label": "E-post for systemoppdateringer",
+          "description": "Motta e-post ved systemvedlikehold",
+          "type": "toggle",
+          "current_value": false
+        },
+        {
+          "id": "in_app_notifications",
+          "label": "Varsler i systemet",
+          "description": "Vis varsler i systemet",
+          "type": "toggle",
+          "current_value": true
+        }
+      ]
+    },
+    "security": {
+      "section_title": "Sikkerhet",
+      "items": [
+        {
+          "id": "password_expires",
+          "label": "Passord utløper",
+          "description": "Krev passord-endring hver 90. dag",
+          "type": "toggle",
+          "current_value": true
+        },
+        {
+          "id": "session_timeout",
+          "label": "Sesjonstimeout (minutter)",
+          "description": "Automatisk log-ut etter inaktivitet",
+          "type": "number",
+          "current_value": 30,
+          "min": 5,
+          "max": 480
+        },
+        {
+          "id": "two_factor",
+          "label": "To-faktor autentisering",
+          "description": "Påkrevd for administratorer",
+          "type": "toggle",
+          "current_value": true
+        }
+      ]
+    },
+    "backup": {
+      "section_title": "Sikkerhetskopi",
+      "items": [
+        {
+          "id": "last_backup",
+          "label": "Siste sikkerhetskopi",
+          "type": "info",
+          "current_value": "2024-06-01 02:00",
+          "description": "Automatisk sikkerhetskopi kjøres daglig"
+        },
+        {
+          "id": "backup_retention",
+          "label": "Oppbevar sikkerhetskopier i (dager)",
+          "type": "number",
+          "current_value": 30,
+          "min": 7,
+          "max": 365
+        }
+      ]
     }
-  ],
-  "app_user": [
+  },
+  "audit_log_sample": [
     {
-      "user_id": 1,
-      "display_name": "Tri Tac Le",
-      "email": "admin@everest-sushi.no",
-      "phone": "12345678",
-      "is_active": 1,
-      "global_last_seen_at": "2024-06-01T14:30:00",
-      "created_at": "2024-01-15T09:00:00",
-      "updated_at": "2024-06-01T14:30:00"
+      "id": 1,
+      "timestamp": "2024-06-01T15:30:00",
+      "user": "Anna Nielsen",
+      "action": "CREATE_REPORT",
+      "resource": "Rapport - Mai kontroll",
+      "details": "Opprettet ny månedlig rapport",
+      "ip_address": "192.168.1.100",
+      "result": "SUCCESS"
     },
     {
-      "user_id": 2,
-      "display_name": "Surya",
-      "email": "surya@personligmail.com",
-      "phone": "12345679",
-      "is_active": 1,
-      "global_last_seen_at": "2024-06-01T13:15:00",
-      "created_at": "2024-02-01T09:00:00",
-      "updated_at": "2024-06-01T13:15:00"
+      "id": 2,
+      "timestamp": "2024-06-01T14:15:00",
+      "user": "Per Hansen",
+      "action": "UPDATE_CHECKLIST",
+      "resource": "Sjekkliste - Daglig kjøleskap",
+      "details": "Merkerte 2 oppgaver som fullført",
+      "ip_address": "192.168.1.105",
+      "result": "SUCCESS"
     },
     {
-      "user_id": 3,
-      "display_name": "Anine Bergen",
-      "email": "anine@personligmail.com",
-      "phone": "12345680",
-      "is_active": 1,
-      "global_last_seen_at": "2024-06-01T15:45:00",
-      "created_at": "2024-03-10T09:00:00",
-      "updated_at": "2024-06-01T15:45:00"
+      "id": 3,
+      "timestamp": "2024-06-01T10:45:00",
+      "user": "Anna Nielsen",
+      "action": "CREATE_USER",
+      "resource": "Bruker - Rune Solberg",
+      "details": "Opprettet ny bruker i systemet",
+      "ip_address": "192.168.1.100",
+      "result": "SUCCESS"
     },
     {
-      "user_id": 4,
-      "display_name": "Harald Velde",
-      "email": "harald@personligmail.no",
-      "phone": "12345681",
-      "is_active": 1,
-      "global_last_seen_at": "2024-06-01T16:20:00",
-      "created_at": "2024-04-20T09:00:00",
-      "updated_at": "2024-06-01T16:20:00"
-    },
-    {
-      "user_id": 5,
-      "display_name": "Magnus Nassan Gaarder",
-      "email": "manager@everest-sushi.no",
-      "phone": "12345682",
-      "is_active": 1,
-      "global_last_seen_at": "2024-05-31T10:00:00",
-      "created_at": "2024-05-05T09:00:00",
-      "updated_at": "2024-05-31T10:00:00"
-    }
-  ],
-  "user_organization": [
-    {
-      "user_id": 1,
-      "org_number": 937219997,
-      "is_active": 1,
-      "joined_at": "2024-01-15T09:00:00",
-      "left_at": null,
-      "last_seen_at": "2024-06-01T14:30:00"
-    },
-    {
-      "user_id": 2,
-      "org_number": 937219997,
-      "is_active": 1,
-      "joined_at": "2024-02-01T09:00:00",
-      "left_at": null,
-      "last_seen_at": "2024-06-01T13:15:00"
-    },
-    {
-      "user_id": 3,
-      "org_number": 937219997,
-      "is_active": 1,
-      "joined_at": "2024-03-10T09:00:00",
-      "left_at": null,
-      "last_seen_at": "2024-06-01T15:45:00"
-    },
-    {
-      "user_id": 4,
-      "org_number": 937219997,
-      "is_active": 1,
-      "joined_at": "2024-04-20T09:00:00",
-      "left_at": null,
-      "last_seen_at": "2024-06-01T16:20:00"
-    },
-    {
-      "user_id": 5,
-      "org_number": 937219997,
-      "is_active": 1,
-      "joined_at": "2024-05-05T09:00:00",
-      "left_at": null,
-      "last_seen_at": "2024-05-31T10:00:00"
-    }
-  ],
-  "role": [
-    {
-      "role_id": 1,
-      "role_name": "ADMIN",
-      "description": "Administrator with full access",
-      "is_system_role": 1
-    },
-    {
-      "role_id": 2,
-      "role_name": "MANAGER",
-      "description": "Manager with limited admin access",
-      "is_system_role": 1
-    },
-    {
-      "role_id": 3,
-      "role_name": "KITCHEN_MANAGER",
-      "description": "Kitchen manager",
-      "is_system_role": 1
-    },
-    {
-      "role_id": 4,
-      "role_name": "EMPLOYEE",
-      "description": "Regular employee",
-      "is_system_role": 1
-    },
-    {
-      "role_id": 5,
-      "role_name": "COOK",
-      "description": "Cook",
-      "is_system_role": 1
-    },
-    {
-      "role_id": 6,
-      "role_name": "BARTENDER",
-      "description": "Bartender",
-      "is_system_role": 1
-    },
-    {
-      "role_id": 7,
-      "role_name": "WAITER",
-      "description": "Waiter",
-      "is_system_role": 1
-    }
-  ],
-  "user_organization_role": [
-    {
-      "user_id": 1,
-      "org_number": 937219997,
-      "role_id": 1,
-      "assigned_at": "2024-01-15T09:00:00",
-      "assigned_by_user_id": 1
-    },
-    {
-      "user_id": 5,
-      "org_number": 937219997,
-      "role_id": 3,
-      "assigned_at": "2024-05-05T09:00:00",
-      "assigned_by_user_id": 1
-    },
-    {
-      "user_id": 3,
-      "org_number": 937219997,
-      "role_id": 5,
-      "assigned_at": "2024-03-10T09:00:00",
-      "assigned_by_user_id": 1
-    },
-    {
-      "user_id": 4,
-      "org_number": 937219997,
-      "role_id": 6,
-      "assigned_at": "2024-04-20T09:00:00",
-      "assigned_by_user_id": 1
-    },
-    {
-      "user_id": 2,
-      "org_number": 937219997,
-      "role_id": 7,
-      "assigned_at": "2024-02-01T09:00:00",
-      "assigned_by_user_id": 1
-    }
-  ],
-  "training_record": [
-    {
-      "training_record_id": 1,
-      "user_id": 3,
-      "org_number": 937219997,
-      "training_type": "food_hygiene",
-      "title": "Grunnleggende hygieneopplaring",
-      "completed_at": "2024-03-20T10:00:00",
-      "expires_at": "2027-03-01T00:00:00",
-      "status": "completed",
-      "certificate_document_id": null,
-      "notes": null,
-      "created_at": "2024-03-15T08:00:00"
-    },
-    {
-      "training_record_id": 2,
-      "user_id": 3,
-      "org_number": 937219997,
-      "training_type": "responsible_alcohol_service",
-      "title": "Kunnskapsprove alkoholloven",
-      "completed_at": "2024-05-22T10:00:00",
-      "expires_at": "2026-05-22T00:00:00",
-      "status": "completed",
-      "certificate_document_id": null,
-      "notes": null,
-      "created_at": "2024-05-10T08:00:00"
-    },
-    {
-      "training_record_id": 3,
-      "user_id": 4,
-      "org_number": 937219997,
-      "training_type": "responsible_alcohol_service",
-      "title": "Kunnskapsprove alkoholloven",
-      "completed_at": "2024-06-01T10:00:00",
-      "expires_at": "2029-12-12T00:00:00",
-      "status": "completed",
-      "certificate_document_id": null,
-      "notes": null,
-      "created_at": "2024-05-20T08:00:00"
-    },
-    {
-      "training_record_id": 4,
-      "user_id": 2,
-      "org_number": 937219997,
-      "training_type": "food_hygiene",
-      "title": "Grunnleggende hygieneopplaring",
-      "completed_at": "2024-04-12T10:00:00",
-      "expires_at": "2025-12-06T00:00:00",
-      "status": "assigned",
-      "certificate_document_id": null,
-      "notes": "Mangler praktisk del",
-      "created_at": "2024-04-01T08:00:00"
-    },
-    {
-      "training_record_id": 5,
-      "user_id": 5,
-      "org_number": 937219997,
-      "training_type": "food_hygiene",
-      "title": "Grunnleggende hygieneopplaring",
-      "completed_at": "2024-03-01T10:00:00",
-      "expires_at": "2026-06-01T00:00:00",
-      "status": "completed",
-      "certificate_document_id": null,
-      "notes": null,
-      "created_at": "2024-02-20T08:00:00"
-    }
-  ],
-  "audit_log": [
-    {
-      "audit_log_id": 1,
-      "org_number": 937219997,
-      "acted_by_user_id": 1,
-      "action_type": "CREATE_REPORT",
-      "entity_type": "export_job",
-      "entity_id": 1001,
-      "old_values_json": null,
-      "new_values_json": { "status": "completed" },
-      "user_agent": "Mozilla/5.0",
-      "created_at": "2024-06-01T15:30:00"
-    },
-    {
-      "audit_log_id": 2,
-      "org_number": 937219997,
-      "acted_by_user_id": 5,
-      "action_type": "UPDATE_CHECKLIST",
-      "entity_type": "checklist_run",
-      "entity_id": 5001,
-      "old_values_json": { "status": "in_progress" },
-      "new_values_json": { "status": "completed" },
-      "user_agent": "Mozilla/5.0",
-      "created_at": "2024-06-01T14:15:00"
-    },
-    {
-      "audit_log_id": 3,
-      "org_number": 937219997,
-      "acted_by_user_id": 1,
-      "action_type": "CREATE_USER",
-      "entity_type": "app_user",
-      "entity_id": 6,
-      "old_values_json": null,
-      "new_values_json": { "display_name": "Rune Solberg" },
-      "user_agent": "Mozilla/5.0",
-      "created_at": "2024-06-01T10:45:00"
-    },
-    {
-      "audit_log_id": 4,
-      "org_number": 937219997,
-      "acted_by_user_id": null,
-      "action_type": "AUTO_BACKUP",
-      "entity_type": "organization",
-      "entity_id": 937219997,
-      "old_values_json": null,
-      "new_values_json": { "backup_status": "SUCCESS" },
-      "user_agent": "system",
-      "created_at": "2024-05-31T16:20:00"
+      "id": 4,
+      "timestamp": "2024-05-31T16:20:00",
+      "user": "System",
+      "action": "AUTO_BACKUP",
+      "resource": "Database",
+      "details": "Automatisk sikkerhetskopi kjørt",
+      "ip_address": "localhost",
+      "result": "SUCCESS"
     }
   ]
 }

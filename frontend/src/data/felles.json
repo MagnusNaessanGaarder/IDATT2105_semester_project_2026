@@ -1,255 +1,221 @@
 {
-  "app_user": [
+  "dashboard": {
+    "stats": [
+      {
+        "label": "Ansatte",
+        "value": 12,
+        "trend": "neutral",
+        "color": "info"
+      },
+      {
+        "label": "Åpne varsler",
+        "value": 3,
+        "trend": "up",
+        "color": "warning"
+      },
+      {
+        "label": "Oppgjørte avvik",
+        "value": 8,
+        "trend": "up",
+        "color": "success"
+      },
+      {
+        "label": "Sertifikater gyldige",
+        "value": 11,
+        "unit": "/12",
+        "trend": "neutral",
+        "color": "info"
+      }
+    ],
+    "quick_actions": [
+      {
+        "title": "Opprett rapport",
+        "icon": "FileText",
+        "route": "Reports"
+      },
+      {
+        "title": "Last opp dokument",
+        "icon": "Upload",
+        "route": "Documents"
+      },
+      {
+        "title": "Se varsler",
+        "icon": "AlertCircle",
+        "route": "Notifications"
+      }
+    ]
+  },
+  "reports": [
     {
-      "user_id": 1,
-      "display_name": "Tri Tac Le"
+      "id": 1,
+      "title": "Månedlig kontrollrapport - Mai",
+      "type": "monthly",
+      "created_by": "Kjøkkensjef",
+      "created_date": "2024-05-31",
+      "period": "2024-05-01 til 2024-05-31",
+      "status": "finalized",
+      "sections": [
+        {
+          "name": "Sammendrag",
+          "content": "Mai hadde 94% komplianse. 2 avvik rapportert og løst."
+        },
+        {
+          "name": "IK-Mat",
+          "content": "Alle temperaturer innenfor grenser. 1 avvik vedr. pakking."
+        },
+        {
+          "name": "IK-Alkohol",
+          "content": "Alle sertifikater gyldige. Ingen overtredelser registrert."
+        }
+      ],
+      "file_url": "reports/2024-05-kontrollrapport.pdf",
+      "file_size": "2.5 MB"
     },
     {
-      "user_id": 3,
-      "display_name": "Anine Bergen"
+      "id": 2,
+      "title": "Avvik og korreksjoner - Q2",
+      "type": "deviation",
+      "created_by": "Leder",
+      "created_date": "2024-06-15",
+      "period": "2024-04-01 til 2024-06-30",
+      "status": "draft",
+      "sections": [
+        {
+          "name": "Oversikt",
+          "content": "6 avvik rapportert i Q2, 5 løst, 1 under behandling"
+        }
+      ],
+      "file_url": null,
+      "file_size": null
     },
     {
-      "user_id": 5,
-      "display_name": "Magnus Nassan Gaarder"
+      "id": 3,
+      "title": "HACCP Revisjon",
+      "type": "haccp",
+      "created_by": "Kjøkkensjef",
+      "created_date": "2024-01-10",
+      "period": "Årlig",
+      "status": "finalized",
+      "sections": [
+        {
+          "name": "CCP-analyse",
+          "content": "Alle 3 CCPer kontrolleres daglig/ukentlig"
+        }
+      ],
+      "file_url": "reports/haccp-revisjon-2024.pdf",
+      "file_size": "3.2 MB"
     }
   ],
-  "organization_document": [
+  "documents": [
     {
-      "document_id": 101,
-      "org_number": 937219997,
-      "document_type": "procedure",
-      "title": "HACCP-plan 2024",
-      "description": "Oppdatert HACCP-plan for 2024",
-      "current_version": 2,
-      "is_active": 1,
-      "created_by_user_id": 5,
-      "created_at": "2024-01-15T09:00:00",
-      "updated_at": "2024-05-15T10:00:00"
+      "id": 1,
+      "name": "HACCP-plan 2024",
+      "category": "HACCP",
+      "file_type": "PDF",
+      "uploaded_by": "Kjøkkensjef",
+      "uploaded_date": "2024-01-15",
+      "size": "2.4 MB",
+      "version": "2.1",
+      "status": "active",
+      "description": "Oppdatert HACCP-plan for 2024"
     },
     {
-      "document_id": 102,
-      "org_number": 937219997,
-      "document_type": "policy",
-      "title": "Alkoholloven Oppsummering",
-      "description": "Samlet oversikt over relevante lovbestemmelser",
-      "current_version": 1,
-      "is_active": 1,
-      "created_by_user_id": 1,
-      "created_at": "2024-02-01T09:00:00",
-      "updated_at": "2024-02-01T09:00:00"
+      "id": 2,
+      "name": "Alkoholloven Oppsummering",
+      "category": "Lovverk",
+      "file_type": "PDF",
+      "uploaded_by": "Leder",
+      "uploaded_date": "2024-02-01",
+      "size": "1.2 MB",
+      "version": "1.0",
+      "status": "active",
+      "description": "Samlet oversikt over relevante lovbestemmelser"
     },
     {
-      "document_id": 103,
-      "org_number": 937219997,
-      "document_type": "procedure",
-      "title": "Rengjoringsprogram",
-      "description": "Detaljert program for rengjoring av kjokkenet",
-      "current_version": 2,
-      "is_active": 1,
-      "created_by_user_id": 5,
-      "created_at": "2024-03-10T09:00:00",
-      "updated_at": "2024-03-25T09:00:00"
+      "id": 3,
+      "name": "Rengjøringsprogram",
+      "category": "Prosedyrer",
+      "file_type": "PDF",
+      "uploaded_by": "Kjøkkensjef",
+      "uploaded_date": "2024-03-10",
+      "size": "0.8 MB",
+      "version": "1.5",
+      "status": "active",
+      "description": "Detaljert program for rengjøring av kjøkkenet"
     },
     {
-      "document_id": 104,
-      "org_number": 937219997,
-      "document_type": "training_material",
-      "title": "Allergen Prosedyrer",
-      "description": "Handtering av allergener i restauranten",
-      "current_version": 2,
-      "is_active": 1,
-      "created_by_user_id": 5,
-      "created_at": "2024-03-20T09:00:00",
-      "updated_at": "2024-04-02T09:00:00"
+      "id": 4,
+      "name": "Allergen Prosedyrer",
+      "category": "Prosedyrer",
+      "file_type": "PDF",
+      "uploaded_by": "Kjøkkensjef",
+      "uploaded_date": "2024-03-20",
+      "size": "0.6 MB",
+      "version": "2.0",
+      "status": "active",
+      "description": "Håndtering av allergener i restauranten"
     },
     {
-      "document_id": 105,
-      "org_number": 937219997,
-      "document_type": "attachment",
-      "title": "Leverandorliste",
-      "description": "Aktuelle godkjente leverandorer",
-      "current_version": 3,
-      "is_active": 1,
-      "created_by_user_id": 3,
-      "created_at": "2024-05-01T09:00:00",
-      "updated_at": "2024-05-18T09:00:00"
+      "id": 5,
+      "name": "Leverandørliste",
+      "category": "Leverandører",
+      "file_type": "Excel",
+      "uploaded_by": "Innkjøp",
+      "uploaded_date": "2024-05-01",
+      "size": "0.2 MB",
+      "version": "3.2",
+      "status": "active",
+      "description": "Aktuelle godkjente leverandører"
     }
   ],
-  "organization_document_version": [
+  "notifications": [
     {
-      "document_version_id": 1001,
-      "document_id": 101,
-      "version_number": 2,
-      "azure_container": "compliance-docs",
-      "azure_blob_name": "haccp-plan-2024-v2.pdf",
-      "original_filename": "haccp-plan-2024-v2.pdf",
-      "mime_type": "application/pdf",
-      "file_size_bytes": 2516582,
-      "blob_etag": "etag-haccp-v2",
-      "uploaded_by_user_id": 5,
-      "uploaded_at": "2024-05-15T10:00:00",
-      "valid_from": "2024-05-15",
-      "valid_to": null,
-      "checksum_sha256": "b3bcf8f7f35b667e65f14f7fc5d95a9f3db17b0d6f65ec5be276fddb3f4ce87d"
+      "id": 1,
+      "title": "Sertifikat utløper snart",
+      "message": "Maria B. sitt sertifikat for alkoholloven utløper om 30 dager",
+      "type": "warning",
+      "priority": "high",
+      "created_date": "2024-06-01",
+      "created_time": "09:30",
+      "read": false,
+      "action_url": "admin/certifications",
+      "action_label": "Se sertifikater"
     },
     {
-      "document_version_id": 1002,
-      "document_id": 102,
-      "version_number": 1,
-      "azure_container": "compliance-docs",
-      "azure_blob_name": "alkoholloven-oppsummering-v1.pdf",
-      "original_filename": "alkoholloven-oppsummering-v1.pdf",
-      "mime_type": "application/pdf",
-      "file_size_bytes": 1258291,
-      "blob_etag": "etag-alko-v1",
-      "uploaded_by_user_id": 1,
-      "uploaded_at": "2024-02-01T09:00:00",
-      "valid_from": "2024-02-01",
-      "valid_to": null,
-      "checksum_sha256": "20df52293d290617f494cdfefbb70ef0f93d42cbf2e2ddba4fd7407f3077f431"
-    },
-    {
-      "document_version_id": 1003,
-      "document_id": 103,
-      "version_number": 2,
-      "azure_container": "compliance-docs",
-      "azure_blob_name": "rengjoringsprogram-v2.pdf",
-      "original_filename": "rengjoringsprogram-v2.pdf",
-      "mime_type": "application/pdf",
-      "file_size_bytes": 838861,
-      "blob_etag": "etag-clean-v2",
-      "uploaded_by_user_id": 5,
-      "uploaded_at": "2024-03-25T09:00:00",
-      "valid_from": "2024-03-25",
-      "valid_to": null,
-      "checksum_sha256": "a92d64f913f6c7a66a21eac739f4b0333354be7f1e61e4e74e2d82f4decb4384"
-    },
-    {
-      "document_version_id": 1004,
-      "document_id": 104,
-      "version_number": 2,
-      "azure_container": "compliance-docs",
-      "azure_blob_name": "allergen-prosedyrer-v2.pdf",
-      "original_filename": "allergen-prosedyrer-v2.pdf",
-      "mime_type": "application/pdf",
-      "file_size_bytes": 629146,
-      "blob_etag": "etag-allergen-v2",
-      "uploaded_by_user_id": 5,
-      "uploaded_at": "2024-04-02T09:00:00",
-      "valid_from": "2024-04-02",
-      "valid_to": null,
-      "checksum_sha256": "6f095a3e2374b76cd0fa3e01797de34f7e90d8488339fb614f197fa0716377d2"
-    },
-    {
-      "document_version_id": 1005,
-      "document_id": 105,
-      "version_number": 3,
-      "azure_container": "compliance-docs",
-      "azure_blob_name": "leverandorliste-v3.xlsx",
-      "original_filename": "leverandorliste-v3.xlsx",
-      "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "file_size_bytes": 209715,
-      "blob_etag": "etag-supplier-v3",
-      "uploaded_by_user_id": 3,
-      "uploaded_at": "2024-05-18T09:00:00",
-      "valid_from": "2024-05-18",
-      "valid_to": null,
-      "checksum_sha256": "57cb2206be60aa1e4eb8f84c42e95a2ad4efb772537cf2fb8f6bb97cb7aa322a"
-    }
-  ],
-  "export_job": [
-    {
-      "export_job_id": 2001,
-      "org_number": 937219997,
-      "requested_by_user_id": 5,
-      "export_type": "full_compliance_report",
-      "format": "pdf",
-      "status": "completed",
-      "parameters_json": { "period_from": "2024-05-01", "period_to": "2024-05-31" },
-      "result_document_id": 101,
-      "requested_at": "2024-05-31T09:00:00",
-      "completed_at": "2024-05-31T10:00:00",
-      "failure_reason": null
-    },
-    {
-      "export_job_id": 2002,
-      "org_number": 937219997,
-      "requested_by_user_id": 1,
-      "export_type": "deviation_report",
-      "format": "pdf",
-      "status": "pending",
-      "parameters_json": { "quarter": "Q2" },
-      "result_document_id": null,
-      "requested_at": "2024-06-15T09:00:00",
-      "completed_at": null,
-      "failure_reason": null
-    },
-    {
-      "export_job_id": 2003,
-      "org_number": 937219997,
-      "requested_by_user_id": 5,
-      "export_type": "audit_report",
-      "format": "pdf",
-      "status": "completed",
-      "parameters_json": { "scope": "annual" },
-      "result_document_id": 103,
-      "requested_at": "2024-01-10T09:00:00",
-      "completed_at": "2024-01-10T11:00:00",
-      "failure_reason": null
-    }
-  ],
-  "notification": [
-    {
-      "notification_id": 3001,
-      "org_number": 937219997,
-      "user_id": 1,
-      "notification_type": "training_expiring",
-      "title": "Sertifikat utloper snart",
-      "body_text": "Anine Bergen sitt alkoholsertifikat utloper om 30 dager",
-      "related_entity_type": "training_record",
-      "related_entity_id": 2,
-      "is_read": 0,
-      "read_at": null,
-      "created_at": "2024-06-01T09:30:00"
-    },
-    {
-      "notification_id": 3002,
-      "org_number": 937219997,
-      "user_id": 5,
-      "notification_type": "deviation_assigned",
+      "id": 2,
       "title": "Avvik registrert",
-      "body_text": "Nytt avvik: Darlig pakking av varer ved mottak",
-      "related_entity_type": "deviation_report",
-      "related_entity_id": 7003,
-      "is_read": 0,
-      "read_at": null,
-      "created_at": "2024-06-01T10:30:00"
+      "message": "Nytt avvik: Dårlig pakking av varer ved mottak",
+      "type": "info",
+      "priority": "medium",
+      "created_date": "2024-06-01",
+      "created_time": "10:30",
+      "read": false,
+      "action_url": "ik-mat/deviations",
+      "action_label": "Vis avvik"
     },
     {
-      "notification_id": 3003,
-      "org_number": 937219997,
-      "user_id": 1,
-      "notification_type": "document_uploaded",
+      "id": 3,
       "title": "Rapport klar til gjennomgang",
-      "body_text": "Manedlig rapport for mai er klar til godkjenning",
-      "related_entity_type": "export_job",
-      "related_entity_id": 2001,
-      "is_read": 1,
-      "read_at": "2024-05-31T16:10:00",
-      "created_at": "2024-05-31T16:00:00"
+      "message": "Månedlig rapport for mai er klar til godkjenning",
+      "type": "info",
+      "priority": "medium",
+      "created_date": "2024-05-31",
+      "created_time": "16:00",
+      "read": true,
+      "action_url": "felles/reports",
+      "action_label": "Vis rapport"
     },
     {
-      "notification_id": 3004,
-      "org_number": 937219997,
-      "user_id": 5,
-      "notification_type": "temperature_alert",
+      "id": 4,
       "title": "Temperaturavvik",
-      "body_text": "Serveringsbuffet hadde temperaturer utenfor grenser",
-      "related_entity_type": "temperature_log_entry",
-      "related_entity_id": 6004,
-      "is_read": 1,
-      "read_at": "2024-05-28T12:25:00",
-      "created_at": "2024-05-28T12:15:00"
+      "message": "Serveringsbuffet hadde temperaturer utenfor grenser",
+      "type": "warning",
+      "priority": "high",
+      "created_date": "2024-05-28",
+      "created_time": "12:15",
+      "read": true,
+      "action_url": "ik-mat/temperature",
+      "action_label": "Vis temperaturer"
     }
   ]
 }

@@ -60,19 +60,19 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 
 <style scoped>
 .regulations-page {
-  max-width: 75rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 32px;
 }
 
 .page-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--ik-alkohol-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .subtitle {
@@ -89,7 +89,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 
 .law-card {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 1rem;
 }
@@ -97,7 +97,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 .law-card__header {
   display: flex;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 12px;
   align-items: flex-start;
 }
 
@@ -127,7 +127,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
   color: #ffffff;
   background: var(--ik-alkohol-primary);
   border-radius: var(--radius-sm);
-  padding: 0.5rem 0.625rem;
+  padding: 8px 10px;
   font-size: var(--font-size-xs);
   font-weight: 600;
   white-space: nowrap;
@@ -143,7 +143,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 
 .demands-section {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 1.25rem;
 }
@@ -160,7 +160,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 }
 
 .demand-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-accent);
   padding: 0.85rem;
@@ -181,7 +181,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 
 .sanctions-card {
   margin-top: 1rem;
-  border: 0.0625rem solid #fcd34d;
+  border: 1px solid #fcd34d;
   background: #fef3c7;
   border-radius: var(--radius-md);
   padding: 1rem;

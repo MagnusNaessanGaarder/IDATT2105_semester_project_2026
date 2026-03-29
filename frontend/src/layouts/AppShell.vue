@@ -62,10 +62,10 @@ const { mainContent } = useMotions()
 
 .skip-link {
   position: absolute;
-  top: -6.25rem;
-  left: 1rem;
+  top: -100px;
+  left: 16px;
   z-index: 100;
-  padding: 0.5rem 1rem;
+  padding: 8px 16px;
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
   font-size: var(--font-size-sm);
@@ -74,7 +74,7 @@ const { mainContent } = useMotions()
 }
 
 .skip-link:focus {
-  top: 0.5rem;
+  top: 8px;
 }
 
 .sidebar-backdrop {
@@ -97,7 +97,7 @@ const { mainContent } = useMotions()
   padding: var(--spacing-lg);
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 768px) {
   .main-content {
     padding: var(--spacing-xl);
   }

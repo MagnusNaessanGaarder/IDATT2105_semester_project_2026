@@ -216,7 +216,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
 }
 
 .summary-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   text-align: center;
@@ -243,7 +243,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
 
 .settings-section {
   background: #fff;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.9rem;
 }
@@ -265,7 +265,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
   gap: 0.8rem;
   align-items: center;
   padding: 0.6rem 0;
-  border-bottom: 0.0625rem solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .setting-item:last-child {
@@ -300,7 +300,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
   min-height: 2.3rem;
   padding: 0 0.7rem;
   background: var(--color-gray-50);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   color: var(--color-foreground);
@@ -328,7 +328,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
 }
 
 .audit-section {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   padding: 0.75rem;
@@ -349,7 +349,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
 .audit-search {
   min-height: 2.4rem;
   min-width: 14rem;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-gray-50);
   padding: 0 0.75rem;
@@ -368,7 +368,7 @@ th,
 td {
   text-align: left;
   padding: 0.65rem;
-  border-bottom: 0.0625rem solid var(--color-gray-100);
+  border-bottom: 1px solid var(--color-gray-100);
   vertical-align: top;
 }
 
@@ -387,7 +387,7 @@ td {
 
 .result-pill {
   display: inline-flex;
-  border-radius: 62.4375rem;
+  border-radius: 999px;
   padding: 0.2rem 0.5rem;
   font-size: var(--font-size-xs);
   font-weight: 600;
@@ -420,7 +420,7 @@ td {
 .btn--secondary {
   background: #fff;
   color: var(--color-gray-700);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
 }
 
 @media (max-width: 48rem) {

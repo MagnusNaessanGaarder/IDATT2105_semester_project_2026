@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useIkMatData } from '@/features/ik-mat/composables/useIkMatData'
+import { useIkMatData } from '../composables/useIkMatData'
 
 const { temperatureRecords, isTemperatureInRange, formatDate } = useIkMatData()
 
@@ -24,7 +24,7 @@ const statusLabel = (status: 'ok' | 'warning' | 'critical') => {
   <div class="temperature-page">
     <header class="page-header">
       <h1>Temperaturkontroll</h1>
-      <p class="subtitle">Målinger med tydelige temperaturgrenser for hver lokasjon</p>
+      <p class="subtitle">Kontinuerlig overvåking av kjøl, frys og varmholding</p>
     </header>
 
     <section v-if="alerts.length > 0" class="alert-banner" role="alert">
@@ -78,7 +78,7 @@ const statusLabel = (status: 'ok' | 'warning' | 'critical') => {
 
 <style scoped>
 .temperature-page {
-  max-width: 75rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -99,7 +99,7 @@ const statusLabel = (status: 'ok' | 'warning' | 'critical') => {
 }
 
 .alert-banner {
-  border: 0.0625rem solid color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
   background: var(--color-danger-bg);
   color: color-mix(in srgb, var(--color-danger) 70%, var(--color-foreground));
   border-radius: var(--radius-md);
@@ -130,7 +130,7 @@ const statusLabel = (status: 'ok' | 'warning' | 'critical') => {
 }
 
 .summary-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   background: var(--color-card);
   border-radius: var(--radius-md);
   padding: 0.8rem;
@@ -158,7 +158,7 @@ const statusLabel = (status: 'ok' | 'warning' | 'critical') => {
 }
 
 .table-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   padding: 0.65rem;
@@ -174,7 +174,7 @@ th,
 td {
   text-align: left;
   padding: 0.6rem;
-  border-bottom: 0.0625rem solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
 }
 
@@ -192,7 +192,7 @@ td {
 .status-pill {
   display: inline-flex;
   align-items: center;
-  border: 0.0625rem solid transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   padding: 0.2rem 0.45rem;
   font-size: var(--font-size-xs);

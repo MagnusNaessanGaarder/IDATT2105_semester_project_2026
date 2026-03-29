@@ -44,24 +44,24 @@ withDefaults(defineProps<Props>(), {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1.5rem;
+  padding: 48px 24px;
   text-align: center;
 }
 
 .empty-state__icon {
   color: var(--color-gray-400);
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 
 .empty-state__title {
-  font-size: 1.125rem;
+  font-size: 18px;
   font-weight: 600;
   color: var(--color-foreground);
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 8px 0;
 }
 
 .empty-state__description {
-  font-size: 0.875rem;
+  font-size: 14px;
   color: var(--color-gray-500);
   margin: 0;
 }

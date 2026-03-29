@@ -43,7 +43,7 @@ const rows = computed(() => {
   <div class="certifications-page">
     <header class="page-header">
       <h1>Sertifiseringer</h1>
-      <p class="subtitle">Oversikt over kunnskapsprover og sertifiseringer for ansatte</p>
+      <p class="subtitle">Oversikt over kunnskapsprover og sertifiseringer for alkoholservering</p>
     </header>
 
     <section class="status-summary" aria-label="Sertifikatstatus oversikt">
@@ -109,7 +109,7 @@ const rows = computed(() => {
         <h3>Krav til kunnskapsprove</h3>
         <p>
           Alle som selger, skjenker eller utleverer alkohol skal ha bestatt kunnskapsprove.
-          Oversikten er laget fra testdata for utvikling og demo.
+          Oversikten er laget fra dummy-data i ik-alkohol.json for utvikling og demo.
         </p>
       </div>
     </section>
@@ -118,19 +118,19 @@ const rows = computed(() => {
 
 <style scoped>
 .certifications-page {
-  max-width: 75rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 32px;
 }
 
 .page-header h1 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--ik-alkohol-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .subtitle {
@@ -146,7 +146,7 @@ const rows = computed(() => {
 }
 
 .status-box {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.85rem;
   background: var(--color-card);
@@ -185,11 +185,11 @@ const rows = computed(() => {
 }
 
 .type-strip {
-  margin-bottom: 0.75rem;
+  margin-bottom: 12px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .type-strip__label {
@@ -201,13 +201,13 @@ const rows = computed(() => {
 .type-strip ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.375rem;
+  gap: 6px;
 }
 
 .type-strip li {
-  padding: 0.25rem 0.5rem;
-  border: 0.0625rem solid var(--color-border);
-  border-radius: 62.4375rem;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
   background: #f8fafc;
   font-size: var(--font-size-xs);
   color: var(--color-gray-600);
@@ -215,7 +215,7 @@ const rows = computed(() => {
 
 .matrix-section {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 1.25rem;
 }
@@ -227,7 +227,7 @@ const rows = computed(() => {
 
 .table-wrap {
   overflow-x: auto;
-  margin-bottom: 0.875rem;
+  margin-bottom: 14px;
 }
 
 .table-wrap table {
@@ -237,8 +237,8 @@ const rows = computed(() => {
 
 .table-wrap th {
   text-align: left;
-  padding: 0.75rem 0.5rem;
-  border-bottom: 0.0625rem solid var(--color-border);
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-gray-600);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -246,8 +246,8 @@ const rows = computed(() => {
 }
 
 .table-wrap td {
-  padding: 0.75rem 0.5rem;
-  border-bottom: 0.0625rem solid var(--color-border);
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-gray-700);
   font-size: var(--font-size-sm);
 }
@@ -258,7 +258,7 @@ const rows = computed(() => {
   border-radius: var(--radius-sm);
   color: var(--color-success);
   background: var(--color-success-bg);
-  border: 0.0625rem solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
   font-size: var(--font-size-xs);
   font-weight: 600;
 }
@@ -282,14 +282,14 @@ const rows = computed(() => {
 }
 
 .info-box {
-  padding: 0.875rem;
+  padding: 14px;
   border-radius: var(--radius-sm);
-  border: 0.0625rem solid #bfdbfe;
+  border: 1px solid #bfdbfe;
   background: #eff6ff;
 }
 
 .info-box h3 {
-  margin: 0 0 0.25rem;
+  margin: 0 0 4px;
   font-size: var(--font-size-base);
   color: #1e3a8a;
 }

@@ -26,7 +26,7 @@ const router = createRouter({
         {
           path: '',
           name: 'Dashboard',
-          component: () => import('@/features/dashboard/views/DashboardView.vue'),
+          component: () => import('@/features/felles/views/DashboardView.vue'),
           meta: { title: 'Dashboard' },
         },
         {
@@ -86,19 +86,19 @@ const router = createRouter({
         {
           path: 'rapporter',
           name: 'Reports',
-          component: () => import('@/features/dashboard/views/ReportsView.vue'),
+          component: () => import('@/features/felles/views/ReportsView.vue'),
           meta: { title: 'Rapporter' },
         },
         {
           path: 'dokumenter',
           name: 'Documents',
-          component: () => import('@/features/dashboard/views/DocumentsView.vue'),
+          component: () => import('@/features/felles/views/DocumentsView.vue'),
           meta: { title: 'Dokumenter' },
         },
         {
           path: 'varsler',
           name: 'Notifications',
-          component: () => import('@/features/dashboard/views/NotificationsView.vue'),
+          component: () => import('@/features/felles/views/NotificationsView.vue'),
           meta: { title: 'Varsler' },
         },
         {
@@ -118,7 +118,7 @@ const router = createRouter({
     {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
-      component: () => import('@/features/dashboard/views/NotFoundView.vue'),
+      component: () => import('@/features/felles/views/NotFoundView.vue'),
       meta: { title: 'Side ikke funnet' },
     },
   ],

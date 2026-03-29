@@ -57,7 +57,7 @@ const typeIcon = () => {
 <style scoped>
 .notification-card {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-left: 0.25rem solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -95,7 +95,7 @@ const typeIcon = () => {
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  border-bottom: 0.0625rem solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .notification-card__icon {
@@ -148,7 +148,7 @@ const typeIcon = () => {
   gap: 1rem;
   padding: 0.75rem 1.5rem;
   background: var(--color-accent);
-  border-top: 0.0625rem solid var(--color-border);
+  border-top: 1px solid var(--color-border);
 }
 
 .notification-card__time {
@@ -183,7 +183,7 @@ const typeIcon = () => {
   padding: 0.375rem 0.75rem;
   background: transparent;
   color: var(--color-foreground);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   cursor: pointer;

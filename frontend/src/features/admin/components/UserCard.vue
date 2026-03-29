@@ -90,7 +90,7 @@ const certificationStatus = computed(() => {
 <style scoped>
 .user-card {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: box-shadow var(--transition-base);
@@ -112,7 +112,7 @@ const certificationStatus = computed(() => {
   align-items: center;
   gap: 1rem;
   padding: 1.5rem;
-  border-bottom: 0.0625rem solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .user-card__avatar {
@@ -196,7 +196,7 @@ const certificationStatus = computed(() => {
 .user-card__certifications {
   padding: 1rem 1.5rem;
   background: var(--color-accent);
-  border-top: 0.0625rem solid var(--color-border);
+  border-top: 1px solid var(--color-border);
 }
 
 .user-card__cert-title {
@@ -223,7 +223,7 @@ const certificationStatus = computed(() => {
   display: flex;
   gap: 0.5rem;
   padding: 1rem 1.5rem;
-  border-top: 0.0625rem solid var(--color-border);
+  border-top: 1px solid var(--color-border);
 }
 
 .user-card__action-btn {

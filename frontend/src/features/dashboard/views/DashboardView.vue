@@ -251,7 +251,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   display: inline-flex;
   gap: 0.5rem;
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   padding: 0.25rem;
   border-radius: var(--radius-lg);
 }
@@ -276,7 +276,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border: 0.0625rem solid #fecaca;
+  border: 1px solid #fecaca;
   background: #fef2f2;
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
@@ -310,7 +310,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 }
 
 .stat-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: #fff;
   padding: 1rem;
@@ -374,7 +374,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 .panel {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
 }
@@ -404,7 +404,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 .panel__item {
   background: var(--color-gray-50);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.75rem;
 }
@@ -467,7 +467,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 .quick-actions {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
 }
@@ -484,7 +484,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 }
 
 .quick-action-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-gray-50);
   padding: 0.85rem 1rem;
@@ -518,7 +518,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 .analysis-card {
   background: #fff;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
 }
@@ -543,7 +543,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 .analysis-panel {
   background: #fff;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
 }
@@ -569,7 +569,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 .progress-track {
   height: 0.55rem;
   background: var(--color-gray-200);
-  border-radius: 62.4375rem;
+  border-radius: 999px;
   overflow: hidden;
 }
 

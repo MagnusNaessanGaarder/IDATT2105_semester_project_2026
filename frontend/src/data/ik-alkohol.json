@@ -1,395 +1,220 @@
 {
-  "app_user": [
-    {
-      "user_id": 2,
-      "display_name": "Surya",
-      "email": "surya@personligmail.com",
-      "is_active": 1,
-      "created_at": "2024-02-01T09:00:00"
+    "daily-control" : [
+        {
+            "id" : 1,
+            "name" : "Alderskontroll ved åpning",
+            "law_unit" : "Alkoholloven § 1-5",
+            "employee" : "Maria B.",
+            "comment" : "Kontrollert legitimasjon og alder ved åpning av døren. Ingen tegn til beruselse.",
+            "completion_date" : {
+                "date" : "2024-06-01",
+                "time" : "16:00:00"
+            },
+            "attachment" : null,
+            "is_checked" : true
+        },
+        {
+            "id" : 2,
+            "name" : "Legitimasjon sjekket (alle gjester under 25 år)",
+            "law_unit" : "Alkoholloven § 1-5",
+            "employee" : "Ola N.",
+            "comment" : "Sjekket legitimasjon for alle gjester under 25 år. Ingen falske ID-er oppdaget.",
+            "completion_date" : {
+                "date" : "2024-06-01",
+                "time" : "18:00:00"
+            },
+            "attachment" : null,
+            "is_checked" : true
+        },
+        {
+            "id" : 3,
+            "name" : "Beruselseskontroll: Observasjon av gjester",
+            "law_unit" : "Alkoholloven § 4-1",
+            "employee" : "Kari L.",
+            "comment" : "Overvåket gjestene for tegn på beruselse. Ingen gjester viste tegn til overstadig beruselse.",
+            "completion_date" : {
+                "date" : "2024-06-01",
+                "time" : "16:30:00"
+            },
+            "attachment" : null,
+            "is_checked" : false
+        },
+        {
+            "id" : 4,
+            "name" : "Sjenketid overholdt (senest 01:00)",
+            "law_unit" : "Alkoholloven § 4-4",
+            "employee" : "Lars P.",
+            "comment" : "Kontrollert at ingen alkohol ble servert etter kl. 01:00. Ingen overtredelser registrert.",
+            "completion_date" : {
+                "date" : "2024-06-01",
+                "time" : "02:30:00"
+            },
+            "attachment": null,
+            "is_checked" : true
+        },
+        {
+            "id" : 5,
+            "name" : "Kontroll av minimumsalder (≥ 18 år)",
+            "law_unit" : "Alkoholloven § 1-5",
+            "employee" : "Kari O.",
+            "comment" : "Sjekket at alle gjester var minst 18 år gamle. Ingen underage gjester funnet.",
+            "completion_date" : {
+                "date" : "2024-06-01",
+                "time" : "23:00:00"
+            },
+            "attachment" : null,
+            "is_checked" : false
+        },
+        {
+            "id" : 6,
+            "name" : "Lukking av bar: Sluttkontroll og rapportering",
+            "law_unit" : "Alkoholloven § 4-2",
+            "employee" : "Ola N.",
+            "comment" : "Gjennomført sluttkontroll ved stenging av baren. Ingen gjester igjen i lokalet, og alt utstyr er sikret. Rapport sendt til ledelsen.",
+            "completion_date" : {
+                "date" : "2024-06-01",
+                "time" : "17:00:00"
+            },
+            "attachment" : "rapport.pdf",
+            "is_checked" : false
+        }
+    ],
+    "certifications" : {
+        "types" : ["Kunnskapsprøve alkoholloven", "Grunnleggende hygieneopplæring"],
+        "employees" : [
+            {
+                "name" : "Maria B.",
+                "certifications" : [{"name": "Kunnskapsprøve alkoholloven", "expire_date": "2026-05-22"}, {"name": "Grunnleggende hygieneopplæring", "expire_date": "2027-03-01"}]
+            },
+            {
+                "name" : "Ola N.",
+                "certifications" : [{"name": "Kunnskapsprøve alkoholloven", "expire_date": "2029-12-12"}]
+            },
+            {
+                "name" : "Kari L.",
+                "certifications" : [{"name": "Grunnleggende hygieneopplæring", "expire_date": "2025-12-06"}]
+            },
+            {
+                "name" : "Lars P.",
+                "certifications" : [{"name": "Kunnskapsprøve alkoholloven", "expire_date": "2026-06-01"}, {"name": "Grunnleggende hygieneopplæring", "expire_date": "2026-06-01"}]
+            },
+            {
+                "name" : "Kari O.",
+                "certifications" : []
+            }
+        ]
     },
-    {
-      "user_id": 3,
-      "display_name": "Anine Bergen",
-      "email": "anine@personligmail.com",
-      "is_active": 1,
-      "created_at": "2024-03-10T09:00:00"
-    },
-    {
-      "user_id": 4,
-      "display_name": "Harald Velde",
-      "email": "harald@personligmail.no",
-      "is_active": 1,
-      "created_at": "2024-04-20T09:00:00"
-    },
-    {
-      "user_id": 5,
-      "display_name": "Magnus Nassan Gaarder",
-      "email": "manager@everest-sushi.no",
-      "is_active": 1,
-      "created_at": "2024-05-05T09:00:00"
-    },
-    {
-      "user_id": 6,
-      "display_name": "Karin Olsen",
-      "email": "karin.o@everest.no",
-      "is_active": 0,
-      "created_at": "2024-07-01T09:00:00"
+    "law_framework" : {
+        "laws" : [
+            {
+                "name" : "Alkoholloven",
+                "type": "Lov",
+                "short" : "Lov om omsetning av alkoholholdig drikk m.v.",
+                "description" : "Hovedloven som regulerer produksjon, innførsel, omsetning og skjenking av alkoholholdige drikkevarer i Norge.",
+                "link": "https://lovdata.no/dokument/NL/lov/1989-06-02-27",
+                "last_updated_code" : "LOV-1989-06-02-27",
+                "sub_sections" : [
+                    {
+                        "section" : "§ 1-5",
+                        "description" : "Aldersgrenser: 18 år for øl/vin, 20 år for brennevin"
+                    },
+                    {
+                        "section" : "§ 1-7c",
+                        "description" : "Kunnskapsprøve for alle som skjenker alkohol"
+                    },
+                    {
+                        "section" : "§ 1-7c",
+                        "description" : "Etablererprøve for styrer og stedfortreder"
+                    },
+                    {
+                        "section" : "§ 4-1",
+                        "description" : "Forbud mot salg/skjenking til mindreårige og berusede"
+                    },
+                    {
+                        "section" : "§ 4-4",
+                        "description" : "Skjenketider fastsatt av kommunen (maks 03:00)"
+                    },
+                    {
+                        "section" : "§ 1-8",
+                        "description" : "Krav om skjenkebevilling fra kommunen"
+                    }
+
+                ]
+            },
+            {
+                "name" : "Alkoholforskriften",
+                "type": "Forskrift",
+                "short" : "Forskrift til alkoholloven",
+                "description" : "Utdyper og presiserer bestemmelsene i alkoholloven, inkludert krav til bevilling, internkontroll og kunnskapsprøve.",
+                "link": "https://lovdata.no/dokument/LTI/forskrift/2025-11-28-2361",
+                "last_updated_code" : "FOR-2025-11-28-2361",
+                "sub-sections" : [
+                    {
+                        "section" : "§ 2-1",
+                        "description" : "Krav til serveringssted og drift"
+                    },
+                    {
+                        "section" : "§ 2-4",
+                        "description" : "Krav om styrer med etablererprøve"
+                    }
+                ]
+            },
+            {
+                "name" : "Serveringsloven",
+                "type": "Lov",
+                "short" : "Lov om serveringsvirksomhet",
+                "description" : "Regulerer alminnelig serveringsvirksomhet, herunder krav til bevilling og drift av serveringssteder.",
+                "link": "https://lovdata.no/dokument/LTI/lov/2009-06-19-85",
+                "last_updated_code" : "LOV-2009-06-19-85",
+                "sub-sections" : [
+                    {
+                        "section" : "§ 1-2",
+                        "description" : "Krav om serveringsbevilling"
+                    },
+                    {
+                        "section" : "§ 1-3",
+                        "description" : "Krav til styrer og stedfortreder"
+                    }
+                ]
+            }
+        ],
+        "demands" : [
+            {
+                "title" : "Bevilling",
+                "bullet_points" : [
+                    "Skjenkebevilling kreves for all alkoholservering",
+                    "Må søkes hos kommunen",
+                    "Gjelder for spesifikke lokaler og tidsrom",
+                    "Kan tilbakekalles ved brudd på regelverket"
+                ]
+            },
+            {
+                "title" : "Kunnskapsprøve",
+                "bullet_points" : [
+                    "Alle som skjenker alkohol må ha bestått kunnskapsprøve",
+                    "Gyldig i 5 år",
+                    "Må fornyes ved utløp",
+                    "Dokumentasjon må oppbevares tilgjengelig"
+                ]
+            },
+            {
+                "title" : "Internkontroll",
+                "bullet_points" : [    
+                    "Skriftlig internkontrollsystem er påkrevd",
+                    "Daglige kontrollrutiner må dokumenteres",
+                    "Avvik skal registreres og håndteres",
+                    "Tilsyn kan kreve innsyn når som helst"
+                ]
+            },
+            {
+                "title" : "Alderskontroll",
+                "bullet_points" : [
+                    "Legitimasjon må kreves ved tvil om alder",
+                    "18 år for svakvin og øl (alkohol under 4,7%)",
+                    "20 år for sterkøl og brennevin",
+                    "Skjenkestopp kl. 03:00 (kommunale forskjeller)"
+                ]
+            }
+        ]
     }
-  ],
-  "user_organization": [
-    {
-      "user_id": 2,
-      "org_number": 937219997,
-      "is_active": 1,
-      "joined_at": "2024-02-01T09:00:00",
-      "left_at": null,
-      "last_seen_at": "2024-06-01T18:00:00"
-    },
-    {
-      "user_id": 3,
-      "org_number": 937219997,
-      "is_active": 1,
-      "joined_at": "2024-03-10T09:00:00",
-      "left_at": null,
-      "last_seen_at": "2024-06-01T16:00:00"
-    },
-    {
-      "user_id": 4,
-      "org_number": 937219997,
-      "is_active": 1,
-      "joined_at": "2024-04-20T09:00:00",
-      "left_at": null,
-      "last_seen_at": "2024-06-01T18:00:00"
-    },
-    {
-      "user_id": 5,
-      "org_number": 937219997,
-      "is_active": 1,
-      "joined_at": "2024-05-05T09:00:00",
-      "left_at": null,
-      "last_seen_at": "2024-06-01T23:00:00"
-    },
-    {
-      "user_id": 6,
-      "org_number": 937219997,
-      "is_active": 0,
-      "joined_at": "2024-07-01T09:00:00",
-      "left_at": "2025-01-01T00:00:00",
-      "last_seen_at": "2024-04-15T18:00:00"
-    }
-  ],
-  "role": [
-    {
-      "role_id": 3,
-      "role_name": "KITCHEN_MANAGER",
-      "description": "Kitchen manager",
-      "is_system_role": 1
-    },
-    {
-      "role_id": 5,
-      "role_name": "COOK",
-      "description": "Cook",
-      "is_system_role": 1
-    },
-    {
-      "role_id": 6,
-      "role_name": "BARTENDER",
-      "description": "Bartender",
-      "is_system_role": 1
-    },
-    {
-      "role_id": 7,
-      "role_name": "WAITER",
-      "description": "Waiter",
-      "is_system_role": 1
-    }
-  ],
-  "user_organization_role": [
-    {
-      "user_id": 5,
-      "org_number": 937219997,
-      "role_id": 3,
-      "assigned_at": "2024-05-05T09:00:00",
-      "assigned_by_user_id": 5
-    },
-    {
-      "user_id": 3,
-      "org_number": 937219997,
-      "role_id": 5,
-      "assigned_at": "2024-03-10T09:00:00",
-      "assigned_by_user_id": 5
-    },
-    {
-      "user_id": 4,
-      "org_number": 937219997,
-      "role_id": 6,
-      "assigned_at": "2024-04-20T09:00:00",
-      "assigned_by_user_id": 5
-    },
-    {
-      "user_id": 2,
-      "org_number": 937219997,
-      "role_id": 7,
-      "assigned_at": "2024-02-01T09:00:00",
-      "assigned_by_user_id": 5
-    }
-  ],
-  "checklist_template": [
-    {
-      "template_id": 8001,
-      "org_number": 937219997,
-      "module_type": "alcohol",
-      "title": "Daglig alkoholkontroll",
-      "description": "Kontroll av krav i alkoholloven",
-      "frequency": "daily",
-      "is_active": 1,
-      "created_by_user_id": 5,
-      "created_at": "2024-01-15T09:00:00",
-      "updated_at": "2024-01-15T09:00:00"
-    }
-  ],
-  "checklist_template_item": [
-    {
-      "item_id": 8101,
-      "template_id": 8001,
-      "sort_order": 1,
-      "label": "Alderskontroll ved apning",
-      "description": "Alkoholloven paragraf 1-5",
-      "item_type": "boolean",
-      "is_required": 1,
-      "expected_text": null,
-      "expected_numeric_min": null,
-      "expected_numeric_max": null,
-      "choice_options_json": null
-    },
-    {
-      "item_id": 8102,
-      "template_id": 8001,
-      "sort_order": 2,
-      "label": "Legitimasjon sjekket for alle gjester under 25 ar",
-      "description": "Alkoholloven paragraf 1-5",
-      "item_type": "boolean",
-      "is_required": 1,
-      "expected_text": null,
-      "expected_numeric_min": null,
-      "expected_numeric_max": null,
-      "choice_options_json": null
-    },
-    {
-      "item_id": 8103,
-      "template_id": 8001,
-      "sort_order": 3,
-      "label": "Beruselseskontroll observasjon av gjester",
-      "description": "Alkoholloven paragraf 4-1",
-      "item_type": "boolean",
-      "is_required": 1,
-      "expected_text": null,
-      "expected_numeric_min": null,
-      "expected_numeric_max": null,
-      "choice_options_json": null
-    },
-    {
-      "item_id": 8104,
-      "template_id": 8001,
-      "sort_order": 4,
-      "label": "Sjenketid overholdt senest 01:00",
-      "description": "Alkoholloven paragraf 4-4",
-      "item_type": "boolean",
-      "is_required": 1,
-      "expected_text": null,
-      "expected_numeric_min": null,
-      "expected_numeric_max": null,
-      "choice_options_json": null
-    },
-    {
-      "item_id": 8105,
-      "template_id": 8001,
-      "sort_order": 5,
-      "label": "Kontroll av minimumsalder 18 ar",
-      "description": "Alkoholloven paragraf 1-5",
-      "item_type": "boolean",
-      "is_required": 1,
-      "expected_text": null,
-      "expected_numeric_min": null,
-      "expected_numeric_max": null,
-      "choice_options_json": null
-    },
-    {
-      "item_id": 8106,
-      "template_id": 8001,
-      "sort_order": 6,
-      "label": "Lukking av bar sluttkontroll og rapportering",
-      "description": "Alkoholloven paragraf 4-2",
-      "item_type": "text",
-      "is_required": 1,
-      "expected_text": null,
-      "expected_numeric_min": null,
-      "expected_numeric_max": null,
-      "choice_options_json": null
-    }
-  ],
-  "checklist_run": [
-    {
-      "run_id": 8201,
-      "template_id": 8001,
-      "org_number": 937219997,
-      "location_id": null,
-      "performed_by_user_id": 5,
-      "assigned_to_user_id": 2,
-      "run_date": "2024-06-01",
-      "due_at": "2024-06-01T23:59:00",
-      "completed_at": "2024-06-01T23:00:00",
-      "status": "completed",
-      "notes": "Daglig kontroll fullfort",
-      "created_at": "2024-06-01T15:00:00",
-      "updated_at": "2024-06-01T23:00:00"
-    }
-  ],
-  "checklist_run_item": [
-    {
-      "run_item_id": 8301,
-      "run_id": 8201,
-      "template_item_id": 8101,
-      "boolean_value": 1,
-      "text_value": "Kontrollert legitimasjon og alder ved apning av doren.",
-      "numeric_value": null,
-      "selected_choice": null,
-      "is_deviation": 0,
-      "comment_text": "Ingen tegn til beruselse",
-      "created_at": "2024-06-01T16:00:00",
-      "updated_at": "2024-06-01T16:00:00"
-    },
-    {
-      "run_item_id": 8302,
-      "run_id": 8201,
-      "template_item_id": 8102,
-      "boolean_value": 1,
-      "text_value": "Sjekket legitimasjon for alle gjester under 25 ar.",
-      "numeric_value": null,
-      "selected_choice": null,
-      "is_deviation": 0,
-      "comment_text": "Ingen falske ID-er oppdaget",
-      "created_at": "2024-06-01T18:00:00",
-      "updated_at": "2024-06-01T18:00:00"
-    },
-    {
-      "run_item_id": 8303,
-      "run_id": 8201,
-      "template_item_id": 8103,
-      "boolean_value": 0,
-      "text_value": "Overvaket gjestene for tegn pa beruselse.",
-      "numeric_value": null,
-      "selected_choice": null,
-      "is_deviation": 1,
-      "comment_text": "Kontroll ikke fullfort",
-      "created_at": "2024-06-01T16:30:00",
-      "updated_at": "2024-06-01T16:30:00"
-    },
-    {
-      "run_item_id": 8304,
-      "run_id": 8201,
-      "template_item_id": 8104,
-      "boolean_value": 1,
-      "text_value": "Kontrollert at ingen alkohol ble servert etter kl 01:00.",
-      "numeric_value": null,
-      "selected_choice": null,
-      "is_deviation": 0,
-      "comment_text": "Ingen overtredelser registrert",
-      "created_at": "2024-06-01T02:30:00",
-      "updated_at": "2024-06-01T02:30:00"
-    },
-    {
-      "run_item_id": 8305,
-      "run_id": 8201,
-      "template_item_id": 8105,
-      "boolean_value": 0,
-      "text_value": "Sjekket at alle gjester var minst 18 ar gamle.",
-      "numeric_value": null,
-      "selected_choice": null,
-      "is_deviation": 1,
-      "comment_text": "Kontroll ikke fullfort",
-      "created_at": "2024-06-01T23:00:00",
-      "updated_at": "2024-06-01T23:00:00"
-    },
-    {
-      "run_item_id": 8306,
-      "run_id": 8201,
-      "template_item_id": 8106,
-      "boolean_value": 0,
-      "text_value": "Gjennomfort sluttkontroll ved stenging av baren.",
-      "numeric_value": null,
-      "selected_choice": null,
-      "is_deviation": 1,
-      "comment_text": "Rapport sendt til ledelsen",
-      "created_at": "2024-06-01T17:00:00",
-      "updated_at": "2024-06-01T17:00:00"
-    }
-  ],
-  "training_record": [
-    {
-      "training_record_id": 9001,
-      "user_id": 3,
-      "org_number": 937219997,
-      "training_type": "responsible_alcohol_service",
-      "title": "Kunnskapsprove alkoholloven",
-      "completed_at": "2024-05-22T10:00:00",
-      "expires_at": "2026-05-22T00:00:00",
-      "status": "completed",
-      "certificate_document_id": null,
-      "notes": null,
-      "created_at": "2024-05-10T08:00:00"
-    },
-    {
-      "training_record_id": 9002,
-      "user_id": 3,
-      "org_number": 937219997,
-      "training_type": "food_hygiene",
-      "title": "Grunnleggende hygieneopplaring",
-      "completed_at": "2024-03-01T10:00:00",
-      "expires_at": "2027-03-01T00:00:00",
-      "status": "completed",
-      "certificate_document_id": null,
-      "notes": null,
-      "created_at": "2024-02-20T08:00:00"
-    },
-    {
-      "training_record_id": 9003,
-      "user_id": 4,
-      "org_number": 937219997,
-      "training_type": "responsible_alcohol_service",
-      "title": "Kunnskapsprove alkoholloven",
-      "completed_at": "2024-12-12T10:00:00",
-      "expires_at": "2029-12-12T00:00:00",
-      "status": "completed",
-      "certificate_document_id": null,
-      "notes": null,
-      "created_at": "2024-12-01T08:00:00"
-    },
-    {
-      "training_record_id": 9004,
-      "user_id": 2,
-      "org_number": 937219997,
-      "training_type": "food_hygiene",
-      "title": "Grunnleggende hygieneopplaring",
-      "completed_at": "2024-06-01T10:00:00",
-      "expires_at": "2025-12-06T00:00:00",
-      "status": "completed",
-      "certificate_document_id": null,
-      "notes": null,
-      "created_at": "2024-05-20T08:00:00"
-    },
-    {
-      "training_record_id": 9005,
-      "user_id": 5,
-      "org_number": 937219997,
-      "training_type": "responsible_alcohol_service",
-      "title": "Kunnskapsprove alkoholloven",
-      "completed_at": "2024-06-01T10:00:00",
-      "expires_at": "2026-06-01T00:00:00",
-      "status": "completed",
-      "certificate_document_id": null,
-      "notes": null,
-      "created_at": "2024-05-20T08:00:00"
-    }
-  ]
 }

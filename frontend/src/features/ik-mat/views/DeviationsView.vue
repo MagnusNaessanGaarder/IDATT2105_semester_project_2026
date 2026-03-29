@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useIkMatData } from '@/features/ik-mat/composables/useIkMatData'
+import { useIkMatData } from '../composables/useIkMatData'
 
 const { deviations, formatDate } = useIkMatData()
 
@@ -33,7 +33,7 @@ const statusLabel = (status: 'open' | 'in-progress' | 'resolved') => {
 
 const severityLabel = (severity: 'low' | 'medium' | 'high') => {
   if (severity === 'high') {
-    return 'Høy'
+    return 'Hoy'
   }
 
   if (severity === 'medium') {
@@ -48,12 +48,12 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
   <div class="deviations-page">
     <header class="page-header">
       <h1>Avvik</h1>
-      <p class="subtitle">Registrer, prioriter og lukk avvik i samme arbeidsflate</p>
+      <p class="subtitle">Registrer, prioriter og lukk avvik i en samlet arbeidsflate</p>
     </header>
 
     <div class="filter-row" role="tablist" aria-label="Filtrer avvik">
       <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'all' }" @click="selectedStatus = 'all'">Alle</button>
-      <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'open' }" @click="selectedStatus = 'open'">Åpne</button>
+      <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'open' }" @click="selectedStatus = 'open'">Ãpne</button>
       <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'in-progress' }" @click="selectedStatus = 'in-progress'">Pågår</button>
       <button class="filter-chip" :class="{ 'filter-chip--active': selectedStatus === 'resolved' }" @click="selectedStatus = 'resolved'">Løste</button>
     </div>
@@ -92,10 +92,6 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
 
         <div class="detail-grid">
           <div>
-            <p class="detail-label">Avviksnummer</p>
-            <p>#{{ selectedDeviation.id }}</p>
-          </div>
-          <div>
             <p class="detail-label">Meldt av</p>
             <p>{{ selectedDeviation.reported_by }}</p>
           </div>
@@ -119,7 +115,7 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
 
 <style scoped>
 .deviations-page {
-  max-width: 75rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -147,7 +143,7 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
 }
 
 .filter-chip {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.4rem 0.8rem;
   background: var(--color-card);
@@ -168,7 +164,7 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
 }
 
 .deviation-list {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   padding: 0.5rem;
@@ -178,7 +174,7 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
 }
 
 .deviation-list__item {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-card);
   text-align: left;
@@ -210,7 +206,7 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
 }
 
 .deviation-detail {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   padding: 0.9rem;
@@ -258,7 +254,7 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
 }
 
 .status-chip {
-  border: 0.0625rem solid transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   padding: 0.2rem 0.45rem;
   font-size: var(--font-size-xs);

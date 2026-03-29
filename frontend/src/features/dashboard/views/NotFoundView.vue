@@ -28,39 +28,39 @@ const goHome = () => {
   align-items: center;
   justify-content: center;
   background: var(--color-background);
-  padding: 1.5rem;
+  padding: 24px;
 }
 
 .not-found-content {
   text-align: center;
-  max-width: 25rem;
+  max-width: 400px;
 }
 
 .not-found-content h1 {
-  font-size: 6rem;
+  font-size: 96px;
   font-weight: var(--font-weight-bold);
   color: var(--color-gray-200);
   line-height: 1;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 
 .not-found-content h2 {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-foreground);
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .not-found-content p {
   font-size: var(--font-size-base);
   color: var(--color-gray-500);
-  margin-bottom: 2rem;
+  margin-bottom: 32px;
 }
 
 .home-btn {
   display: inline-flex;
   align-items: center;
-  padding: 0.75rem 1.5rem;
+  padding: 12px 24px;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary-foreground);
@@ -73,12 +73,12 @@ const goHome = () => {
 
 .home-btn:hover {
   background: var(--color-gray-800);
-  transform: translateY(-0.0625rem);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
 .home-btn:focus-visible {
-  outline: 0.125rem solid var(--color-focus);
-  outline-offset: 0.125rem;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 </style>

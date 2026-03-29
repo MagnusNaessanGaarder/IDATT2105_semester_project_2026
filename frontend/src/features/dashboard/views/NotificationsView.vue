@@ -175,7 +175,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
 .mark-all-btn {
   min-height: 2.65rem;
   padding: 0.45rem 0.85rem;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   color: var(--color-gray-700);
@@ -193,7 +193,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
   min-height: 2.25rem;
   padding: 0.35rem 0.75rem;
   background: #fff;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -207,7 +207,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
 }
 
 .notification-panel {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   padding: 0.9rem;
@@ -228,7 +228,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
   align-items: center;
   justify-content: space-between;
   gap: 0.85rem;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   padding: 0.65rem;
@@ -255,7 +255,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
 .notification-item__dot {
   width: 0.55rem;
   height: 0.55rem;
-  border-radius: 62.4375rem;
+  border-radius: 999px;
 }
 
 .notification-item__dot--red {
@@ -301,7 +301,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
 .priority-pill {
   display: inline-flex;
   align-items: center;
-  border-radius: 62.4375rem;
+  border-radius: 999px;
   padding: 0.2rem 0.5rem;
   font-size: var(--font-size-xs);
   font-weight: 600;
@@ -325,7 +325,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
 .mini-btn {
   min-height: 1.95rem;
   padding: 0.25rem 0.55rem;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   color: var(--color-gray-700);
@@ -341,7 +341,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
   text-align: center;
   padding: 2rem;
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   color: var(--color-gray-600);
 }

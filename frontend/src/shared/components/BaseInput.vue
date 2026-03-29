@@ -96,11 +96,11 @@ const handleInput = (event: Event) => {
 .base-input {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 6px;
 }
 
 .base-input__label {
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-foreground);
 }
@@ -110,9 +110,9 @@ const handleInput = (event: Event) => {
 }
 
 .base-input__field {
-  padding: 0.625rem 0.75rem;
-  font-size: 1rem;
-  border: 0.0625rem solid var(--color-border);
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid var(--color-border);
   background: white;
   transition: border-color 0.15s;
 }
@@ -132,12 +132,12 @@ const handleInput = (event: Event) => {
 }
 
 .base-input__error {
-  font-size: 0.875rem;
+  font-size: 14px;
   color: var(--color-danger);
 }
 
 textarea.base-input__field {
-  min-height: 6.25rem;
+  min-height: 100px;
   resize: vertical;
 }
 </style>

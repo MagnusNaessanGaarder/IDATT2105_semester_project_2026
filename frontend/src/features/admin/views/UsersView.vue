@@ -194,7 +194,7 @@ const handleToggleUser = (userId: number) => {
 }
 
 .stats-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   text-align: center;
@@ -220,7 +220,7 @@ const handleToggleUser = (userId: number) => {
 }
 
 .role-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   padding: 0.8rem;
@@ -229,7 +229,7 @@ const handleToggleUser = (userId: number) => {
 .role-pill {
   display: inline-flex;
   padding: 0.2rem 0.55rem;
-  border-radius: 62.4375rem;
+  border-radius: 999px;
   font-size: var(--font-size-xs);
   font-weight: 600;
 }
@@ -263,7 +263,7 @@ const handleToggleUser = (userId: number) => {
 }
 
 .users-table-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   padding: 0.75rem;
@@ -279,7 +279,7 @@ const handleToggleUser = (userId: number) => {
 .table-search,
 .role-select {
   min-height: 2.6rem;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-gray-50);
   padding: 0 0.8rem;
@@ -303,7 +303,7 @@ th,
 td {
   text-align: left;
   padding: 0.7rem;
-  border-bottom: 0.0625rem solid var(--color-gray-100);
+  border-bottom: 1px solid var(--color-gray-100);
   vertical-align: middle;
 }
 
@@ -327,7 +327,7 @@ th {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 62.4375rem;
+  border-radius: 999px;
   background: var(--color-gray-200);
   color: var(--color-gray-700);
   font-size: var(--font-size-xs);
@@ -348,7 +348,7 @@ th {
 .status-pill {
   display: inline-flex;
   padding: 0.2rem 0.55rem;
-  border-radius: 62.4375rem;
+  border-radius: 999px;
   font-size: var(--font-size-xs);
   font-weight: 600;
 }
@@ -381,7 +381,7 @@ th {
 
 .action-btn--ghost {
   background: #fff;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   color: var(--color-gray-700);
 }
 
@@ -389,7 +389,7 @@ th {
   text-align: center;
   padding: 2rem;
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   color: var(--color-gray-600);
 }

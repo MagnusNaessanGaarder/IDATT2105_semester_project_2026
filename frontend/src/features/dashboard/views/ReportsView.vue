@@ -4,13 +4,9 @@ import { useFellesData } from '../composables/useFellesData'
 
 const data = useFellesData()
 
-const activeTab = ref<string>('all')
+const tabs = ['all', 'monthly', 'deviation', 'haccp'] as const
+const activeTab = ref<(typeof tabs)[number]>('all')
 const query = ref('')
-
-const tabs = computed(() => {
-  const types = Array.from(new Set(data.reports.map((report) => report.type)))
-  return ['all', ...types]
-})
 
 const filteredReports = computed(() => {
   return data.reports.filter((report) => {
@@ -29,12 +25,15 @@ const monthlyCount = computed(() => data.reports.filter((report) => report.type 
 const finalizedCount = computed(() => data.reports.filter((report) => report.status === 'finalized').length)
 const draftCount = computed(() => data.reports.filter((report) => report.status === 'draft').length)
 
-const tabLabel = (tab: string): string => {
-  if (tab === 'all') {
-    return 'Alle'
+const tabLabel = (tab: (typeof tabs)[number]): string => {
+  const labels: Record<(typeof tabs)[number], string> = {
+    all: 'Alle',
+    monthly: 'Månedlig',
+    deviation: 'Avvik',
+    haccp: 'HACCP',
   }
 
-  return data.reportTypeLabel(tab)
+  return labels[tab]
 }
 </script>
 
@@ -43,7 +42,7 @@ const tabLabel = (tab: string): string => {
     <header class="page-header">
       <div>
         <h1>Rapporter</h1>
-        <p class="subtitle">Oversikt over genererte rapporter og status for rapportarbeid</p>
+        <p class="subtitle">Månedlige kontroller og avviksrapporter samlet på ett sted</p>
       </div>
       <div class="header-actions">
         <button type="button" class="header-btn header-btn--ghost">Eksporter</button>
@@ -96,7 +95,7 @@ const tabLabel = (tab: string): string => {
             <span class="report-item__period">{{ report.period }}</span>
           </div>
           <p class="report-item__details">
-            Opprettet av {{ report.created_by }} · {{ data.formatDate(report.created_date) }} · Rapportnr. {{ report.id }}
+            Opprettet av {{ report.created_by }} · {{ data.formatDate(report.created_date) }}
           </p>
         </div>
         <div class="report-item__actions">
@@ -154,7 +153,7 @@ const tabLabel = (tab: string): string => {
 
 .header-btn--ghost {
   background: #fff;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   color: var(--color-gray-700);
 }
 
@@ -166,7 +165,7 @@ const tabLabel = (tab: string): string => {
 
 .reports-stat {
   background: #fff;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   text-align: center;
   padding: 0.8rem;
@@ -185,7 +184,7 @@ const tabLabel = (tab: string): string => {
 }
 
 .reports-toolbar {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   padding: 0.75rem;
@@ -202,7 +201,7 @@ const tabLabel = (tab: string): string => {
 .tab {
   min-height: 2.15rem;
   padding: 0.35rem 0.75rem;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   font-size: var(--font-size-sm);
@@ -218,7 +217,7 @@ const tabLabel = (tab: string): string => {
 .search {
   width: 100%;
   min-height: 2.6rem;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0 0.85rem;
   background: var(--color-gray-50);
@@ -230,7 +229,7 @@ const tabLabel = (tab: string): string => {
 }
 
 .report-item {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: #fff;
   padding: 0.85rem;
@@ -257,7 +256,7 @@ const tabLabel = (tab: string): string => {
 
 .pill {
   font-size: var(--font-size-xs);
-  border-radius: 62.4375rem;
+  border-radius: 999px;
   padding: 0.2rem 0.55rem;
   background: var(--color-gray-100);
   color: var(--color-gray-700);
@@ -307,7 +306,7 @@ const tabLabel = (tab: string): string => {
 
 .action-btn--light {
   background: #fff;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   color: var(--color-gray-700);
 }
 
@@ -315,7 +314,7 @@ const tabLabel = (tab: string): string => {
   text-align: center;
   padding: 2rem;
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   color: var(--color-gray-600);
 }

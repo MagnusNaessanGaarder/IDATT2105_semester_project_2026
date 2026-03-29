@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useIkMatData } from '@/features/ik-mat/composables/useIkMatData'
+import { useIkMatData } from '../composables/useIkMatData'
 
 const {
   dashboardStats,
@@ -45,7 +45,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   <div class="ik-mat-dashboard">
     <header class="page-header">
       <h1>IK-MAT</h1>
-      <p class="subtitle">Internkontroll for matsikkerhet, temperatur og avvik</p>
+      <p class="subtitle">Everest Sushi &amp; Fusion - internkontroll for matsikkerhet og hygiene</p>
     </header>
 
     <section class="stats-grid" aria-label="Nøkkeltall for IK-MAT">
@@ -60,7 +60,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
     <section class="quick-actions" aria-label="Snarveier">
       <router-link :to="{ name: 'Checklists' }" class="action-card">
         <h2>Sjekklister</h2>
-        <p>Følg daglige, ukentlige og månedlige kontroller med tydelig progresjon.</p>
+        <p>Følg daglige, ukentlige og manedlige kontroller med tydelig progresjon.</p>
       </router-link>
       <router-link :to="{ name: 'Temperature' }" class="action-card">
         <h2>Temperatur</h2>
@@ -118,7 +118,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
       <article class="panel-card details-grid__span-2">
         <header class="panel-card__header">
-          <h2>Åpne avvik</h2>
+          <h2>Ãpne avvik</h2>
           <span class="status-chip" :class="openDeviations.length > 0 ? 'status-chip--warn' : 'status-chip--good'">
             {{ openDeviations.length }} aktive
           </span>
@@ -131,7 +131,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
               <p class="item-row__meta">{{ deviation.location }} · meldt {{ formatDate(deviation.reported_date) }} kl. {{ deviation.reported_time }}</p>
             </div>
             <span class="status-chip" :class="deviation.severity === 'high' ? 'status-chip--danger' : 'status-chip--warn'">
-              {{ deviation.severity === 'high' ? 'Høy' : 'Medium' }}
+              {{ deviation.severity === 'high' ? 'Hoy' : 'Medium' }}
             </span>
           </li>
         </ul>
@@ -142,7 +142,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
 <style scoped>
 .ik-mat-dashboard {
-  max-width: 75rem;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -171,7 +171,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
 .stat-card {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.95rem;
 }
@@ -216,7 +216,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
 .action-card {
   background: var(--color-card);
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 1rem;
   color: inherit;
@@ -252,7 +252,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 }
 
 .panel-card {
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
   padding: 0.9rem;
@@ -285,7 +285,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   justify-content: space-between;
   gap: 0.75rem;
   align-items: center;
-  border: 0.0625rem solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 0.7rem;
   background: color-mix(in srgb, var(--color-accent) 50%, var(--color-card));
@@ -305,7 +305,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 }
 
 .status-chip {
-  border: 0.0625rem solid transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   padding: 0.2rem 0.45rem;
   font-size: var(--font-size-xs);
