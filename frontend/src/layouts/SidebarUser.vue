@@ -72,15 +72,15 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  min-height: 64px;
+  padding: 0.875rem 1rem;
+  min-height: 60px;
   background: var(--color-card);
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   flex: 1;
   min-width: 0;
 }
@@ -91,12 +91,13 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-info) 0%, var(--color-primary) 100%);
   color: var(--color-primary-foreground);
   font-weight: 600;
   font-size: 13px;
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
   flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
 }
 
 .user-details {
@@ -126,23 +127,24 @@ const handleLogout = async () => {
   justify-content: center;
   min-width: 36px;
   min-height: 36px;
-  padding: 8px;
+  padding: 0.5rem;
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
   color: var(--color-gray-500);
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
   flex-shrink: 0;
 }
 
 .logout-btn:hover {
-  background-color: var(--color-gray-100);
+  background-color: var(--color-danger-bg);
   color: var(--color-danger);
 }
 
 .logout-btn:focus-visible {
   outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  outline-offset: -2px;
+  background-color: var(--color-danger-bg);
 }
 </style>
