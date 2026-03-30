@@ -1,4 +1,4 @@
-import axios, { InternalAxiosRequestConfig } from 'axios'
+import axios, { type InternalAxiosRequestConfig } from 'axios'
 
 // Extend Axios config type to allow _retry property
 declare module 'axios' {

@@ -57,6 +57,7 @@ describe('Auth Store', () => {
         refreshToken: 'mock-refresh-token',
         email: 'admin@everest-sushi.no',
         role: 'ADMIN',
+        organizations: [],
       }
       
       vi.mocked(authApi.login).mockResolvedValue(mockResponse)
