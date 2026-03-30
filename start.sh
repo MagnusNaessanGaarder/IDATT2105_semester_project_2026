@@ -12,72 +12,51 @@ cd "$(dirname "$0")"
 
 # Stopp eksisterende prosesser
 stop_existing() {
-    local found=0
-    
-    # Stopp eksisterende Spring Boot prosesser
-    local backend_pids=$(pgrep -f "spring-boot:run" 2>/dev/null || true)
-    if [ -n "$backend_pids" ]; then
-        echo -e "${YELLOW}  Stopper eksisterende backend prosesser${NC}"
-        echo "$backend_pids" | xargs kill -9 2>/dev/null || true
-        found=1
-    fi
-    
-    # Stopp eksisterende Vite/npm prosesser
-    local frontend_pids=$(pgrep -f "vite" 2>/dev/null || true)
-    if [ -n "$frontend_pids" ]; then
-        echo -e "${YELLOW}  Stopper eksisterende frontend prosesser${NC}"
-        echo "$frontend_pids" | xargs kill -9 2>/dev/null || true
-        found=1
-    fi
+  local found=0
 
-    # stop mysql docker
-    if docker ps | grep -q "ik-mysql-dev"; then 
-        docker compose -f compose-dev.yml down -v
-    fi
+  # Stopp eksisterende Spring Boot prosesser
+  local backend_pids=$(pgrep -f "spring-boot:run" 2>/dev/null || true)
+  if [ -n "$backend_pids" ]; then
+    echo -e "${YELLOW}  Stopper eksisterende backend prosesser${NC}"
+    echo "$backend_pids" | xargs kill -9 2>/dev/null || true
+    found=1
+  fi
 
-    if [ $found -eq 0 ]; then
-        echo -e "${GREEN}  Ingen eksisterende prosesser funnet${NC}"
-    fi
-    
-    
+  # Stopp eksisterende Vite/npm prosesser
+  local frontend_pids=$(pgrep -f "vite" 2>/dev/null || true)
+  if [ -n "$frontend_pids" ]; then
+    echo -e "${YELLOW}  Stopper eksisterende frontend prosesser${NC}"
+    echo "$frontend_pids" | xargs kill -9 2>/dev/null || true
+    found=1
+  fi
 
-    # Vent litt så prosessene får tid til å stoppe
-    sleep 2
+  # stop mysql docker
+  if docker ps | grep -q "ik-mysql-dev"; then
+    docker compose -f compose-dev.yml down -v
+  fi
+
+  if [ $found -eq 0 ]; then
+    echo -e "${GREEN}  Ingen eksisterende prosesser funnet${NC}"
+  fi
+
+  # Vent litt så prosessene får tid til å stoppe
+  sleep 2
 }
 
 echo -e "${YELLOW}[0/4] Sjekker for eksisterende prosesser${NC}"
 stop_existing
 echo ""
 
-# 1. Start MySQL i Docker  
-echo -e "${YELLOW}[1/5] Starter MySQL i Docker ${NC}"
-if docker ps | grep -q "ik-mysql-dev"; then
-    echo -e "${GREEN}  MySQL kjører allerede${NC}"
-else
-    docker compose -f compose-dev.yml up -d mysql
-    
-    echo -e "${YELLOW}    Venter på at MySQL blir klar${NC}"
-    for i in {1..30}; do
-        if docker compose -f compose-dev.yml ps mysql | grep -q "healthy"; then
-            echo -e "${GREEN}MySQL er klar!${NC}"
-            break
-        fi
-        echo -n "."
-        sleep 2
-    done
-fi
-echo ""
-
 # 2. Sjekk om backend allerede bygget
 echo -e "${YELLOW}[2/5] Sjekker backend${NC}"
 if [ -f "backend/target/InternalControl-0.0.1-SNAPSHOT.jar" ]; then
-    echo -e "${GREEN}Backend er allerede bygget${NC}"
+  echo -e "${GREEN}Backend er allerede bygget${NC}"
 else
-    echo -e "${YELLOW}    Bygger backend lokalt  ${NC}"
-    cd backend
-    ./mvnw clean package -DskipTests -q
-    cd ..
-    echo -e "${GREEN}Backend bygget!${NC}"
+  echo -e "${YELLOW}    Bygger backend lokalt  ${NC}"
+  cd backend
+  ./mvnw clean package -DskipTests -q
+  cd ..
+  echo -e "${GREEN}Backend bygget!${NC}"
 fi
 echo ""
 
@@ -104,13 +83,13 @@ echo ""
 # 5. Vent på at backend er klar
 echo -e "${YELLOW}[5/5] Venter på at backend er klar...${NC}"
 for i in {1..60}; do
-    if curl -s http://localhost:8080/actuator/health 2>/dev/null | grep -q "UP" || \
-       curl -s http://localhost:8080/api/auth/login -X POST 2>/dev/null | grep -q "Bad credentials"; then
-        echo -e "${GREEN}  Backend er klar!${NC}"
-        break
-    fi
-    echo -n "."
-    sleep 1
+  if curl -s http://localhost:8080/actuator/health 2>/dev/null | grep -q "UP" ||
+    curl -s http://localhost:8080/api/auth/login -X POST 2>/dev/null | grep -q "Bad credentials"; then
+    echo -e "${GREEN}  Backend er klar!${NC}"
+    break
+  fi
+  echo -n "."
+  sleep 1
 done
 echo ""
 

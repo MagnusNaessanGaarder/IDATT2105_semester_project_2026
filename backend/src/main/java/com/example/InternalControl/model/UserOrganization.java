@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -58,7 +57,7 @@ public class UserOrganization {
     @Column(name = "last_seen_at")
     private LocalDateTime lastSeenAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    // @UpdateTimestamp - REMOVED: updated_at column doesn't exist in database
+    // @Column(name = "updated_at", nullable = false)
+    // private LocalDateTime updatedAt;
 }
