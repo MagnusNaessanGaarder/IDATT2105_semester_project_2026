@@ -1,7 +1,7 @@
 import { client } from '@/api/client'
 import type { User } from '@/types'
 
-// Mock-brukere for testing uten backend
+// Mock users for testing without backend
 const MOCK_USERS = [
   {
     id: 1,
@@ -26,16 +26,39 @@ const MOCK_USERS = [
   },
 ]
 
-// Setter til true for å bruke mock, false for å kalle backend
-const USE_MOCK = true
+// ! Setter til true for å bruke mock
+// ! Bruker da mock data på client-side og ingen tilkobling mot backend 
+const USE_MOCK = false // process.env.USE_MOCK 
+
+export interface OrganizationRole {
+  orgNumber: number
+  orgName: string
+  role: string
+  joinedAt: string
+}
+
+export interface AuthResponse {
+  accessToken: string
+  refreshToken: string
+  email: string
+  role: string
+  organizations: OrganizationRole[]
+}
+
+export interface RegisterData {
+  fullName: string
+  email: string
+  phone?: string
+  password: string
+}
 
 export const authApi = {
   async login(credentials: {
     email: string
     password: string
-  }): Promise<{ token: string; user: User }> {
+  }): Promise<AuthResponse> {
     if (USE_MOCK) {
-      // Simuler nettverksforsinkelse
+      // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 500))
 
       const user = MOCK_USERS.find(
@@ -43,20 +66,59 @@ export const authApi = {
       )
 
       if (!user) {
-        throw new Error('Ugyldig e-post eller passord')
+        throw new Error('Invalid email or password')
       }
 
-      // Returner uten password
-      const { password, ...userWithoutPassword } = user
-
       return {
-        token: `mock-jwt-${user.id}-${Date.now()}`,
-        user: userWithoutPassword as User,
+        accessToken: `mock-jwt-${user.id}-${Date.now()}`,
+        refreshToken: `mock-refresh-${user.id}-${Date.now()}`,
+        email: user.email,
+        role: user.role,
+        organizations: [{ orgNumber: 937219997, orgName: 'Everest Sushi', role: user.role, joinedAt: new Date().toISOString() }]
       }
     }
 
-    // Ekte backend-kall
+    // Real backend call
     const response = await client.post('/auth/login', credentials)
+    return response.data
+  },
+
+  async register(userData: RegisterData): Promise<AuthResponse> {
+    if (USE_MOCK) {
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      
+      // Check if user already exists
+      if (MOCK_USERS.some(u => u.email === userData.email)) {
+        throw new Error('Email is already registered')
+      }
+
+      return {
+        accessToken: `mock-jwt-new-${Date.now()}`,
+        refreshToken: `mock-refresh-new-${Date.now()}`,
+        email: userData.email,
+        role: 'EMPLOYEE',
+        organizations: [{ orgNumber: 937219997, orgName: 'Everest Sushi', role: 'EMPLOYEE', joinedAt: new Date().toISOString() }]
+      }
+    }
+
+    const response = await client.post('/auth/register', userData)
+    return response.data
+  },
+
+  async refresh(refreshToken: string): Promise<AuthResponse> {
+    if (USE_MOCK) {
+      await new Promise((resolve) => setTimeout(resolve, 200))
+      
+      return {
+        accessToken: `mock-jwt-refreshed-${Date.now()}`,
+        refreshToken: `mock-refresh-refreshed-${Date.now()}`,
+        email: sessionStorage.getItem('email') || 'test@example.com',
+        role: sessionStorage.getItem('role') || 'ADMIN',
+        organizations: [{ orgNumber: 937219997, orgName: 'Everest Sushi', role: 'ADMIN', joinedAt: new Date().toISOString() }]
+      }
+    }
+
+    const response = await client.post('/auth/refresh', { refreshToken })
     return response.data
   },
 
@@ -70,12 +132,12 @@ export const authApi = {
 
   async me(): Promise<User> {
     if (USE_MOCK) {
-      // Hent fra sessionStorage
+      // Get from sessionStorage
       const storedUser = sessionStorage.getItem('user')
       if (storedUser) {
         return JSON.parse(storedUser)
       }
-      throw new Error('Ikke innlogget')
+      throw new Error('Not logged in')
     }
     const response = await client.get('/auth/me')
     return response.data
