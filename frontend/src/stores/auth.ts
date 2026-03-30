@@ -3,7 +3,7 @@
  */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authApi } from '@/features/auth/api'
+import { authApi, type OrganizationRole } from '@/features/auth/api'
 
 interface AuthError {
   message: string
@@ -14,9 +14,19 @@ interface JwtPayload {
   exp?: number
 }
 
+const getStoredOrganizations = (): OrganizationRole[] => {
+  try {
+    const stored = sessionStorage.getItem('organizations')
+    return stored ? JSON.parse(stored) : []
+  } catch {
+    return []
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const email = ref<string | null>(sessionStorage.getItem('email') || null)
   const role = ref<string | null>(sessionStorage.getItem('role') || null)
+  const organizations = ref<OrganizationRole[]>(getStoredOrganizations())
   const accessToken = ref<string | null>(sessionStorage.getItem('accessToken') || null)
   const loading = ref(false)
   const error = ref<AuthError | null>(null)
@@ -24,19 +34,20 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!accessToken.value)
   const isAdmin = computed(() => role.value === 'ADMIN')
+  const currentOrg = computed(() => organizations.value[0] || null)
   const userDisplayName = computed(() => {
     if (email.value) {
-      return email.value.split('@')[0]
+      return email.value.split('@')[0] || 'Gjest'
     }
     return 'Gjest'
   })
   const user = computed(() => {
-    if (!email.value) return null
+    if (!email.value || !role.value) return null
     return {
       id: '',
-      name: email.value.split('@')[0],
+      name: email.value.split('@')[0] || '',
       email: email.value,
-      role: role.value,
+      role: role.value as 'ADMIN' | 'MANAGER' | 'EMPLOYEE',
     }
   })
 
@@ -56,12 +67,17 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(userData: { email: string; password: string; name?: string }) {
+  async function register(userData: { email: string; password: string; fullName?: string }) {
     loading.value = true
     error.value = null
 
     try {
-      const response = await authApi.register(userData)
+      const response = await authApi.register({
+        email: userData.email,
+        password: userData.password,
+        fullName: userData.fullName || userData.email.split('@')[0] || 'User',
+        phone: undefined
+      })
       setAuthData(response)
       return response
     } catch (err: any) {
@@ -75,12 +91,14 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     email.value = null
     role.value = null
+    organizations.value = []
     accessToken.value = null
 
     sessionStorage.removeItem('accessToken')
     sessionStorage.removeItem('refreshToken')
     sessionStorage.removeItem('email')
     sessionStorage.removeItem('role')
+    sessionStorage.removeItem('organizations')
   }
 
   async function checkAuth() {
@@ -133,7 +151,10 @@ export const useAuthStore = defineStore('auth', () => {
       const parts = token.split('.')
       if (parts.length !== 3) return null
 
-      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      const payload = parts[1]
+      if (!payload) return null
+
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
       const padding = '='.repeat((4 - base64.length % 4) % 4)
       const decoded = atob(base64 + padding)
 
@@ -148,15 +169,18 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken: string
     email: string
     role: string
+    organizations: OrganizationRole[]
   }) {
     accessToken.value = response.accessToken
     email.value = response.email
     role.value = response.role
+    organizations.value = response.organizations || []
 
     sessionStorage.setItem('accessToken', response.accessToken)
     sessionStorage.setItem('refreshToken', response.refreshToken)
     sessionStorage.setItem('email', response.email)
     sessionStorage.setItem('role', response.role)
+    sessionStorage.setItem('organizations', JSON.stringify(response.organizations || []))
   }
 
   function parseError(err: any): AuthError {
@@ -175,12 +199,14 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     email,
     role,
+    organizations,
     accessToken,
     loading,
     error,
     hasCheckedAuth,
     isAuthenticated,
     isAdmin,
+    currentOrg,
     userDisplayName,
     user,
     login,
