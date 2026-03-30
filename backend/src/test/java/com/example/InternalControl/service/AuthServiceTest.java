@@ -2,9 +2,12 @@ package com.example.InternalControl.service;
 
 import com.example.InternalControl.dto.AuthResponse;
 import com.example.InternalControl.dto.LoginRequest;
+import com.example.InternalControl.dto.OrganizationRoleResponse;
 import com.example.InternalControl.dto.RegisterRequest;
 import com.example.InternalControl.model.AppUser;
 import com.example.InternalControl.repository.AppUserRepository;
+import com.example.InternalControl.repository.UserOrganizationRepository;
+import com.example.InternalControl.repository.UserOrganizationRoleRepository;
 import com.example.InternalControl.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +30,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -51,6 +55,12 @@ class AuthServiceTest {
 
     @Mock
     private CustomUserDetailsService userDetailsService;
+
+    @Mock
+    private UserOrganizationRepository userOrgRepository;
+
+    @Mock
+    private UserOrganizationRoleRepository userOrgRoleRepository;
 
     @InjectMocks
     private AuthService authService;
@@ -80,6 +90,10 @@ class AuthServiceTest {
             .phone("12345678")
             .isActive(true)
             .build();
+        
+        // Setup default mocks for organizations
+        lenient().when(userOrgRepository.findActiveOrganizationsByUserId(anyLong()))
+            .thenReturn(Collections.emptyList());
     }
 
     @Test
@@ -90,11 +104,11 @@ class AuthServiceTest {
         when(userRepository.save(any(AppUser.class))).thenReturn(testUser);
         when(passwordEncoder.encode(any())).thenReturn("hashedPassword");
         when(userDetailsService.loadUserByUsername(any())).thenReturn(
-            new User("test@example.com", "password", Collections.emptyList())
+            new User("test@example.com", "password", 
+                Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_EMPLOYEE")))
         );
         when(jwtService.generateAccessToken(any())).thenReturn("access.token");
         when(jwtService.generateRefreshToken(any())).thenReturn("refresh.token");
-        when(userRepository.findRoleByEmail(any())).thenReturn(Optional.of("EMPLOYEE"));
 
         // When
         AuthResponse response = authService.register(validRegisterRequest);
@@ -105,6 +119,7 @@ class AuthServiceTest {
         assertThat(response.role()).isEqualTo("EMPLOYEE");
         assertThat(response.accessToken()).isEqualTo("access.token");
         assertThat(response.refreshToken()).isEqualTo("refresh.token");
+        assertThat(response.organizations()).isNotNull();
         
         verify(userRepository, times(2)).save(any(AppUser.class)); // Called twice: once for user, once for credential
         verify(passwordEncoder).encode("password123");
@@ -129,7 +144,8 @@ class AuthServiceTest {
     void shouldSuccessfullyLoginWithValidCredentials() {
         // Given
         Authentication authentication = mock(Authentication.class);
-        UserDetails userDetails = new User("test@example.com", "password", Collections.emptyList());
+        UserDetails userDetails = new User("test@example.com", "password", 
+            Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN")));
         
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
             .thenReturn(authentication);
@@ -137,7 +153,6 @@ class AuthServiceTest {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
         when(jwtService.generateAccessToken(any())).thenReturn("access.token");
         when(jwtService.generateRefreshToken(any())).thenReturn("refresh.token");
-        when(userRepository.findRoleByEmail(any())).thenReturn(Optional.of("ADMIN"));
 
         // When
         AuthResponse response = authService.login(validLoginRequest);
@@ -147,6 +162,7 @@ class AuthServiceTest {
         assertThat(response.email()).isEqualTo("test@example.com");
         assertThat(response.role()).isEqualTo("ADMIN");
         assertThat(response.accessToken()).isEqualTo("access.token");
+        assertThat(response.organizations()).isNotNull();
     }
 
     @Test

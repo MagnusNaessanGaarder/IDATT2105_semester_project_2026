@@ -16,7 +16,7 @@ interface DecodedToken {
 export function useAuth() {
   const authStore = useAuthStore()
   const router = useRouter()
-  const { isAuthenticated, isAdmin, username, role, loading, error } = storeToRefs(authStore)
+  const { isAuthenticated, isAdmin, userDisplayName, role, loading, error } = storeToRefs(authStore)
 
   /**
    * Logger ut og redirecter til login-siden.
@@ -63,7 +63,7 @@ export function useAuth() {
   return {
     isAuthenticated,
     isAdmin,
-    username,
+    userDisplayName,
     role,
     loading,
     error,

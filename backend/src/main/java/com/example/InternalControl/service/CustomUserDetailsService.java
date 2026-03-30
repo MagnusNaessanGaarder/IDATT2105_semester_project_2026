@@ -1,7 +1,11 @@
 package com.example.InternalControl.service;
 
 import com.example.InternalControl.model.AppUser;
+import com.example.InternalControl.model.UserOrganization;
+import com.example.InternalControl.model.UserOrganizationRole;
 import com.example.InternalControl.repository.AppUserRepository;
+import com.example.InternalControl.repository.UserOrganizationRepository;
+import com.example.InternalControl.repository.UserOrganizationRoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +17,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service for loading user details 
@@ -26,46 +31,67 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomUserDetailsService.class);
     
     private final AppUserRepository userRepository;
+    private final UserOrganizationRepository userOrgRepository;
+    private final UserOrganizationRoleRepository userOrgRoleRepository;
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        logger.debug("Loading user: {}", email);
+        LOGGER.debug("Loading user: {}", email);
         
         AppUser user = userRepository.findByEmailWithCredentials(email)
                 .orElseThrow(() -> {
-                    logger.warn("User not found: {}", email);
+                    LOGGER.warn("User not found: {}", email);
                     return new UsernameNotFoundException("Invalid email or password");
                 });
 
         if (user.getLocalCredential() == null) {
-            logger.warn("User {} has no password-based login", email);
+            LOGGER.warn("User {} has no password-based login", email);
             throw new UsernameNotFoundException("Invalid email or password");
         }
 
         if (user.isLocked()) {
-            logger.warn("User {} is locked until {}", email, user.getLocalCredential().getLockedUntil());
+            LOGGER.warn("User {} is locked until {}", email, user.getLocalCredential().getLockedUntil());
             throw new UsernameNotFoundException("Account is temporarily locked. Try again later.");
         }
 
         if (!user.isActive()) {
-            logger.warn("User {} is disabled", email);
+            LOGGER.warn("User {} is disabled", email);
             throw new UsernameNotFoundException("Account is disabled");
         }
 
-        // Simplified, gets default role
-        // TODO: Extend to get actual role from user_organization_role table
-        String role = "EMPLOYEE";
+        // Fetch all roles from user_organization_role table
+        List<UserOrganization> userOrgs = userOrgRepository.findActiveOrganizationsByUserId(user.getUserId());
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        
+        for (UserOrganization userOrg : userOrgs) {
+            List<UserOrganizationRole> roles = userOrgRoleRepository.findByUserOrganization(
+                    userOrg.getUser().getUserId(),
+                    userOrg.getOrganization().getOrgNumber()
+            );
+            
+            for (UserOrganizationRole userOrgRole : roles) {
+                String roleName = userOrgRole.getRole().getRoleName();
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + roleName));
+                LOGGER.debug("User {} has role: {}", email, roleName);
+            }
+        }
+        
+        // If no roles found, assign default EMPLOYEE role
+        if (authorities.isEmpty()) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_EMPLOYEE"));
+            LOGGER.warn("User {} has no roles, assigned default EMPLOYEE role", email);
+        }
 
-        logger.info("User {} authenticated with role {}", email, role);
+        LOGGER.info("User {} authenticated with {} roles", email, authorities.size());
 
         return User.builder()
                 .username(user.getEmail())
                 .password(user.getLocalCredential().getPasswordHash())
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)))
+                .authorities(authorities)
                 .accountLocked(user.isLocked())
                 .disabled(!user.isActive())
                 .build();

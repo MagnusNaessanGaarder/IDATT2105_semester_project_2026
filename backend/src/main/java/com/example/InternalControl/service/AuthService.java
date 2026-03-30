@@ -2,10 +2,15 @@ package com.example.InternalControl.service;
 
 import com.example.InternalControl.dto.AuthResponse;
 import com.example.InternalControl.dto.LoginRequest;
+import com.example.InternalControl.dto.OrganizationRoleResponse;
 import com.example.InternalControl.dto.RegisterRequest;
 import com.example.InternalControl.model.AppUser;
 import com.example.InternalControl.model.AppUserLocalCredential;
+import com.example.InternalControl.model.UserOrganization;
+import com.example.InternalControl.model.UserOrganizationRole;
 import com.example.InternalControl.repository.AppUserRepository;
+import com.example.InternalControl.repository.UserOrganizationRepository;
+import com.example.InternalControl.repository.UserOrganizationRoleRepository;
 import com.example.InternalControl.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -21,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Service for authentication.
@@ -32,20 +38,22 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
 
     private final AppUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
+    private final UserOrganizationRepository userOrgRepository;
+    private final UserOrganizationRoleRepository userOrgRoleRepository;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        logger.info("Registering new user: {}", request.email());
+        LOGGER.info("Registering new user: {}", request.email());
 
         if (userRepository.existsByEmail(request.email())) {
-            logger.warn("Email {} already in use", request.email());
+            LOGGER.warn("Email {} already in use", request.email());
             throw new IllegalArgumentException("Email is already in use");
         }
 
@@ -57,7 +65,7 @@ public class AuthService {
                 .build();
 
         user = userRepository.save(user);
-        logger.debug("AppUser created with ID: {}", user.getUserId());
+        LOGGER.debug("AppUser created with ID: {}", user.getUserId());
 
         AppUserLocalCredential credential = AppUserLocalCredential.builder()
                 .user(user)
@@ -70,19 +78,28 @@ public class AuthService {
         user.setLocalCredential(credential);
         userRepository.save(user);
 
-        logger.info("User {} registered", request.email());
+        LOGGER.info("User {} registered", request.email());
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-        String role = getRoleByEmail(user.getEmail());
-        return new AuthResponse(accessToken, refreshToken, user.getEmail(), role);
+        // Fetch user's organizations and roles
+        List<OrganizationRoleResponse> organizations = fetchUserOrganizationsAndRoles(user.getUserId());
+        String primaryRole = extractPrimaryRole(userDetails);
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .email(user.getEmail())
+                .role(primaryRole)
+                .organizations(organizations)
+                .build();
     }
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        logger.info("Login attempt: {}", request.email());
+        LOGGER.info("Login attempt: {}", request.email());
 
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -92,27 +109,36 @@ public class AuthService {
             AppUser user = userRepository.findByEmail(request.email()).orElseThrow();
             if (user.getLocalCredential() != null) {
                 user.getLocalCredential().resetFailedAttempts();
-                logger.debug("Failed attempts reset for {}", request.email());
+                LOGGER.debug("Failed attempts reset for {}", request.email());
             }
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String accessToken = jwtService.generateAccessToken(userDetails);
             String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-            String role = getRoleByEmail(user.getEmail());
-            logger.info("User {} logged in", request.email());
+            // Fetch user's organizations and roles
+            List<OrganizationRoleResponse> organizations = fetchUserOrganizationsAndRoles(user.getUserId());
+            String primaryRole = extractPrimaryRole(userDetails);
 
-            return new AuthResponse(accessToken, refreshToken, user.getEmail(), role);
+            LOGGER.info("User {} logged in", request.email());
+
+            return AuthResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .email(user.getEmail())
+                    .role(primaryRole)
+                    .organizations(organizations)
+                    .build();
 
         } catch (BadCredentialsException e) {
             AppUser user = userRepository.findByEmailWithCredentials(request.email()).orElse(null);
             if (user != null && user.getLocalCredential() != null) {
                 user.getLocalCredential().recordFailedAttempt();
                 int attempts = user.getLocalCredential().getFailedAttempts();
-                logger.warn("Failed login attempt {} for {}", attempts, request.email());
+                LOGGER.warn("Failed login attempt {} for {}", attempts, request.email());
                 
                 if (user.isLocked()) {
-                    logger.warn("User {} is now locked", request.email());
+                    LOGGER.warn("User {} is now locked", request.email());
                     throw new LockedException("Account is temporarily locked after 5 failed attempts. Try again in 30 minutes.");
                 }
             }
@@ -123,7 +149,7 @@ public class AuthService {
 
     public AuthResponse refreshToken(String refreshToken) {
         String email = jwtService.extractUsername(refreshToken);
-        logger.info("Token refresh for {}", email);
+        LOGGER.info("Token refresh for {}", email);
 
         AppUser user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
@@ -131,21 +157,67 @@ public class AuthService {
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         
         if (!jwtService.isTokenValid(refreshToken, userDetails)) {
-            logger.warn("Invalid refresh token for {}", email);
+            LOGGER.warn("Invalid refresh token for {}", email);
             throw new IllegalArgumentException("Invalid refresh token");
         }
 
         String newAccessToken = jwtService.generateAccessToken(userDetails);
         String newRefreshToken = jwtService.generateRefreshToken(userDetails);
 
-        logger.info("Token refreshed for {}", email);
+        LOGGER.info("Token refreshed for {}", email);
 
-        String role = getRoleByEmail(email);
-        return new AuthResponse(newAccessToken, newRefreshToken, email, role);
+        // Fetch user's organizations and roles
+        List<OrganizationRoleResponse> organizations = fetchUserOrganizationsAndRoles(user.getUserId());
+        String primaryRole = extractPrimaryRole(userDetails);
+
+        return AuthResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .email(email)
+                .role(primaryRole)
+                .organizations(organizations)
+                .build();
     }
 
     @Transactional(readOnly = true)
     public String getRoleByEmail(String email) {
         return userRepository.findRoleByEmail(email).orElse("EMPLOYEE");
+    }
+
+    /**
+     * Fetch all organizations and roles for a user.
+     */
+    @Transactional(readOnly = true)
+    public List<OrganizationRoleResponse> fetchUserOrganizationsAndRoles(Long userId) {
+        List<UserOrganization> userOrgs = userOrgRepository.findActiveOrganizationsByUserId(userId);
+        
+        return userOrgs.stream()
+                .map(userOrg -> {
+                    List<UserOrganizationRole> roles = userOrgRoleRepository.findByUserOrganization(
+                            userOrg.getUser().getUserId(),
+                            userOrg.getOrganization().getOrgNumber()
+                    );
+                    
+                    String roleName = roles.isEmpty() ? "EMPLOYEE" 
+                            : roles.get(0).getRole().getRoleName();
+                    
+                    return OrganizationRoleResponse.builder()
+                            .orgNumber(userOrg.getOrganization().getOrgNumber())
+                            .orgName(userOrg.getOrganization().getDisplayName())
+                            .role(roleName)
+                            .joinedAt(userOrg.getJoinedAt())
+                            .build();
+                })
+                .toList();
+    }
+
+    /**
+     * Extract primary role from UserDetails authorities.
+     */
+    private String extractPrimaryRole(UserDetails userDetails) {
+        return userDetails.getAuthorities().stream()
+                .findFirst()
+                .map(auth -> auth.getAuthority().replace("ROLE_", ""))
+                .orElse("EMPLOYEE");
     }
 }

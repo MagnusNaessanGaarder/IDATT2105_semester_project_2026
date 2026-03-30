@@ -1,4 +1,5 @@
 /// <reference types="cypress" />
+/* eslint-disable jest/no-standalone-expect */
 
 /**
  * Authentication Commands

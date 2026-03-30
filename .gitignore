@@ -13,6 +13,7 @@ ai-*.md
 AI_*.md
 *.ai.md
 docs/ai-*/
+memory/
 
 # Dependencies
 node_modules/
