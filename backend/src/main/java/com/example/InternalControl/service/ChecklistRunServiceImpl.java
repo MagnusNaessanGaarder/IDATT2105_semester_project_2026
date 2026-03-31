@@ -142,12 +142,16 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
     @Override
     public void checkOverdueRuns(Integer orgNumber) {
         LocalDateTime now = LocalDateTime.now();
-        List<ChecklistRun> overdueRuns = runRepository
-                .findByOrgNumberAndStatusAndDueAtBefore(
-                        orgNumber, RunStatus.OVERDUE, now);
-
-        for (ChecklistRun run : overdueRuns) {
-            if (run.isOverdue()) {
+        
+        // Find all runs that are not completed/cancelled and are past their due date
+        List<ChecklistRun> potentiallyOverdueRuns = runRepository.findByOrgNumber(orgNumber);
+        
+        for (ChecklistRun run : potentiallyOverdueRuns) {
+            if (run.getStatus() != RunStatus.COMPLETED 
+                    && run.getStatus() != RunStatus.CANCELLED 
+                    && run.getStatus() != RunStatus.OVERDUE
+                    && run.getDueAt() != null 
+                    && run.getDueAt().isBefore(now)) {
                 run.setStatus(RunStatus.OVERDUE);
                 runRepository.save(run);
             }

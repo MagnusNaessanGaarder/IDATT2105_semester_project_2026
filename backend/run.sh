@@ -15,5 +15,5 @@ fi
 # Export environment variables from .env
 export $(grep -v '^#' .env | xargs)
 
-echo "./mvnw spring-boot run"
+echo "./mvnw spring-boot:run"
 ./mvnw spring-boot:run

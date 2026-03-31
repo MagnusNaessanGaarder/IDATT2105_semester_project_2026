@@ -9,7 +9,7 @@ Semester project for IDATT2105 - Fullstack application for internal control in s
 
 ```bash
 # Copy environment file (ask Tri for .env values)
-cp .env.example .env
+cp backend/.env.example backend/.env
 ```
 
 Remember to give perms to shell scripts using chmod +x
@@ -136,7 +136,7 @@ npm run test:e2e
 
 ```bash
 cd backend
-./test-api.sh
+./test-api-curl.sh
 ```
 
 **Option 2: Using HTTPie (more readable output, requires installation)**

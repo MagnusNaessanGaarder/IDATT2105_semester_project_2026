@@ -2,7 +2,6 @@ package com.example.InternalControl.service;
 
 import com.example.InternalControl.model.ChecklistTemplate;
 import com.example.InternalControl.model.enums.ModuleType;
-import com.example.InternalControl.repository.ChecklistTemplateItemRepository;
 import com.example.InternalControl.repository.ChecklistTemplateRepository;
 import com.example.InternalControl.repository.OrganizationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,8 +23,6 @@ import java.util.List;
 public class ChecklistTemplateServiceImpl implements ChecklistTemplateService {
 
   private final ChecklistTemplateRepository templateRepository;
-
-  private final ChecklistTemplateItemRepository itemRepository;
 
   private final OrganizationRepository orgRepository;
 

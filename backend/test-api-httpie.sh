@@ -29,7 +29,7 @@ if ! command -v http &>/dev/null; then
   echo "  macOS:   brew install httpie"
   echo "  Python:  pip install httpie"
   echo ""
-  echo "Or use the curl version: ./test-api.sh"
+  echo "Or use the curl version: ./test-api-curl.sh"
   exit 1
 fi
 

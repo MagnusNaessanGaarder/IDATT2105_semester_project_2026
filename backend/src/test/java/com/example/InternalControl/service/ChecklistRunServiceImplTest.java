@@ -463,7 +463,7 @@ class ChecklistRunServiceImplTest {
                 .dueAt(now.minusHours(1))
                 .build();
 
-        when(runRepository.findByOrgNumberAndStatusAndDueAtBefore(eq(orgNumber), eq(RunStatus.OVERDUE), any()))
+        when(runRepository.findByOrgNumber(orgNumber))
                 .thenReturn(Arrays.asList(overdueRun));
 
         // When
@@ -479,7 +479,7 @@ class ChecklistRunServiceImplTest {
         // Given
         Integer orgNumber = 123;
 
-        when(runRepository.findByOrgNumberAndStatusAndDueAtBefore(eq(orgNumber), eq(RunStatus.OVERDUE), any()))
+        when(runRepository.findByOrgNumber(orgNumber))
                 .thenReturn(Collections.emptyList());
 
         // When
