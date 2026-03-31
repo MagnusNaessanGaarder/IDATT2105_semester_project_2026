@@ -33,31 +33,32 @@ import java.time.LocalDateTime;
 @Builder
 public class UserOrganization {
 
-    @EmbeddedId
-    private UserOrganizationId id;
+  @EmbeddedId
+  private UserOrganizationId id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("userId")
-    @JoinColumn(name = "user_id", nullable = false)
-    private AppUser user;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @MapsId("userId")
+  @JoinColumn(name = "user_id", nullable = false)
+  private AppUser user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("orgNumber")
-    @JoinColumn(name = "org_number", nullable = false)
-    private Organization organization;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @MapsId("orgNumber")
+  @JoinColumn(name = "org_number", nullable = false)
+  private Organization organization;
 
-    @Column(name = "is_active", nullable = false)
-    @Builder.Default
-    private Boolean isActive = true;
+  @Column(name = "is_active", nullable = false)
+  @Builder.Default
+  private Boolean isActive = true;
 
-    @CreationTimestamp
-    @Column(name = "joined_at", nullable = false, updatable = false)
-    private LocalDateTime joinedAt;
+  @CreationTimestamp
+  @Column(name = "joined_at", nullable = false, updatable = false)
+  private LocalDateTime joinedAt;
 
-    @Column(name = "last_seen_at")
-    private LocalDateTime lastSeenAt;
+  @Column(name = "last_seen_at")
+  private LocalDateTime lastSeenAt;
 
-    // @UpdateTimestamp - REMOVED: updated_at column doesn't exist in database
-    // @Column(name = "updated_at", nullable = false)
-    // private LocalDateTime updatedAt;
+  // @UpdateTimestamp - REMOVED: updated_at column doesnt exist in database, maybe
+  // it should @Anine
+  // @Column(name = "updated_at", nullable = false)
+  // private LocalDateTime updatedAt;
 }

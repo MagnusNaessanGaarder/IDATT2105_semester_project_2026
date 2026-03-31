@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * JPA Entity mapping to app_user_local_credential table.
- * e* Separate table for security reasons.
+ * Separate table for security reasons.
  *
  * @author TriTacLe
  * @since 1.0
