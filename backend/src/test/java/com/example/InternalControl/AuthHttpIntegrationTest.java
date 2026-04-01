@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -22,8 +24,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author TriTacLe
  * @since 1.0
  */
-@SpringBootTest
-class AuthHttpIntegrationTest {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@Import(TestBlobConfig.class)
+class AuthHttpIntegrationTest extends AbstractIntegrationTest  {
 
     @Autowired
     private Environment environment;
