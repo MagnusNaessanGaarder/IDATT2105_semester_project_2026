@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -74,9 +75,12 @@ public class BlobStorageService {
     return blobName;
   }
 
-  public InputStream downloadFile(int orgNumber, String blobName) {
+  public ByteArrayOutputStream downloadFile(int orgNumber, String blobName) {
     BlobClient blobClient = getExistingBlob(orgNumber, blobName);
-    return blobClient.openInputStream();
+
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    blobClient.downloadStream(outputStream);
+    return outputStream;
   }
 
   public String generateSasUrl(int orgNumber, String blobName, Duration validFor) {
