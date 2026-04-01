@@ -29,9 +29,7 @@ public class BlobStorageService {
   private BlobContainerClient getContainerForTenant(int orgNumber) {
     String containerName = getContainerName(orgNumber);
     BlobContainerClient container = blobServiceClient.getBlobContainerClient(containerName);
-    if (!container.exists()) {
-      container.create();
-    }
+    container.createIfNotExists();
     return container;
   }
 
