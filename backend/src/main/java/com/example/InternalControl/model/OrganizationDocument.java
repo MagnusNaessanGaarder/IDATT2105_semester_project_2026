@@ -1,59 +1,82 @@
 package com.example.InternalControl.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
-/**
- * Organization document entity for file attachments.
- *
- * @author TriTacLe
- * @since 1.0
- */
 @Entity
 @Table(name = "organization_document")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class OrganizationDocument {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "document_id")
-    private Long documentId;
+  @Setter
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "document_id")
+  private Long documentId;
 
-    @Column(name = "org_number", nullable = false)
-    private Integer orgNumber;
+  @Setter
+  @Column(name = "org_number", nullable = false)
+  private Integer orgNumber;
 
-    @Column(name = "file_name", nullable = false, length = 255)
-    private String fileName;
+  @Setter
+  @Column(name = "document_type", nullable = false)
+  private String documentType;
 
-    @Column(name = "file_path", nullable = false, length = 500)
-    private String filePath;
+  @Setter
+  @Column(name = "title", nullable = false)
+  private String title;
 
-    @Column(name = "file_type", length = 100)
-    private String fileType;
+  @Setter
+  @Column(name = "description")
+  private String description;
 
-    @Column(name = "file_size")
-    private Long fileSize;
+  @Setter
+  @Column(name = "current_version", nullable = false)
+  private Integer currentVersion = 1;
 
-    @Column(name = "uploaded_by", nullable = false)
-    private Long uploadedBy;
+  @Setter
+  @Column(name = "is_active", nullable = false)
+  private boolean active = true;
 
-    @CreationTimestamp
-    @Column(name = "uploaded_at", nullable = false, updatable = false)
-    private LocalDateTime uploadedAt;
+  @Setter
+  @Column(name = "created_by_user_id")
+  private Long createdByUserId;
 
-    @Column(length = 500)
-    private String description;
+  @Column(name = "created_at", updatable = false)
+  private LocalDateTime createdAt;
 
-    @ManyToMany(mappedBy = "documents")
-    @Builder.Default
-    private Set<DeviationReport> deviationReports = new HashSet<>();
+  @Column(name = "updated_at")
+  private LocalDateTime updatedAt;
+
+  @PrePersist
+  protected void onCreate() {
+    createdAt = LocalDateTime.now();
+    updatedAt = LocalDateTime.now();
+  }
+
+  @PreUpdate
+  protected void onUpdate() {
+    updatedAt = LocalDateTime.now();
+  }
+
+
+  public Long getDocumentId() { return documentId; }
+
+  public Integer getOrgNumber() { return orgNumber; }
+
+  public String getDocumentType() { return documentType; }
+
+  public String getTitle() { return title; }
+
+  public String getDescription() { return description; }
+
+  public Integer getCurrentVersion() { return currentVersion; }
+
+  public boolean isActive() { return active; }
+
+  public Long getCreatedByUserId() { return createdByUserId; }
+
+  public LocalDateTime getCreatedAt() { return createdAt; }
+  public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

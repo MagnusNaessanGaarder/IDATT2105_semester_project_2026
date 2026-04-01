@@ -26,9 +26,9 @@ export function useErrorHandler() {
       400: message ?? 'Ugyldig forespørsel',
       403: 'Du har ikke tilgang til denne handlingen',
       404: 'Ressursen ble ikke funnet',
-      409: message ?? 'Konflikt — ressursen eksisterer allerede',
+      409: message ?? 'Konflikt - ressursen eksisterer allerede',
       422: message ?? 'Valideringsfeil fra server',
-      500: 'Serverfeil — prøv igjen senere',
+      500: 'Serverfeil - prøv igjen senere',
     }
 
     const userMessage = errorMap[status] ?? message ?? `Noe gikk galt${context ? ` (${context})` : ''}`
