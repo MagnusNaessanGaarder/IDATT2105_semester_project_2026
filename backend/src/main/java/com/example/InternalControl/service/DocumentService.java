@@ -28,19 +28,43 @@ public class DocumentService {
   @Transactional
   public OrganizationDocument uploadDocument(Integer orgNumber, MultipartFile file,
                                              String documentType, String directory) throws IOException {
+
+    String originalFilename = file.getOriginalFilename();
+    if (originalFilename == null || originalFilename.isBlank()) {
+      throw new IllegalArgumentException("File must have a name");
+    }
+
+    originalFilename = originalFilename.replaceAll(".*[/\\\\]", "");
+
+    String sanitizedFilename = originalFilename.replaceAll("[^a-zA-Z0-9.\\-_]", "_");
+    if (sanitizedFilename.isBlank() || sanitizedFilename.startsWith(".")) {
+      throw new IllegalArgumentException("Invalid file name");
+    }
+
+    String sanitizedDirectory = directory.replaceAll("[^a-zA-Z0-9\\-_]", "_");
+
+    String contentType = file.getContentType();
+    if (contentType == null || contentType.isBlank()) {
+      contentType = "application/octet-stream";
+    }
+
+    if (file.isEmpty()) {
+      throw new IllegalArgumentException("File must not be empty");
+    }
+
     String blobName = blobStorageService.uploadFile(
-        orgNumber, directory,
-        file.getOriginalFilename(),
+        orgNumber, sanitizedDirectory,
+        sanitizedFilename,
         file.getInputStream(),
         file.getSize(),
-        file.getContentType()
+        contentType
     );
 
     try {
       OrganizationDocument doc = new OrganizationDocument();
       doc.setOrgNumber(orgNumber);
       doc.setDocumentType(documentType);
-      doc.setTitle(file.getOriginalFilename());
+      doc.setTitle(originalFilename);  // keep the human-readable original
       doc.setCurrentVersion(1);
       doc.setActive(true);
       documentRepo.save(doc);
@@ -50,8 +74,8 @@ public class DocumentService {
       version.setVersionNumber(1);
       version.setAzureContainer(blobStorageService.getContainerName(orgNumber));
       version.setAzureBlobName(blobName);
-      version.setOriginalFilename(file.getOriginalFilename());
-      version.setMimeType(file.getContentType());
+      version.setOriginalFilename(originalFilename);
+      version.setMimeType(contentType);
       version.setFileSizeBytes(file.getSize());
       versionRepo.save(version);
 
