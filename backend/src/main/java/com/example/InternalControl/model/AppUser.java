@@ -35,13 +35,13 @@ public class AppUser {
 
   @Column(name = "is_active", nullable = false)
   @Builder.Default
-    private Boolean isActive=true;
+  private Boolean isActive = true;
 
   @Column(name = "phone")
   private String phone;
 
   @Column(name = "global_last_seen_at")
-  private LocalDateTime global_last_seen_at;
+  private LocalDateTime globalLastSeenAt;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -54,11 +54,11 @@ public class AppUser {
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private AppUserLocalCredential localCredential;
 
-  public boolean isLocked(){
+  public boolean isLocked() {
     return localCredential != null && localCredential.isLocked();
   }
 
-  public boolean isActive(){
+  public boolean isActive() {
     return isActive != null && isActive;
   }
 }

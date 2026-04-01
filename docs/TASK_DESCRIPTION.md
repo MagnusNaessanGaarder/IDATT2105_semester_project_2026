@@ -1,4 +1,4 @@
-# IDATT2105 Full-stack Application Development — Semester Project 2026
+# IDATT2105 Full-stack Application Development - Semester Project 2026
 
 > **Les dette dokumentet nøye og ta hensyn til detaljene!**
 

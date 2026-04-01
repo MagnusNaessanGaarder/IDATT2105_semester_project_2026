@@ -81,7 +81,7 @@ public class AuthService {
         LOGGER.info("User {} registered", request.email());
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String accessToken = jwtService.generateAccessToken(userDetails);
+        String accessToken = jwtService.generateAccessToken(userDetails, user.getUserId());
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
         // Fetch user's organizations and roles
@@ -113,7 +113,7 @@ public class AuthService {
             }
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String accessToken = jwtService.generateAccessToken(userDetails);
+            String accessToken = jwtService.generateAccessToken(userDetails, user.getUserId());
             String refreshToken = jwtService.generateRefreshToken(userDetails);
 
             // Fetch user's organizations and roles
@@ -161,7 +161,7 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid refresh token");
         }
 
-        String newAccessToken = jwtService.generateAccessToken(userDetails);
+        String newAccessToken = jwtService.generateAccessToken(userDetails, user.getUserId());
         String newRefreshToken = jwtService.generateRefreshToken(userDetails);
 
         LOGGER.info("Token refreshed for {}", email);
