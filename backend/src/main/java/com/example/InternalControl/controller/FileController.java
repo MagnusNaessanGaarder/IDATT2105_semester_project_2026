@@ -62,10 +62,13 @@ public class FileController {
 
     ByteArrayOutputStream stream = blobStorageService.downloadFile(orgNumber, version.getAzureBlobName());
 
+    String safeFilename = version.getOriginalFilename()
+        .replaceAll("[^a-zA-Z0-9.\\-_ ]", "_");
+
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(version.getMimeType()))
         .header(HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"" + version.getOriginalFilename() + "\"")
+            "attachment; filename=\"" + safeFilename + "\"")
         .body(stream.toByteArray());
   }
 }
