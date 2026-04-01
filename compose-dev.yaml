@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: backend-mysql-1
+    environment:
+      - 'MYSQL_DATABASE=${MYSQL_DATABASE}'
+      - 'MYSQL_PASSWORD=${MYSQL_PASSWORD}'
+      - 'MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}'
+      - 'MYSQL_USER=${MYSQL_USER}'
+    
+   # Hvis du bruker VPN 
+    #   - Kommenter UT 'ports:' seksjonen nedenfor (sett # foran)
+    #
+    # Hvis du IKKE bruker VPN 
+    #   - La 'ports:' seksjonen være som den er (aktiv)
+    #   - La 'network_mode: host' være kommentert ut
+    
+    # VPN-modus 
+    network_mode: host
+    
+    # Standard-modus   - kommenter ut linjen over og fjern kommentar fra linjene under:
+    # ports:
+    #   - '3306:3306'
+    
+    volumes:
+      - mysql-dev-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+volumes:
+  mysql-dev-data:
