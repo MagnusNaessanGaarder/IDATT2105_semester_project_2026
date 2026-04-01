@@ -19,25 +19,25 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-    @Bean
-    public OpenAPI customOpenAPI() {
-        final String securitySchemeName = "bearerAuth";
-        
-        return new OpenAPI()
-                .info(new Info()
-                        .title("IK-Kontroll API")
-                        .version("1.0")
-                        .description("API for restaurant internkontroll system. " +
-                                   "Authentication with JWT. Test users: admin@everest-sushi.no / Test1234!")
-                        .contact(new Contact()
-                                .name("IDATT2105 Prosjektgruppe")
-                                .email("trile@stud.ntnu.no")))
-                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
-                .components(new Components()
-                        .addSecuritySchemes(securitySchemeName, new SecurityScheme()
-                                .name(securitySchemeName)
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")));
-    }
+  @Bean
+  public OpenAPI customOpenAPI() {
+    final String securitySchemeName = "bearerAuth";
+
+    return new OpenAPI()
+        .info(new Info()
+            .title("IK-Kontroll API")
+            .version("1.0")
+            .description("API for restaurant internkontroll system. " +
+                "Authentication with JWT. Test users: admin@everest-sushi.no / Test1234!")
+            .contact(new Contact()
+                .name("IDATT2105 Frivillig prosjekt 2026")
+                .email("trile@stud.ntnu.no")))
+        .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+        .components(new Components()
+            .addSecuritySchemes(securitySchemeName, new SecurityScheme()
+                .name(securitySchemeName)
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")));
+  }
 }

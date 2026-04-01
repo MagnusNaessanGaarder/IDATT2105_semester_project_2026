@@ -1,3 +1,4 @@
+
 package com.example.InternalControl.repository;
 
 import com.example.InternalControl.model.UserOrganization;
@@ -19,36 +20,34 @@ import java.util.Optional;
 @Repository
 public interface UserOrganizationRepository extends JpaRepository<UserOrganization, UserOrganizationId> {
 
-    /**
-     * Find all active organizations for a user.
-     */
-    @Query("SELECT uo FROM UserOrganization uo " +
-           "WHERE uo.user.userId = :userId AND uo.isActive = true")
-    List<UserOrganization> findActiveOrganizationsByUserId(@Param("userId") Long userId);
+  /**
+   * Find all active organizations for a user.
+   */
+  @Query("SELECT uo FROM UserOrganization uo " +
+      "WHERE uo.user.userId = :userId AND uo.isActive = true")
+  List<UserOrganization> findActiveOrganizationsByUserId(@Param("userId") Long userId);
 
-    /**
-     * Find all organizations for a user (including inactive).
-     */
-    @Query("SELECT uo FROM UserOrganization uo WHERE uo.user.userId = :userId")
-    List<UserOrganization> findByUserId(@Param("userId") Long userId);
+  /**
+   * Find all organizations for a user (including inactive).
+   */
+  @Query("SELECT uo FROM UserOrganization uo WHERE uo.user.userId = :userId")
+  List<UserOrganization> findByUserId(@Param("userId") Long userId);
 
-    /**
-     * Find specific organization membership for a user.
-     */
-    @Query("SELECT uo FROM UserOrganization uo " +
-           "WHERE uo.user.userId = :userId AND uo.organization.orgNumber = :orgNumber")
-    Optional<UserOrganization> findByUserIdAndOrgNumber(
-            @Param("userId") Long userId,
-            @Param("orgNumber") Integer orgNumber
-    );
+  /**
+   * Find specific organization membership for a user.
+   */
+  @Query("SELECT uo FROM UserOrganization uo " +
+      "WHERE uo.user.userId = :userId AND uo.organization.orgNumber = :orgNumber")
+  Optional<UserOrganization> findByUserIdAndOrgNumber(
+      @Param("userId") Long userId,
+      @Param("orgNumber") Integer orgNumber);
 
-    /**
-     * Check if user is a member of an organization.
-     */
-    @Query("SELECT COUNT(uo) > 0 FROM UserOrganization uo " +
-           "WHERE uo.user.userId = :userId AND uo.organization.orgNumber = :orgNumber")
-    boolean existsByUserIdAndOrgNumber(
-            @Param("userId") Long userId,
-            @Param("orgNumber") Integer orgNumber
-    );
+  /**
+   * Check if user is a member of an organization.
+   */
+  @Query("SELECT COUNT(uo) > 0 FROM UserOrganization uo " +
+      "WHERE uo.user.userId = :userId AND uo.organization.orgNumber = :orgNumber")
+  boolean existsByUserIdAndOrgNumber(
+      @Param("userId") Long userId,
+      @Param("orgNumber") Integer orgNumber);
 }

@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
  */
 @Builder
 public record OrganizationRoleResponse(
-        Integer orgNumber,
-        String orgName,
-        String role,
-        LocalDateTime joinedAt
-) {}
+    Integer orgNumber,
+    String orgName,
+    String role,
+    LocalDateTime joinedAt) {
+}
