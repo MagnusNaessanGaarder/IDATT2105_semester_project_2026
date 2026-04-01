@@ -92,16 +92,6 @@
             <artifactId>flyway-mysql</artifactId>
             <version>12.1.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jdbc-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
         <!-- Source: https://mvnrepository.com/artifact/org.testcontainers/mysql -->
         <dependency>
             <groupId>org.testcontainers</groupId>
