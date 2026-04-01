@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import com.example.InternalControl.service.DocumentService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,13 +22,16 @@ import java.time.Instant;
 @RequestMapping("/api/files")
 public class FileController {
 
+  private final DocumentService documentService;
   private final BlobStorageService blobStorageService;
   private final OrganizationDocumentRepository documentRepo;
   private final OrganizationDocumentVersionRepository versionRepo;
 
-  public FileController(BlobStorageService blobStorageService,
+  public FileController(DocumentService documentService,
+                        BlobStorageService blobStorageService,
                         OrganizationDocumentRepository documentRepo,
                         OrganizationDocumentVersionRepository versionRepo) {
+    this.documentService = documentService;
     this.blobStorageService = blobStorageService;
     this.documentRepo = documentRepo;
     this.versionRepo = versionRepo;
@@ -35,43 +39,18 @@ public class FileController {
 
   @PostMapping("/upload")
   public ResponseEntity<?> upload(
-      @RequestHeader("X-Org-Number") Integer orgNumber,  // Integer, not int
+      @RequestHeader("X-Org-Number") Integer orgNumber,
       @RequestParam("file") MultipartFile file,
       @RequestParam(defaultValue = "other") String documentType,
       @RequestParam(defaultValue = "documents") String directory) throws IOException {
 
-    String blobName = blobStorageService.uploadFile(
-        orgNumber, directory,
-        file.getOriginalFilename(),
-        file.getInputStream(),
-        file.getSize(),
-        file.getContentType()
-    );
-
-    OrganizationDocument doc = new OrganizationDocument();
-    doc.setOrgNumber(orgNumber);
-    doc.setDocumentType(documentType);
-    doc.setTitle(file.getOriginalFilename());
-    doc.setCurrentVersion(1);
-    doc.setActive(true);
-    documentRepo.save(doc);
-
-    OrganizationDocumentVersion version = new OrganizationDocumentVersion();
-    version.setDocumentId(doc.getDocumentId());
-    version.setVersionNumber(1);
-    version.setAzureContainer(blobStorageService.getContainerName(orgNumber));
-    version.setAzureBlobName(blobName);
-    version.setOriginalFilename(file.getOriginalFilename());
-    version.setMimeType(file.getContentType());
-    version.setFileSizeBytes(file.getSize());
-    versionRepo.save(version);
-
+    OrganizationDocument doc = documentService.uploadDocument(orgNumber, file, documentType, directory);
     return ResponseEntity.ok(doc);
   }
 
   @GetMapping("/download/{documentId}")
   public ResponseEntity<byte[]> download(
-      @RequestHeader("X-Org-Number") Integer orgNumber,  // Integer, not int
+      @RequestHeader("X-Org-Number") Integer orgNumber,
       @PathVariable Long documentId) {
 
     OrganizationDocument doc = documentRepo.findByDocumentIdAndOrgNumber(documentId, orgNumber)

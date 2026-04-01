@@ -12,6 +12,6 @@ public class TestBlobConfig {
   @Bean
   @Primary
   public BlobServiceClient blobServiceClient() {
-    return Mockito.mock(BlobServiceClient.class);
+    return Mockito.mock(BlobServiceClient.class, Mockito.RETURNS_DEEP_STUBS);
   }
 }
