@@ -6,7 +6,9 @@ import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.models.BlobHttpHeaders;
 import com.azure.storage.blob.sas.BlobSasPermission;
 import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -26,17 +28,44 @@ public class BlobStorageService {
     return "org-" + orgNumber;
   }
 
-  private BlobContainerClient getContainerForTenant(int orgNumber) {
+  /**
+   * Gets or creates the container - use only for upload.
+   */
+  private BlobContainerClient getOrCreateContainer(int orgNumber) {
     String containerName = getContainerName(orgNumber);
     BlobContainerClient container = blobServiceClient.getBlobContainerClient(containerName);
     container.createIfNotExists();
     return container;
   }
 
+  /**
+   * Gets an existing container - use for read/delete operations.
+   * Throws 404 if the container doesn't exist.
+   */
+  private BlobContainerClient getExistingContainer(int orgNumber) {
+    String containerName = getContainerName(orgNumber);
+    BlobContainerClient container = blobServiceClient.getBlobContainerClient(containerName);
+    if (!container.exists()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "No storage found for organization " + orgNumber);
+    }
+    return container;
+  }
+
+  private BlobClient getExistingBlob(int orgNumber, String blobName) {
+    BlobContainerClient container = getExistingContainer(orgNumber);
+    BlobClient blobClient = container.getBlobClient(blobName);
+    if (!blobClient.exists()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "File not found: " + blobName);
+    }
+    return blobClient;
+  }
+
   public String uploadFile(int orgNumber, String directory,
                            String fileName, InputStream data, long length,
                            String contentType) {
-    BlobContainerClient container = getContainerForTenant(orgNumber);
+    BlobContainerClient container = getOrCreateContainer(orgNumber);
     String blobName = directory + "/" + fileName;
 
     BlobClient blobClient = container.getBlobClient(blobName);
@@ -47,8 +76,7 @@ public class BlobStorageService {
   }
 
   public ByteArrayOutputStream downloadFile(int orgNumber, String blobName) {
-    BlobContainerClient container = getContainerForTenant(orgNumber);
-    BlobClient blobClient = container.getBlobClient(blobName);
+    BlobClient blobClient = getExistingBlob(orgNumber, blobName);
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     blobClient.downloadStream(outputStream);
@@ -56,8 +84,7 @@ public class BlobStorageService {
   }
 
   public String generateSasUrl(int orgNumber, String blobName, Duration validFor) {
-    BlobContainerClient container = getContainerForTenant(orgNumber);
-    BlobClient blobClient = container.getBlobClient(blobName);
+    BlobClient blobClient = getExistingBlob(orgNumber, blobName);
 
     BlobSasPermission permission = new BlobSasPermission().setReadPermission(true);
     OffsetDateTime expiry = OffsetDateTime.now().plus(validFor);
@@ -68,7 +95,7 @@ public class BlobStorageService {
   }
 
   public void deleteFile(int orgNumber, String blobName) {
-    BlobContainerClient container = getContainerForTenant(orgNumber);
+    BlobContainerClient container = getExistingContainer(orgNumber);
     container.getBlobClient(blobName).deleteIfExists();
   }
 }
