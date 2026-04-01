@@ -53,6 +53,7 @@ Thumbs.db
 DEV_NOTES.md
 frontend/DEV_NOTES.md
 frontend/VUE_NOTES.md
+docs/DEV_NOTES/
 
 # IDE
 .vscode/*
@@ -78,3 +79,4 @@ test-results/
 
 # Vite
 *.timestamp-*-*.mjs
+BACKEND_MASTER_GUIDE.md

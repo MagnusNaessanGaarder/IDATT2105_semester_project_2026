@@ -107,7 +107,7 @@ class AuthServiceTest {
             new User("test@example.com", "password", 
                 Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_EMPLOYEE")))
         );
-        when(jwtService.generateAccessToken(any())).thenReturn("access.token");
+        when(jwtService.generateAccessToken(any(), any())).thenReturn("access.token");
         when(jwtService.generateRefreshToken(any())).thenReturn("refresh.token");
 
         // When
@@ -151,7 +151,7 @@ class AuthServiceTest {
             .thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        when(jwtService.generateAccessToken(any())).thenReturn("access.token");
+        when(jwtService.generateAccessToken(any(), any())).thenReturn("access.token");
         when(jwtService.generateRefreshToken(any())).thenReturn("refresh.token");
 
         // When
