@@ -128,6 +128,10 @@ npm run test:e2e
 
 ---
 
+## API Documentation
+
+See Swagger UI at `http://localhost:8080/swagger-ui/index.html` for full API documentation.
+
 ## API Testing
 
 ### Automated API Tests
