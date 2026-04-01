@@ -3,9 +3,7 @@ package com.example.InternalControl.repository;
 import com.example.InternalControl.model.ChecklistTemplate;
 import com.example.InternalControl.model.enums.Frequency;
 import com.example.InternalControl.model.enums.ModuleType;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,31 +20,28 @@ import java.util.Optional;
 public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemplate, Long> {
 
     /**
-     * Find all templates by organization number (with items eagerly loaded).
+     * Find all templates by organization number.
      *
      * @param orgNumber the organization number
      * @return list of templates
      */
-    @EntityGraph(attributePaths = {"items"})
     List<ChecklistTemplate> findByOrgNumber(Integer orgNumber);
 
     /**
-     * Find templates by organization and module type (with items eagerly loaded).
+     * Find templates by organization and module type.
      *
      * @param orgNumber the organization number
      * @param moduleType the module type (FOOD or ALCOHOL)
      * @return list of templates
      */
-    @EntityGraph(attributePaths = {"items"})
     List<ChecklistTemplate> findByOrgNumberAndModuleType(Integer orgNumber, ModuleType moduleType);
 
     /**
-     * Find active templates by organization (with items eagerly loaded).
+     * Find active templates by organization.
      *
      * @param orgNumber the organization number
      * @return list of active templates
      */
-    @EntityGraph(attributePaths = {"items"})
     List<ChecklistTemplate> findByOrgNumberAndIsActiveTrue(Integer orgNumber);
 
     /**

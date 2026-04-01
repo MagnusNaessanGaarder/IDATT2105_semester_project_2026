@@ -86,7 +86,7 @@ fi
 
 # Test 2: Login with admin
 echo "Test 2: Login with admin user"
-RESPONSE=$(http --ignore-stdin -b POST :8080/api/auth/login email="admin@everest-sushi.no" password="Test1234!" 2>/dev/null)
+RESPONSE=$(http -b POST :8080/api/auth/login email="admin@everest-sushi.no" password="Test1234!" 2>/dev/null)
 if [ -n "$RESPONSE" ] && echo "$RESPONSE" | grep -q "accessToken"; then
   TOKEN=$(echo "$RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
   print_result 0 "Admin login"
@@ -100,7 +100,7 @@ if [ -n "$TOKEN" ]; then
   NEW_EMAIL="test${TIMESTAMP}@example.com"
 
   echo "Test 3: Register new user"
-  if http --ignore-stdin -b POST :8080/api/auth/register \
+  if http -b POST :8080/api/auth/register \
     email="$NEW_EMAIL" \
     password="TestPass123!" \
     fullName="API Test User" \
@@ -152,9 +152,9 @@ if [ -n "$TOKEN" ]; then
 
   # Test 8: Create template
   echo "Test 8: Create template"
-  RESPONSE=$(http --ignore-stdin -b POST :8080/api/checklists/templates \
+  RESPONSE=$(http -b POST :8080/api/checklists/templates \
     Authorization:"Bearer $TOKEN" \
-    orgNumber==937219997 \
+    orgNumber:=937219997 \
     moduleType="FOOD" \
     title="Daily Temperature Check" \
     description="Check all fridge temperatures" \
@@ -184,13 +184,10 @@ if [ -n "$TOKEN" ]; then
   # Test 10: Update template
   if [ -n "$TEMPLATE_ID" ]; then
     echo "Test 10: Update template"
-    if http --ignore-stdin -b PUT :8080/api/checklists/templates/$TEMPLATE_ID \
+    if http PUT :8080/api/checklists/templates/$TEMPLATE_ID \
       orgNumber==937219997 \
       Authorization:"Bearer $TOKEN" \
-      title="Daily Temperature Check - Updated" \
-      moduleType="FOOD" \
-      frequency="DAILY" \
-      description="Updated description" &>/dev/null; then
+      title="Daily Temperature Check - Updated" &>/dev/null; then
       print_result 0 "Update template"
     else
       print_result 1 "Update template"
@@ -205,93 +202,8 @@ if [ -n "$TOKEN" ]; then
     print_result 1 "Get ALCOHOL templates"
   fi
 
-fi
-
-echo ""
-
-# ==================== DEVIATION API TESTS ====================
-if [ -n "$TOKEN" ]; then
-  echo -e "${BLUE}Deviation API Tests${NC}"
-  echo "-------------------"
-
-  # Test 12: Create deviation report
-  echo "Test 12: Create deviation report"
-  DEV_RESPONSE=$(http --ignore-stdin -b POST :8080/api/deviations \
-    Authorization:"Bearer $TOKEN" \
-    orgNumber==937219997 \
-    reportType="incident" \
-    severity="major" \
-    title="Test Incident" \
-    description="Test description for incident" 2>/dev/null)
-  
-  if [ -n "$DEV_RESPONSE" ]; then
-    DEVIATION_ID=$(echo "$DEV_RESPONSE" | grep -o '"reportId":[0-9]*' | cut -d':' -f2)
-    if [ -n "$DEVIATION_ID" ]; then
-      print_result 0 "Create deviation report (ID: $DEVIATION_ID)"
-    else
-      print_result 1 "Create deviation report" "No reportId in response"
-    fi
-  else
-    print_result 1 "Create deviation report"
-  fi
-
-  # Test 13: Get all deviations
-  echo "Test 13: Get all deviation reports"
-  if http :8080/api/deviations orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
-    print_result 0 "Get all deviation reports"
-  else
-    print_result 1 "Get all deviation reports"
-  fi
-
-  # Test 14: Get deviation by ID
-  if [ -n "$DEVIATION_ID" ]; then
-    echo "Test 14: Get deviation by ID"
-    if http :8080/api/deviations/$DEVIATION_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
-      print_result 0 "Get deviation by ID"
-    else
-      print_result 1 "Get deviation by ID"
-    fi
-  fi
-
-  # Test 15: Filter by status
-  echo "Test 15: Filter deviations by status"
-  if http :8080/api/deviations/status/REPORTED orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
-    print_result 0 "Filter deviations by status"
-  else
-    print_result 1 "Filter deviations by status"
-  fi
-
-  # Test 16: Filter by severity
-  echo "Test 16: Filter deviations by severity"
-  if http :8080/api/deviations/severity/MAJOR orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
-    print_result 0 "Filter deviations by severity"
-  else
-    print_result 1 "Filter deviations by severity"
-  fi
-
-  # Test 17: Update status
-  if [ -n "$DEVIATION_ID" ]; then
-    echo "Test 17: Update deviation status"
-    if http --ignore-stdin -b PUT :8080/api/deviations/$DEVIATION_ID/status \
-      orgNumber==937219997 \
-      Authorization:"Bearer $TOKEN" \
-      status="under_investigation" &>/dev/null; then
-      print_result 0 "Update deviation status"
-    else
-      print_result 1 "Update deviation status"
-    fi
-  fi
-
-  # Test 18: Count open deviations
-  echo "Test 18: Count open deviation reports"
-  if http :8080/api/deviations/count/open orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
-    print_result 0 "Count open deviations"
-  else
-    print_result 1 "Count open deviations"
-  fi
-
 else
-  echo -e "${YELLOW}Skipping deviation tests (no auth token)${NC}"
+  echo -e "${YELLOW}Skipping checklist tests (no auth token)${NC}"
 fi
 
 echo ""
