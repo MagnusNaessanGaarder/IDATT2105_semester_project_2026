@@ -1,4 +1,6 @@
-# Only for VPN usage and MySQL 8.4 compatibel
+# This is only for users who are on VPN (Tri)
+# File wont trigger if you comment out VPN section in compose file
+# VPN creates a tunnel thus disturb the network connection between container  (MySQL) and spring-boot (local)
 
 [mysqld]
 # Disable SSL for VPN compatibility

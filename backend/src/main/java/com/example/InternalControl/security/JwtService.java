@@ -34,7 +34,15 @@ public class JwtService {
     @Value("${application.security.jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
 
+    public String generateAccessToken(UserDetails userDetails, Long userId) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
+        extraClaims.put("userId", userId);
+        return buildToken(extraClaims, userDetails, accessTokenExpiration);
+    }
+    
     public String generateAccessToken(UserDetails userDetails) {
+        // Fallback for backward compatibility
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
         return buildToken(extraClaims, userDetails, accessTokenExpiration);
@@ -69,6 +77,10 @@ public class JwtService {
 
     public String extractRole(String token) {
         return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
