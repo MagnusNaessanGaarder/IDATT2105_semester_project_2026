@@ -19,7 +19,7 @@ dev: clean run-docker
 	@echo "  Swagger: http://localhost:8080/swagger-ui/index.html"
 
 
-clean-all: clean clean-docker
+clean-all: clean clean-docker clean-tests clean-db clean-backend clean-cache clean-logs clean-frontend  
 	@echo "Full cleanup fullført (inkludert Docker)"
 
 clean-backend:

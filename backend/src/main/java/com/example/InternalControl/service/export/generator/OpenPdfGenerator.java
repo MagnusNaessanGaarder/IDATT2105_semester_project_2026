@@ -166,8 +166,8 @@ public class OpenPdfGenerator implements PdfGenerator {
     Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
     for (ChecklistRun run : runs) {
       table.addCell(new Phrase(run.getRunDate().format(DATE_FORMATTER), cellFont));
-      table.addCell(new Phrase(run.getTemplate() != null ? run.getTemplate().getName() : "N/A", cellFont));
-      table.addCell(new Phrase(run.getLocation() != null ? run.getLocation().getName() : "N/A", cellFont));
+      table.addCell(new Phrase(run.getTemplate() != null ? run.getTemplate().getTitle() : "N/A", cellFont));
+      table.addCell(new Phrase(run.getLocationId() != null ? "Location " + run.getLocationId() : "N/A", cellFont));
       table.addCell(new Phrase(run.getStatus().name(), cellFont));
       table.addCell(new Phrase(String.valueOf(run.getItems().size()), cellFont));
     }
@@ -190,7 +190,7 @@ public class OpenPdfGenerator implements PdfGenerator {
 
     Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
     for (DeviationReport report : reports) {
-      table.addCell(new Phrase(report.getReportedAt().format(DATE_FORMATTER), cellFont));
+      table.addCell(new Phrase(report.getCreatedAt().format(DATE_FORMATTER), cellFont));
       table.addCell(new Phrase(report.getTitle(), cellFont));
       table.addCell(new Phrase(report.getSeverity().name(), cellFont));
       table.addCell(new Phrase(report.getStatus().name(), cellFont));
