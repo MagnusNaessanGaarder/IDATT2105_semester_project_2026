@@ -101,6 +101,13 @@ clean-docker:
 	@docker system prune -f 2>/dev/null || true
 	@echo "Docker ryddet"
 
+clean-db:
+	@echo "Resetter database (sletter all data)"
+	@docker stop backend-mysql-1 2>/dev/null || true
+	@docker rm backend-mysql-1 2>/dev/null || true
+	@docker volume prune -f 2>/dev/null || true
+	@echo "Database resettet - kjør ./start.sh for å starte på nytt"
+
 clean-os:
 	@echo "Rydder OS-spesifikke filer"
 	@find . -type f -name ".DS_Store" -delete 2>/dev/null || true

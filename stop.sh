@@ -76,3 +76,13 @@ else
   echo -e "${GREEN}  No services were running${NC}"
 fi
 echo -e "${GREEN}========================================${NC}"
+
+# Optional: Clean database if --clean flag is passed
+if [ "$1" = "--clean" ]; then
+  echo ""
+  echo -e "${YELLOW}Cleaning database...${NC}"
+  docker stop backend-mysql-1 >/dev/null 2>&1 || true
+  docker rm backend-mysql-1 >/dev/null 2>&1 || true
+  docker volume prune -f >/dev/null 2>&1 || true
+  echo -e "${GREEN}Database cleaned - run ./start.sh to start fresh${NC}"
+fi
