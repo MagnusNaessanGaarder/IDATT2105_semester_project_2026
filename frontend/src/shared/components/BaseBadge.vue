@@ -1,13 +1,3 @@
-<!--
-  BaseBadge - Status-merke komponent
-  
-  Brukes for å vise status (f.eks. "Fullført", "Venter", "Avvik")
-  Støtter farger: success, warning, danger, info, neutral
-  
-  Eksempel:
-  <BaseBadge variant="success">Fullført</BaseBadge>
-  <BaseBadge variant="danger">Avvik</BaseBadge>
--->
 <script setup lang="ts">
 interface Props {
   variant?: 'success' | 'warning' | 'danger' | 'info' | 'neutral'

@@ -1,6 +1,3 @@
-/**
- * Pinia store for authentication.
- */
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi, type OrganizationRole } from '@/features/auth/api'

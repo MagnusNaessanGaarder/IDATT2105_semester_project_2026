@@ -1,18 +1,3 @@
-<!--
-  BaseModal - Gjenbrukbar modal/dialog-komponent
-  
-  Brukes for dialoger, bekreftelser og popup-vinduer.
-  Støtter Escape-tast for lukking, klikk utenfor for lukking
-  Har Teleport til body for riktig z-index
-  
-  Eksempel:
-  <BaseModal :open="showModal" title="Bekreft sletting" @close="showModal = false">
-    <p>Er du sikker?</p>
-    <template #footer>
-      <BaseButton @click="confirm">Ja</BaseButton>
-    </template>
-  </BaseModal>
--->
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 

@@ -1,9 +1,3 @@
-/**
- * useAuth.ts - Composable for auth-relatert funksjonalitet i komponenter.
- *
- * Bruk i enhver komponent:
- *   const { isAuthenticated, isAdmin, logout } = useAuth()
- */
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'

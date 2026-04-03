@@ -1,15 +1,3 @@
-<!--
-  BaseButton - Gjenbrukbar knapp-komponent
-  
-  Brukes for alle knapper i applikasjonen.
-  Støtter varianter: primary, secondary, danger, ghost
-  Støtter størrelser: sm, md, lg
-  Har innebygd loading-tilstand og disabled-tilstand
-  
-  Eksempel:
-  <BaseButton variant="primary" @click="handleSave">Lagre</BaseButton>
-  <BaseButton variant="danger" :loading="isDeleting">Slett</BaseButton>
--->
 <script setup lang="ts">
 interface Props {
   type?: 'button' | 'submit' | 'reset'

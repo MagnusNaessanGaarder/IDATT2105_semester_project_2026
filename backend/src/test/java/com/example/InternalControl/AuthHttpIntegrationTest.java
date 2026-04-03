@@ -28,10 +28,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:application-test.properties")
-
+@TestPropertySource(
+    locations = "classpath:application-test.yml",
+    properties = {
+        "spring.datasource.url=jdbc:h2:mem:testdb",
+        "spring.datasource.driver-class-name=org.h2.Driver",
+        "spring.datasource.username=sa",
+        "spring.datasource.password=",
+        "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
+    }
+)
 @Import(TestBlobConfig.class)
-class AuthHttpIntegrationTest extends AbstractIntegrationTest  {
+class AuthHttpIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private Environment environment;
@@ -58,8 +66,6 @@ class AuthHttpIntegrationTest extends AbstractIntegrationTest  {
         // This test only runs if server is manually started
         // Skip if server not available
         if (!isServerRunning()) {
-            System.out.println("Skipping integration test - server not running on port " + 
-                environment.getProperty("local.server.port", "8080"));
             return;
         }
 

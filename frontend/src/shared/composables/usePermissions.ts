@@ -1,15 +1,3 @@
-/**
- * usePermissions - Composable for rollebasert tilgangskontroll
- * 
- * Brukes for å sjekke om innlogget bruker har tilgang til funksjonalitet.
- * Returnerer computed properties for ulike tillatelser.
- * 
- * Eksempel:
- * const { can } = usePermissions()
- * 
- * <BaseButton v-if="can.viewReports">Se rapporter</BaseButton>
- * <BaseButton v-if="can.manageUsers">Administrer brukere</BaseButton>
- */
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 

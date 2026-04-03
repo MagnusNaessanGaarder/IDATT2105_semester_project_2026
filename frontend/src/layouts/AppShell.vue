@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useMotions } from '@vueuse/motion'
 import Sidebar from './Sidebar.vue'
 
 const isSidebarOpen = ref(false)
@@ -12,9 +11,6 @@ const toggleSidebar = () => {
 const closeSidebar = () => {
   isSidebarOpen.value = false
 }
-
-// Motion controls for main content
-const { mainContent } = useMotions()
 </script>
 
 <template>

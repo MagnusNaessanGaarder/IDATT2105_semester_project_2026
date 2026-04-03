@@ -1,15 +1,3 @@
-/**
- * Constants - Applikasjonskonstanter
- * 
- * Sentrale konstanter som brukes på tvers av applikasjonen.
- * Bruk disse istedenfor hardkodede strenger for bedre type-sikkerhet.
- * 
- * Inneholder:
- * - ROLES: Brukerroller (ADMIN, MANAGER, EMPLOYEE)
- * - CHECKLIST_STATUS: Sjekklistestatuser
- * - DEVIATION_STATUS: Avviksstatuser
- * - TEMPERATURE_LIMITS: Godkjente temperaturområder
- */
 export const ROLES = {
   ADMIN: 'ADMIN',
   MANAGER: 'MANAGER',

@@ -1,6 +1,6 @@
 package com.example.InternalControl.dto.checklist.response;
 
-import com.example.InternalControl.model.enums.RunStatus;
+import com.example.InternalControl.shared.enums.RunStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

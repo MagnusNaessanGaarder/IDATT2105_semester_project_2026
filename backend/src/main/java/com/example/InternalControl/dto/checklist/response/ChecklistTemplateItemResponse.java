@@ -1,6 +1,6 @@
 package com.example.InternalControl.dto.checklist.response;
 
-import com.example.InternalControl.model.enums.ItemType;
+import com.example.InternalControl.shared.enums.ItemType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

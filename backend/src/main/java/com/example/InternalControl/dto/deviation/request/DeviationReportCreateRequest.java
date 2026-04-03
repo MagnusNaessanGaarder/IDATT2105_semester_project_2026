@@ -1,7 +1,7 @@
 package com.example.InternalControl.dto.deviation.request;
 
-import com.example.InternalControl.model.enums.ReportType;
-import com.example.InternalControl.model.enums.Severity;
+import com.example.InternalControl.shared.enums.ReportType;
+import com.example.InternalControl.shared.enums.Severity;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

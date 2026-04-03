@@ -1,22 +1,3 @@
-/**
- * useForm - Composable for skjemahåndtering med validering
- * 
- * Brukes for å håndtere skjemadata, validering og innsending.
- * Støtter felt-validering, dirty-sjekk og handleSubmit.
- * 
- * Eksempel:
- * const { values, errors, isSubmitting, handleSubmit } = useForm(
- *   { email: '', password: '' },
- *   {
- *     email: [rules.required(), rules.email()],
- *     password: [rules.required(), rules.minLength(8)]
- *   }
- * )
- * 
- * const submit = () => handleSubmit(async (formValues) => {
- *   await authStore.login(formValues)
- * })
- */
 import { reactive, ref, watch } from 'vue'
 
 export function useForm<T extends Record<string, any>>(

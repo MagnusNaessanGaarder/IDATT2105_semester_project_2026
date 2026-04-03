@@ -1,7 +1,7 @@
 package com.example.InternalControl.dto.checklist.response;
 
-import com.example.InternalControl.model.enums.Frequency;
-import com.example.InternalControl.model.enums.ModuleType;
+import com.example.InternalControl.shared.enums.Frequency;
+import com.example.InternalControl.shared.enums.ModuleType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

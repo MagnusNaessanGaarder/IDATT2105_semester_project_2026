@@ -1,6 +1,5 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
 
-// Extend Axios config type to allow _retry property
 declare module 'axios' {
   interface InternalAxiosRequestConfig {
     _retry?: boolean

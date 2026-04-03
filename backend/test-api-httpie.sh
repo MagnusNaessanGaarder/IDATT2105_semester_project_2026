@@ -219,8 +219,8 @@ if [ -n "$TOKEN" ]; then
   DEV_RESPONSE=$(http --ignore-stdin -b POST :8080/api/deviations \
     Authorization:"Bearer $TOKEN" \
     orgNumber==937219997 \
-    reportType="incident" \
-    severity="major" \
+    reportType="INCIDENT" \
+    severity="MAJOR" \
     title="Test Incident" \
     description="Test description for incident" 2>/dev/null)
   

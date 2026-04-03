@@ -1,6 +1,6 @@
 package com.example.InternalControl.service;
 
-import com.example.InternalControl.repository.UserOrganizationRepository;
+import com.example.InternalControl.repository.user.UserOrganizationRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +24,7 @@ class UserOrganizationServiceTest {
     private UserOrganizationRepository userOrgRepository;
 
     @InjectMocks
-    private UserOrganizationService userOrgService;
+    private com.example.InternalControl.service.user.UserOrganizationService userOrgService;
 
     @Test
     @DisplayName("Should return true when user is in organization")

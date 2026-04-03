@@ -15,12 +15,12 @@ services:
     #   - La 'ports:' seksjonen være som den er (aktiv)
     #   - La 'network_mode: host' være kommentert ut
     
-    # VPN-modus 
-    network_mode: host
+    # VPN-modus - aktiver linjen under (fjern #) hvis du bruker VPN
+    # network_mode: host
     
-    # Standard-modus   - kommenter ut linjen over og fjern kommentar fra linjene under:
-    # ports:
-    #   - '3306:3306'
+    # Standard-modus - bruk port 3307 for å unngå konflikt med lokal MySQL
+    ports:
+      - '3307:3306'
     
     volumes:
       - mysql-dev-data:/var/lib/mysql

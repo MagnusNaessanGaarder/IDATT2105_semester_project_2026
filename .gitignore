@@ -1,20 +1,3 @@
-# AI tool directories and files
-.clawhub/
-.openclaw/
-skills/
-HEARTBEAT.md
-IDENTITY.md
-SOUL.md
-TOOLS.md
-USER.md
-MEMORY.md
-AGENTS.md
-ai-*.md
-AI_*.md
-*.ai.md
-docs/ai-*/
-memory/
-
 # Dependencies
 node_modules/
 
@@ -49,11 +32,18 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
-# Devex
-DEV_NOTES.md
-frontend/DEV_NOTES.md
-frontend/VUE_NOTES.md
-docs/DEV_NOTES/
+# Dev notes and documentation (exclude from git)
+docs/*
+*.md
+!README.md
+!LICENSE.md
+.openclaw
+AGENTS.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
 
 # IDE
 .vscode/*

@@ -1,7 +1,6 @@
 import { client } from '@/api/client'
 import type { User } from '@/types'
 
-// Mock users for testing without backend
 const MOCK_USERS = [
   {
     id: 1,
@@ -26,9 +25,7 @@ const MOCK_USERS = [
   },
 ]
 
-// ! Setter til true for å bruke mock
-// ! Bruker da mock data på client-side og ingen tilkobling mot backend 
-const USE_MOCK = false // process.env.USE_MOCK 
+const USE_MOCK = false 
 
 export interface OrganizationRole {
   orgNumber: number
@@ -58,7 +55,6 @@ export const authApi = {
     password: string
   }): Promise<AuthResponse> {
     if (USE_MOCK) {
-      // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 500))
 
       const user = MOCK_USERS.find(
@@ -87,7 +83,6 @@ export const authApi = {
     if (USE_MOCK) {
       await new Promise((resolve) => setTimeout(resolve, 500))
       
-      // Check if user already exists
       if (MOCK_USERS.some(u => u.email === userData.email)) {
         throw new Error('Email is already registered')
       }
@@ -132,8 +127,7 @@ export const authApi = {
 
   async me(): Promise<User> {
     if (USE_MOCK) {
-      // Get from sessionStorage
-      const storedUser = sessionStorage.getItem('user')
+    const storedUser = sessionStorage.getItem('user')
       if (storedUser) {
         return JSON.parse(storedUser)
       }

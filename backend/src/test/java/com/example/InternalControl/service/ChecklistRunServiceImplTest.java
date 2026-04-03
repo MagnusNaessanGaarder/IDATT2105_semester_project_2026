@@ -1,16 +1,16 @@
 package com.example.InternalControl.service;
 
-import com.example.InternalControl.model.ChecklistRun;
-import com.example.InternalControl.model.ChecklistRunItem;
-import com.example.InternalControl.model.ChecklistTemplate;
-import com.example.InternalControl.model.ChecklistTemplateItem;
-import com.example.InternalControl.model.enums.Frequency;
-import com.example.InternalControl.model.enums.ItemType;
-import com.example.InternalControl.model.enums.ModuleType;
-import com.example.InternalControl.model.enums.RunStatus;
-import com.example.InternalControl.repository.ChecklistRunItemRepository;
-import com.example.InternalControl.repository.ChecklistRunRepository;
-import com.example.InternalControl.repository.ChecklistTemplateRepository;
+import com.example.InternalControl.model.checklist.ChecklistRun;
+import com.example.InternalControl.model.checklist.ChecklistRunItem;
+import com.example.InternalControl.model.checklist.ChecklistTemplate;
+import com.example.InternalControl.model.checklist.ChecklistTemplateItem;
+import com.example.InternalControl.shared.enums.Frequency;
+import com.example.InternalControl.shared.enums.ItemType;
+import com.example.InternalControl.shared.enums.ModuleType;
+import com.example.InternalControl.shared.enums.RunStatus;
+import com.example.InternalControl.repository.checklist.ChecklistRunItemRepository;
+import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
+import com.example.InternalControl.repository.checklist.ChecklistTemplateRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +50,7 @@ class ChecklistRunServiceImplTest {
     private ChecklistTemplateRepository templateRepository;
 
     @InjectMocks
-    private ChecklistRunServiceImpl runService;
+    private com.example.InternalControl.service.checklist.ChecklistRunServiceImpl runService;
 
     @Test
     void shouldCreateRun() {

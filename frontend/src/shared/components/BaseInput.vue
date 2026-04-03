@@ -1,20 +1,3 @@
-<!--
-  BaseInput - Gjenbrukbar input-komponent
-  
-  Brukes for alle tekst-inputs i skjemaer.
-  Støtter typer: text, email, password, number, textarea
-  Har innebygd validering, error-visning og WCAG-tilgjengelighet
-  
-  Eksempel:
-  <BaseInput 
-    id="email" 
-    v-model="email" 
-    label="E-post" 
-    type="email"
-    :error="errors.email"
-    required 
-  />
--->
 <script setup lang="ts">
 interface Props {
   id: string

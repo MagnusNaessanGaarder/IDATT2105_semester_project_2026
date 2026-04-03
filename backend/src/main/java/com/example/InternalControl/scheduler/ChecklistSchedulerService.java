@@ -1,14 +1,14 @@
 package com.example.InternalControl.scheduler;
 
-import com.example.InternalControl.model.ChecklistRun;
-import com.example.InternalControl.model.ChecklistRunItem;
-import com.example.InternalControl.model.ChecklistTemplate;
-import com.example.InternalControl.model.ChecklistTemplateItem;
-import com.example.InternalControl.model.enums.Frequency;
-import com.example.InternalControl.model.enums.RunStatus;
-import com.example.InternalControl.repository.ChecklistRunItemRepository;
-import com.example.InternalControl.repository.ChecklistRunRepository;
-import com.example.InternalControl.repository.ChecklistTemplateRepository;
+import com.example.InternalControl.model.checklist.ChecklistRun;
+import com.example.InternalControl.model.checklist.ChecklistRunItem;
+import com.example.InternalControl.model.checklist.ChecklistTemplate;
+import com.example.InternalControl.model.checklist.ChecklistTemplateItem;
+import com.example.InternalControl.shared.enums.Frequency;
+import com.example.InternalControl.shared.enums.RunStatus;
+import com.example.InternalControl.repository.checklist.ChecklistRunItemRepository;
+import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
+import com.example.InternalControl.repository.checklist.ChecklistTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -37,10 +37,6 @@ public class ChecklistSchedulerService {
 
   private final ChecklistRunItemRepository runItemRepository;
 
-  /**
-   * Generates daily checklists at 6:00 AM.
-   * Creates runs for templates that should run today based on their frequency.
-   */
   @Scheduled(cron = "0 0 6 * * ?")
   @Transactional
   public void generateDailyChecklists() {
@@ -65,10 +61,6 @@ public class ChecklistSchedulerService {
     log.info("Created {} checklist runs for {}", createdCount, today);
   }
 
-  /**
-   * Checks for overdue runs every hour.
-   * Updates status to OVERDUE for runs past their due date.
-   */
   @Scheduled(cron = "0 0 * * * ?")
   @Transactional
   public void checkOverdueRuns() {
@@ -100,7 +92,6 @@ public class ChecklistSchedulerService {
   }
 
   private void createChecklistRun(ChecklistTemplate template, LocalDate date) {
-    // Check if run already exists
     boolean exists = runRepository.existsByTemplateTemplateIdAndRunDate(
         template.getTemplateId(), date);
     if (exists) {
@@ -109,7 +100,6 @@ public class ChecklistSchedulerService {
       return;
     }
 
-    // Create run
     ChecklistRun run = ChecklistRun.builder()
         .template(template)
         .orgNumber(template.getOrgNumber())
@@ -121,7 +111,6 @@ public class ChecklistSchedulerService {
 
     ChecklistRun savedRun = runRepository.save(run);
 
-    // Create run items from template items
     List<ChecklistTemplateItem> templateItems = template.getItems();
     for (ChecklistTemplateItem templateItem : templateItems) {
       ChecklistRunItem runItem = ChecklistRunItem.builder()

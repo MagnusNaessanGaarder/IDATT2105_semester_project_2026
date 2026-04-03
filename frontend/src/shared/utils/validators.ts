@@ -1,19 +1,3 @@
-/**
- * Validators - Valideringsregler for skjemaer
- * 
- * Brukes med useForm composable for å validere input-felt.
- * Hver regel returnerer true hvis gyldig, eller feilmelding hvis ugyldig.
- * 
- * Tilgjengelige regler:
- * - required(): Påkrevd felt
- * - minLength(n): Minimum lengde
- * - maxLength(n): Maksimum lengde  
- * - email(): Gyldig e-post
- * - temperature(): Temperatur mellom -30 og 100°C
- * 
- * Eksempel:
- * { email: [rules.required(), rules.email()] }
- */
 export const rules = {
   required: (msg: string = 'Dette feltet er påkrevd') =>
     (v: any) => !!v || msg,

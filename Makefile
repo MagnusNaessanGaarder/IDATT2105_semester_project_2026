@@ -99,6 +99,8 @@ clean-docker:
 	@docker compose down -v 2>/dev/null || true
 	@docker compose rm -f 2>/dev/null || true
 	@docker system prune -f 2>/dev/null || true
+	@docker rm -f backend-mysql-1 2>/dev/null || true
+	@docker volume rm idatt2105_semester_project_2026_mysql-dev-data 2>/dev/null || true
 	@echo "Docker ryddet"
 
 clean-os:

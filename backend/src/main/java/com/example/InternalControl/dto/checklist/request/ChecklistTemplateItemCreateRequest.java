@@ -1,6 +1,6 @@
 package com.example.InternalControl.dto.checklist.request;
 
-import com.example.InternalControl.model.enums.ItemType;
+import com.example.InternalControl.shared.enums.ItemType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

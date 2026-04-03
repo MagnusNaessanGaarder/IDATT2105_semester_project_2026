@@ -1,9 +1,9 @@
 package com.example.InternalControl.service;
 
-import com.example.InternalControl.model.Location;
-import com.example.InternalControl.model.enums.LocationType;
-import com.example.InternalControl.repository.LocationRepository;
-import com.example.InternalControl.repository.OrganizationRepository;
+import com.example.InternalControl.model.location.Location;
+import com.example.InternalControl.shared.enums.LocationType;
+import com.example.InternalControl.repository.location.LocationRepository;
+import com.example.InternalControl.repository.organization.OrganizationRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,7 +29,7 @@ class LocationServiceTest {
     private OrganizationRepository orgRepository;
 
     @InjectMocks
-    private LocationServiceImpl locationService;
+    private com.example.InternalControl.service.location.LocationServiceImpl locationService;
 
     @Test
     void shouldCreateLocation() {

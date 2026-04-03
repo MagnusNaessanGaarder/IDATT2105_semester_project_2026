@@ -1,6 +1,6 @@
 package com.example.InternalControl.dto.deviation.request;
 
-import com.example.InternalControl.model.enums.DeviationStatus;
+import com.example.InternalControl.shared.enums.DeviationStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

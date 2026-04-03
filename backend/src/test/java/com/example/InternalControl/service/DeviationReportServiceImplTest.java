@@ -1,16 +1,16 @@
 package com.example.InternalControl.service;
 
 import com.example.InternalControl.dto.deviation.request.*;
-import com.example.InternalControl.model.AppUser;
-import com.example.InternalControl.model.DeviationReport;
-import com.example.InternalControl.model.Location;
-import com.example.InternalControl.model.enums.DeviationStatus;
-import com.example.InternalControl.model.enums.ReportType;
-import com.example.InternalControl.model.enums.Severity;
-import com.example.InternalControl.repository.AppUserRepository;
-import com.example.InternalControl.repository.DeviationReportRepository;
-import com.example.InternalControl.repository.LocationRepository;
-import com.example.InternalControl.repository.OrganizationRepository;
+import com.example.InternalControl.model.auth.AppUser;
+import com.example.InternalControl.model.deviation.DeviationReport;
+import com.example.InternalControl.model.location.Location;
+import com.example.InternalControl.shared.enums.DeviationStatus;
+import com.example.InternalControl.shared.enums.ReportType;
+import com.example.InternalControl.shared.enums.Severity;
+import com.example.InternalControl.repository.user.AppUserRepository;
+import com.example.InternalControl.repository.deviation.DeviationReportRepository;
+import com.example.InternalControl.repository.location.LocationRepository;
+import com.example.InternalControl.repository.organization.OrganizationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ class DeviationReportServiceImplTest {
     private AppUserRepository appUserRepository;
 
     @InjectMocks
-    private DeviationReportServiceImpl deviationReportService;
+    private com.example.InternalControl.service.deviation.DeviationReportServiceImpl deviationReportService;
 
     private static final Integer ORG_NUMBER = 123;
     private static final Long USER_ID = 1L;
@@ -67,17 +67,15 @@ class DeviationReportServiceImplTest {
     void setUp() {
         testUser = createTestUser(USER_ID, "Test User");
         testLocation = createTestLocation(1L, "Kitchen");
-        testReport = createTestReport(REPORT_ID, DeviationStatus.reported);
+        testReport = createTestReport(REPORT_ID, DeviationStatus.REPORTED);
     }
-
-    // ==================== CREATE REPORT TESTS ====================
 
     @Test
     void shouldCreateReport() {
         // Given
         DeviationReportCreateRequest request = DeviationReportCreateRequest.builder()
-                .reportType(ReportType.incident)
-                .severity(Severity.major)
+                .reportType(ReportType.INCIDENT)
+                .severity(Severity.MAJOR)
                 .title("Test Incident")
                 .description("Test description")
                 .locationId(1L)
@@ -100,8 +98,8 @@ class DeviationReportServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result.getReportId()).isEqualTo(REPORT_ID);
         assertThat(result.getTitle()).isEqualTo("Test Incident");
-        assertThat(result.getSeverity()).isEqualTo(Severity.major);
-        assertThat(result.getStatus()).isEqualTo(DeviationStatus.reported);
+        assertThat(result.getSeverity()).isEqualTo(Severity.MAJOR);
+        assertThat(result.getStatus()).isEqualTo(DeviationStatus.REPORTED);
         verify(deviationReportRepository).save(any(DeviationReport.class));
     }
 
@@ -109,8 +107,8 @@ class DeviationReportServiceImplTest {
     void shouldThrowWhenOrgNotFound() {
         // Given
         DeviationReportCreateRequest request = DeviationReportCreateRequest.builder()
-                .reportType(ReportType.incident)
-                .severity(Severity.minor)
+                .reportType(ReportType.INCIDENT)
+                .severity(Severity.MINOR)
                 .title("Test")
                 .description("Test")
                 .build();
@@ -124,8 +122,6 @@ class DeviationReportServiceImplTest {
 
         verify(deviationReportRepository, never()).save(any());
     }
-
-    // ==================== GET REPORT TESTS ====================
 
     @Test
     void shouldGetReport() {
@@ -154,8 +150,6 @@ class DeviationReportServiceImplTest {
                 .hasMessageContaining("Deviation report not found");
     }
 
-    // ==================== UPDATE REPORT TESTS ====================
-
     @Test
     void shouldUpdateReport() {
         // Given
@@ -178,7 +172,7 @@ class DeviationReportServiceImplTest {
     @Test
     void shouldNotUpdateClosedReport() {
         // Given
-        testReport.setStatus(DeviationStatus.closed);
+        testReport.setStatus(DeviationStatus.CLOSED);
         DeviationReportUpdateRequest request = DeviationReportUpdateRequest.builder()
                 .title("Updated Title")
                 .build();
@@ -189,10 +183,8 @@ class DeviationReportServiceImplTest {
         // When/Then
         assertThatThrownBy(() -> deviationReportService.updateReport(REPORT_ID, request, ORG_NUMBER))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Cannot edit report in status: closed");
+                .hasMessageContaining("Cannot edit report in status: CLOSED");
     }
-
-    // ==================== DELETE REPORT TESTS ====================
 
     @Test
     void shouldDeleteReport() {
@@ -207,61 +199,57 @@ class DeviationReportServiceImplTest {
         verify(deviationReportRepository).delete(testReport);
     }
 
-    // ==================== STATUS UPDATE TESTS ====================
-
     @Test
     void shouldUpdateStatusFromReportedToInvestigation() {
         // Given
-        testReport.setStatus(DeviationStatus.reported);
+        testReport.setStatus(DeviationStatus.REPORTED);
         when(deviationReportRepository.findByReportIdAndOrgNumber(REPORT_ID, ORG_NUMBER))
                 .thenReturn(Optional.of(testReport));
         when(deviationReportRepository.save(any(DeviationReport.class))).thenReturn(testReport);
 
         // When
         DeviationReport result = deviationReportService.updateStatus(
-                REPORT_ID, DeviationStatus.under_investigation, ORG_NUMBER, USER_ID);
+                REPORT_ID, DeviationStatus.UNDER_INVESTIGATION, ORG_NUMBER, USER_ID);
 
         // Then
-        assertThat(result.getStatus()).isEqualTo(DeviationStatus.under_investigation);
+        assertThat(result.getStatus()).isEqualTo(DeviationStatus.UNDER_INVESTIGATION);
     }
 
     @Test
     void shouldCloseReport() {
         // Given
-        testReport.setStatus(DeviationStatus.corrective_action_completed);
+        testReport.setStatus(DeviationStatus.CORRECTIVE_ACTION_COMPLETED);
         when(deviationReportRepository.findByReportIdAndOrgNumber(REPORT_ID, ORG_NUMBER))
                 .thenReturn(Optional.of(testReport));
         when(deviationReportRepository.save(any(DeviationReport.class))).thenReturn(testReport);
 
         // When
         DeviationReport result = deviationReportService.updateStatus(
-                REPORT_ID, DeviationStatus.closed, ORG_NUMBER, USER_ID);
+                REPORT_ID, DeviationStatus.CLOSED, ORG_NUMBER, USER_ID);
 
         // Then
-        assertThat(result.getStatus()).isEqualTo(DeviationStatus.closed);
+        assertThat(result.getStatus()).isEqualTo(DeviationStatus.CLOSED);
         assertThat(result.getClosedAt()).isNotNull();
     }
 
     @Test
     void shouldRejectInvalidStatusTransition() {
         // Given
-        testReport.setStatus(DeviationStatus.closed);
+        testReport.setStatus(DeviationStatus.CLOSED);
         when(deviationReportRepository.findByReportIdAndOrgNumber(REPORT_ID, ORG_NUMBER))
                 .thenReturn(Optional.of(testReport));
 
         // When/Then
         assertThatThrownBy(() -> deviationReportService.updateStatus(
-                REPORT_ID, DeviationStatus.reported, ORG_NUMBER, USER_ID))
+                REPORT_ID, DeviationStatus.REPORTED, ORG_NUMBER, USER_ID))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Invalid status transition");
     }
 
-    // ==================== WORKFLOW ACTION TESTS ====================
-
     @Test
     void shouldAddImmediateAction() {
         // Given
-        testReport.setStatus(DeviationStatus.under_investigation);
+        testReport.setStatus(DeviationStatus.UNDER_INVESTIGATION);
         DeviationActionRequest request = DeviationActionRequest.builder()
                 .actionText("Immediate action taken")
                 .build();
@@ -283,7 +271,7 @@ class DeviationReportServiceImplTest {
     @Test
     void shouldNotAddImmediateActionWhenNotInInvestigation() {
         // Given
-        testReport.setStatus(DeviationStatus.reported);
+        testReport.setStatus(DeviationStatus.REPORTED);
         DeviationActionRequest request = DeviationActionRequest.builder()
                 .actionText("Immediate action")
                 .build();
@@ -301,7 +289,7 @@ class DeviationReportServiceImplTest {
     @Test
     void shouldAdvanceStatusWhenBothActionsProvided() {
         // Given
-        testReport.setStatus(DeviationStatus.under_investigation);
+        testReport.setStatus(DeviationStatus.UNDER_INVESTIGATION);
         testReport.setImmediateActionText("Already added");
         testReport.setImmediateActionSignedBy(testUser);
 
@@ -319,10 +307,8 @@ class DeviationReportServiceImplTest {
                 REPORT_ID, request, ORG_NUMBER, USER_ID);
 
         // Then
-        assertThat(result.getStatus()).isEqualTo(DeviationStatus.corrective_action_planned);
+        assertThat(result.getStatus()).isEqualTo(DeviationStatus.CORRECTIVE_ACTION_PLANNED);
     }
-
-    // ==================== ASSIGNMENT TESTS ====================
 
     @Test
     void shouldAssignReport() {
@@ -346,7 +332,7 @@ class DeviationReportServiceImplTest {
     @Test
     void shouldNotAssignClosedReport() {
         // Given
-        testReport.setStatus(DeviationStatus.closed);
+        testReport.setStatus(DeviationStatus.CLOSED);
 
         when(deviationReportRepository.findByReportIdAndOrgNumber(REPORT_ID, ORG_NUMBER))
                 .thenReturn(Optional.of(testReport));
@@ -358,14 +344,12 @@ class DeviationReportServiceImplTest {
                 .hasMessageContaining("Cannot assign closed report");
     }
 
-    // ==================== LISTING TESTS ====================
-
     @Test
     void shouldGetReportsByOrg() {
         // Given
         List<DeviationReport> reports = Arrays.asList(
-                createTestReport(1L, DeviationStatus.reported),
-                createTestReport(2L, DeviationStatus.closed)
+                createTestReport(1L, DeviationStatus.REPORTED),
+                createTestReport(2L, DeviationStatus.CLOSED)
         );
         when(deviationReportRepository.findByOrgNumber(ORG_NUMBER)).thenReturn(reports);
 
@@ -380,32 +364,32 @@ class DeviationReportServiceImplTest {
     void shouldGetReportsByStatus() {
         // Given
         List<DeviationReport> reports = Collections.singletonList(
-                createTestReport(1L, DeviationStatus.reported)
+                createTestReport(1L, DeviationStatus.REPORTED)
         );
-        when(deviationReportRepository.findByOrgNumberAndStatus(ORG_NUMBER, DeviationStatus.reported))
+        when(deviationReportRepository.findByOrgNumberAndStatus(ORG_NUMBER, DeviationStatus.REPORTED))
                 .thenReturn(reports);
 
         // When
         List<DeviationReport> result = deviationReportService.getReportsByStatus(
-                ORG_NUMBER, DeviationStatus.reported);
+                ORG_NUMBER, DeviationStatus.REPORTED);
 
         // Then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getStatus()).isEqualTo(DeviationStatus.reported);
+        assertThat(result.get(0).getStatus()).isEqualTo(DeviationStatus.REPORTED);
     }
 
     @Test
     void shouldGetReportsBySeverity() {
         // Given
         List<DeviationReport> reports = Collections.singletonList(
-                createTestReport(1L, DeviationStatus.reported)
+                createTestReport(1L, DeviationStatus.REPORTED)
         );
-        when(deviationReportRepository.findByOrgNumberAndSeverity(ORG_NUMBER, Severity.critical))
+        when(deviationReportRepository.findByOrgNumberAndSeverity(ORG_NUMBER, Severity.CRITICAL))
                 .thenReturn(reports);
 
         // When
         List<DeviationReport> result = deviationReportService.getReportsBySeverity(
-                ORG_NUMBER, Severity.critical);
+                ORG_NUMBER, Severity.CRITICAL);
 
         // Then
         assertThat(result).hasSize(1);
@@ -422,8 +406,6 @@ class DeviationReportServiceImplTest {
         // Then
         assertThat(result).isEqualTo(5L);
     }
-
-    // ==================== HELPER METHODS ====================
 
     private AppUser createTestUser(Long userId, String name) {
         AppUser user = new AppUser();
@@ -444,8 +426,8 @@ class DeviationReportServiceImplTest {
         return DeviationReport.builder()
                 .reportId(reportId)
                 .orgNumber(ORG_NUMBER)
-                .reportType(ReportType.incident)
-                .severity(Severity.major)
+                .reportType(ReportType.INCIDENT)
+                .severity(Severity.MAJOR)
                 .title("Test Report")
                 .description("Test description")
                 .reportDate(LocalDate.now())

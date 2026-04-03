@@ -55,7 +55,7 @@ const rows = computed(() => {
       <article class="status-box status-box--soon">
         <p class="status-box__label">Utløper snart</p>
         <p class="status-box__value">{{ statusCount.UtløperSnart }}</p>
-        <p class="status-box__meta">Bor planlegges fornyet</p>
+        <p class="status-box__meta">Bør planlegges fornyet</p>
       </article>
       <article class="status-box status-box--expired">
         <p class="status-box__label">Utgått</p>

@@ -1,13 +1,15 @@
 package com.example.InternalControl.service;
 
-import com.example.InternalControl.dto.AuthResponse;
-import com.example.InternalControl.dto.LoginRequest;
-import com.example.InternalControl.dto.OrganizationRoleResponse;
-import com.example.InternalControl.dto.RegisterRequest;
-import com.example.InternalControl.model.AppUser;
-import com.example.InternalControl.repository.AppUserRepository;
-import com.example.InternalControl.repository.UserOrganizationRepository;
-import com.example.InternalControl.repository.UserOrganizationRoleRepository;
+import com.example.InternalControl.dto.auth.AuthResponse;
+import com.example.InternalControl.dto.auth.LoginRequest;
+import com.example.InternalControl.dto.auth.RegisterRequest;
+import com.example.InternalControl.dto.user.OrganizationRoleResponse;
+import com.example.InternalControl.model.auth.AppUser;
+import com.example.InternalControl.model.auth.AppUserRefreshToken;
+import com.example.InternalControl.repository.auth.AppUserRefreshTokenRepository;
+import com.example.InternalControl.repository.user.AppUserRepository;
+import com.example.InternalControl.repository.user.UserOrganizationRepository;
+import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import com.example.InternalControl.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,6 +47,9 @@ class AuthServiceTest {
     private AppUserRepository userRepository;
 
     @Mock
+    private AppUserRefreshTokenRepository refreshTokenRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -54,7 +59,7 @@ class AuthServiceTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
-    private CustomUserDetailsService userDetailsService;
+    private com.example.InternalControl.service.auth.CustomUserDetailsService userDetailsService;
 
     @Mock
     private UserOrganizationRepository userOrgRepository;
@@ -63,7 +68,7 @@ class AuthServiceTest {
     private UserOrganizationRoleRepository userOrgRoleRepository;
 
     @InjectMocks
-    private AuthService authService;
+    private com.example.InternalControl.service.auth.AuthService authService;
 
     private RegisterRequest validRegisterRequest;
     private LoginRequest validLoginRequest;
@@ -94,6 +99,10 @@ class AuthServiceTest {
         // Setup default mocks for organizations
         lenient().when(userOrgRepository.findActiveOrganizationsByUserId(anyLong()))
             .thenReturn(Collections.emptyList());
+        
+        // Setup default mock for refresh token storage
+        lenient().when(refreshTokenRepository.save(any(AppUserRefreshToken.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test

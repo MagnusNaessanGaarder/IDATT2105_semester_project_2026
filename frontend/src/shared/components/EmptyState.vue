@@ -1,16 +1,3 @@
-<!--
-  EmptyState - Tom-tilstand komponent
-  
-  Brukes når lister er tomme eller ingen data finnes.
-  Viser ikon, tittel og valgfri beskrivelse
-  
-  Eksempel:
-  <EmptyState 
-    v-if="items.length === 0" 
-    title="Ingen sjekklister funnet"
-    description="Opprett din første sjekkliste for å komme i gang"
-  />
--->
 <script setup lang="ts">
 interface Props {
   title: string

@@ -24,6 +24,12 @@ echo -e "${YELLOW}[1/3] Stopping existing processes${NC}"
 # 2. Start backend (MySQL starts automatically via Docker Compose)
 echo -e "${YELLOW}[2/3] Starting backend (MySQL starts automatically)...${NC}"
 echo -e "${BLUE}  Running: cd backend && ./mvnw spring-boot:run -DskipTests${NC}"
+# Source .env slik at Spring Boot får miljøvariablene
+if [ -f .env ]; then
+  set -a && source .env && set +a
+else
+  echo -e "${YELLOW}  Warning: .env file not found. Using environment variables.${NC}"
+fi
 cd backend
 ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true &
 BACKEND_PID=$!

@@ -97,16 +97,14 @@ const sections = computed(() => [
 
 const isSectionExpanded = (key: string) => expandedSections.value.includes(key)
 
-const toggleSection = (key: string) => {
-  const index = expandedSections.value.indexOf(key)
-  if (index > -1) {
-    // Collapse if already expanded
-    expandedSections.value.splice(index, 1)
-  } else {
-    // Collapse all other sections and expand this one
-    expandedSections.value = [key]
+  const toggleSection = (key: string) => {
+    const index = expandedSections.value.indexOf(key)
+    if (index > -1) {
+      expandedSections.value.splice(index, 1)
+    } else {
+      expandedSections.value = [key]
+    }
   }
-}
 
 // Get parent section that contains the current screen
 const getParentSectionKey = (screenId: string): string | null => {

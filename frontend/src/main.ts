@@ -5,7 +5,6 @@ import { MotionPlugin } from '@vueuse/motion'
 import App from './App.vue'
 import router from './router'
 
-// Import global styles
 import './assets/styles/variables.css'
 import './assets/styles/base.css'
 import './assets/styles/components.css'

@@ -1,18 +1,3 @@
-/**
- * useErrorHandler - Composable for global feilhåndtering
- * 
- * Brukes for å håndtere og vise feilmeldinger fra API.
- * Mapper HTTP-statuskoder til brukervennlige meldinger.
- * 
- * Eksempel:
- * const { handleError, clearError, globalError } = useErrorHandler()
- * 
- * try {
- *   await api.save()
- * } catch (error) {
- *   handleError(error, 'saveData')
- * }
- */
 import { ref } from 'vue'
 
 const globalError = ref<string | null>(null)
@@ -33,8 +18,6 @@ export function useErrorHandler() {
 
     const userMessage = errorMap[status] ?? message ?? `Noe gikk galt${context ? ` (${context})` : ''}`
     globalError.value = userMessage
-
-    console.error(`[${context}]`, error)
 
     return userMessage
   }

@@ -1,19 +1,3 @@
-<!--
-  ErrorMessage - Feilmelding komponent
-  
-  Brukes for å vise feilmeldinger fra API eller validering.
-  Støtter retry-knapp for å prøve igjen
-  Har innebygd WCAG-tilgjengelighet (role="alert")
-  
-  Eksempel:
-  <ErrorMessage v-if="error" :message="error" />
-  <ErrorMessage 
-    v-if="error" 
-    :message="error" 
-    showRetry 
-    @retry="fetchData" 
-  />
--->
 <script setup lang="ts">
 interface Props {
   message: string

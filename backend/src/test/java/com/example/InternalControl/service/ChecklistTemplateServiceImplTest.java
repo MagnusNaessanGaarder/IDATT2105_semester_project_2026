@@ -1,10 +1,10 @@
 package com.example.InternalControl.service;
 
-import com.example.InternalControl.model.ChecklistTemplate;
-import com.example.InternalControl.model.enums.Frequency;
-import com.example.InternalControl.model.enums.ModuleType;
-import com.example.InternalControl.repository.ChecklistTemplateRepository;
-import com.example.InternalControl.repository.OrganizationRepository;
+import com.example.InternalControl.model.checklist.ChecklistTemplate;
+import com.example.InternalControl.shared.enums.Frequency;
+import com.example.InternalControl.shared.enums.ModuleType;
+import com.example.InternalControl.repository.checklist.ChecklistTemplateRepository;
+import com.example.InternalControl.repository.organization.OrganizationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +38,7 @@ class ChecklistTemplateServiceImplTest {
     private OrganizationRepository orgRepository;
 
     @InjectMocks
-    private ChecklistTemplateServiceImpl templateService;
+    private com.example.InternalControl.service.checklist.ChecklistTemplateServiceImpl templateService;
 
     @Test
     void shouldCreateTemplate() {

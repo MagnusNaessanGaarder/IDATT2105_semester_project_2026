@@ -1,14 +1,3 @@
-<!--
-  BaseSpinner - Laste-indikator komponent
-  
-  Brukes for å vise at data lastes.
-  Støtter størrelser: sm, md, lg
-  Har innebygd skjermleser-støtte (sr-only)
-  
-  Eksempel:
-  <BaseSpinner v-if="isLoading" />
-  <BaseSpinner size="lg" label="Larger sjekklister..." />
--->
 <script setup lang="ts">
 interface Props {
   size?: 'sm' | 'md' | 'lg'
