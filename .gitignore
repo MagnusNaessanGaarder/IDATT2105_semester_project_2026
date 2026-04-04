@@ -12,7 +12,7 @@ AGENTS.md
 ai-*.md
 AI_*.md
 *.ai.md
-docs/ai-*/
+docs/
 memory/
 
 # Dependencies

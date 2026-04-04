@@ -200,6 +200,90 @@ public class OpenPdfGenerator implements PdfGenerator {
     document.add(table);
   }
 
+  @Override
+  public byte[] generateAuditReport(Map<String, Object> data, ExportJob job) {
+    log.info("Generating audit PDF for job {}", job.getExportJobId());
+
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      Document document = new Document(PageSize.A4);
+      PdfWriter.getInstance(document, baos);
+      document.open();
+
+      addTitle(document, "Audit Report", job);
+      addSummary(document, 0, job);
+
+      document.add(new Paragraph("This report contains audit trail information."));
+      document.add(Chunk.NEWLINE);
+
+      Integer totalRuns = (Integer) data.getOrDefault("totalRuns", 0);
+      Integer totalReports = (Integer) data.getOrDefault("totalReports", 0);
+      document.add(new Paragraph("Checklist Runs Audited: " + totalRuns));
+      document.add(new Paragraph("Deviation Reports Audited: " + totalReports));
+
+      addFooter(document);
+      document.close();
+
+      return baos.toByteArray();
+    } catch (Exception e) {
+      log.error("Failed to generate audit PDF for job {}", job.getExportJobId(), e);
+      throw new RuntimeException("PDF generation failed", e);
+    }
+  }
+
+  @Override
+  public byte[] generateTemperatureReport(Map<String, Object> data, ExportJob job) {
+    log.info("Generating temperature PDF for job {}", job.getExportJobId());
+
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      Document document = new Document(PageSize.A4);
+      PdfWriter.getInstance(document, baos);
+      document.open();
+
+      addTitle(document, "Temperature Report", job);
+      addSummary(document, 0, job);
+
+      document.add(new Paragraph("This report contains temperature monitoring data."));
+      document.add(Chunk.NEWLINE);
+
+      document.add(new Paragraph("Temperature readings are recorded from checklist runs with temperature checks."));
+
+      addFooter(document);
+      document.close();
+
+      return baos.toByteArray();
+    } catch (Exception e) {
+      log.error("Failed to generate temperature PDF for job {}", job.getExportJobId(), e);
+      throw new RuntimeException("PDF generation failed", e);
+    }
+  }
+
+  @Override
+  public byte[] generateTrainingReport(Map<String, Object> data, ExportJob job) {
+    log.info("Generating training PDF for job {}", job.getExportJobId());
+
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      Document document = new Document(PageSize.A4);
+      PdfWriter.getInstance(document, baos);
+      document.open();
+
+      addTitle(document, "Training Report", job);
+      addSummary(document, 0, job);
+
+      document.add(new Paragraph("This report contains training compliance information."));
+      document.add(Chunk.NEWLINE);
+
+      document.add(new Paragraph("Training records are tracked through deviation reports and checklist completions."));
+
+      addFooter(document);
+      document.close();
+
+      return baos.toByteArray();
+    } catch (Exception e) {
+      log.error("Failed to generate training PDF for job {}", job.getExportJobId(), e);
+      throw new RuntimeException("PDF generation failed", e);
+    }
+  }
+
   private void addFooter(Document document) throws DocumentException {
     document.add(Chunk.NEWLINE);
     Font footerFont = FontFactory.getFont(FontFactory.HELVETICA, 8, Color.GRAY);
