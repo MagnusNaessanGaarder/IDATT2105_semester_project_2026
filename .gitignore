@@ -12,7 +12,7 @@ AGENTS.md
 ai-*.md
 AI_*.md
 *.ai.md
-docs/ai-*/
+docs/
 memory/
 
 # Dependencies
@@ -54,6 +54,8 @@ DEV_NOTES.md
 frontend/DEV_NOTES.md
 frontend/VUE_NOTES.md
 docs/DEV_NOTES/
+docs/EXPORT_FEATURE_GUIDE.md
+BACKEND_MASTER_GUIDE.md
 
 # IDE
 .vscode/*
