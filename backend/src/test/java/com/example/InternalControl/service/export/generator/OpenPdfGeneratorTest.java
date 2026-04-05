@@ -1,7 +1,7 @@
 package com.example.InternalControl.service.export.generator;
 
-import com.example.InternalControl.model.ChecklistRun;
-import com.example.InternalControl.model.DeviationReport;
+import com.example.InternalControl.model.checklist.ChecklistRun;
+import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.model.export.ExportJob;
 import com.example.InternalControl.model.export.ExportStatus;
@@ -34,9 +34,9 @@ class OpenPdfGeneratorTest {
     mockJob = ExportJob.builder()
         .exportJobId(1L)
         .orgNumber(123456789)
-        .exportType(ExportType.checklist_report)
-        .format(ExportFormat.pdf)
-        .status(ExportStatus.completed)
+        .exportType(ExportType.CHECKLIST_REPORT)
+        .format(ExportFormat.PDF)
+        .status(ExportStatus.COMPLETED)
         .requestedByUserId(1L)
         .requestedAt(LocalDateTime.now())
         .build();

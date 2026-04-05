@@ -13,9 +13,7 @@ import java.util.Optional;
 
 /**
  * Repository for export jobs.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Repository
 public interface ExportJobRepository extends JpaRepository<ExportJob, Long> {

@@ -1,7 +1,7 @@
 package com.example.InternalControl.service.export.generator;
 
-import com.example.InternalControl.model.ChecklistRun;
-import com.example.InternalControl.model.DeviationReport;
+import com.example.InternalControl.model.checklist.ChecklistRun;
+import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.export.ExportJob;
 
 import java.util.List;

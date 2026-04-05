@@ -15,9 +15,7 @@ import java.time.LocalTime;
 
 /**
  * Request DTO for creating a deviation report.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder

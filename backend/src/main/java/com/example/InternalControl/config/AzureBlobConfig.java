@@ -18,12 +18,18 @@ public class AzureBlobConfig {
 
   @Bean
   public BlobServiceClient blobServiceClient() {
-    if (connectionString == null || connectionString.isBlank()) {
-      throw new IllegalStateException("Azure connection string is not configured");
+    if (connectionString == null || connectionString.isBlank() || connectionString.equals("CHANGE_ME")) {
+      log.warn("Azure Storage connection string is not configured. Document storage will be unavailable.");
+      return null;
     }
-    log.info("Creating Azure BlobServiceClient");
-    return new BlobServiceClientBuilder()
-        .connectionString(connectionString)
-        .buildClient();
+    try {
+      log.info("Creating Azure BlobServiceClient");
+      return new BlobServiceClientBuilder()
+          .connectionString(connectionString)
+          .buildClient();
+    } catch (Exception e) {
+      log.error("Failed to create Azure BlobServiceClient: {}", e.getMessage());
+      return null;
+    }
   }
 }

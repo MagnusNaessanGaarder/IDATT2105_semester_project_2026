@@ -1,8 +1,8 @@
 package com.example.InternalControl.service.export.generator;
 
-import com.example.InternalControl.model.ChecklistRun;
-import com.example.InternalControl.model.ChecklistRunItem;
-import com.example.InternalControl.model.DeviationReport;
+import com.example.InternalControl.model.checklist.ChecklistRun;
+import com.example.InternalControl.model.checklist.ChecklistRunItem;
+import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.export.ExportJob;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
@@ -27,9 +27,6 @@ import java.util.Map;
 
 /**
  * PDF generator implementation using OpenPDF.
- *
- * @author TriTacLe
- * @since 1.0
  */
 @Component
 @Slf4j

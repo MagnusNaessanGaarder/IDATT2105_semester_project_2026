@@ -1,8 +1,11 @@
 .PHONY: help dev stop restart status logs test clean clean-db clean-full install
 
+# Java 21 Configuration
+JAVA_HOME := /usr/lib/jvm/java-21-openjdk
+PATH := $(JAVA_HOME)/bin:$(PATH)
+export JAVA_HOME PATH
+
 help:
-	@echo ""
-	@echo "Available Commands:"
 	@echo ""
 	@echo "  make dev         - Start all services"
 	@echo "  make stop        - Stop all services"
@@ -74,6 +77,7 @@ stop:
 	@# Stop Docker
 	@-docker stop backend-mysql-1 2>/dev/null || true
 	@-docker rm backend-mysql-1 2>/dev/null || true
+	@-docker compose -f compose-dev.yaml down -v 
 	@echo "  All services stopped"
 	@echo ""
 

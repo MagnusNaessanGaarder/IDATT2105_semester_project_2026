@@ -45,27 +45,26 @@ class ExportServiceTest {
 
   @BeforeEach
   void setUp() {
-    validRequest = ExportRequest.builder()
-        .exportType(ExportType.checklist_report)
-        .format(ExportFormat.pdf)
-        .build();
+    validRequest = new ExportRequest();
+    validRequest.setExportType(ExportType.CHECKLIST_REPORT);
+    validRequest.setFormat(ExportFormat.PDF);
 
     pendingJob = ExportJob.builder()
         .exportJobId(1L)
         .orgNumber(123456789)
         .requestedByUserId(1L)
-        .exportType(ExportType.checklist_report)
-        .format(ExportFormat.pdf)
-        .status(ExportStatus.pending)
+        .exportType(ExportType.CHECKLIST_REPORT)
+        .format(ExportFormat.PDF)
+        .status(ExportStatus.PENDING)
         .build();
 
     completedJob = ExportJob.builder()
         .exportJobId(2L)
         .orgNumber(123456789)
         .requestedByUserId(1L)
-        .exportType(ExportType.checklist_report)
-        .format(ExportFormat.pdf)
-        .status(ExportStatus.completed)
+        .exportType(ExportType.CHECKLIST_REPORT)
+        .format(ExportFormat.PDF)
+        .status(ExportStatus.COMPLETED)
         .resultDocumentId(100L)
         .build();
   }
@@ -81,7 +80,7 @@ class ExportServiceTest {
     // Then
     assertThat(result).isNotNull();
     assertThat(result.getExportJobId()).isEqualTo(1L);
-    assertThat(result.getStatus()).isEqualTo(ExportStatus.pending);
+    assertThat(result.getStatus()).isEqualTo(ExportStatus.PENDING);
     verify(exportJobRepository).save(any(ExportJob.class));
     verify(exportJobProcessor).processExportJobAsync(1L);
   }
@@ -97,7 +96,7 @@ class ExportServiceTest {
     // Then
     assertThat(result).isNotNull();
     assertThat(result.getExportJobId()).isEqualTo(1L);
-    assertThat(result.getStatus()).isEqualTo(ExportStatus.pending);
+    assertThat(result.getStatus()).isEqualTo(ExportStatus.PENDING);
   }
 
   @Test

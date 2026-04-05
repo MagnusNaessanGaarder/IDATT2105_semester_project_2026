@@ -1,6 +1,7 @@
 package com.example.InternalControl.service;
 
-import com.example.InternalControl.repository.UserOrganizationRepository;
+import com.example.InternalControl.repository.user.UserOrganizationRepository;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
