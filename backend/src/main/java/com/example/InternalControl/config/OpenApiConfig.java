@@ -12,9 +12,6 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Swagger/OpenAPI configuration.
  * Open http://localhost:8080/swagger-ui.html after running the app
- *
- * @author TriTacLe
- * @since 1.0
  */
 @Configuration
 public class OpenApiConfig {

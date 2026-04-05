@@ -1,14 +1,14 @@
 package com.example.InternalControl.scheduler;
 
-import com.example.InternalControl.model.ChecklistRun;
-import com.example.InternalControl.model.ChecklistRunItem;
-import com.example.InternalControl.model.ChecklistTemplate;
-import com.example.InternalControl.model.ChecklistTemplateItem;
+import com.example.InternalControl.model.checklist.ChecklistRun;
+import com.example.InternalControl.model.checklist.ChecklistRunItem;
+import com.example.InternalControl.model.checklist.ChecklistTemplate;
+import com.example.InternalControl.model.checklist.ChecklistTemplateItem;
 import com.example.InternalControl.model.enums.Frequency;
 import com.example.InternalControl.model.enums.RunStatus;
-import com.example.InternalControl.repository.ChecklistRunItemRepository;
-import com.example.InternalControl.repository.ChecklistRunRepository;
-import com.example.InternalControl.repository.ChecklistTemplateRepository;
+import com.example.InternalControl.repository.checklist.ChecklistRunItemRepository;
+import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
+import com.example.InternalControl.repository.checklist.ChecklistTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,11 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Service for automatically generating checklist runs based on template
- * frequency.
- *
- * @author TriTacLe
- * @since 1.0
+ * Service for automatically generating checklist runs based on template frequency.
  */
 @Service
 @RequiredArgsConstructor

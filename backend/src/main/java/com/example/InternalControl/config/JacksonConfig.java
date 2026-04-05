@@ -9,9 +9,6 @@ import org.springframework.context.annotation.Primary;
 
 /**
  * Configuration for Jackson ObjectMapper.
- *
- * @author TriTacLe
- * @since 1.0
  */
 @Configuration
 public class JacksonConfig {

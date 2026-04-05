@@ -9,9 +9,7 @@ import java.math.BigDecimal;
 
 /**
  * Request DTO for updating a checklist run item (answering a question).
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder

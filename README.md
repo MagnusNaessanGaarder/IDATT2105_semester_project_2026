@@ -34,7 +34,6 @@ Remember to give perms to shell scripts using chmod +x
 4. **Stop all services:**
 
 ```bash
-./stop.sh
 # Or press Ctrl+C in the terminal where start.sh is running
 ```
 
@@ -54,7 +53,7 @@ Remember to give perms to shell scripts using chmod +x
 **Option 1: Using start.sh (Recommended)**
 
 ```bash
-./start.sh
+
 ```
 
 This starts:
@@ -168,12 +167,10 @@ lsof -ti:5173 | xargs kill -9
 
 ### Database issues
 
-```bash
+````bash
 # Reset database (deletes all data!)
 docker stop backend-mysql-1
 docker rm backend-mysql-1
-./start.sh
-```
 
 ### Check logs
 
@@ -186,7 +183,7 @@ tail -f /tmp/frontend.log
 
 # MySQL logs
 docker logs backend-mysql-1
-```
+````
 
 ### Flyway migration errors
 
@@ -197,5 +194,4 @@ If you get "checksum mismatch" errors after changing SQL files:
 docker stop backend-mysql-1
 docker rm backend-mysql-1
 docker volume rm idatt2105_semester_project_2026_mysql-dev-data
-./start.sh
 ```
