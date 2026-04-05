@@ -47,7 +47,7 @@ public class TemperatureLogController {
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
-    return ResponseEntity.ok(temperatureLogService.createLogPoint(request, orgNumber));
+    return ResponseEntity.status(201).body(temperatureLogService.createLogPoint(request, orgNumber));
   }
 
   @GetMapping("/points")
@@ -124,7 +124,7 @@ public class TemperatureLogController {
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
-    return ResponseEntity.ok(temperatureLogService.recordEntry(request, orgNumber, userId));
+    return ResponseEntity.status(201).body(temperatureLogService.recordEntry(request, orgNumber, userId));
   }
 
   @GetMapping("/entries")

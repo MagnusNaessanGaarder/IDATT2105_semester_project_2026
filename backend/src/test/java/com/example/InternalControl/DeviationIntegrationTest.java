@@ -107,7 +107,7 @@ class DeviationIntegrationTest extends AbstractIntegrationTest {
         Long reportId = createdReport.get("reportId").asLong();
         assertThat(reportId).isPositive();
         assertThat(createdReport.get("title").asText()).isEqualTo("Test Incident Report");
-        assertThat(createdReport.get("status").asText()).isEqualTo("reported");
+        assertThat(createdReport.get("status").asText()).isEqualTo("REPORTED");
 
         // Retrieve report
         HttpRequest getRequest = HttpRequest.newBuilder()
