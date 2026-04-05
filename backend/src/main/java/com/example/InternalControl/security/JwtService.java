@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -15,13 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- * Service for JWT token generation and validation.
- * Only class with access to the secret key.
- *
- * @author TriTacLe
- * @since 1.0
- */
 @Service
 public class JwtService {
 
@@ -34,15 +28,24 @@ public class JwtService {
     @Value("${application.security.jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
 
+    @PostConstruct
+    public void validateConfig() {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("JWT secret key must be configured");
+        }
+        if (secretKey.length() < 32) {
+            throw new IllegalStateException("JWT secret key must be at least 32 characters");
+        }
+    }
+
     public String generateAccessToken(UserDetails userDetails, Long userId) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
         extraClaims.put("userId", userId);
         return buildToken(extraClaims, userDetails, accessTokenExpiration);
     }
-    
+
     public String generateAccessToken(UserDetails userDetails) {
-        // Fallback for backward compatibility
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
         return buildToken(extraClaims, userDetails, accessTokenExpiration);
