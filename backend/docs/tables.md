@@ -41,7 +41,7 @@ used for alert evaluation in temperature logging.
 
 ### `app_user`
 
-A person who can log in to the system. Not tied to any specific organization — membership is managed separately via
+A person who can log in to the system. Not tied to any specific organization - membership is managed separately via
 `user_organization`.
 
 _No foreign keys._

@@ -1,0 +1,8 @@
+spring:
+  cloud:
+    azure:
+      storage:
+        blob:
+          account-name: ikdev
+          account-key: ${AZURE_STORAGE_ACCOUNT_KEY}
+          endpoint: https://ikdev.blob.core.windows.net

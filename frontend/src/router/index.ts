@@ -26,7 +26,7 @@ const router = createRouter({
         {
           path: '',
           name: 'Dashboard',
-          component: () => import('@/features/felles/views/DashboardView.vue'),
+          component: () => import('@/features/dashboard/views/DashboardView.vue'),
           meta: { title: 'Dashboard' },
         },
         {
@@ -86,19 +86,19 @@ const router = createRouter({
         {
           path: 'rapporter',
           name: 'Reports',
-          component: () => import('@/features/felles/views/ReportsView.vue'),
+          component: () => import('@/features/dashboard/views/ReportsView.vue'),
           meta: { title: 'Rapporter' },
         },
         {
           path: 'dokumenter',
           name: 'Documents',
-          component: () => import('@/features/felles/views/DocumentsView.vue'),
+          component: () => import('@/features/dashboard/views/DocumentsView.vue'),
           meta: { title: 'Dokumenter' },
         },
         {
           path: 'varsler',
           name: 'Notifications',
-          component: () => import('@/features/felles/views/NotificationsView.vue'),
+          component: () => import('@/features/dashboard/views/NotificationsView.vue'),
           meta: { title: 'Varsler' },
         },
         {
@@ -118,13 +118,13 @@ const router = createRouter({
     {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
-      component: () => import('@/features/felles/views/NotFoundView.vue'),
+      component: () => import('@/features/dashboard/views/NotFoundView.vue'),
       meta: { title: 'Side ikke funnet' },
     },
   ],
 })
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore()
   
   if (to.meta.title) {
@@ -142,7 +142,7 @@ router.beforeEach(async (to, from) => {
     
     if (to.meta.allowedRoles && to.meta.allowedRoles.length > 0) {
       const userRole = authStore.user?.role
-      if (!userRole || !to.meta.allowedRoles.includes(userRole)) {
+      if (!userRole || !to.meta.allowedRoles.includes(userRole as 'ADMIN' | 'MANAGER' | 'EMPLOYEE')) {
         return { name: 'Dashboard' }
       }
     }
@@ -152,7 +152,6 @@ router.beforeEach(async (to, from) => {
     return { name: 'Dashboard' }
   }
   
-  // Return nothing to allow navigation
 })
 
 export default router
