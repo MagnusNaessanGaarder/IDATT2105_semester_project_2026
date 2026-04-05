@@ -1,10 +1,11 @@
 package com.example.InternalControl.service;
 
-import com.example.InternalControl.model.ChecklistTemplate;
+import com.example.InternalControl.model.checklist.ChecklistTemplate;
 import com.example.InternalControl.model.enums.Frequency;
 import com.example.InternalControl.model.enums.ModuleType;
-import com.example.InternalControl.repository.ChecklistTemplateRepository;
-import com.example.InternalControl.repository.OrganizationRepository;
+import com.example.InternalControl.repository.checklist.ChecklistTemplateRepository;
+import com.example.InternalControl.repository.organization.OrganizationRepository;
+import com.example.InternalControl.service.checklist.ChecklistTemplateServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

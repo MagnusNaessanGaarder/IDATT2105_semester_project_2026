@@ -44,7 +44,7 @@ public class ExportServiceImpl implements ExportService {
         .requestedByUserId(userId)
         .exportType(request.getExportType())
         .format(request.getFormat())
-        .status(ExportStatus.pending)
+        .status(ExportStatus.PENDING)
         .parametersJson(parametersJson)
         .build();
 
@@ -111,7 +111,7 @@ public class ExportServiceImpl implements ExportService {
       throw new AccessDeniedException("Access denied to export job");
     }
 
-    if (job.getStatus() != ExportStatus.completed) {
+    if (job.getStatus() != ExportStatus.COMPLETED) {
       throw new IllegalStateException("Export not ready. Status: " + job.getStatus());
     }
 

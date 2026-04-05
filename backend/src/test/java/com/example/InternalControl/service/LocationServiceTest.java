@@ -1,9 +1,10 @@
 package com.example.InternalControl.service;
 
-import com.example.InternalControl.model.Location;
+import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.model.enums.LocationType;
-import com.example.InternalControl.repository.LocationRepository;
-import com.example.InternalControl.repository.OrganizationRepository;
+import com.example.InternalControl.repository.organization.LocationRepository;
+import com.example.InternalControl.repository.organization.OrganizationRepository;
+import com.example.InternalControl.service.organization.LocationServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

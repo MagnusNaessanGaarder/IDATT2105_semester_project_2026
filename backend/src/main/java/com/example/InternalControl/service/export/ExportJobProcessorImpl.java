@@ -1,13 +1,13 @@
 package com.example.InternalControl.service.export;
 
-import com.example.InternalControl.model.OrganizationDocument;
-import com.example.InternalControl.model.OrganizationDocumentVersion;
+import com.example.InternalControl.model.document.OrganizationDocument;
+import com.example.InternalControl.model.document.OrganizationDocumentVersion;
 import com.example.InternalControl.model.export.ExportJob;
 import com.example.InternalControl.model.export.ExportStatus;
-import com.example.InternalControl.repository.OrganizationDocumentRepository;
-import com.example.InternalControl.repository.OrganizationDocumentVersionRepository;
+import com.example.InternalControl.repository.document.OrganizationDocumentRepository;
+import com.example.InternalControl.repository.document.OrganizationDocumentVersionRepository;
 import com.example.InternalControl.repository.export.ExportJobRepository;
-import com.example.InternalControl.service.BlobStorageService;
+import com.example.InternalControl.service.storage.BlobStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -38,7 +38,7 @@ public class ExportJobProcessorImpl implements ExportJobProcessor {
         .orElseThrow(() -> new IllegalStateException("Export job not found: " + exportJobId));
 
     try {
-      job.setStatus(ExportStatus.running);
+      job.setStatus(ExportStatus.RUNNING);
       exportJobRepository.save(job);
 
       byte[] content = exportGeneratorService.generateExport(job);
@@ -58,7 +58,7 @@ public class ExportJobProcessorImpl implements ExportJobProcessor {
 
       OrganizationDocument document = createDocumentRecord(job, fileName, contentType, content.length, directory, blobName);
 
-      job.setStatus(ExportStatus.completed);
+      job.setStatus(ExportStatus.COMPLETED);
       job.setResultDocumentId(document.getDocumentId());
       job.setCompletedAt(LocalDateTime.now());
       exportJobRepository.save(job);
@@ -68,7 +68,7 @@ public class ExportJobProcessorImpl implements ExportJobProcessor {
     } catch (Exception e) {
       log.error("Export job {} failed", exportJobId, e);
 
-      job.setStatus(ExportStatus.failed);
+      job.setStatus(ExportStatus.FAILED);
       job.setFailureReason(e.getMessage());
       job.setCompletedAt(LocalDateTime.now());
       exportJobRepository.save(job);

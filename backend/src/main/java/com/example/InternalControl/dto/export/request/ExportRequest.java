@@ -3,19 +3,18 @@ package com.example.InternalControl.dto.export.request;
 import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.shared.enums.ExportType;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 /**
  * Request DTO for creating an export job.
- *
- * @author TriTacLe
- * @since 1.0
  */
 @Data
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExportRequest {
 
   @NotNull(message = "Export type is required")

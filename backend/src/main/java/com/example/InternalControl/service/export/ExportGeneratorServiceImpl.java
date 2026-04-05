@@ -1,11 +1,11 @@
 package com.example.InternalControl.service.export;
 
-import com.example.InternalControl.model.ChecklistRun;
-import com.example.InternalControl.model.DeviationReport;
+import com.example.InternalControl.model.checklist.ChecklistRun;
+import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.model.export.ExportJob;
-import com.example.InternalControl.repository.ChecklistRunRepository;
-import com.example.InternalControl.repository.DeviationReportRepository;
+import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
+import com.example.InternalControl.repository.deviation.DeviationReportRepository;
 import com.example.InternalControl.service.export.generator.PdfGenerator;
 import com.example.InternalControl.shared.enums.ExportType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,19 +39,19 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
     ExportParameters params = parseParameters(job.getParametersJson());
 
     return switch (job.getFormat()) {
-      case pdf -> generatePdfExport(job, params);
-      case json -> generateJsonExport(job, params);
+      case PDF -> generatePdfExport(job, params);
+      case JSON -> generateJsonExport(job, params);
     };
   }
 
   private byte[] generatePdfExport(ExportJob job, ExportParameters params) {
     return switch (job.getExportType()) {
-      case checklist_report -> generateChecklistPdf(job, params);
-      case deviation_report -> generateDeviationPdf(job, params);
-      case full_compliance_report -> generateFullCompliancePdf(job, params);
-      case audit_report -> generateAuditPdf(job, params);
-      case temperature_report -> generateTemperaturePdf(job, params);
-      case training_report -> generateTrainingPdf(job, params);
+      case CHECKLIST_REPORT -> generateChecklistPdf(job, params);
+      case DEVIATION_REPORT -> generateDeviationPdf(job, params);
+      case FULL_COMPLIANCE_REPORT -> generateFullCompliancePdf(job, params);
+      case AUDIT_REPORT -> generateAuditPdf(job, params);
+      case TEMPERATURE_REPORT -> generateTemperaturePdf(job, params);
+      case TRAINING_REPORT -> generateTrainingPdf(job, params);
     };
   }
 
@@ -129,7 +129,7 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
     Map<String, Object> data = new HashMap<>();
 
     switch (job.getExportType()) {
-      case checklist_report -> {
+      case CHECKLIST_REPORT -> {
         List<ChecklistRun> runs = params.dateFrom() != null && params.dateTo() != null
             ? checklistRunRepository.findByOrgNumberAndRunDateBetween(
                 job.getOrgNumber(), params.dateFrom(), params.dateTo())
@@ -137,13 +137,13 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
         data.put("checklistRuns", runs);
         data.put("totalRuns", runs.size());
       }
-      case deviation_report -> {
+      case DEVIATION_REPORT -> {
         List<DeviationReport> reports = deviationReportRepository.searchReports(
             job.getOrgNumber(), null, null, null, params.dateFrom(), params.dateTo());
         data.put("deviationReports", reports);
         data.put("totalReports", reports.size());
       }
-      case full_compliance_report, audit_report, temperature_report, training_report -> {
+      case FULL_COMPLIANCE_REPORT, AUDIT_REPORT, TEMPERATURE_REPORT, TRAINING_REPORT -> {
         List<ChecklistRun> runs = checklistRunRepository.findByOrgNumber(job.getOrgNumber());
         List<DeviationReport> reports = deviationReportRepository.findByOrgNumber(job.getOrgNumber());
         data.put("checklistRuns", runs);
