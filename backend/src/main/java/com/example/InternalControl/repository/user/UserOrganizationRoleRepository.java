@@ -28,4 +28,21 @@ public interface UserOrganizationRoleRepository extends JpaRepository<UserOrgani
     @Query("SELECT uor FROM UserOrganizationRole uor " +
            "WHERE uor.user.userId = :userId AND uor.organization.isActive = true")
     List<UserOrganizationRole> findRolesInActiveOrganizations(@Param("userId") Long userId);
+
+    @Query("SELECT uor FROM UserOrganizationRole uor " +
+           "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber")
+    List<UserOrganizationRole> findByUserIdAndOrgNumber(
+            @Param("userId") Long userId,
+            @Param("orgNumber") Integer orgNumber
+    );
+
+    @Query("SELECT uor FROM UserOrganizationRole uor " +
+           "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber AND uor.role.roleId = :roleId")
+    java.util.Optional<UserOrganizationRole> findByUserIdAndOrgNumberAndRoleId(
+            @Param("userId") Long userId,
+            @Param("orgNumber") Integer orgNumber,
+            @Param("roleId") Long roleId
+    );
+
+    boolean existsByUserIdAndOrgNumberAndRoleId(Long userId, Integer orgNumber, Long roleId);
 }
