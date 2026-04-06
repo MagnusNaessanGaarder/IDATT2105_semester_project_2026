@@ -55,10 +55,11 @@ const emit = defineEmits<{
 .error-message {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
   background: var(--color-danger-bg);
   border-left: 3px solid var(--color-danger);
+  border-radius: var(--radius-md);
 }
 
 .error-message__icon {
@@ -72,21 +73,28 @@ const emit = defineEmits<{
 
 .error-message__text {
   margin: 0;
-  color: var(--color-danger);
-  font-size: 14px;
+  color: var(--color-danger-fg);
+  font-size: var(--font-size-sm);
 }
 
 .error-message__retry {
-  margin-top: 8px;
-  padding: 6px 12px;
-  font-size: 14px;
+  margin-top: var(--spacing-sm);
+  padding: var(--button-padding-sm);
+  font-size: var(--font-size-sm);
   background: var(--color-danger);
-  color: white;
+  color: var(--color-primary-foreground);
   border: none;
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .error-message__retry:hover {
-  background: #b30000;
+  background: var(--color-danger-hover);
+}
+
+.error-message__retry:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 </style>

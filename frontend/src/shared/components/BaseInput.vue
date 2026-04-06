@@ -96,7 +96,7 @@ const handleInput = (event: Event) => {
 .base-input {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--spacing-xs);
 }
 
 .base-input__label {
@@ -110,16 +110,17 @@ const handleInput = (event: Event) => {
 }
 
 .base-input__field {
-  padding: 10px 12px;
-  font-size: 16px;
+  padding: var(--input-padding);
+  font-size: var(--font-size-base);
   border: 1px solid var(--color-border);
-  background: white;
-  transition: border-color 0.15s;
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
 .base-input__field:focus {
-  outline: none;
-  border-color: var(--color-accent);
+  border-color: var(--color-focus);
+  box-shadow: var(--shadow-focus);
 }
 
 .base-input__field--error {
@@ -127,7 +128,7 @@ const handleInput = (event: Event) => {
 }
 
 .base-input__field:disabled {
-  background: var(--color-gray-100);
+  background: var(--color-card-muted);
   cursor: not-allowed;
 }
 

@@ -118,7 +118,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
       <article class="panel-card details-grid__span-2">
         <header class="panel-card__header">
-          <h2>Ãpne avvik</h2>
+          <h2>Åpne avvik</h2>
           <span class="status-chip" :class="openDeviations.length > 0 ? 'status-chip--warn' : 'status-chip--good'">
             {{ openDeviations.length }} aktive
           </span>
@@ -131,7 +131,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
               <p class="item-row__meta">{{ deviation.location }} · meldt {{ formatDate(deviation.reported_date) }} kl. {{ deviation.reported_time }}</p>
             </div>
             <span class="status-chip" :class="deviation.severity === 'high' ? 'status-chip--danger' : 'status-chip--warn'">
-              {{ deviation.severity === 'high' ? 'Hoy' : 'Medium' }}
+              {{ deviation.severity === 'high' ? 'Høy' : 'Medium' }}
             </span>
           </li>
         </ul>

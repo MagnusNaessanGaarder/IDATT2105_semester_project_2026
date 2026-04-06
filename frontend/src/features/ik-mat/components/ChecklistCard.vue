@@ -126,19 +126,19 @@ const statusColor = computed(() => {
 
 .checklist-card:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--color-border-focus);
+  border-color: var(--color-border-strong);
 }
 
 .checklist-card--success {
-  border-left: 0.25rem solid #10b981;
+  border-left: 0.25rem solid var(--color-success);
 }
 
 .checklist-card--warning {
-  border-left: 0.25rem solid #f59e0b;
+  border-left: 0.25rem solid var(--color-warning);
 }
 
 .checklist-card--danger {
-  border-left: 0.25rem solid #ef4444;
+  border-left: 0.25rem solid var(--color-danger);
 }
 
 .checklist-card__header {
@@ -197,7 +197,7 @@ const statusColor = computed(() => {
 
 .checklist-card__progress-fill {
   height: 100%;
-  background: #10b981;
+  background: var(--color-success);
   transition: width var(--transition-base);
 }
 

@@ -95,11 +95,11 @@ const statusColor = computed(() => {
 }
 
 .report-card--success {
-  border-left: 0.25rem solid #10b981;
+  border-left: 0.25rem solid var(--color-success);
 }
 
 .report-card--warning {
-  border-left: 0.25rem solid #f59e0b;
+  border-left: 0.25rem solid var(--color-warning);
 }
 
 .report-card__header {
@@ -149,13 +149,13 @@ const statusColor = computed(() => {
 }
 
 .report-card__badge--success {
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .report-card__badge--warning {
-  background: rgba(245, 158, 11, 0.1);
-  color: #b45309;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .report-card__date {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useMotions } from '@vueuse/motion'
 import Sidebar from './Sidebar.vue'
 
 const isSidebarOpen = ref(false)
@@ -12,9 +11,6 @@ const toggleSidebar = () => {
 const closeSidebar = () => {
   isSidebarOpen.value = false
 }
-
-// Motion controls for main content
-const { mainContent } = useMotions()
 </script>
 
 <template>
@@ -23,6 +19,19 @@ const { mainContent } = useMotions()
       Hopp til hovedinnhold
     </a>
     
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-label="Aapne meny"
+      @click="toggleSidebar"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+
     <div 
       v-if="isSidebarOpen" 
       class="sidebar-backdrop"
@@ -55,9 +64,9 @@ const { mainContent } = useMotions()
   display: flex;
   min-height: 100vh;
   width: 100%;
-  background:
-    radial-gradient(circle at 8% 8%, rgba(203, 213, 225, 0.25), transparent 36%),
-    linear-gradient(180deg, #fbfdff 0%, var(--color-background) 100%);
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
 }
 
 .skip-link {
@@ -77,10 +86,40 @@ const { mainContent } = useMotions()
   top: 8px;
 }
 
+.menu-toggle {
+  position: fixed;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  z-index: 45;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.menu-toggle:hover {
+  background: var(--color-card-muted);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+@media (min-width: 48rem) {
+  .menu-toggle {
+    display: none;
+  }
+}
+
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: var(--color-overlay-soft);
   z-index: 40;
 }
 
@@ -94,12 +133,14 @@ const { mainContent } = useMotions()
 .main-content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-md);
+  content-visibility: auto;
+  contain-intrinsic-size: 800px;
 }
 
 @media (min-width: 768px) {
   .main-content {
-    padding: var(--spacing-xl);
+    padding: var(--spacing-xl) clamp(1.25rem, 2.2vw, 2.5rem);
   }
 }
 

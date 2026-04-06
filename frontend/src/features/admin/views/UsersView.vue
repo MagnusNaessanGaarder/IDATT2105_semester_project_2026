@@ -196,7 +196,7 @@ const handleToggleUser = (userId: number) => {
 .stats-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   text-align: center;
   padding: 0.85rem;
 }
@@ -222,7 +222,7 @@ const handleToggleUser = (userId: number) => {
 .role-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.8rem;
 }
 
@@ -235,18 +235,18 @@ const handleToggleUser = (userId: number) => {
 }
 
 .role-pill--red {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
 }
 
 .role-pill--amber {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .role-pill--blue {
-  background: #e0f2fe;
-  color: #075985;
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .role-description {
@@ -265,7 +265,7 @@ const handleToggleUser = (userId: number) => {
 .users-table-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.75rem;
 }
 
@@ -374,13 +374,13 @@ th {
   border: none;
   border-radius: var(--radius-sm);
   background: var(--color-foreground);
-  color: #fff;
+  color: var(--color-primary-foreground);
   font-size: var(--font-size-xs);
   font-weight: 600;
 }
 
 .action-btn--ghost {
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   color: var(--color-gray-700);
 }

@@ -218,7 +218,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
 .summary-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   text-align: center;
   padding: 0.85rem;
 }
@@ -242,7 +242,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
 }
 
 .settings-section {
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.9rem;
@@ -330,7 +330,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
 .audit-section {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.75rem;
 }
 
@@ -418,7 +418,7 @@ td {
 }
 
 .btn--secondary {
-  background: #fff;
+  background: var(--color-card);
   color: var(--color-gray-700);
   border: 1px solid var(--color-border);
 }

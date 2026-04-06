@@ -35,9 +35,16 @@ const handleLogin = async () => {
 
 <template>
   <div class="login-page">
-    <div class="login-container">
+    <div
+      class="login-container"
+      v-motion
+      :initial="{ opacity: 0, y: 10 }"
+      :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
+    >
       <form class="login-form" @submit.prevent="handleLogin">
+        <p class="login-kicker">Internkontroll</p>
         <h2>Logg inn</h2>
+        <p class="login-subtitle">Få oversikt over rutiner, avvik og dokumentasjon.</p>
 
         <div v-if="error" class="error-message" role="alert">
           <svg
@@ -96,106 +103,70 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f0f0;
-  padding: 24px;
+  background:
+    radial-gradient(circle at 10% 12%, var(--color-surface-tint), transparent 34%),
+    radial-gradient(circle at 90% 90%, var(--color-surface-tint-strong), transparent 36%),
+    linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
+  padding: var(--spacing-lg);
 }
 
 .login-container {
   width: 100%;
-  max-width: 400px;
-}
-
-/* Mock Users Info */
-.mock-users-info {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-radius: var(--radius-md);
-  padding: 20px;
-  margin-bottom: 24px;
-}
-
-.mock-users-info h3 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0369a1;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.mock-user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mock-user {
-  background: white;
-  border: 1px solid #e0f2fe;
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.mock-user:hover {
-  background: #f0f9ff;
-  border-color: #7dd3fc;
-  transform: translateX(4px);
-}
-
-.mock-user strong {
-  color: #0c4a6e;
-}
-
-.mock-user small {
-  color: #64748b;
-  font-size: 11px;
-}
-
-.mock-hint {
-  margin: 12px 0 0 0;
-  font-size: 11px;
-  color: #64748b;
-  text-align: center;
-  font-style: italic;
+  max-width: 26rem;
 }
 
 /* Form */
 .login-form {
-  background: var(--color-card);
+  background: linear-gradient(180deg, var(--color-card) 0%, var(--color-card-muted) 100%);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 32px;
+  border-radius: var(--radius-lg);
+  padding: clamp(1.5rem, 4vw, 2rem);
   box-shadow: var(--shadow-md);
 }
 
+.login-kicker {
+  margin-bottom: 0.375rem;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-gray-600);
+  font-weight: var(--font-weight-semibold);
+}
+
 .login-form h2 {
+  font-family: var(--font-family-display);
   font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: var(--line-height-heading);
   color: var(--color-foreground);
-  margin-bottom: 24px;
-  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+  margin-bottom: 1.25rem;
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
 }
 
 /* Error Message */
 .error-message {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-md);
   background-color: var(--color-danger-bg);
   color: var(--color-danger-fg);
   border-radius: var(--radius-md);
+  border: 1px solid var(--color-danger-border);
   font-size: var(--font-size-sm);
 }
 
 /* Form Group */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-md);
 }
 
 .form-group label {
@@ -208,19 +179,18 @@ const handleLogin = async () => {
 
 .form-group input {
   width: 100%;
-  padding: 10px 12px;
+  padding: var(--input-padding);
   font-size: var(--font-size-base);
   color: var(--color-foreground);
-  background: var(--color-gray-50);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
 .form-group input:focus {
-  outline: none;
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: var(--shadow-focus);
   background: var(--color-card);
 }
 
@@ -231,20 +201,21 @@ const handleLogin = async () => {
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: 12px 20px;
-  margin-top: 8px;
+  padding: var(--button-padding-md);
+  margin-top: var(--spacing-xs);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary-foreground);
-  background: var(--color-foreground);
+  background: var(--color-primary);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .login-btn:hover:not(:disabled) {
-  background: var(--color-gray-800);
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -254,18 +225,14 @@ const handleLogin = async () => {
 }
 
 .login-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
 /* Responsive */
 @media (max-width: 480px) {
   .login-form {
-    padding: 24px;
-  }
-
-  .mock-users-info {
-    padding: 16px;
+    padding: var(--spacing-lg);
   }
 }
 </style>

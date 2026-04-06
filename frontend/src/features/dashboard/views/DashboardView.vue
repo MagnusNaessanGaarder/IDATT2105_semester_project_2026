@@ -276,27 +276,27 @@ const goToNotificationAction = (actionUrl: string | null) => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
+  border: 1px solid var(--color-danger-border);
+  background: var(--color-danger-bg);
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
 }
 
 .alert-banner__title {
   margin: 0;
-  color: #991b1b;
+  color: var(--color-danger-fg);
   font-weight: 600;
 }
 
 .alert-banner__text {
   margin-top: 0.25rem;
-  color: #b91c1c;
+  color: var(--color-danger);
   font-size: var(--font-size-sm);
 }
 
 .alert-banner__link {
-  background: #991b1b;
-  color: #fff;
+  background: var(--color-danger-fg);
+  color: var(--color-primary-foreground);
   border-radius: var(--radius-md);
   padding: 0.5rem 0.75rem;
   font-size: var(--font-size-sm);
@@ -312,18 +312,18 @@ const goToNotificationAction = (actionUrl: string | null) => {
 .stat-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: #fff;
+  background: var(--color-card);
   padding: 1rem;
 }
 
 .stat-card--warning {
-  border-color: #fcd34d;
-  background: #fffbeb;
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
 }
 
 .stat-card--success {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
 }
 
 .stat-card__label {
@@ -431,23 +431,23 @@ const goToNotificationAction = (actionUrl: string | null) => {
 }
 
 .panel__badge--red {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
 }
 
 .panel__badge--amber {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .panel__badge--blue {
-  background: #e0f2fe;
-  color: #075985;
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .panel__badge--green {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .panel__item-title {
@@ -494,7 +494,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 .quick-action-card:hover {
   border-color: var(--color-gray-400);
-  background: #fff;
+  background: var(--color-card);
 }
 
 .quick-action-card__title {
@@ -517,7 +517,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 }
 
 .analysis-card {
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
@@ -542,7 +542,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 }
 
 .analysis-panel {
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;

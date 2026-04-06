@@ -237,7 +237,7 @@ watch(currentScreen, (routeName) => {
     left: 0;
     width: var(--sidebar-width);
     height: 100vh;
-    background: var(--color-card);
+    background: linear-gradient(180deg, var(--color-card) 0%, var(--color-card-muted) 100%);
     border-right: 0.0625rem solid var(--color-border);
     display: flex;
     flex-direction: column;
@@ -257,7 +257,7 @@ watch(currentScreen, (routeName) => {
     justify-content: space-between;
     padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
     border-bottom: 0.0625rem solid var(--color-border);
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.02) 0%, rgba(15, 23, 42, 0) 100%);
+    background: linear-gradient(180deg, rgba(18, 50, 74, 0.08) 0%, rgba(18, 50, 74, 0) 100%);
   }
 
   .brand-block {
@@ -268,8 +268,10 @@ watch(currentScreen, (routeName) => {
 
   .app-title {
     font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    letter-spacing: 0.02em;
+    font-family: var(--font-family-display);
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    line-height: var(--line-height-tight);
     color: var(--color-primary);
     margin: 0;
   }
@@ -277,10 +279,10 @@ watch(currentScreen, (routeName) => {
   .app-business {
     margin: 0;
     font-size: var(--font-size-xs);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-gray-500);
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-semibold);
   }
 
   .close-btn {
@@ -291,7 +293,15 @@ watch(currentScreen, (routeName) => {
     height: 2.5rem;
     background: transparent;
     border: none;
+    border-radius: var(--radius-md);
     cursor: pointer;
+    color: var(--color-gray-600);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+  }
+
+  .close-btn:hover {
+    background: var(--color-accent);
+    color: var(--color-foreground);
   }
 
   @media (min-width: 48rem) {
@@ -314,7 +324,7 @@ watch(currentScreen, (routeName) => {
     bottom: 0;
     background: var(--color-card);
     border-top: 0.0625rem solid var(--color-border);
-    box-shadow: 0 -0.375rem 1rem rgba(15, 23, 42, 0.04);
+    box-shadow: 0 -0.375rem 1rem rgba(16, 38, 58, 0.05);
     z-index: 10;
   }
 

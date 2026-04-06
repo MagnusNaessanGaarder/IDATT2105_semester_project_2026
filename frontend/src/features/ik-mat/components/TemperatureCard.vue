@@ -98,17 +98,17 @@ const isWithinRange = computed(() => {
 }
 
 .temperature-card--ok {
-  border-left: 0.25rem solid #10b981;
+  border-left: 0.25rem solid var(--color-success);
 }
 
 .temperature-card--warning {
-  border-left: 0.25rem solid #f59e0b;
-  background: rgba(245, 158, 11, 0.02);
+  border-left: 0.25rem solid var(--color-warning);
+  background: var(--color-warning-bg);
 }
 
 .temperature-card--critical {
-  border-left: 0.25rem solid #ef4444;
-  background: rgba(239, 68, 68, 0.02);
+  border-left: 0.25rem solid var(--color-danger);
+  background: var(--color-danger-bg);
 }
 
 .temperature-card__header {
@@ -149,18 +149,18 @@ const isWithinRange = computed(() => {
 }
 
 .temperature-card__status--ok {
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .temperature-card__status--warning {
-  background: rgba(245, 158, 11, 0.1);
-  color: #b45309;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .temperature-card__status--critical {
-  background: rgba(239, 68, 68, 0.1);
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
 }
 
 .temperature-card__status-icon {
@@ -238,15 +238,15 @@ const isWithinRange = computed(() => {
   transform: translate(-50%, -50%);
   width: 1rem;
   height: 1rem;
-  background: #10b981;
-  border: 0.125rem solid white;
+  background: var(--color-success);
+  border: 0.125rem solid var(--color-card);
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-sm);
   transition: background-color var(--transition-fast);
 }
 
 .temperature-card__range-marker--outside {
-  background: #ef4444;
+  background: var(--color-danger);
 }
 
 .temperature-card__footer {
