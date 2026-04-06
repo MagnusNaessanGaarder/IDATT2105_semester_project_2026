@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -56,6 +57,7 @@ public class FileController {
       @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
   @GetMapping
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<List<OrganizationDocument>> listDocuments(
       @Parameter(description = "Organization number identifying the tenant", required = true)
       @RequestHeader("X-Org-Number") Integer orgNumber,
@@ -83,6 +85,7 @@ public class FileController {
       @ApiResponse(responseCode = "500", description = "Storage or database error")
   })
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<?> upload(
       @Parameter(description = "Organization number identifying the tenant", required = true)
       @RequestHeader("X-Org-Number") Integer orgNumber,
@@ -114,6 +117,7 @@ public class FileController {
       @ApiResponse(responseCode = "404", description = "Document not found")
   })
   @GetMapping("/download/{documentId}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<byte[]> download(
       @Parameter(description = "Organization number identifying the tenant", required = true)
       @RequestHeader("X-Org-Number") Integer orgNumber,

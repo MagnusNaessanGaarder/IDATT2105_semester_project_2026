@@ -5,10 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
-
 import org.springframework.test.context.TestPropertySource;
 
 import java.net.URI;
@@ -21,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration tests using Java 11+ HttpClient.
- * Requires the server to be running separately.
+ * Tests authentication endpoints.
  *
  * @author TriTacLe
  * @since 1.0
@@ -29,16 +27,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application-test.properties")
-
-@Import(TestBlobConfig.class)
-class AuthHttpIntegrationTest extends AbstractIntegrationTest  {
+class AuthHttpIntegrationTest {
 
     @Autowired
     private Environment environment;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private HttpClient client = HttpClient.newBuilder()
+    private final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
