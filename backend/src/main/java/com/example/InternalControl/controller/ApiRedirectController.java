@@ -44,7 +44,7 @@ public class ApiRedirectController {
 
         // Send deprecation warning header
         response.addHeader("Deprecation", "true");
-        response.addHeader("Sunset", "Sat, 01 Jan 2026 00:00:00 GMT");
+        response.addHeader("Sunset", "Sat, 01 Jan 2027 00:00:00 GMT");
         response.addHeader("Warning", "299 - \"API versioning recommended. Use /api/v1/ endpoints.\"");
 
         // Redirect to versioned endpoint (use 308 to preserve HTTP method)
