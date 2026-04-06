@@ -5,9 +5,7 @@ import com.example.InternalControl.model.export.ExportJob;
 /**
  * Service for generating export files (PDF/JSON).
  * Orchestrates data fetching and document generation.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 public interface ExportGeneratorService {
 

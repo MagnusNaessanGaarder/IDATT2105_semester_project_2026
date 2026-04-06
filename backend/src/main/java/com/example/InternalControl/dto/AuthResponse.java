@@ -7,9 +7,7 @@ import java.util.List;
 /**
  * DTO for authentication responses.
  * Contains JWT tokens and user info with organizations and roles.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Builder
 public record AuthResponse(

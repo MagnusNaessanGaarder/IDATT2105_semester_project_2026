@@ -1,6 +1,6 @@
 package com.example.InternalControl.model.export;
 
-import com.example.InternalControl.model.OrganizationDocument;
+import com.example.InternalControl.model.document.OrganizationDocument;
 import com.example.InternalControl.shared.enums.ExportType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,9 +13,6 @@ import java.time.LocalDateTime;
 
 /**
  * Entity representing an export job.
- *
- * @author TriTacLe
- * @since 1.0
  */
 @Entity
 @Table(name = "export_job")
@@ -47,7 +44,7 @@ public class ExportJob {
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 20)
   @Builder.Default
-  private ExportStatus status = ExportStatus.pending;
+  private ExportStatus status = ExportStatus.PENDING;
 
   @Column(name = "parameters_json", columnDefinition = "JSON")
   private String parametersJson;

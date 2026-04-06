@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Request DTO for updating deviation report status.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder

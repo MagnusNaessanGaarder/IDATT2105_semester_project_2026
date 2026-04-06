@@ -10,9 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * Response DTO for export job status and result.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder
