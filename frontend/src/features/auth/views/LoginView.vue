@@ -7,7 +7,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const email = ref('admin@everest-sushi.no')
+const email = ref('testlogin1775489218@test.com')
 const password = ref('Test1234!')
 const error = ref('')
 const isLoading = ref(false)
