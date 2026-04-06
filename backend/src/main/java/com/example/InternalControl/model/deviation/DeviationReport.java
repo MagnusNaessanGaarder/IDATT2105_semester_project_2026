@@ -6,6 +6,8 @@ import com.example.InternalControl.model.enums.Severity;
 import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.model.document.OrganizationDocument;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -53,6 +55,7 @@ public class DeviationReport {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "location_id")
+  @JsonIgnore
   private Location location;
 
   @Column(name = "location_text", length = 100)
@@ -69,10 +72,12 @@ public class DeviationReport {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "reported_by_user_id", nullable = false)
+  @JsonIgnore
   private AppUser reportedBy;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "discovered_by_user_id")
+  @JsonIgnore
   private AppUser discoveredBy;
 
   @Column(name = "discovered_by_name", length = 255)
@@ -80,6 +85,7 @@ public class DeviationReport {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "reported_to_user_id")
+  @JsonIgnore
   private AppUser reportedTo;
 
   @Column(name = "reported_to_name", length = 255)
@@ -87,6 +93,7 @@ public class DeviationReport {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "assigned_to_user_id")
+  @JsonIgnore
   private AppUser assignedTo;
 
   @Column(name = "immediate_action_text", columnDefinition = "TEXT")
@@ -94,6 +101,7 @@ public class DeviationReport {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "immediate_action_signed_by_user_id")
+  @JsonIgnore
   private AppUser immediateActionSignedBy;
 
   @Column(name = "cause_analysis_text", columnDefinition = "TEXT")
@@ -101,6 +109,7 @@ public class DeviationReport {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "cause_analysis_signed_by_user_id")
+  @JsonIgnore
   private AppUser causeAnalysisSignedBy;
 
   @Column(name = "corrective_action_text", columnDefinition = "TEXT")
@@ -108,6 +117,7 @@ public class DeviationReport {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "corrective_action_signed_by_user_id")
+  @JsonIgnore
   private AppUser correctiveActionSignedBy;
 
   @Column(name = "completion_text", columnDefinition = "TEXT")
@@ -115,6 +125,7 @@ public class DeviationReport {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "completion_signed_by_user_id")
+  @JsonIgnore
   private AppUser completionSignedBy;
 
   @Enumerated(EnumType.STRING)
@@ -136,6 +147,7 @@ public class DeviationReport {
   @ManyToMany
   @JoinTable(name = "deviation_report_document", joinColumns = @JoinColumn(name = "report_id"), inverseJoinColumns = @JoinColumn(name = "document_id"))
   @Builder.Default
+  @JsonIgnore
   private Set<OrganizationDocument> documents = new HashSet<>();
 
   public void addDocument(OrganizationDocument document) {

@@ -84,7 +84,7 @@ public class DashboardService {
 
         // Calculate compliance score
         double complianceScore = calculateComplianceScore(
-                checklistCompletionRate, openDeviations, criticalDeviations, temperatureAlerts);
+                checklistCompletionRate, openDeviations, criticalDeviations, temperatureAlerts, expiringTrainingCount);
 
         String complianceStatus = getComplianceStatus(complianceScore);
 
@@ -145,7 +145,7 @@ public class DashboardService {
     }
 
     private double calculateComplianceScore(double checklistRate, long openDeviations,
-                                           long criticalDeviations, long tempAlerts) {
+                                           long criticalDeviations, long tempAlerts, long expiringTrainingCount) {
         double score = 0;
 
         // Checklist completion (30%)
@@ -162,7 +162,8 @@ public class DashboardService {
         score += tempScore * 0.2;
 
         // Training compliance (25%)
-        score += 100 * 0.25;
+        double trainingScore = expiringTrainingCount == 0 ? 100 : Math.max(0, 100 - expiringTrainingCount * 5);
+        score += trainingScore * 0.25;
 
         return Math.round(score * 10) / 10.0;
     }

@@ -31,5 +31,8 @@ public interface TrainingRecordRepository extends JpaRepository<TrainingRecord, 
     @Query("SELECT t FROM TrainingRecord t WHERE t.orgNumber = :orgNumber AND t.expiresAt <= :date AND t.status = 'COMPLETED'")
     List<TrainingRecord> findExpiringSoon(@Param("orgNumber") Integer orgNumber, @Param("date") LocalDateTime date);
 
+    @Query("SELECT COUNT(t) FROM TrainingRecord t WHERE t.orgNumber = :orgNumber AND t.expiresAt <= :date AND t.status = 'COMPLETED'")
+    Long countExpiringByOrgNumber(@Param("orgNumber") Integer orgNumber, @Param("date") LocalDateTime date);
+
     Long countByOrgNumberAndStatus(Integer orgNumber, TrainingStatus status);
 }

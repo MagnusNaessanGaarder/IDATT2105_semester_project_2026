@@ -130,7 +130,7 @@ public class TrainingRecordServiceImpl implements TrainingRecordService {
     @Transactional(readOnly = true)
     public Long getExpiringCount(Integer orgNumber) {
         LocalDateTime thresholdDate = LocalDateTime.now().plusDays(30);
-        return (long) trainingRecordRepository.findExpiringByOrgNumber(orgNumber, thresholdDate).size();
+        return trainingRecordRepository.countExpiringByOrgNumber(orgNumber, thresholdDate);
     }
 
     private TrainingStatus determineStatus(TrainingRecordRequest request) {
