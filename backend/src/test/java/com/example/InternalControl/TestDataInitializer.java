@@ -44,11 +44,11 @@ public class TestDataInitializer {
           return organizationRepository.save(newOrg);
         });
 
-    // Get or create EMPLOYEE role
-    Role employeeRole = roleRepository.findByRoleName("EMPLOYEE")
+    // Get or create MANAGER role (for integration tests that need to create resources)
+    Role managerRole = roleRepository.findByRoleName("MANAGER")
         .orElseGet(() -> {
           Role newRole = new Role();
-          newRole.setRoleName("EMPLOYEE");
+          newRole.setRoleName("MANAGER");
           return roleRepository.save(newRole);
         });
 
@@ -75,14 +75,14 @@ public class TestDataInitializer {
     userOrg.setOrganization(org);
     userOrganizationRepository.save(userOrg);
 
-    // Assign EMPLOYEE role to user in organization
+    // Assign MANAGER role to user in organization
     UserOrganizationRoleId userOrgRoleId = new UserOrganizationRoleId(
-        user.getUserId(), orgNumber, employeeRole.getRoleId());
+        user.getUserId(), orgNumber, managerRole.getRoleId());
     UserOrganizationRole userOrgRole = new UserOrganizationRole();
     userOrgRole.setId(userOrgRoleId);
     userOrgRole.setUser(user);
     userOrgRole.setOrganization(org);
-    userOrgRole.setRole(employeeRole);
+    userOrgRole.setRole(managerRole);
     userOrganizationRoleRepository.save(userOrgRole);
 
     return new TestUser(user.getUserId(), email, orgNumber);
