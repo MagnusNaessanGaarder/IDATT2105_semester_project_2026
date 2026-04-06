@@ -1,35 +1,26 @@
 package com.example.InternalControl.model.audit;
 
-import java.time.LocalDateTime;
-
+import com.example.InternalControl.model.user.AppUser;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.time.LocalDateTime;
 
+/**
+ * JPA Entity mapping to audit_log table.
+ * Tracks all significant actions in the system for compliance.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
+@Entity
+@Table(name = "audit_log")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@AllArgsConstructor
 @Builder
-@Table(name = "audit_log", indexes = {
-    @Index(name = "ix_audit_log_org_time", columnList = "org_number, created_at"),
-    @Index(name = "ix_audit_log_entity", columnList = "entity_type, entity_id"),
-    @Index(name = "ix_audit_log_action", columnList = "action_type, created_at")
-})
 public class AuditLog {
 
     @Id
@@ -40,12 +31,12 @@ public class AuditLog {
     @Column(name = "org_number")
     private Integer orgNumber;
 
-    @Column(name = "acted_by_user_id")
-    private Long actedByUserId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "acted_by_user_id")
+    private AppUser actedByUser;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "action_type", nullable = false, length = 100)
-    private ActionType actionType;
+    private String actionType;
 
     @Column(name = "entity_type", nullable = false, length = 100)
     private String entityType;
@@ -58,9 +49,6 @@ public class AuditLog {
 
     @Column(name = "new_values_json", columnDefinition = "JSON")
     private String newValuesJson;
-
-    @Column(name = "ip_address", length = 45)
-    private String ipAddress;
 
     @Column(name = "user_agent", length = 500)
     private String userAgent;

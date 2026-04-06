@@ -50,6 +50,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Get all runs for organization")
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistRunResponse>> getRuns(
             @RequestParam Integer orgNumber,
             @RequestParam(required = false) RunStatus status,
@@ -71,6 +72,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Get run by ID")
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistRunResponse> getRun(
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
@@ -110,6 +112,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Complete a run")
     @PutMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistRunResponse> completeRun(
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
@@ -123,6 +126,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Update run item (answer question)")
     @PutMapping("/{runId}/items/{itemId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistRunItemResponse> updateRunItem(
             @PathVariable Long runId,
             @PathVariable Long itemId,
@@ -147,6 +151,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Get all items for a run")
     @GetMapping("/{id}/items")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistRunItemResponse>> getRunItems(
             @PathVariable Long id,
             @RequestParam Integer orgNumber,

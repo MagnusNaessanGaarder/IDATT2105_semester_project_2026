@@ -2,35 +2,42 @@ package com.example.InternalControl;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 
+/**
+ * Base class for integration tests using Testcontainers.
+ * Provides a shared MySQL container for all integration tests.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
+@TestPropertySource(locations = "classpath:application-test.properties")
 public abstract class AbstractIntegrationTest {
 
-  static final MySQLContainer<?> mysql;
+    private static final MySQLContainer<?> mysql;
 
-  static {
-    MySQLContainer<?> container = null;
-    if (System.getenv("SPRING_DATASOURCE_URL") == null) {
-      try {
-        container = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
-        container.start();
-      } catch (Exception e) {
-        // Docker not available, will use H2 from properties
-        container = null;
-      }
+    static {
+        if (System.getenv("SPRING_DATASOURCE_URL") != null) {
+            // Use external database if configured
+            mysql = null;
+        } else {
+            mysql = new MySQLContainer<>("mysql:8.0")
+                    .withDatabaseName("testdb")
+                    .withUsername("test")
+                    .withPassword("test")
+                    .withReuse(true);
+            mysql.start();
+        }
     }
-    mysql = container;
-  }
 
-  @DynamicPropertySource
-  static void configureProperties(DynamicPropertyRegistry registry) {
-    if (mysql != null) {
-      registry.add("spring.datasource.url", mysql::getJdbcUrl);
-      registry.add("spring.datasource.username", mysql::getUsername);
-      registry.add("spring.datasource.password", mysql::getPassword);
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        if (mysql != null) {
+            registry.add("spring.datasource.url", mysql::getJdbcUrl);
+            registry.add("spring.datasource.username", mysql::getUsername);
+            registry.add("spring.datasource.password", mysql::getPassword);
+            registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
+        }
     }
-  }
 }
