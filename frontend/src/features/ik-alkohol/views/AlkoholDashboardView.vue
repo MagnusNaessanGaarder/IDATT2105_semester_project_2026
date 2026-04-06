@@ -13,6 +13,9 @@ const {
   staffWithExpired,
   certificateStatus,
   formattedDate,
+  isLoading,
+  error,
+  reload,
 } = useAlkoholData()
 
 const latestControls = computed(() => dailyControls.slice(0, 5))
@@ -79,6 +82,15 @@ const staffRows = computed(() => {
         <p class="stat-card__value">{{ laws.length }}</p>
         <p class="stat-card__meta">Lover og forskrifter i oversikten</p>
       </article>
+    </section>
+
+    <section v-if="error" class="alert-strip" aria-live="polite">
+      <p>{{ error }}</p>
+      <button type="button" class="action-card__eyebrow" @click="reload">Prøv igjen</button>
+    </section>
+
+    <section v-else-if="isLoading" class="alert-strip" aria-live="polite">
+      <p>Laster IK-Alkohol data...</p>
     </section>
 
     <section class="dashboard-grid" aria-label="Hovedseksjoner for IK-Alkohol">

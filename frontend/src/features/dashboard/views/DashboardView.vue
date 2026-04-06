@@ -123,6 +123,20 @@ const goToNotificationAction = (actionUrl: string | null) => {
       <router-link class="alert-banner__link" :to="{ name: 'Notifications' }">Se varsler</router-link>
     </section>
 
+    <section v-if="data.error" class="alert-banner" aria-label="API-feil">
+      <div>
+        <p class="alert-banner__title">Kunne ikke hente dashboard-data</p>
+        <p class="alert-banner__text">{{ data.error }}</p>
+      </div>
+      <button class="alert-banner__link" type="button" @click="data.reload">Prøv igjen</button>
+    </section>
+
+    <section v-else-if="data.isLoading" class="alert-banner" aria-label="Laster dashboard-data">
+      <div>
+        <p class="alert-banner__title">Laster dashboard-data...</p>
+      </div>
+    </section>
+
     <template v-if="viewMode === 'oversikt'">
       <section class="dashboard__stats" aria-label="Nøkkeltall">
         <article v-for="stat in stats" :key="stat.label" class="stat-card" :class="`stat-card--${stat.color}`">

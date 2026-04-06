@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { type AuditLogEntry, type SettingItem, useAdminData } from '../composables/useAdminData'
 
 const data = useAdminData()
 
 const settingsState = ref({
-  system: JSON.parse(JSON.stringify(data.settings.system)),
-  notification_preferences: JSON.parse(JSON.stringify(data.settings.notification_preferences)),
-  security: JSON.parse(JSON.stringify(data.settings.security)),
-  backup: JSON.parse(JSON.stringify(data.settings.backup)),
+  system: { section_title: '', items: [] as SettingItem[] },
+  notification_preferences: { section_title: '', items: [] as SettingItem[] },
+  security: { section_title: '', items: [] as SettingItem[] },
+  backup: { section_title: '', items: [] as SettingItem[] },
 }) as {
   value: {
     system: { section_title: string; items: SettingItem[] }
@@ -17,6 +17,19 @@ const settingsState = ref({
     backup: { section_title: string; items: SettingItem[] }
   }
 }
+
+watch(
+  () => data.settings,
+  (nextSettings) => {
+    settingsState.value = {
+      system: JSON.parse(JSON.stringify(nextSettings.system)),
+      notification_preferences: JSON.parse(JSON.stringify(nextSettings.notification_preferences)),
+      security: JSON.parse(JSON.stringify(nextSettings.security)),
+      backup: JSON.parse(JSON.stringify(nextSettings.backup)),
+    }
+  },
+  { immediate: true, deep: true },
+)
 
 const query = ref('')
 
@@ -73,7 +86,21 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
       </div>
     </header>
 
-    <section class="settings-summary" aria-label="Systemoversikt">
+    <section v-if="data.error" class="audit-section">
+      <header class="audit-header">
+        <h2>Kunne ikke hente innstillinger</h2>
+        <button class="btn btn--primary" type="button" @click="data.reload">Prøv igjen</button>
+      </header>
+      <p>{{ data.error }}</p>
+    </section>
+
+    <section v-else-if="data.isLoading" class="audit-section">
+      <header class="audit-header">
+        <h2>Laster innstillinger...</h2>
+      </header>
+    </section>
+
+    <section v-if="!data.isLoading && !data.error" class="settings-summary" aria-label="Systemoversikt">
       <article class="summary-card">
         <strong>{{ sections.length }}</strong>
         <span>Konfigurasjonsseksjoner</span>
@@ -92,7 +119,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
       </article>
     </section>
 
-    <section class="settings-grid" aria-label="Konfigurasjonspanel">
+    <section v-if="!data.isLoading && !data.error" class="settings-grid" aria-label="Konfigurasjonspanel">
       <article v-for="(section, sectionIndex) in sections" :key="section.section_title" class="settings-section">
         <h2 class="settings-title">{{ section.section_title }}</h2>
         <div class="settings-items">
@@ -141,7 +168,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
       </article>
     </section>
 
-    <section class="audit-section">
+    <section v-if="!data.isLoading && !data.error" class="audit-section">
       <header class="audit-header">
         <h2>Revisjonslogg</h2>
         <input v-model="query" class="audit-search" type="search" placeholder="Søk i hendelser" />

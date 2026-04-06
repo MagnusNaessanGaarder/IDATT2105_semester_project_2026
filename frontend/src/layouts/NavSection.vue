@@ -52,7 +52,7 @@ const isItemActive = (routeName: string) => {
 }
 
 const handleHeaderClick = () => {
-  if (isAnyChildActive.value) {
+  if (props.currentScreen !== props.section.dashboardRoute) {
     emit('navigateDashboard', props.section.dashboardRoute)
     return
   }
