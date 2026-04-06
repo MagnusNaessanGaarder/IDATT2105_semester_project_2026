@@ -1,7 +1,7 @@
 #!/bin/bash
 # API Test Script using HTTPie
 
-BASE_URL="localhost:8080/api"
+BASE_URL="localhost:8080/api/v1/v1"
 PASS=0
 FAIL=0
 TOKEN=""
@@ -84,30 +84,73 @@ else
   print_result 1 "Health check"
 fi
 
-# Test 2: Login with admin
-echo "Test 2: Login with admin user"
-RESPONSE=$(http --ignore-stdin -b POST :8080/api/auth/login email="admin@everest-sushi.no" password="Test1234!" 2>/dev/null)
-if [ -n "$RESPONSE" ] && echo "$RESPONSE" | grep -q "accessToken"; then
-  TOKEN=$(echo "$RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
-  print_result 0 "Admin login"
+# Test 2: Register new user first
+echo "Test 2: Register new user"
+TIMESTAMP=$(date +%s)
+TEST_EMAIL="test${TIMESTAMP}@example.com"
+REGISTER_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/auth/register \
+  email="$TEST_EMAIL" \
+  password="TestPass123!" \
+  fullName="API Test User" \
+  phone="12345678" 2>/dev/null)
+
+if [ -n "$REGISTER_RESPONSE" ] && echo "$REGISTER_RESPONSE" | grep -q "accessToken"; then
+  TOKEN=$(echo "$REGISTER_RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
+
+  # Extract userId from JWT token payload
+  JWT_PAYLOAD=$(echo "$TOKEN" | cut -d'.' -f2)
+  # Add padding if needed
+  PADDING=$((4 - ${#JWT_PAYLOAD} % 4))
+  if [ $PADDING -ne 4 ]; then
+    JWT_PAYLOAD=$(echo -n "$JWT_PAYLOAD" | tr '_-' '/+' | tr -d '=')
+    for i in $(seq 1 $PADDING); do JWT_PAYLOAD="${JWT_PAYLOAD}="; done
+  fi
+  USER_ID=$(echo "$JWT_PAYLOAD" | base64 -d 2>/dev/null | grep -o '"userId":[0-9]*' | cut -d':' -f2)
+
+  # Assign MANAGER role and organization membership
+  if [ -n "$USER_ID" ]; then
+    docker exec backend-mysql-1 mysql -u root -proot -e "
+      -- Add user to organization
+      INSERT IGNORE INTO internal_control.user_organization (user_id, org_number, is_active, joined_at) 
+      VALUES ($USER_ID, 937219997, 1, NOW());
+      
+      -- Assign MANAGER role
+      INSERT IGNORE INTO internal_control.role (role_name, is_system_role) VALUES ('MANAGER', 0);
+      SET @ROLE_ID = (SELECT role_id FROM internal_control.role WHERE role_name = 'MANAGER');
+      INSERT IGNORE INTO internal_control.user_organization_role (user_id, org_number, role_id) 
+      VALUES ($USER_ID, 937219997, @ROLE_ID);
+    " 2>/dev/null
+
+    # Re-login to get new token with MANAGER role
+    slee1
+    LOGIN_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/auth/login \
+      email="$TEST_EMAIL" \
+      password="TestPass123!" 2>/dev/null)
+    if [ -n "$LOGIN_RESPONSE" ]; then
+      NEW_TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
+      if [ -n "$NEW_TOKEN" ]; then
+        TOKEN="$NEW_TOKEN"
+      fi
+    fi
+  fi
+
+  print_result 0 "User registration"
 else
-  print_result 1 "Admin login" "No access token received"
+  print_result 1 "User registration" "No access token received"
 fi
 
-# Test 3: Register new user
+# Test 3: Login with registered user
 if [ -n "$TOKEN" ]; then
-  TIMESTAMP=$(date +%s)
-  NEW_EMAIL="test${TIMESTAMP}@example.com"
+  echo "Test 3: Login with registered user"
+  LOGIN_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/auth/login \
+    email="$TEST_EMAIL" \
+    password="TestPass123!" 2>/dev/null)
 
-  echo "Test 3: Register new user"
-  if http --ignore-stdin -b POST :8080/api/auth/register \
-    email="$NEW_EMAIL" \
-    password="TestPass123!" \
-    fullName="API Test User" \
-    phone="12345678" &>/dev/null; then
-    print_result 0 "User registration"
+  if [ -n "$LOGIN_RESPONSE" ] && echo "$LOGIN_RESPONSE" | grep -q "accessToken"; then
+    TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
+    print_result 0 "User login"
   else
-    print_result 1 "User registration"
+    print_result 1 "User login" "No access token received"
   fi
 fi
 
@@ -128,7 +171,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 5: Get all templates
   echo "Test 5: Get all templates"
-  if http :8080/api/checklists/templates orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/checklists/templates orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get all templates"
   else
     print_result 1 "Get all templates"
@@ -136,7 +179,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 6: Get active templates
   echo "Test 6: Get active templates"
-  if http :8080/api/checklists/templates/active orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/checklists/templates/active orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get active templates"
   else
     print_result 1 "Get active templates"
@@ -144,7 +187,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 7: Get by module (FOOD)
   echo "Test 7: Get templates by module (FOOD)"
-  if http :8080/api/checklists/templates/module/FOOD orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/checklists/templates/module/FOOD orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get FOOD templates"
   else
     print_result 1 "Get FOOD templates"
@@ -152,7 +195,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 8: Create template
   echo "Test 8: Create template"
-  RESPONSE=$(http --ignore-stdin -b POST :8080/api/checklists/templates \
+  RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/checklists/templates \
     Authorization:"Bearer $TOKEN" \
     orgNumber==937219997 \
     moduleType="FOOD" \
@@ -174,7 +217,7 @@ if [ -n "$TOKEN" ]; then
   # Test 9: Get by ID
   if [ -n "$TEMPLATE_ID" ]; then
     echo "Test 9: Get template by ID"
-    if http :8080/api/checklists/templates/$TEMPLATE_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    if http :8080/api/v1/checklists/templates/$TEMPLATE_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
       print_result 0 "Get template by ID"
     else
       print_result 1 "Get template by ID"
@@ -184,7 +227,7 @@ if [ -n "$TOKEN" ]; then
   # Test 10: Update template
   if [ -n "$TEMPLATE_ID" ]; then
     echo "Test 10: Update template"
-    if http --ignore-stdin -b PUT :8080/api/checklists/templates/$TEMPLATE_ID \
+    if http --ignore-stdin -b PUT :8080/api/v1/checklists/templates/$TEMPLATE_ID \
       orgNumber==937219997 \
       Authorization:"Bearer $TOKEN" \
       title="Daily Temperature Check - Updated" \
@@ -199,7 +242,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 11: Get by module (ALCOHOL)
   echo "Test 11: Get ALCOHOL templates"
-  if http :8080/api/checklists/templates/module/ALCOHOL orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/checklists/templates/module/ALCOHOL orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get ALCOHOL templates"
   else
     print_result 1 "Get ALCOHOL templates"
@@ -216,14 +259,14 @@ if [ -n "$TOKEN" ]; then
 
   # Test 12: Create deviation report
   echo "Test 12: Create deviation report"
-  DEV_RESPONSE=$(http --ignore-stdin -b POST :8080/api/deviations \
+  DEV_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/deviations \
     Authorization:"Bearer $TOKEN" \
     orgNumber==937219997 \
     reportType="incident" \
     severity="major" \
     title="Test Incident" \
     description="Test description for incident" 2>/dev/null)
-  
+
   if [ -n "$DEV_RESPONSE" ]; then
     DEVIATION_ID=$(echo "$DEV_RESPONSE" | grep -o '"reportId":[0-9]*' | cut -d':' -f2)
     if [ -n "$DEVIATION_ID" ]; then
@@ -237,7 +280,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 13: Get all deviations
   echo "Test 13: Get all deviation reports"
-  if http :8080/api/deviations orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/deviations orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get all deviation reports"
   else
     print_result 1 "Get all deviation reports"
@@ -246,7 +289,7 @@ if [ -n "$TOKEN" ]; then
   # Test 14: Get deviation by ID
   if [ -n "$DEVIATION_ID" ]; then
     echo "Test 14: Get deviation by ID"
-    if http :8080/api/deviations/$DEVIATION_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    if http :8080/api/v1/deviations/$DEVIATION_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
       print_result 0 "Get deviation by ID"
     else
       print_result 1 "Get deviation by ID"
@@ -255,7 +298,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 15: Filter by status
   echo "Test 15: Filter deviations by status"
-  if http :8080/api/deviations/status/REPORTED orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/deviations/status/REPORTED orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Filter deviations by status"
   else
     print_result 1 "Filter deviations by status"
@@ -263,7 +306,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 16: Filter by severity
   echo "Test 16: Filter deviations by severity"
-  if http :8080/api/deviations/severity/MAJOR orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/deviations/severity/MAJOR orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Filter deviations by severity"
   else
     print_result 1 "Filter deviations by severity"
@@ -272,7 +315,7 @@ if [ -n "$TOKEN" ]; then
   # Test 17: Update status
   if [ -n "$DEVIATION_ID" ]; then
     echo "Test 17: Update deviation status"
-    if http --ignore-stdin -b PUT :8080/api/deviations/$DEVIATION_ID/status \
+    if http --ignore-stdin -b PUT :8080/api/v1/deviations/$DEVIATION_ID/status \
       orgNumber==937219997 \
       Authorization:"Bearer $TOKEN" \
       status="under_investigation" &>/dev/null; then
@@ -284,7 +327,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 18: Count open deviations
   echo "Test 18: Count open deviation reports"
-  if http :8080/api/deviations/count/open orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/deviations/count/open orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Count open deviations"
   else
     print_result 1 "Count open deviations"
@@ -303,7 +346,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 19: Get all locations
   echo "Test 19: Get all locations"
-  if http :8080/api/locations orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/locations orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get all locations"
   else
     print_result 1 "Get all locations"
@@ -312,7 +355,7 @@ if [ -n "$TOKEN" ]; then
   # Test 20: Create location
   echo "Test 20: Create location"
   LOC_TIMESTAMP=$(date +%s)
-  LOC_RESPONSE=$(http --ignore-stdin -b POST :8080/api/locations \
+  LOC_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/locations \
     Authorization:"Bearer $TOKEN" \
     orgNumber==937219997 \
     name="Test Kitchen $LOC_TIMESTAMP" \
@@ -336,7 +379,7 @@ if [ -n "$TOKEN" ]; then
   # Test 21: Get location by ID
   if [ -n "$LOCATION_ID" ]; then
     echo "Test 21: Get location by ID"
-    if http :8080/api/locations/$LOCATION_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    if http :8080/api/v1/locations/$LOCATION_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
       print_result 0 "Get location by ID"
     else
       print_result 1 "Get location by ID"
@@ -346,7 +389,7 @@ if [ -n "$TOKEN" ]; then
   # Test 22: Update location
   if [ -n "$LOCATION_ID" ]; then
     echo "Test 22: Update location"
-    if http --ignore-stdin -b PUT :8080/api/locations/$LOCATION_ID \
+    if http --ignore-stdin -b PUT :8080/api/v1/locations/$LOCATION_ID \
       orgNumber==937219997 \
       Authorization:"Bearer $TOKEN" \
       name="Test Kitchen Updated" \
@@ -372,7 +415,7 @@ if [ -n "$TOKEN" ] && [ -n "$LOCATION_ID" ]; then
   # Test 23: Create temperature log point
   echo "Test 23: Create temperature log point"
   TP_TIMESTAMP=$(date +%s)
-  TP_RESPONSE=$(http --ignore-stdin -b POST :8080/api/temperature/points \
+  TP_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/temperature/points \
     Authorization:"Bearer $TOKEN" \
     orgNumber==937219997 \
     locationId:=$LOCATION_ID \
@@ -392,7 +435,7 @@ if [ -n "$TOKEN" ] && [ -n "$LOCATION_ID" ]; then
 
   # Test 24: Get all log points
   echo "Test 24: Get all temperature log points"
-  if http :8080/api/temperature/points orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/temperature/points orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get all temp log points"
   else
     print_result 1 "Get all temp log points"
@@ -401,7 +444,7 @@ if [ -n "$TOKEN" ] && [ -n "$LOCATION_ID" ]; then
   # Test 25: Record temperature entry
   if [ -n "$TEMP_POINT_ID" ]; then
     echo "Test 25: Record temperature entry"
-    ENTRY_RESPONSE=$(http --ignore-stdin -b POST :8080/api/temperature/entries \
+    ENTRY_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/temperature/entries \
       Authorization:"Bearer $TOKEN" \
       orgNumber==937219997 \
       logPointId:=$TEMP_POINT_ID \
@@ -422,7 +465,7 @@ if [ -n "$TOKEN" ] && [ -n "$LOCATION_ID" ]; then
 
   # Test 26: Get all entries
   echo "Test 26: Get all temperature entries"
-  if http :8080/api/temperature/entries orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/temperature/entries orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get all temp entries"
   else
     print_result 1 "Get all temp entries"
@@ -430,7 +473,7 @@ if [ -n "$TOKEN" ] && [ -n "$LOCATION_ID" ]; then
 
   # Test 27: Get alerts
   echo "Test 27: Get temperature alerts"
-  if http :8080/api/temperature/alerts orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/temperature/alerts orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get temp alerts"
   else
     print_result 1 "Get temp alerts"
@@ -446,7 +489,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 28: Create PDF export - checklist report
   echo "Test 28: Create PDF export (checklist report)"
-  EXPORT_RESPONSE=$(http --ignore-stdin -b POST :8080/api/exports \
+  EXPORT_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/exports \
     Authorization:"Bearer $TOKEN" \
     orgNumber==937219997 \
     exportType="checklist_report" \
@@ -465,7 +508,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 29: Create JSON export
   echo "Test 29: Create JSON export (deviation report)"
-  if http --ignore-stdin -b POST :8080/api/exports \
+  if http --ignore-stdin -b POST :8080/api/v1/exports \
     Authorization:"Bearer $TOKEN" \
     orgNumber==937219997 \
     exportType="deviation_report" \
@@ -478,7 +521,7 @@ if [ -n "$TOKEN" ]; then
   # Test 30: Get export status
   if [ -n "$EXPORT_ID" ]; then
     echo "Test 30: Get export status"
-    if http :8080/api/exports/$EXPORT_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    if http :8080/api/v1/exports/$EXPORT_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
       print_result 0 "Get export status"
     else
       print_result 1 "Get export status"
@@ -487,7 +530,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 31: List all exports
   echo "Test 31: List all exports"
-  if http :8080/api/exports orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/exports orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "List all exports"
   else
     print_result 1 "List all exports"
@@ -503,7 +546,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 32: Get all documents
   echo "Test 32: Get all documents"
-  if http :8080/api/files orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/files orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get all documents"
   else
     print_result 1 "Get all documents"
@@ -511,7 +554,7 @@ if [ -n "$TOKEN" ]; then
 
   # Test 33: Get documents by category
   echo "Test 33: Get documents by category"
-  if http :8080/api/files orgNumber==937219997 category==DOCUMENT Authorization:"Bearer $TOKEN" &>/dev/null; then
+  if http :8080/api/v1/files orgNumber==937219997 category==DOCUMENT Authorization:"Bearer $TOKEN" &>/dev/null; then
     print_result 0 "Get documents by category"
   else
     print_result 1 "Get documents by category"
@@ -523,15 +566,15 @@ echo ""
 # ==================== CLEANUP ====================
 if [ -n "$LOCATION_ID" ]; then
   echo -e "${YELLOW}Cleaning up...${NC}"
-  
+
   # Delete location
   if [ -n "$LOCATION_ID" ]; then
-    http --ignore-stdin DELETE :8080/api/locations/$LOCATION_ID \
+    http --ignore-stdin DELETE :8080/api/v1/locations/$LOCATION_ID \
       orgNumber==937219997 \
       Authorization:"Bearer $TOKEN" &>/dev/null
     echo "  Deleted location $LOCATION_ID"
   fi
-  
+
   echo ""
 fi
 

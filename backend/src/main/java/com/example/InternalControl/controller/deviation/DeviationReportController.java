@@ -41,7 +41,7 @@ import java.util.List;
  * REST Controller for Deviation/Incident Report operations.
  */
 @RestController
-@RequestMapping("/api/deviations")
+@RequestMapping("/api/v1/deviations")
 @Tag(name = "Deviation Reports", description = "Manage deviation and incident reports")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor

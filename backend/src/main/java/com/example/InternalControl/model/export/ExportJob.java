@@ -1,7 +1,6 @@
 package com.example.InternalControl.model.export;
 
 import com.example.InternalControl.model.document.OrganizationDocument;
-import com.example.InternalControl.shared.enums.ExportType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
