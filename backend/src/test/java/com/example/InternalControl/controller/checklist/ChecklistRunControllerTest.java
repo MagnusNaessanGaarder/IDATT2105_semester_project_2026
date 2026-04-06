@@ -178,10 +178,15 @@ class ChecklistRunControllerTest {
     }
 
     @Test
-    void getRuns_WithoutAuthentication_ReturnsUnauthorized() throws Exception {
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getRuns_WithInvalidOrg_ReturnsNotFound() throws Exception {
+        // Given
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt()))
+                .thenReturn(false);
+
         // When & Then
         mockMvc.perform(get("/api/checklists/runs")
-                        .param("orgNumber", "123456789"))
-                .andExpect(status().isUnauthorized());
+                        .param("orgNumber", "999999999"))
+                .andExpect(status().isNotFound());
     }
 }

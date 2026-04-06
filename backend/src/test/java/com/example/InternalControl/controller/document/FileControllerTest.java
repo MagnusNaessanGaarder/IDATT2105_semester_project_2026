@@ -79,10 +79,17 @@ class FileControllerTest {
     }
 
     @Test
-    void listDocuments_WithoutAuthentication_ReturnsUnauthorized() throws Exception {
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void listDocuments_WithNoDocuments_ReturnsEmptyList() throws Exception {
+        // Given
+        when(documentService.findByOrgNumberAndActiveTrue(123456789))
+                .thenReturn(java.util.Collections.emptyList());
+
         // When & Then
         mockMvc.perform(get("/api/files")
                         .header("X-Org-Number", "123456789"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
     }
 }

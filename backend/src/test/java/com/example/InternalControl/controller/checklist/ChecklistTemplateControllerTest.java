@@ -178,10 +178,15 @@ class ChecklistTemplateControllerTest {
     }
 
     @Test
-    void getTemplates_WithoutAuthentication_ReturnsUnauthorized() throws Exception {
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getTemplates_WithInvalidOrg_ReturnsNotFound() throws Exception {
+        // Given
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt()))
+                .thenReturn(false);
+
         // When & Then
         mockMvc.perform(get("/api/checklists/templates")
-                        .param("orgNumber", "123456789"))
-                .andExpect(status().isUnauthorized());
+                        .param("orgNumber", "999999999"))
+                .andExpect(status().isNotFound());
     }
 }

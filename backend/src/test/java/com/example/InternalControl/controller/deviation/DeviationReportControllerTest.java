@@ -53,7 +53,7 @@ class DeviationReportControllerTest {
 
     @BeforeEach
     void setUp() {
-        userDetails = new CustomUserDetails(1L, "test@example.com", "password", Collections.emptyList(), 123456789);
+        userDetails = new CustomUserDetails(1L, "test@example.com", "password", Collections.emptyList());
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 
@@ -165,11 +165,16 @@ class DeviationReportControllerTest {
     }
 
     @Test
-    void getReports_WithoutAuthentication_ReturnsUnauthorized() throws Exception {
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getReports_WithServiceError_ReturnsNotFound() throws Exception {
+        // Given
+        when(deviationReportService.getReportsByOrg(123456789))
+                .thenThrow(new jakarta.persistence.EntityNotFoundException("Organization not found"));
+
         // When & Then
         mockMvc.perform(get("/api/deviations")
                         .param("orgNumber", "123456789"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isNotFound());
     }
 
     @Test

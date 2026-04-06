@@ -83,7 +83,7 @@ The `.env` file containing the JWT secret is already in `.gitignore` and is not 
 
 ## 4. VERIFICATION CHECKLIST
 
-- [x] All 26 endpoints have @PreAuthorize annotations
+- [x] All 25 endpoints have @PreAuthorize annotations
 - [x] Integration tests fixed and simplified
 - [x] 24 new controller tests added
 - [x] H2 database configured for testing
