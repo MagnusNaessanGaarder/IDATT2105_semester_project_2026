@@ -262,7 +262,6 @@ CREATE TABLE organization_document_version
     INDEX ix_doc_version_document (document_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---CONSTRAINT uq_blob_location           UNIQUE (azure_container, azure_blob_name),
 
 -- ---------------------------------------------------------
 -- TRAINING

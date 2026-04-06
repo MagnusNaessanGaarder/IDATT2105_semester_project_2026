@@ -1,7 +1,7 @@
 .PHONY: help dev stop restart status logs test clean clean-db clean-full install
 
-# Java 21 Configuration
-JAVA_HOME := /usr/lib/jvm/java-21-openjdk
+# Java 21 Configuration (auto-detect for distro-specific JDK paths)
+JAVA_HOME ?= $(shell dirname $$(dirname $$(readlink -f $$(command -v javac))))
 PATH := $(JAVA_HOME)/bin:$(PATH)
 export JAVA_HOME PATH
 
@@ -35,7 +35,7 @@ dev:
 	@echo "  MySQL started"
 	@echo ""
 	@echo "[2/3] Starting backend..."
-	@(cd backend && ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
+	@(cd backend && set -a; [ -f .env ] && . ./.env; set +a; ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
 	@sleep 15
 	@echo "  Backend started"
 	@echo ""
