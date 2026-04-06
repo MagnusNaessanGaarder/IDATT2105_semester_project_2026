@@ -1,9 +1,9 @@
 package com.example.InternalControl.service.auth;
 
-import com.example.InternalControl.dto.AuthResponse;
-import com.example.InternalControl.dto.LoginRequest;
-import com.example.InternalControl.dto.OrganizationRoleResponse;
-import com.example.InternalControl.dto.RegisterRequest;
+import com.example.InternalControl.dto.auth.request.LoginRequest;
+import com.example.InternalControl.dto.auth.request.RegisterRequest;
+import com.example.InternalControl.dto.auth.response.AuthResponse;
+import com.example.InternalControl.dto.auth.response.OrganizationRoleResponse;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.model.user.AppUserLocalCredential;
 import com.example.InternalControl.model.user.UserOrganization;

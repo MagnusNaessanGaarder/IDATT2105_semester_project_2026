@@ -7,7 +7,7 @@ import com.example.InternalControl.model.export.ExportJob;
 import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
 import com.example.InternalControl.repository.deviation.DeviationReportRepository;
 import com.example.InternalControl.service.export.generator.PdfGenerator;
-import com.example.InternalControl.shared.enums.ExportType;
+import com.example.InternalControl.model.export.ExportType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

@@ -1,4 +1,4 @@
-package com.example.InternalControl.dto;
+package com.example.InternalControl.dto.auth.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package com.example.InternalControl.dto.temperature;
+package com.example.InternalControl.dto.temperature.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * DTO for temperature log entry requests.
+ */
 @Data
 @Builder
 @NoArgsConstructor

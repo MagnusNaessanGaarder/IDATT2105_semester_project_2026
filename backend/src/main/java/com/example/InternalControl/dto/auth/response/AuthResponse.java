@@ -1,13 +1,14 @@
-package com.example.InternalControl.dto;
+package com.example.InternalControl.dto.auth.response;
 
 import lombok.Builder;
 
 import java.util.List;
 
+import com.example.InternalControl.dto.auth.response.OrganizationRoleResponse;
+
 /**
  * DTO for authentication responses.
  * Contains JWT tokens and user info with organizations and roles.
-
  */
 @Builder
 public record AuthResponse(

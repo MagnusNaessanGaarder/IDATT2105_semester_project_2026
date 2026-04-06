@@ -1,9 +1,9 @@
 package com.example.InternalControl.controller.auth;
 
-import com.example.InternalControl.dto.AuthResponse;
-import com.example.InternalControl.dto.LoginRequest;
-import com.example.InternalControl.dto.RefreshTokenRequest;
-import com.example.InternalControl.dto.RegisterRequest;
+import com.example.InternalControl.dto.auth.request.LoginRequest;
+import com.example.InternalControl.dto.auth.request.RefreshTokenRequest;
+import com.example.InternalControl.dto.auth.request.RegisterRequest;
+import com.example.InternalControl.dto.auth.response.AuthResponse;
 import com.example.InternalControl.service.auth.AuthService;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;

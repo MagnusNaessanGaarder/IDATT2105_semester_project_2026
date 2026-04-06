@@ -47,8 +47,8 @@ public class ApiRedirectController {
         response.addHeader("Sunset", "Sat, 01 Jan 2026 00:00:00 GMT");
         response.addHeader("Warning", "299 - \"API versioning recommended. Use /api/v1/ endpoints.\"");
 
-        // Redirect to versioned endpoint
-        response.setStatus(HttpStatus.MOVED_PERMANENTLY.value());
+        // Redirect to versioned endpoint (use 308 to preserve HTTP method)
+        response.setStatus(HttpStatus.PERMANENT_REDIRECT.value());
         response.setHeader("Location", versionedUri);
     }
 }

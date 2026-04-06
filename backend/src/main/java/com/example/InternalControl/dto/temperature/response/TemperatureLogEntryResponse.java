@@ -1,4 +1,4 @@
-package com.example.InternalControl.dto.temperature;
+package com.example.InternalControl.dto.temperature.response;
 
 import lombok.Builder;
 import lombok.Data;
@@ -6,6 +6,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * DTO for temperature log entry responses.
+ */
 @Data
 @Builder
 public class TemperatureLogEntryResponse {

@@ -1,4 +1,4 @@
-package com.example.InternalControl.dto;
+package com.example.InternalControl.dto.auth.response;
 
 import lombok.Builder;
 

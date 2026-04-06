@@ -1,4 +1,4 @@
-package com.example.InternalControl.shared.enums;
+package com.example.InternalControl.model.export;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

@@ -96,7 +96,7 @@ REGISTER_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/auth/register \
 
 if [ -n "$REGISTER_RESPONSE" ] && echo "$REGISTER_RESPONSE" | grep -q "accessToken"; then
   TOKEN=$(echo "$REGISTER_RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
-  
+
   # Extract userId from JWT token payload
   JWT_PAYLOAD=$(echo "$TOKEN" | cut -d'.' -f2)
   # Add padding if needed
@@ -106,7 +106,7 @@ if [ -n "$REGISTER_RESPONSE" ] && echo "$REGISTER_RESPONSE" | grep -q "accessTok
     for i in $(seq 1 $PADDING); do JWT_PAYLOAD="${JWT_PAYLOAD}="; done
   fi
   USER_ID=$(echo "$JWT_PAYLOAD" | base64 -d 2>/dev/null | grep -o '"userId":[0-9]*' | cut -d':' -f2)
-  
+
   # Assign MANAGER role and organization membership
   if [ -n "$USER_ID" ]; then
     docker exec backend-mysql-1 mysql -u root -proot -e "
@@ -120,9 +120,9 @@ if [ -n "$REGISTER_RESPONSE" ] && echo "$REGISTER_RESPONSE" | grep -q "accessTok
       INSERT IGNORE INTO internal_control.user_organization_role (user_id, org_number, role_id) 
       VALUES ($USER_ID, 937219997, @ROLE_ID);
     " 2>/dev/null
-    
+
     # Re-login to get new token with MANAGER role
-    sleep 1
+    slee1
     LOGIN_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/auth/login \
       email="$TEST_EMAIL" \
       password="TestPass123!" 2>/dev/null)
@@ -133,7 +133,7 @@ if [ -n "$REGISTER_RESPONSE" ] && echo "$REGISTER_RESPONSE" | grep -q "accessTok
       fi
     fi
   fi
-  
+
   print_result 0 "User registration"
 else
   print_result 1 "User registration" "No access token received"
@@ -145,7 +145,7 @@ if [ -n "$TOKEN" ]; then
   LOGIN_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/auth/login \
     email="$TEST_EMAIL" \
     password="TestPass123!" 2>/dev/null)
-  
+
   if [ -n "$LOGIN_RESPONSE" ] && echo "$LOGIN_RESPONSE" | grep -q "accessToken"; then
     TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
     print_result 0 "User login"
@@ -266,7 +266,7 @@ if [ -n "$TOKEN" ]; then
     severity="major" \
     title="Test Incident" \
     description="Test description for incident" 2>/dev/null)
-  
+
   if [ -n "$DEV_RESPONSE" ]; then
     DEVIATION_ID=$(echo "$DEV_RESPONSE" | grep -o '"reportId":[0-9]*' | cut -d':' -f2)
     if [ -n "$DEVIATION_ID" ]; then
@@ -566,7 +566,7 @@ echo ""
 # ==================== CLEANUP ====================
 if [ -n "$LOCATION_ID" ]; then
   echo -e "${YELLOW}Cleaning up...${NC}"
-  
+
   # Delete location
   if [ -n "$LOCATION_ID" ]; then
     http --ignore-stdin DELETE :8080/api/v1/locations/$LOCATION_ID \
@@ -574,7 +574,7 @@ if [ -n "$LOCATION_ID" ]; then
       Authorization:"Bearer $TOKEN" &>/dev/null
     echo "  Deleted location $LOCATION_ID"
   fi
-  
+
   echo ""
 fi
 

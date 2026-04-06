@@ -1,4 +1,4 @@
-package com.example.InternalControl.dto.temperature;
+package com.example.InternalControl.dto.temperature.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO for temperature log point requests.
+ */
 @Data
 @Builder
 @NoArgsConstructor
