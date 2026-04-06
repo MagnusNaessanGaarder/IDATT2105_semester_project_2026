@@ -27,7 +27,7 @@ import lombok.Setter;
 public class OrganizationSettings {
   @Id
   @Column(name = "org_number", nullable = false)
-  private long orgNumber;
+  private Integer orgNumber;
 
   @Column(name = "timezone_name", nullable = false)
   @Builder.Default
@@ -35,15 +35,15 @@ public class OrganizationSettings {
 
   @Column(name = "locale_code", nullable = false)
   @Builder.Default
-  private String localCode = "nb-NO";
+  private String localeCode = "nb-NO";
 
   @Column(name = "enable_food_module", nullable = false)
   @Builder.Default
-  private boolean enableFoodModule = true;
+  private Boolean enableFoodModule = true;
 
   @Column(name = "enable_alcohol_module", nullable = false)
   @Builder.Default
-  private boolean enableAlcoholModule = true;
+  private Boolean enableAlcoholModule = true;
 
   @Column(name = "default_temp_min_c", precision = 5, scale = 2)
   private BigDecimal defaultTempMinC;
@@ -53,16 +53,16 @@ public class OrganizationSettings {
 
   @Column(name = "reminder_email_enabled", nullable = false)
   @Builder.Default
-  private boolean reminderEmailEnabled = true;
+  private Boolean reminderEmailEnabled = true;
 
   @Column(name = "notification_email")
   private String notificationEmail;
 
   @Column(name = "retention_user_months")
-  private long retentionUserMonths;
+  private Integer retentionUserMonths;
 
   @Column(name = "retention_audit_months")
-  private long retentionAuditMonths;
+  private Integer retentionAuditMonths;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   @CreationTimestamp

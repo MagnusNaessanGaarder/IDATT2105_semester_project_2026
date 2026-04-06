@@ -1,6 +1,8 @@
 package com.example.InternalControl.controller.document;
 
 import com.example.InternalControl.model.document.OrganizationDocument;
+import com.example.InternalControl.repository.document.OrganizationDocumentRepository;
+import com.example.InternalControl.repository.document.OrganizationDocumentVersionRepository;
 import com.example.InternalControl.service.document.DocumentService;
 import com.example.InternalControl.service.storage.BlobStorageService;
 import org.junit.jupiter.api.Test;
@@ -37,17 +39,22 @@ class FileControllerTest {
     @MockBean
     private BlobStorageService blobStorageService;
 
+    @MockBean
+    private OrganizationDocumentRepository documentRepo;
+
+    @MockBean
+    private OrganizationDocumentVersionRepository versionRepo;
+
     @Test
     @WithMockUser(roles = {"EMPLOYEE"})
     void listDocuments_WithValidOrgNumber_ReturnsDocuments() throws Exception {
         // Given
-        OrganizationDocument doc = OrganizationDocument.builder()
-                .documentId(1L)
-                .title("Test Document")
-                .orgNumber(123456789)
-                .build();
+        OrganizationDocument doc = new OrganizationDocument();
+        doc.setDocumentId(1L);
+        doc.setTitle("Test Document");
+        doc.setOrgNumber(123456789);
 
-        when(documentService.findByOrgNumberAndActiveTrue(123456789))
+        when(documentRepo.findByOrgNumberAndActiveTrue(123456789))
                 .thenReturn(List.of(doc));
 
         // When & Then
@@ -61,13 +68,12 @@ class FileControllerTest {
     @WithMockUser(roles = {"EMPLOYEE"})
     void listDocuments_WithCategoryFilter_ReturnsFilteredDocuments() throws Exception {
         // Given
-        OrganizationDocument doc = OrganizationDocument.builder()
-                .documentId(1L)
-                .title("Policy Document")
-                .orgNumber(123456789)
-                .build();
+        OrganizationDocument doc = new OrganizationDocument();
+        doc.setDocumentId(1L);
+        doc.setTitle("Policy Document");
+        doc.setOrgNumber(123456789);
 
-        when(documentService.findByOrgNumberAndDocumentType(123456789, "POLICY"))
+        when(documentRepo.findByOrgNumberAndDocumentType(123456789, "POLICY"))
                 .thenReturn(List.of(doc));
 
         // When & Then
@@ -82,7 +88,7 @@ class FileControllerTest {
     @WithMockUser(roles = {"EMPLOYEE"})
     void listDocuments_WithNoDocuments_ReturnsEmptyList() throws Exception {
         // Given
-        when(documentService.findByOrgNumberAndActiveTrue(123456789))
+        when(documentRepo.findByOrgNumberAndActiveTrue(123456789))
                 .thenReturn(java.util.Collections.emptyList());
 
         // When & Then

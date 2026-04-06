@@ -3,6 +3,7 @@ package com.example.InternalControl.controller.user;
 import com.example.InternalControl.dto.user.RoleResponse;
 import com.example.InternalControl.model.user.Role;
 import com.example.InternalControl.model.user.UserOrganizationRole;
+import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -115,10 +116,14 @@ public class RoleController {
             return ResponseEntity.ok().build();
         }
 
-        UserOrganizationRole userRole = UserOrganizationRole.builder()
+        UserOrganizationRoleId id = UserOrganizationRoleId.builder()
                 .userId(userId)
                 .orgNumber(orgNumber)
                 .roleId(roleId)
+                .build();
+
+        UserOrganizationRole userRole = UserOrganizationRole.builder()
+                .id(id)
                 .assignedAt(LocalDateTime.now())
                 .build();
 

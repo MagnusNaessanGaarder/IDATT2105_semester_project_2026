@@ -44,5 +44,11 @@ public interface UserOrganizationRoleRepository extends JpaRepository<UserOrgani
             @Param("roleId") Long roleId
     );
 
-    boolean existsByUserIdAndOrgNumberAndRoleId(Long userId, Integer orgNumber, Long roleId);
+    @Query("SELECT CASE WHEN COUNT(uor) > 0 THEN true ELSE false END FROM UserOrganizationRole uor " +
+           "WHERE uor.id.userId = :userId AND uor.id.orgNumber = :orgNumber AND uor.id.roleId = :roleId")
+    boolean existsByUserIdAndOrgNumberAndRoleId(
+            @Param("userId") Long userId,
+            @Param("orgNumber") Integer orgNumber,
+            @Param("roleId") Long roleId
+    );
 }

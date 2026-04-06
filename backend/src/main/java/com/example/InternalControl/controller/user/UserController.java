@@ -5,7 +5,9 @@ import com.example.InternalControl.dto.user.UserResponse;
 import com.example.InternalControl.dto.user.UserUpdateRequest;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.model.user.UserOrganization;
+import com.example.InternalControl.model.user.UserOrganizationId;
 import com.example.InternalControl.model.user.UserOrganizationRole;
+import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.AppUserRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
@@ -117,9 +119,13 @@ public class UserController {
         user = userRepository.save(user);
 
         // Create organization membership
-        UserOrganization userOrg = UserOrganization.builder()
+        UserOrganizationId userOrgId = UserOrganizationId.builder()
                 .userId(user.getUserId())
                 .orgNumber(request.getOrgNumber())
+                .build();
+
+        UserOrganization userOrg = UserOrganization.builder()
+                .id(userOrgId)
                 .isActive(true)
                 .joinedAt(LocalDateTime.now())
                 .build();
@@ -132,12 +138,15 @@ public class UserController {
                     extractTokenFromRequest(httpRequest));
 
             for (Long roleId : request.getRoleIds()) {
-                UserOrganizationRole userRole = UserOrganizationRole.builder()
+                UserOrganizationRoleId roleIdObj = UserOrganizationRoleId.builder()
                         .userId(user.getUserId())
                         .orgNumber(request.getOrgNumber())
                         .roleId(roleId)
+                        .build();
+
+                UserOrganizationRole userRole = UserOrganizationRole.builder()
+                        .id(roleIdObj)
                         .assignedAt(LocalDateTime.now())
-                        .assignedByUserId(currentUserId)
                         .build();
                 userOrgRoleRepository.save(userRole);
             }
@@ -191,10 +200,14 @@ public class UserController {
 
             // Add new roles
             for (Long roleId : request.getRoleIds()) {
-                UserOrganizationRole userRole = UserOrganizationRole.builder()
+                UserOrganizationRoleId roleIdObj = UserOrganizationRoleId.builder()
                         .userId(userId)
                         .orgNumber(orgNumber)
                         .roleId(roleId)
+                        .build();
+
+                UserOrganizationRole userRole = UserOrganizationRole.builder()
+                        .id(roleIdObj)
                         .assignedAt(LocalDateTime.now())
                         .build();
                 userOrgRoleRepository.save(userRole);
