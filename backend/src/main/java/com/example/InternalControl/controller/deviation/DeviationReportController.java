@@ -41,7 +41,7 @@ import java.util.List;
  * REST Controller for Deviation/Incident Report operations.
  */
 @RestController
-@RequestMapping("/api/deviations")
+@RequestMapping("/api/v1/deviations")
 @Tag(name = "Deviation Reports", description = "Manage deviation and incident reports")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
@@ -160,6 +160,7 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Organization or referenced user not found")
     })
     @PostMapping
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
     public ResponseEntity<DeviationReport> createReport(
             @Valid @RequestBody DeviationReportCreateRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -187,6 +188,7 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
     public ResponseEntity<DeviationReport> updateReport(
             @PathVariable Long id,
             @Valid @RequestBody DeviationReportUpdateRequest requestDto,
@@ -267,6 +269,7 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PostMapping("/{id}/immediate-action")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
     public ResponseEntity<DeviationReport> addImmediateAction(
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
@@ -287,6 +290,7 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PostMapping("/{id}/cause-analysis")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
     public ResponseEntity<DeviationReport> addCauseAnalysis(
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
@@ -307,6 +311,7 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PostMapping("/{id}/corrective-action")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
     public ResponseEntity<DeviationReport> addCorrectiveAction(
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
@@ -327,6 +332,7 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PostMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
     public ResponseEntity<DeviationReport> completeReport(
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,

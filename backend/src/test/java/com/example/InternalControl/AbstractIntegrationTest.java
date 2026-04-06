@@ -9,15 +9,20 @@ public abstract class AbstractIntegrationTest {
   static final MySQLContainer<?> mysql;
 
   static {
-    if (System.getenv("SPRING_DATASOURCE_URL") != null) {
-      mysql = null;
-    } else {
-      mysql = new MySQLContainer<>("mysql:8.0")
-          .withDatabaseName("testdb")
-          .withUsername("test")
-          .withPassword("test");
-      mysql.start();
+    MySQLContainer<?> container = null;
+    if (System.getenv("SPRING_DATASOURCE_URL") == null) {
+      try {
+        container = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
+        container.start();
+      } catch (Exception e) {
+        // Docker not available, will use H2 from properties
+        container = null;
+      }
     }
+    mysql = container;
   }
 
   @DynamicPropertySource

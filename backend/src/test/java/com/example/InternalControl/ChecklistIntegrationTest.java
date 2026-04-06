@@ -79,7 +79,7 @@ class ChecklistIntegrationTest extends AbstractIntegrationTest {
 
     private String getBaseUrl() {
         String port = environment.getProperty("local.server.port", "8080");
-        return "http://localhost:" + port + "/api";
+        return "http://localhost:" + port + "/api/v1";
     }
 
     @Test

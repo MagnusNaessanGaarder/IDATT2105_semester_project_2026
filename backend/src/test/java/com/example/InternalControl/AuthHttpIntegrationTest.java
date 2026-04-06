@@ -44,7 +44,7 @@ class AuthHttpIntegrationTest extends AbstractIntegrationTest  {
 
     private String getBaseUrl() {
         String port = environment.getProperty("local.server.port", "8080");
-        return "http://localhost:" + port + "/api";
+        return "http://localhost:" + port + "/api/v1";
     }
 
     @Test
@@ -117,7 +117,7 @@ class AuthHttpIntegrationTest extends AbstractIntegrationTest  {
     private boolean isServerRunning() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(getBaseUrl().replace("/api", "") + "/actuator/health"))
+                    .uri(URI.create(getBaseUrl().replace("/api/v1", "") + "/actuator/health"))
                     .timeout(Duration.ofSeconds(2))
                     .GET()
                     .build();
