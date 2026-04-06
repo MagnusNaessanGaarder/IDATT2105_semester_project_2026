@@ -1,7 +1,6 @@
 import { reactive, ref } from 'vue'
 import { client } from '@/api/client'
 import { withOrgNumber } from '@/shared/utils/orgContext'
-import { ensureDemoData } from '@/shared/utils/seedDemoData'
 
 export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF'
 export type UserStatus = 'active' | 'inactive'
@@ -44,6 +43,15 @@ export interface AuditLogEntry {
   details: string
   ip_address: string
   result: 'SUCCESS' | 'FAILED' | string
+}
+
+interface AuthMeApi {
+  id?: number
+  fullName?: string
+  email?: string
+  role?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 interface DeviationApi {
@@ -223,9 +231,8 @@ const loadData = async (): Promise<void> => {
     error.value = null
 
     try {
-      await ensureDemoData()
-
-      const [deviationsResponse, exportsResponse] = await Promise.allSettled([
+      const [meResponse, deviationsResponse, exportsResponse] = await Promise.all([
+        client.get<AuthMeApi>('/auth/me'),
         client.get<DeviationApi[]>('/deviations', {
           params: withOrgNumber({}),
         }),
@@ -234,71 +241,53 @@ const loadData = async (): Promise<void> => {
         }),
       ])
 
-      const fallbackEmail = sessionStorage.getItem('email') || 'ukjent@example.com'
-      const fallbackRole = sessionStorage.getItem('role') || 'STAFF'
-      const fallbackName = fallbackEmail.split('@')[0] || 'Bruker'
-      const fallbackLastLogin = sessionStorage.getItem('lastLogin') || new Date().toISOString()
-
+      const me = meResponse.data
       users.splice(0, users.length, {
-        id: 1,
-        name: fallbackName,
-        email: fallbackEmail,
-        role: roleForUser(fallbackRole),
+        id: me.id ?? 1,
+        name: me.fullName ?? me.email?.split('@')[0] ?? 'Bruker',
+        email: me.email ?? 'ukjent@example.com',
+        role: roleForUser(me.role),
         department: 'Drift',
         status: 'active',
-        created_date: new Date().toISOString(),
+        created_date: me.createdAt ?? new Date().toISOString(),
         certifications: [],
         certifications_valid: true,
-        last_login: fallbackLastLogin,
+        last_login: me.updatedAt ?? new Date().toISOString(),
       })
 
       const entries: AuditLogEntry[] = []
 
-      if (deviationsResponse.status === 'fulfilled') {
-        deviationsResponse.value.data.forEach((report) => {
-          entries.push({
-            id: report.reportId,
-            timestamp: report.updatedAt ?? new Date().toISOString(),
-            user: 'System',
-            action: 'DEVIATION_UPDATED',
-            resource: report.title,
-            details: `Status: ${report.status}, alvorlighet: ${report.severity}`,
-            ip_address: '-',
-            result: 'SUCCESS',
-          })
+      deviationsResponse.data.forEach((report) => {
+        entries.push({
+          id: report.reportId,
+          timestamp: report.updatedAt ?? new Date().toISOString(),
+          user: 'System',
+          action: 'DEVIATION_UPDATED',
+          resource: report.title,
+          details: `Status: ${report.status}, alvorlighet: ${report.severity}`,
+          ip_address: '-',
+          result: 'SUCCESS',
         })
-      }
+      })
 
-      if (exportsResponse.status === 'fulfilled') {
-        exportsResponse.value.data.content.forEach((job) => {
-          entries.push({
-            id: job.exportJobId + 100000,
-            timestamp: job.requestedAt ?? new Date().toISOString(),
-            user: 'System',
-            action: 'EXPORT_REQUESTED',
-            resource: String(job.exportType),
-            details: `Eksportstatus: ${job.status}`,
-            ip_address: '-',
-            result: 'SUCCESS',
-          })
+      exportsResponse.data.content.forEach((job) => {
+        entries.push({
+          id: job.exportJobId + 100000,
+          timestamp: job.requestedAt ?? new Date().toISOString(),
+          user: 'System',
+          action: 'EXPORT_REQUESTED',
+          resource: String(job.exportType),
+          details: `Eksportstatus: ${job.status}`,
+          ip_address: '-',
+          result: 'SUCCESS',
         })
-      }
+      })
 
       auditLog.splice(0, auditLog.length, ...entries)
-
-      const failedCalls = [deviationsResponse, exportsResponse].filter((result) => result.status === 'rejected').length
-      const succeededCalls = 2 - failedCalls
-
-      if (succeededCalls === 0) {
-        error.value = 'Alle admin-endepunkter feilet. Kontroller innlogging og prov igjen.'
-        return
-      }
-
-      // Show available data even when some admin endpoints are unavailable.
-      error.value = null
-
       hasLoaded = true
     } catch {
+      users.splice(0, users.length)
+      auditLog.splice(0, auditLog.length)
       error.value = 'Kunne ikke laste administrator-data fra API.'
     } finally {
       isLoading.value = false

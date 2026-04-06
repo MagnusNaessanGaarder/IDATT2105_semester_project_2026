@@ -8,20 +8,114 @@ declare module 'axios' {
 }
 
 export const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:8080/api'),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
+interface JwtPayload {
+  exp?: number
+}
+
+const shouldSkipAuthHeader = (url?: string): boolean => {
+  if (!url) return false
+  return url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh')
+}
+
+const clearSessionTokens = () => {
+  sessionStorage.removeItem('accessToken')
+  sessionStorage.removeItem('refreshToken')
+}
+
+const parseJwtPayload = (token: string): JwtPayload | null => {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+
+    const payload = parts[1]
+    if (!payload) return null
+
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padding = '='.repeat((4 - (base64.length % 4)) % 4)
+    const decoded = atob(base64 + padding)
+
+    return JSON.parse(decoded) as JwtPayload
+  } catch {
+    return null
+  }
+}
+
+const isTokenExpiringSoon = (token: string, skewSeconds = 30): boolean => {
+  const payload = parseJwtPayload(token)
+  if (!payload || typeof payload.exp !== 'number') {
+    return true
+  }
+
+  const expiresAtMs = payload.exp * 1000
+  return expiresAtMs - Date.now() < skewSeconds * 1000
+}
+
+let refreshPromise: Promise<string | null> | null = null
+
+const refreshAccessToken = async (): Promise<string | null> => {
+  if (refreshPromise) {
+    return refreshPromise
+  }
+
+  const refreshToken = sessionStorage.getItem('refreshToken')
+  if (!refreshToken) {
+    return null
+  }
+
+  const refreshEndpoint = `${client.defaults.baseURL || '/api'}/auth/refresh`
+
+  refreshPromise = axios
+    .post(refreshEndpoint, { refreshToken })
+    .then((response) => {
+      const { accessToken, refreshToken: newRefreshToken } = response.data || {}
+
+      if (!accessToken || !newRefreshToken) {
+        throw new Error('Invalid refresh response')
+      }
+
+      sessionStorage.setItem('accessToken', accessToken)
+      sessionStorage.setItem('refreshToken', newRefreshToken)
+      return accessToken as string
+    })
+    .catch(() => {
+      clearSessionTokens()
+      return null
+    })
+    .finally(() => {
+      refreshPromise = null
+    })
+
+  return refreshPromise
+}
+
 // Add JWT token to all requests
 client.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = sessionStorage.getItem('accessToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+  async (config: InternalAxiosRequestConfig) => {
+    if (shouldSkipAuthHeader(config.url)) {
+      return config
     }
+
+    let token = sessionStorage.getItem('accessToken')
+
+    if (!token || isTokenExpiringSoon(token)) {
+      token = await refreshAccessToken()
+    }
+
+    if (!token) {
+      clearSessionTokens()
+      window.location.href = '/login'
+      return Promise.reject(new Error('Missing Bearer token for protected endpoint'))
+    }
+
+    config.headers.Authorization = `Bearer ${token}`
+
     return config
   },
   (error) => Promise.reject(error)
@@ -68,33 +162,22 @@ client.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      const refreshToken = sessionStorage.getItem('refreshToken')
+      const accessToken = await refreshAccessToken()
 
-      if (!refreshToken) {
-        sessionStorage.removeItem('accessToken')
-        sessionStorage.removeItem('refreshToken')
+      if (!accessToken) {
+        clearSessionTokens()
         window.location.href = '/login'
         return Promise.reject(error)
       }
 
       try {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/auth/refresh`,
-          { refreshToken }
-        )
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data
-
-        sessionStorage.setItem('accessToken', accessToken)
-        sessionStorage.setItem('refreshToken', newRefreshToken)
         originalRequest.headers.Authorization = `Bearer ${accessToken}`
         processQueue(null, accessToken)
 
         return client(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
-        sessionStorage.removeItem('accessToken')
-        sessionStorage.removeItem('refreshToken')
+        clearSessionTokens()
         window.location.href = '/login'
         return Promise.reject(refreshError)
       } finally {
