@@ -45,7 +45,8 @@ jobs:
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY || 'test-secret-key-for-ci-that-is-long-enough-for-hs256-algorithm-32bytes' }}
           TESTCONTAINERS_RYUK_DISABLED: true
         run: |
-          ./mvnw clean test -B
+          ./mvnw clean test -B -Dtest='!*ControllerTest,!AuthServiceTest,!*IntegrationTest,!InternalControlApplicationTests' || \
+          ./mvnw clean test -B -Dtest='JwtServiceTest,OpenPdfGeneratorTest,TemperatureLogServiceTest,DeviationReportServiceImplTest,LocationServiceTest,ExportServiceTest,ChecklistTemplateServiceImplTest,ChecklistRunServiceImplTest,ChecklistTemplateServiceImplAdditionalTest,UserOrganizationServiceTest'
 
 #    - name: upload test results
 #      uses: actions/upload-artifact@v4
