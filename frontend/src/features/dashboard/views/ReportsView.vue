@@ -152,7 +152,7 @@ const tabLabel = (tab: (typeof tabs)[number]): string => {
 }
 
 .header-btn--ghost {
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   color: var(--color-gray-700);
 }
@@ -164,7 +164,7 @@ const tabLabel = (tab: (typeof tabs)[number]): string => {
 }
 
 .reports-stat {
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   text-align: center;
@@ -186,7 +186,7 @@ const tabLabel = (tab: (typeof tabs)[number]): string => {
 .reports-toolbar {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.75rem;
   display: grid;
   gap: 0.75rem;
@@ -203,14 +203,14 @@ const tabLabel = (tab: (typeof tabs)[number]): string => {
   padding: 0.35rem 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   font-size: var(--font-size-sm);
   color: var(--color-gray-600);
 }
 
 .tab--active {
   background: var(--color-foreground);
-  color: #fff;
+  color: var(--color-primary-foreground);
   border-color: var(--color-foreground);
 }
 
@@ -231,7 +231,7 @@ const tabLabel = (tab: (typeof tabs)[number]): string => {
 .report-item {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.85rem;
   display: flex;
   justify-content: space-between;
@@ -305,7 +305,7 @@ const tabLabel = (tab: (typeof tabs)[number]): string => {
 }
 
 .action-btn--light {
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   color: var(--color-gray-700);
 }

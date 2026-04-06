@@ -195,7 +195,7 @@ const latestUpload = computed(() => {
 .documents-toolbar {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.75rem;
   display: grid;
   gap: 0.75rem;
@@ -221,7 +221,7 @@ const latestUpload = computed(() => {
   min-height: 2.15rem;
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -243,7 +243,7 @@ const latestUpload = computed(() => {
 .category-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.75rem;
 }
 
@@ -262,7 +262,7 @@ const latestUpload = computed(() => {
 .table-wrapper {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   overflow-x: auto;
 }
 

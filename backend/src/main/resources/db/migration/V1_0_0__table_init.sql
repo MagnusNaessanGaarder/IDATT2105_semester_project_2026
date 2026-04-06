@@ -244,7 +244,7 @@ CREATE TABLE organization_document_version
     document_id         BIGINT UNSIGNED NOT NULL,
     version_number      INT UNSIGNED    NOT NULL,
     azure_container     VARCHAR(63)     NOT NULL,
-    azure_blob_name     VARCHAR(512)   NOT NULL,
+    azure_blob_name     VARCHAR(1024)   NOT NULL,
     original_filename   VARCHAR(255)    NOT NULL,
     mime_type           VARCHAR(100)    NOT NULL,
     file_size_bytes     BIGINT UNSIGNED NOT NULL,
@@ -258,9 +258,11 @@ CREATE TABLE organization_document_version
     CONSTRAINT fk_doc_version_document    FOREIGN KEY (document_id)         REFERENCES organization_document (document_id),
     CONSTRAINT fk_doc_version_uploaded_by FOREIGN KEY (uploaded_by_user_id) REFERENCES app_user              (user_id),
     CONSTRAINT uq_doc_version             UNIQUE (document_id, version_number),
-    CONSTRAINT uq_blob_location           UNIQUE (azure_container, azure_blob_name),
+    UNIQUE KEY uq_blob_location (azure_container, azure_blob_name(512)),
     INDEX ix_doc_version_document (document_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- CONSTRAINT uq_blob_location           UNIQUE (azure_container, azure_blob_name),
 
 -- ---------------------------------------------------------
 -- TRAINING

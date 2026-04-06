@@ -177,7 +177,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
   padding: 0.45rem 0.85rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   color: var(--color-gray-700);
   font-size: var(--font-size-sm);
   text-decoration: underline;
@@ -192,7 +192,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
 .filter-btn {
   min-height: 2.25rem;
   padding: 0.35rem 0.75rem;
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
@@ -209,7 +209,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
 .notification-panel {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.9rem;
 }
 
@@ -230,7 +230,7 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
   gap: 0.85rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.65rem;
 }
 
@@ -327,14 +327,14 @@ const priorityLabel = (priority: NotificationItem['priority']): string => {
   padding: 0.25rem 0.55rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   color: var(--color-gray-700);
   font-size: var(--font-size-xs);
 }
 
 .mini-btn--danger {
-  border-color: #fecaca;
-  color: #b91c1c;
+  border-color: var(--color-danger-border);
+  color: var(--color-danger);
 }
 
 .empty-state {

@@ -6,24 +6,45 @@
  * 
  */
 :root {
-  --color-primary: #0f172a;
+  --color-primary: #12324a;
+  --color-primary-hover: #0f2b40;
+  --color-primary-active: #0c2435;
   --color-primary-foreground: #ffffff;
 
-  --color-background: #f8fafc;
-  --color-foreground: #0f172a;
+  --color-background: #f3f7fb;
+  --color-background-soft: #edf3f9;
+  --color-foreground: #10263a;
   --color-card: #ffffff;
-  --color-border: #e2e8f0;
+  --color-card-muted: #f7fafd;
+  --color-border: #d6e0ea;
+  --color-border-strong: #b8c6d4;
 
-  --color-accent: #f1f5f9;
-  --color-accent-hover: #e2e8f0;
+  --color-accent: #ebf3fa;
+  --color-accent-hover: #dfeaf5;
   --color-focus: #3b82f6;
+  --color-focus-ring: rgba(59, 130, 246, 0.2);
+  --color-link: #0b568a;
+  --color-link-hover: #09466f;
+  --color-overlay: rgba(16, 38, 58, 0.5);
+  --color-overlay-soft: rgba(16, 38, 58, 0.3);
+
+  --color-surface-tint: rgba(130, 165, 195, 0.14);
+  --color-surface-tint-strong: rgba(65, 129, 181, 0.08);
+  --color-ambient-1: rgba(18, 50, 74, 0.08);
+  --color-ambient-2: rgba(11, 86, 138, 0.06);
+  --color-ambient-3: rgba(5, 150, 105, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.4);
+  --color-glass-shadow: rgba(16, 38, 58, 0.15);
 
   --color-success: #059669;
   --color-success-bg: #d1fae5;
   --color-warning: #d97706;
   --color-warning-bg: #fef3c7;
   --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-fg: #991b1b;
   --color-danger-bg: #fee2e2;
+  --color-danger-border: rgba(220, 38, 38, 0.2);
   --color-info: #0284c7;
   --color-info-bg: #e0f2fe;
 
@@ -32,10 +53,10 @@
   --color-gray-200: #e2e8f0;
   --color-gray-300: #cbd5e1;
   --color-gray-400: #94a3b8;
-  --color-gray-500: #64748b;
-  --color-gray-600: #475569;
+  --color-gray-500: #58687a;
+  --color-gray-600: #405367;
   --color-gray-700: #334155;
-  --color-gray-800: #1e293b;
+  --color-gray-800: #1f3145;
   --color-gray-900: #0f172a;
 
   --ik-mat-primary: #0d7377;
@@ -45,7 +66,9 @@
   --felles-primary: #475569;
   --felles-bg: #f1f5f9;
 
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-family: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  --font-family-display: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  --font-family-ui: 'Manrope', 'Segoe UI', system-ui, sans-serif;
 
   --font-size-xs: 12px;
   --font-size-sm: 14px;
@@ -53,7 +76,12 @@
   --font-size-lg: 18px;
   --font-size-xl: 20px;
   --font-size-2xl: 24px;
-  --font-size-3xl: 32px;
+  --font-size-3xl: 34px;
+
+  --line-height-tight: 1.15;
+  --line-height-heading: 1.28;
+  --line-height-body: 1.6;
+  --line-height-relaxed: 1.72;
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -67,18 +95,29 @@
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
 
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
+  --radius-sm: 4px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
 
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 6px 24px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 20px 36px rgba(15, 23, 42, 0.12);
+  --shadow-sm: 0 2px 6px rgba(16, 38, 58, 0.06);
+  --shadow-md: 0 10px 24px rgba(16, 38, 58, 0.08);
+  --shadow-lg: 0 18px 36px rgba(16, 38, 58, 0.1);
+  --shadow-float: 0 12px 28px rgba(16, 38, 58, 0.12);
+  --shadow-focus: 0 0 0 3px var(--color-focus-ring);
 
   --transition-fast: 0.15s;
   --transition-base: 0.22s;
+  --transition-slow: 0.32s;
+  --ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   --sidebar-width: 240px;
   --topbar-height: 48px;
   --touch-target: 40px;
+
+  --button-padding-sm: 8px 12px;
+  --button-padding-md: 10px 16px;
+  --button-padding-lg: 14px 24px;
+  --input-padding: 10px 12px;
 }

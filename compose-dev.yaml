@@ -16,11 +16,11 @@ services:
     #   - La 'network_mode: host' være kommentert ut
     
     # VPN-modus 
-    network_mode: host
+    # network_mode: host
     
-    # Standard-modus   - kommenter ut linjen over og fjern kommentar fra linjene under:
-    # ports:
-    #   - '3306:3306'
+    # Standard-modus (default):
+    ports:
+      - '3306:3306'
     
     volumes:
       - mysql-dev-data:/var/lib/mysql

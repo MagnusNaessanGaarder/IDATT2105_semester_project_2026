@@ -83,9 +83,9 @@ const handleSelect = () => {
   border: none;
   cursor: pointer;
   text-align: left;
-  font-family: inherit;
+  font-family: var(--font-family-ui);
   border-radius: 0;
-  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
 .menu-item__button--main {
@@ -157,7 +157,7 @@ const handleSelect = () => {
 
 .menu-item--active .menu-item__button {
   background-color: var(--color-accent-hover);
-  border-left-color: var(--ik-mat-primary);
+  border-left-color: var(--color-primary);
   border-left-style: solid;
   border-left-width: 0.25rem;
   padding-left: calc(var(--spacing-md) - 0.25rem);
@@ -170,11 +170,11 @@ const handleSelect = () => {
 }
 
 .menu-item--active .menu-item__icon {
-  color: var(--ik-mat-primary);
+  color: var(--color-primary);
 }
 
 .menu-item--active .menu-item__chevron {
-  color: var(--ik-mat-primary);
+  color: var(--color-primary);
 }
 
 .menu-item--sub.menu-item--active .menu-item__label {

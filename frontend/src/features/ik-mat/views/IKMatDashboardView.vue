@@ -11,6 +11,9 @@ const {
   completionForChecklist,
   isTemperatureInRange,
   formatDate,
+  isLoading,
+  error,
+  reload,
 } = useIkMatData()
 
 const openDeviations = computed(() => deviations.filter((item) => item.status !== 'resolved'))
@@ -55,6 +58,18 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
           {{ stat.value }}<span v-if="stat.unit" class="stat-card__unit">{{ stat.unit }}</span>
         </p>
       </article>
+    </section>
+
+    <section v-if="error" class="panel-card" aria-label="API-feil">
+      <header class="panel-card__header">
+        <h2>Kunne ikke hente IK-MAT data</h2>
+        <button type="button" class="status-chip status-chip--warn" @click="reload">Prøv igjen</button>
+      </header>
+      <p class="item-row__meta">{{ error }}</p>
+    </section>
+
+    <section v-else-if="isLoading" class="panel-card" aria-label="Laster IK-MAT data">
+      <p class="item-row__meta">Laster IK-MAT data...</p>
     </section>
 
     <section class="quick-actions" aria-label="Snarveier">
@@ -118,7 +133,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
       <article class="panel-card details-grid__span-2">
         <header class="panel-card__header">
-          <h2>Ãpne avvik</h2>
+          <h2>Åpne avvik</h2>
           <span class="status-chip" :class="openDeviations.length > 0 ? 'status-chip--warn' : 'status-chip--good'">
             {{ openDeviations.length }} aktive
           </span>
@@ -131,7 +146,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
               <p class="item-row__meta">{{ deviation.location }} · meldt {{ formatDate(deviation.reported_date) }} kl. {{ deviation.reported_time }}</p>
             </div>
             <span class="status-chip" :class="deviation.severity === 'high' ? 'status-chip--danger' : 'status-chip--warn'">
-              {{ deviation.severity === 'high' ? 'Hoy' : 'Medium' }}
+              {{ deviation.severity === 'high' ? 'Høy' : 'Medium' }}
             </span>
           </li>
         </ul>

@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { type AdminUser, useAdminData } from '../composables/useAdminData'
 
 const data = useAdminData()
 const users = ref<AdminUser[]>([...data.users])
+
+watch(
+  () => data.users,
+  (nextUsers) => {
+    users.value = nextUsers.map((user) => ({ ...user }))
+  },
+  { immediate: true, deep: true },
+)
 
 const query = ref('')
 const roleFilter = ref<'all' | 'ADMIN' | 'MANAGER' | 'STAFF'>('all')
@@ -63,7 +71,16 @@ const handleToggleUser = (userId: number) => {
       <button class="create-btn" type="button">+ Ny bruker</button>
     </header>
 
-    <section class="stats-row" aria-label="Brukerstatistikk">
+    <section v-if="data.error" class="empty-state">
+      <p>{{ data.error }}</p>
+      <button type="button" class="action-btn" @click="data.reload">Prøv igjen</button>
+    </section>
+
+    <section v-else-if="data.isLoading" class="empty-state">
+      <p>Laster brukere...</p>
+    </section>
+
+    <section v-if="!data.isLoading && !data.error" class="stats-row" aria-label="Brukerstatistikk">
       <article class="stats-card">
         <strong>{{ users.length }}</strong>
         <span>Brukere totalt</span>
@@ -82,7 +99,7 @@ const handleToggleUser = (userId: number) => {
       </article>
     </section>
 
-    <section class="roles-grid" aria-label="Rolleoversikt">
+    <section v-if="!data.isLoading && !data.error" class="roles-grid" aria-label="Rolleoversikt">
       <article v-for="role in roleSummaries" :key="role.role" class="role-card">
         <p class="role-pill" :class="`role-pill--${role.tone}`">{{ role.label }}</p>
         <p class="role-description">{{ role.description }}</p>
@@ -90,7 +107,7 @@ const handleToggleUser = (userId: number) => {
       </article>
     </section>
 
-    <section class="users-table-card">
+    <section v-if="!data.isLoading && !data.error" class="users-table-card">
       <div class="table-toolbar">
         <input v-model="query" type="search" class="table-search" placeholder="Søk etter brukere" />
         <select v-model="roleFilter" class="role-select" aria-label="Filtrer på rolle">
@@ -146,7 +163,7 @@ const handleToggleUser = (userId: number) => {
       </div>
     </section>
 
-    <div v-if="filteredUsers.length === 0" class="empty-state">
+    <div v-if="!data.isLoading && !data.error && filteredUsers.length === 0" class="empty-state">
       <p>Ingen brukere funnet</p>
     </div>
   </div>
@@ -196,7 +213,7 @@ const handleToggleUser = (userId: number) => {
 .stats-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   text-align: center;
   padding: 0.85rem;
 }
@@ -222,7 +239,7 @@ const handleToggleUser = (userId: number) => {
 .role-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.8rem;
 }
 
@@ -235,18 +252,18 @@ const handleToggleUser = (userId: number) => {
 }
 
 .role-pill--red {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
 }
 
 .role-pill--amber {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .role-pill--blue {
-  background: #e0f2fe;
-  color: #075985;
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .role-description {
@@ -265,7 +282,7 @@ const handleToggleUser = (userId: number) => {
 .users-table-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--color-card);
   padding: 0.75rem;
 }
 
@@ -374,13 +391,13 @@ th {
   border: none;
   border-radius: var(--radius-sm);
   background: var(--color-foreground);
-  color: #fff;
+  color: var(--color-primary-foreground);
   font-size: var(--font-size-xs);
   font-weight: 600;
 }
 
 .action-btn--ghost {
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   color: var(--color-gray-700);
 }
