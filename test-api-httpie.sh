@@ -96,6 +96,44 @@ REGISTER_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/auth/register \
 
 if [ -n "$REGISTER_RESPONSE" ] && echo "$REGISTER_RESPONSE" | grep -q "accessToken"; then
   TOKEN=$(echo "$REGISTER_RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
+  
+  # Extract userId from JWT token payload
+  JWT_PAYLOAD=$(echo "$TOKEN" | cut -d'.' -f2)
+  # Add padding if needed
+  PADDING=$((4 - ${#JWT_PAYLOAD} % 4))
+  if [ $PADDING -ne 4 ]; then
+    JWT_PAYLOAD=$(echo -n "$JWT_PAYLOAD" | tr '_-' '/+' | tr -d '=')
+    for i in $(seq 1 $PADDING); do JWT_PAYLOAD="${JWT_PAYLOAD}="; done
+  fi
+  USER_ID=$(echo "$JWT_PAYLOAD" | base64 -d 2>/dev/null | grep -o '"userId":[0-9]*' | cut -d':' -f2)
+  
+  # Assign MANAGER role and organization membership
+  if [ -n "$USER_ID" ]; then
+    docker exec backend-mysql-1 mysql -u root -proot -e "
+      -- Add user to organization
+      INSERT IGNORE INTO internal_control.user_organization (user_id, org_number, is_active, joined_at) 
+      VALUES ($USER_ID, 937219997, 1, NOW());
+      
+      -- Assign MANAGER role
+      INSERT IGNORE INTO internal_control.role (role_name, is_system_role) VALUES ('MANAGER', 0);
+      SET @ROLE_ID = (SELECT role_id FROM internal_control.role WHERE role_name = 'MANAGER');
+      INSERT IGNORE INTO internal_control.user_organization_role (user_id, org_number, role_id) 
+      VALUES ($USER_ID, 937219997, @ROLE_ID);
+    " 2>/dev/null
+    
+    # Re-login to get new token with MANAGER role
+    sleep 1
+    LOGIN_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/auth/login \
+      email="$TEST_EMAIL" \
+      password="TestPass123!" 2>/dev/null)
+    if [ -n "$LOGIN_RESPONSE" ]; then
+      NEW_TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
+      if [ -n "$NEW_TOKEN" ]; then
+        TOKEN="$NEW_TOKEN"
+      fi
+    fi
+  fi
+  
   print_result 0 "User registration"
 else
   print_result 1 "User registration" "No access token received"
