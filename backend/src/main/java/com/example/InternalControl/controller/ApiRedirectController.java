@@ -27,10 +27,8 @@ public class ApiRedirectController {
     public void redirectToVersionedApi(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String requestUri = request.getRequestURI();
 
-        // Skip if already versioned or if it's an auth/public endpoint
-        if (requestUri.startsWith("/api/" + apiVersion) ||
-            requestUri.startsWith("/api/auth") ||
-            requestUri.startsWith("/api/public")) {
+        // Skip if already versioned
+        if (requestUri.startsWith("/api/" + apiVersion)) {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return;
         }

@@ -1,7 +1,7 @@
 #!/bin/bash
 # API Test Script using HTTPie
 
-BASE_URL="localhost:8080/api"
+BASE_URL="localhost:8080/api/v1"
 PASS=0
 FAIL=0
 TOKEN=""
