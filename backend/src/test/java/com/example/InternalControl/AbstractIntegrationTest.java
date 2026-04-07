@@ -4,6 +4,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Base class for integration tests using Testcontainers.
@@ -18,11 +19,16 @@ public abstract class AbstractIntegrationTest {
     private static final MySQLContainer<?> mysql;
 
     static {
+        // Configure Testcontainers to use the Docker socket
+        System.setProperty("docker.host", "unix:///var/run/docker.sock");
+        System.setProperty("testcontainers.docker.socket.override", "/var/run/docker.sock");
+        System.setProperty("testcontainers.ryuk.disabled", "true");
+        
         if (System.getenv("SPRING_DATASOURCE_URL") != null) {
             // Use external database if configured
             mysql = null;
         } else {
-            mysql = new MySQLContainer<>("mysql:8.0")
+            mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
                     .withDatabaseName("testdb")
                     .withUsername("test")
                     .withPassword("test")
