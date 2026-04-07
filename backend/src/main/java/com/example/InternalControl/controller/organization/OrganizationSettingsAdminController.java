@@ -1,25 +1,21 @@
 package com.example.InternalControl.controller.organization;
 
-import com.example.InternalControl.dto.organization.OrganizationSettingsRequest;
-import com.example.InternalControl.dto.organization.OrganizationSettingsResponse;
-import com.example.InternalControl.model.organization.Organization;
-import com.example.InternalControl.model.organization.OrganizationSettings;
-import com.example.InternalControl.repository.organization.OrganizationRepository;
-import com.example.InternalControl.repository.organization.OrganizationSettingsRepository;
+import com.example.InternalControl.dto.settings.OrganizationSettingsRequest;
+import com.example.InternalControl.dto.settings.OrganizationSettingsResponse;
+import com.example.InternalControl.service.settings.OrganizationSettingsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 /**
  * REST controller for organization settings management.
@@ -35,8 +31,7 @@ import java.time.LocalDateTime;
 @SecurityRequirement(name = "bearerAuth")
 public class OrganizationSettingsAdminController {
 
-    private final OrganizationSettingsRepository settingsRepository;
-    private final OrganizationRepository organizationRepository;
+    private final OrganizationSettingsService settingsService;
 
     /**
      * Get settings for an organization.
@@ -54,11 +49,7 @@ public class OrganizationSettingsAdminController {
     public ResponseEntity<OrganizationSettingsResponse> getSettings(
             @RequestParam Integer orgNumber) {
         log.info("Getting settings for organization: {}", orgNumber);
-
-        OrganizationSettings settings = settingsRepository.findById(orgNumber)
-                .orElseGet(() -> createDefaultSettings(orgNumber));
-
-        return ResponseEntity.ok(mapToResponse(settings));
+        return ResponseEntity.ok(settingsService.getSettings(orgNumber));
     }
 
     /**
@@ -66,6 +57,7 @@ public class OrganizationSettingsAdminController {
      *
      * @param orgNumber the organization number
      * @param request the settings update request
+     * @param userDetails the authenticated user details
      * @return the updated settings
      */
     @PutMapping
@@ -78,83 +70,21 @@ public class OrganizationSettingsAdminController {
     })
     public ResponseEntity<OrganizationSettingsResponse> updateSettings(
             @RequestParam Integer orgNumber,
-            @Valid @RequestBody OrganizationSettingsRequest request) {
+            @Valid @RequestBody OrganizationSettingsRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
         log.info("Updating settings for organization: {}", orgNumber);
-
-        OrganizationSettings settings = settingsRepository.findById(orgNumber)
-                .orElseGet(() -> createDefaultSettings(orgNumber));
-
-        if (request.getTimezoneName() != null) {
-            settings.setTimezoneName(request.getTimezoneName());
-        }
-        if (request.getLocaleCode() != null) {
-            settings.setLocaleCode(request.getLocaleCode());
-        }
-        if (request.getEnableFoodModule() != null) {
-            settings.setEnableFoodModule(request.getEnableFoodModule());
-        }
-        if (request.getEnableAlcoholModule() != null) {
-            settings.setEnableAlcoholModule(request.getEnableAlcoholModule());
-        }
-        if (request.getDefaultTempMinC() != null) {
-            settings.setDefaultTempMinC(request.getDefaultTempMinC());
-        }
-        if (request.getDefaultTempMaxC() != null) {
-            settings.setDefaultTempMaxC(request.getDefaultTempMaxC());
-        }
-        if (request.getReminderEmailEnabled() != null) {
-            settings.setReminderEmailEnabled(request.getReminderEmailEnabled());
-        }
-        if (request.getNotificationEmail() != null) {
-            settings.setNotificationEmail(request.getNotificationEmail());
-        }
-        if (request.getRetentionUserMonths() != null) {
-            settings.setRetentionUserMonths(request.getRetentionUserMonths());
-        }
-        if (request.getRetentionAuditMonths() != null) {
-            settings.setRetentionAuditMonths(request.getRetentionAuditMonths());
-        }
-
-        settings.setUpdatedAt(LocalDateTime.now());
-        settings = settingsRepository.save(settings);
-
-        return ResponseEntity.ok(mapToResponse(settings));
+        Long userId = extractUserId(userDetails);
+        return ResponseEntity.ok(settingsService.updateSettings(orgNumber, request, userId));
     }
 
-    private OrganizationSettings createDefaultSettings(Integer orgNumber) {
-        Organization organization = organizationRepository.findById(orgNumber)
-                .orElseThrow(() -> new EntityNotFoundException("Organization not found: " + orgNumber));
-
-        OrganizationSettings settings = OrganizationSettings.builder()
-                .orgNumber(orgNumber)
-                .organization(organization)
-                .timezoneName("Europe/Oslo")
-                .localeCode("nb-NO")
-                .enableFoodModule(true)
-                .enableAlcoholModule(true)
-                .reminderEmailEnabled(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        return settingsRepository.save(settings);
-    }
-
-    private OrganizationSettingsResponse mapToResponse(OrganizationSettings settings) {
-        return OrganizationSettingsResponse.builder()
-                .orgNumber(settings.getOrgNumber())
-                .timezoneName(settings.getTimezoneName())
-                .localeCode(settings.getLocaleCode())
-                .enableFoodModule(settings.getEnableFoodModule())
-                .enableAlcoholModule(settings.getEnableAlcoholModule())
-                .defaultTempMinC(settings.getDefaultTempMinC())
-                .defaultTempMaxC(settings.getDefaultTempMaxC())
-                .reminderEmailEnabled(settings.getReminderEmailEnabled())
-                .notificationEmail(settings.getNotificationEmail())
-                .retentionUserMonths(settings.getRetentionUserMonths())
-                .retentionAuditMonths(settings.getRetentionAuditMonths())
-                .createdAt(settings.getCreatedAt())
-                .updatedAt(settings.getUpdatedAt())
-                .build();
+    private Long extractUserId(UserDetails userDetails) {
+        if (userDetails == null) {
+            return null;
+        }
+        try {
+            return Long.parseLong(userDetails.getUsername());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

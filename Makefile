@@ -136,7 +136,7 @@ clean-db:
 	@docker system prune -f 2>/dev/null || true
 	@echo "Database reset - run 'make dev' to start fresh"
 
-clean-full: clean
+clean-full: clean clean-db
 	@docker compose down -v 2>/dev/null || true
 	@docker system prune -af --volumes 2>/dev/null || true
 	@find . -type d -name ".idea" -exec rm -rf {} + 2>/dev/null || true
