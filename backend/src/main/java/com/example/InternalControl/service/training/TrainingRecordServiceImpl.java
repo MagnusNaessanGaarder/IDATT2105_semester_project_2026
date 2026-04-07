@@ -9,36 +9,53 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.InternalControl.dto.training.TrainingRecordRequest;
 import com.example.InternalControl.model.audit.ActionType;
 import com.example.InternalControl.model.audit.Audited;
+import com.example.InternalControl.model.document.OrganizationDocument;
 import com.example.InternalControl.model.training.TrainingRecord;
 import com.example.InternalControl.model.training.TrainingStatus;
+import com.example.InternalControl.model.user.AppUser;
+import com.example.InternalControl.repository.document.OrganizationDocumentRepository;
 import com.example.InternalControl.repository.training.TrainingRecordRepository;
+import com.example.InternalControl.repository.user.AppUserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Implementation of TrainingRecordService.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TrainingRecordServiceImpl implements TrainingRecordService {
 
     private final TrainingRecordRepository trainingRecordRepository;
+    private final AppUserRepository appUserRepository;
+    private final OrganizationDocumentRepository documentRepository;
 
     @Override
     @Transactional
     @Audited(action = ActionType.CREATE, entityType = "TrainingRecord")
     public TrainingRecord createTrainingRecord(TrainingRecordRequest request, Integer orgNumber, Long currentUserId) {
-        TrainingRecord trainingRecord = TrainingRecord.builder()
-                .userId(request.getUserId())
-                .orgNumber(orgNumber)
-                .trainingType(request.getTrainingType())
-                .title(request.getTitle())
-                .completedAt(request.getCompletedAt())
-                .expiresAt(request.getExpiresAt())
-                .certificateDocumentId(request.getCertificateDocumentId())
-                .notes(request.getNotes())
-                .status(determineStatus(request))
-                .build();
+        AppUser user = appUserRepository.findById(request.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.getUserId()));
+
+        OrganizationDocument certificateDocument = null;
+        if (request.getCertificateDocumentId() != null) {
+            certificateDocument = documentRepository.findById(request.getCertificateDocumentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Document not found: " + request.getCertificateDocumentId()));
+        }
+
+        TrainingRecord trainingRecord = new TrainingRecord();
+        trainingRecord.setUser(user);
+        trainingRecord.setOrgNumber(orgNumber);
+        trainingRecord.setTrainingType(request.getTrainingType());
+        trainingRecord.setTitle(request.getTitle());
+        trainingRecord.setCompletedAt(request.getCompletedAt());
+        trainingRecord.setExpiresAt(request.getExpiresAt());
+        trainingRecord.setCertificateDocument(certificateDocument);
+        trainingRecord.setNotes(request.getNotes());
+        trainingRecord.setStatus(determineStatus(request));
 
         TrainingRecord saved = trainingRecordRepository.save(trainingRecord);
         log.info("Created training record {} for user {} in org {}", saved.getTrainingRecordId(), request.getUserId(), orgNumber);
@@ -48,7 +65,8 @@ public class TrainingRecordServiceImpl implements TrainingRecordService {
     @Override
     @Transactional(readOnly = true)
     public TrainingRecord getTrainingRecord(Long id, Integer orgNumber) {
-        return trainingRecordRepository.findByTrainingRecordIdAndOrgNumber(id, orgNumber)
+        return trainingRecordRepository.findById(id)
+                .filter(tr -> tr.getOrgNumber().equals(orgNumber))
                 .orElseThrow(() -> new EntityNotFoundException("Training record not found: " + id));
     }
 
@@ -58,12 +76,21 @@ public class TrainingRecordServiceImpl implements TrainingRecordService {
     public TrainingRecord updateTrainingRecord(Long id, TrainingRecordRequest request, Integer orgNumber) {
         TrainingRecord trainingRecord = getTrainingRecord(id, orgNumber);
 
-        trainingRecord.setUserId(request.getUserId());
+        AppUser user = appUserRepository.findById(request.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + request.getUserId()));
+
+        OrganizationDocument certificateDocument = null;
+        if (request.getCertificateDocumentId() != null) {
+            certificateDocument = documentRepository.findById(request.getCertificateDocumentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Document not found: " + request.getCertificateDocumentId()));
+        }
+
+        trainingRecord.setUser(user);
         trainingRecord.setTrainingType(request.getTrainingType());
         trainingRecord.setTitle(request.getTitle());
         trainingRecord.setCompletedAt(request.getCompletedAt());
         trainingRecord.setExpiresAt(request.getExpiresAt());
-        trainingRecord.setCertificateDocumentId(request.getCertificateDocumentId());
+        trainingRecord.setCertificateDocument(certificateDocument);
         trainingRecord.setNotes(request.getNotes());
         trainingRecord.setStatus(determineStatus(request));
 
@@ -84,25 +111,31 @@ public class TrainingRecordServiceImpl implements TrainingRecordService {
     @Override
     @Transactional(readOnly = true)
     public List<TrainingRecord> getTrainingRecordsByOrg(Integer orgNumber) {
-        return trainingRecordRepository.findByOrgNumberOrderByCreatedAtDesc(orgNumber);
+        return trainingRecordRepository.findByOrgNumber(orgNumber);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<TrainingRecord> getTrainingRecordsByUser(Long userId) {
-        return trainingRecordRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        AppUser user = appUserRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
+        return trainingRecordRepository.findByUser(user);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<TrainingRecord> getTrainingRecordsByUserAndOrg(Long userId, Integer orgNumber) {
-        return trainingRecordRepository.findByOrgNumberAndUserIdOrderByCreatedAtDesc(orgNumber, userId);
+        return trainingRecordRepository.findByUserIdAndOrgNumber(userId, orgNumber);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<TrainingRecord> getTrainingRecordsByStatus(Integer orgNumber, TrainingStatus status) {
-        return trainingRecordRepository.findByOrgNumberAndStatusOrderByCreatedAtDesc(orgNumber, status);
+        // Use the repository method or filter in memory
+        return trainingRecordRepository.findByOrgNumber(orgNumber)
+                .stream()
+                .filter(tr -> tr.getStatus() == status)
+                .toList();
     }
 
     @Override
@@ -111,7 +144,13 @@ public class TrainingRecordServiceImpl implements TrainingRecordService {
     public TrainingRecord completeTrainingRecord(Long id, Integer orgNumber, Long certificateDocumentId) {
         TrainingRecord trainingRecord = getTrainingRecord(id, orgNumber);
         trainingRecord.setCompletedAt(LocalDateTime.now());
-        trainingRecord.setCertificateDocumentId(certificateDocumentId);
+
+        if (certificateDocumentId != null) {
+            OrganizationDocument document = documentRepository.findById(certificateDocumentId)
+                    .orElseThrow(() -> new EntityNotFoundException("Document not found: " + certificateDocumentId));
+            trainingRecord.setCertificateDocument(document);
+        }
+
         trainingRecord.setStatus(TrainingStatus.COMPLETED);
 
         TrainingRecord updated = trainingRecordRepository.save(trainingRecord);
@@ -123,14 +162,14 @@ public class TrainingRecordServiceImpl implements TrainingRecordService {
     @Transactional(readOnly = true)
     public List<TrainingRecord> getExpiringTrainingRecords(Integer orgNumber, int daysThreshold) {
         LocalDateTime thresholdDate = LocalDateTime.now().plusDays(daysThreshold);
-        return trainingRecordRepository.findExpiringByOrgNumber(orgNumber, thresholdDate);
+        return trainingRecordRepository.findExpiringSoon(orgNumber, thresholdDate);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Long getExpiringCount(Integer orgNumber) {
         LocalDateTime thresholdDate = LocalDateTime.now().plusDays(30);
-        return trainingRecordRepository.countExpiringByOrgNumber(orgNumber, thresholdDate);
+        return (long) trainingRecordRepository.findExpiringSoon(orgNumber, thresholdDate).size();
     }
 
     private TrainingStatus determineStatus(TrainingRecordRequest request) {
