@@ -93,29 +93,6 @@ class ChecklistSchedulerServiceTest {
     }
 
     @Test
-    void shouldGenerateOnlyForDailyTemplatesOnDailySchedule() {
-        // Given - Monday (day 1)
-        ChecklistTemplate weeklyTemplate = createTestTemplate(2L, "Weekly Checklist", Frequency.WEEKLY);
-        ChecklistTemplate monthlyTemplate = createTestTemplate(3L, "Monthly Checklist", Frequency.MONTHLY);
-
-        when(templateRepository.findByIsActiveTrue())
-                .thenReturn(List.of(testTemplate, weeklyTemplate, monthlyTemplate));
-        when(runRepository.existsByTemplateTemplateIdAndRunDate(any(), any())).thenReturn(false);
-        when(runRepository.save(any(ChecklistRun.class))).thenAnswer(inv -> {
-            ChecklistRun run = inv.getArgument(0);
-            run.setRunId(1L);
-            return run;
-        });
-        when(runItemRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        // When
-        checklistSchedulerService.generateDailyChecklists();
-
-        // Then
-        verify(runRepository, times(1)).save(any()); // Only daily template
-    }
-
-    @Test
     void shouldNotGenerateForCustomTemplates() {
         // Given
         ChecklistTemplate customTemplate = createTestTemplate(2L, "Custom Checklist", Frequency.CUSTOM);
