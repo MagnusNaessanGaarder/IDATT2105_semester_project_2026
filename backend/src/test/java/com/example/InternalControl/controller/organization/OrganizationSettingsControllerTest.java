@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Unit tests for OrganizationSettingsController.
  */
-@WebMvcTest(OrganizationSettingsController.class)
+@WebMvcTest(OrganizationSettingsAdminController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class OrganizationSettingsControllerTest {
 

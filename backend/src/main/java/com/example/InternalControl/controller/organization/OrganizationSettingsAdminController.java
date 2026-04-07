@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/admin/organizations/settings")
 @RequiredArgsConstructor
 @Slf4j
-public class OrganizationSettingsController {
+public class OrganizationSettingsAdminController {
 
     private final OrganizationSettingsRepository settingsRepository;
     private final OrganizationRepository organizationRepository;

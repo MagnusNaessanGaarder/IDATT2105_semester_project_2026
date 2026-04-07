@@ -38,7 +38,7 @@ public class TrainingRecord {
 
     @Column(name = "training_type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private com.example.InternalControl.model.training.TrainingType trainingType;
+    private TrainingType trainingType;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -52,7 +52,7 @@ public class TrainingRecord {
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private com.example.InternalControl.model.training.TrainingStatus status = com.example.InternalControl.model.training.TrainingStatus.ASSIGNED;
+    private TrainingStatus status = TrainingStatus.ASSIGNED;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "certificate_document_id")

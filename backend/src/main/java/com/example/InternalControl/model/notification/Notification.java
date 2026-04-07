@@ -37,7 +37,7 @@ public class Notification {
 
     @Column(name = "notification_type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private com.example.InternalControl.model.notification.NotificationType notificationType;
+    private NotificationType notificationType;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -47,7 +47,7 @@ public class Notification {
 
     @Column(name = "related_entity_type")
     @Enumerated(EnumType.STRING)
-    private com.example.InternalControl.model.notification.RelatedEntityType relatedEntityType;
+    private RelatedEntityType relatedEntityType;
 
     @Column(name = "related_entity_id")
     private Long relatedEntityId;
