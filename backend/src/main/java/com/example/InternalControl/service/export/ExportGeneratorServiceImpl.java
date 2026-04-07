@@ -150,8 +150,7 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
         data.put("totalReports", reports.size());
       }
       case TEMPERATURE_REPORT -> {
-        List<TemperatureLogEntry> entries = temperatureLogEntryRepository
-                .findByOrgNumberOrderByMeasuredAtDesc(job.getOrgNumber());
+        List<TemperatureLogEntry> entries = temperatureLogEntryRepository.findByOrgNumberWithLogPointOrderByMeasuredAtDesc(job.getOrgNumber());
         data.put("temperatureLogs", entries);
         data.put("totalRecords", entries.size());
         entries.stream().filter(e -> Boolean.TRUE.equals(e.getIsAlert())).count();
