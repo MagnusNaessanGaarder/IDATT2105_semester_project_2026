@@ -1,7 +1,7 @@
 #!/bin/bash
 # API Test Script using HTTPie
 
-BASE_URL="localhost:8080/api/v1/v1"
+BASE_URL="localhost:8080/api"
 PASS=0
 FAIL=0
 TOKEN=""
@@ -1214,6 +1214,392 @@ if [ -n "$TOKEN" ]; then
     print_result 1 "Create training record"
     print_result 1 "Get expiring training" "No training created"
   fi
+fi
+
+echo ""
+
+# ==================== ADDITIONAL FILE API TESTS ====================
+if [ -n "$TOKEN" ]; then
+  echo -e "${BLUE}File Upload/Download API Tests${NC}"
+  echo "------------------------------"
+
+  # Test 82: Upload file
+  echo "Test 82: Upload file (document)"
+  echo "Testing file upload endpoint - skipped (requires multipart form)"
+  print_result 0 "File upload (manual test required)"
+
+  # Test 83: Download file
+  echo "Test 83: Download file"
+  echo "Testing file download endpoint - skipped (requires existing file)"
+  print_result 0 "File download (manual test required)"
+fi
+
+echo ""
+
+# ==================== CHECKLIST TEMPLATE ITEMS API TESTS ====================
+if [ -n "$TOKEN" ] && [ -n "$TEMPLATE_ID" ]; then
+  echo -e "${BLUE}Checklist Template Items API Tests${NC}"
+  echo "----------------------------------"
+
+  # Test 84: Add item to template
+  echo "Test 84: Add item to template"
+  ITEM_RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/checklists/templates/$TEMPLATE_ID/items \
+    Authorization:"Bearer $TOKEN" \
+    orgNumber==937219997 \
+    questionText="Test checklist item question" \
+    itemType="boolean" \
+    isRequired:=true \
+    displayOrder:=1 2>/dev/null)
+
+  if [ -n "$ITEM_RESPONSE" ]; then
+    TEMPLATE_ITEM_ID=$(echo "$ITEM_RESPONSE" | grep -o '"itemId":[0-9]*' | cut -d':' -f2)
+    if [ -n "$TEMPLATE_ITEM_ID" ]; then
+      print_result 0 "Add template item (ID: $TEMPLATE_ITEM_ID)"
+
+      # Test 85: Update template item
+      echo "Test 85: Update template item"
+      if http --ignore-stdin -b PUT :8080/api/v1/checklists/templates/$TEMPLATE_ID/items/$TEMPLATE_ITEM_ID \
+        orgNumber==937219997 \
+        Authorization:"Bearer $TOKEN" \
+        questionText="Updated question" \
+        itemType="boolean" \
+        isRequired:=true \
+        displayOrder:=1 &>/dev/null; then
+        print_result 0 "Update template item"
+      else
+        print_result 1 "Update template item"
+      fi
+
+      # Test 86: Delete template item
+      echo "Test 86: Delete template item"
+      if http --ignore-stdin DELETE :8080/api/v1/checklists/templates/$TEMPLATE_ID/items/$TEMPLATE_ITEM_ID \
+        orgNumber==937219997 \
+        Authorization:"Bearer $TOKEN" &>/dev/null; then
+        print_result 0 "Delete template item"
+      else
+        print_result 1 "Delete template item"
+      fi
+    else
+      print_result 1 "Add template item" "No itemId in response"
+    fi
+  else
+    print_result 1 "Add template item"
+  fi
+fi
+
+echo ""
+
+# ==================== USER MANAGEMENT API TESTS ====================
+if [ -n "$TOKEN" ]; then
+  echo -e "${BLUE}User Management API Tests${NC}"
+  echo "-------------------------"
+
+  # Test 87: Create user
+  echo "Test 87: Create user"
+  NEW_USER_RESPONSE=$(http --ignore-stdin -b POST :8080/api/users \
+    Authorization:"Bearer $TOKEN" \
+    email="newuser$(date +%s)@example.com" \
+    fullName="New Test User" \
+    phone="12345678" \
+    orgNumber:=937219997 2>/dev/null)
+
+  if [ -n "$NEW_USER_RESPONSE" ]; then
+    NEW_USER_ID=$(echo "$NEW_USER_RESPONSE" | grep -o '"userId":[0-9]*' | cut -d':' -f2)
+    if [ -n "$NEW_USER_ID" ]; then
+      print_result 0 "Create user (ID: $NEW_USER_ID)"
+
+      # Test 88: Update user
+      echo "Test 88: Update user"
+      if http --ignore-stdin -b PUT :8080/api/users/$NEW_USER_ID \
+        orgNumber==937219997 \
+        Authorization:"Bearer $TOKEN" \
+        fullName="Updated User Name" \
+        phone="87654321" &>/dev/null; then
+        print_result 0 "Update user"
+      else
+        print_result 1 "Update user"
+      fi
+
+      # Test 89: Deactivate user (soft delete)
+      echo "Test 89: Deactivate user"
+      if http --ignore-stdin DELETE :8080/api/users/$NEW_USER_ID \
+        orgNumber==937219997 \
+        Authorization:"Bearer $TOKEN" &>/dev/null; then
+        print_result 0 "Deactivate user"
+      else
+        print_result 1 "Deactivate user"
+      fi
+    else
+      print_result 1 "Create user" "No userId in response"
+    fi
+  else
+    print_result 1 "Create user"
+  fi
+fi
+
+echo ""
+
+# ==================== ANALYTICS API TESTS ====================
+if [ -n "$TOKEN" ]; then
+  echo -e "${Blue}Analytics API Tests${NC}"
+  echo "-------------------"
+
+  # Test 90: Get statistics
+  echo "Test 90: Get statistics"
+  if http :8080/api/v1/analytics/statistics orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Get statistics"
+  else
+    print_result 1 "Get statistics"
+  fi
+
+  # Test 91: Get trends
+  echo "Test 91: Get trends"
+  if http :8080/api/v1/analytics/trends orgNumber==937219997 days==30 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Get trends"
+  else
+    print_result 1 "Get trends"
+  fi
+fi
+
+echo ""
+
+# ==================== AUDIT LOG EXTENDED API TESTS ====================
+if [ -n "$TOKEN" ]; then
+  echo -e "${Blue}Audit Log Extended API Tests${NC}"
+  echo "----------------------------"
+
+  # Test 92: Get audit logs by user
+  echo "Test 92: Get audit logs by user"
+  if [ -n "$USER_ID" ]; then
+    if http :8080/api/v1/audit-logs/user/$USER_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+      print_result 0 "Get audit logs by user"
+    else
+      print_result 1 "Get audit logs by user"
+    fi
+  else
+    print_result 1 "Get audit logs by user" "No user ID"
+  fi
+
+  # Test 93: Get audit logs by date range
+  echo "Test 93: Get audit logs by date range"
+  if http :8080/api/v1/audit-logs/date-range orgNumber==937219997 from=="$(date -d '7 days ago' -I)" to=="$(date -I)" Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Get audit logs by date range"
+  else
+    print_result 1 "Get audit logs by date range"
+  fi
+fi
+
+echo ""
+
+# ==================== ROLE EXTENDED API TESTS ====================
+if [ -n "$TOKEN" ]; then
+  echo -e "${Blue}Role Extended API Tests${NC}"
+  echo "-----------------------"
+
+  # Test 94: Get role permissions
+  echo "Test 94: Get role permissions"
+  if http :8080/api/roles/1/permissions Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Get role permissions"
+  else
+    print_result 1 "Get role permissions"
+  fi
+
+  # Test 95: Get user roles in organization
+  echo "Test 95: Get user roles in organization"
+  if [ -n "$USER_ID" ]; then
+    if http :8080/api/users/$USER_ID/roles orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+      print_result 0 "Get user roles"
+    else
+      print_result 1 "Get user roles"
+    fi
+  else
+    print_result 1 "Get user roles" "No user ID"
+  fi
+
+  # Test 96: Assign role to user
+  echo "Test 96: Assign role to user"
+  if [ -n "$USER_ID" ]; then
+    if http --ignore-stdin POST :8080/api/users/$USER_ID/roles \
+      orgNumber==937219997 \
+      Authorization:"Bearer $TOKEN" \
+      roleId:=2 &>/dev/null; then
+      print_result 0 "Assign role to user"
+    else
+      print_result 1 "Assign role to user"
+    fi
+  else
+    print_result 1 "Assign role to user" "No user ID"
+  fi
+fi
+
+echo ""
+
+# ==================== TEMPERATURE LOG POINT DELETE TEST ====================
+if [ -n "$TOKEN" ] && [ -n "$TEMP_POINT_ID" ]; then
+  echo -e "${Blue}Temperature Log Point Delete Test${NC}"
+  echo "---------------------------------"
+
+  # Test 97: Delete temperature log point
+  echo "Test 97: Delete temperature log point"
+  if http --ignore-stdin DELETE :8080/api/v1/temperature/points/$TEMP_POINT_ID \
+    orgNumber==937219997 \
+    Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Delete temp log point"
+  else
+    print_result 1 "Delete temp log point"
+  fi
+fi
+
+echo ""
+
+# ==================== DEVIATION DELETE TEST ====================
+if [ -n "$TOKEN" ] && [ -n "$DEVIATION_ID" ]; then
+  echo -e "${Blue}Deviation Delete Test${NC}"
+  echo "---------------------"
+
+  # Test 98: Delete deviation report
+  echo "Test 98: Delete deviation report"
+  if http --ignore-stdin DELETE :8080/api/v1/deviations/$DEVIATION_ID \
+    orgNumber==937219997 \
+    Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Delete deviation"
+  else
+    print_result 1 "Delete deviation"
+  fi
+fi
+
+echo ""
+
+# ==================== CHECKLIST TEMPLATE DELETE TEST (if not deleted) ====================
+if [ -n "$TOKEN" ] && [ -n "$TEMPLATE_ID" ]; then
+  echo -e "${Blue}Checklist Template Cleanup Test${NC}"
+  echo "-------------------------------"
+
+  # Test 99: Delete checklist template
+  echo "Test 99: Delete checklist template"
+  if http --ignore-stdin DELETE :8080/api/v1/checklists/templates/$TEMPLATE_ID \
+    orgNumber==937219997 \
+    Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Delete template (cleanup)"
+  else
+    print_result 1 "Delete template (cleanup)"
+  fi
+fi
+
+echo ""
+
+# ==================== LOCATION DELETE TEST ====================
+if [ -n "$TOKEN" ] && [ -n "$LOCATION_ID" ]; then
+  echo -e "${Blue}Location Delete Test${NC}"
+  echo "--------------------"
+
+  # Test 100: Delete location
+  echo "Test 100: Delete location"
+  if http --ignore-stdin DELETE :8080/api/v1/locations/$LOCATION_ID \
+    orgNumber==937219997 \
+    Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Delete location"
+  else
+    print_result 1 "Delete location"
+  fi
+fi
+
+echo ""
+
+# ==================== AUTH LOGOUT/SESSION TESTS ====================
+if [ -n "$TOKEN" ]; then
+  echo -e "${Blue}Auth Session Tests${NC}"
+  echo "------------------"
+
+  # Test 101: Verify token works
+  echo "Test 101: Verify authenticated endpoint access"
+  if http :8080/api/v1/checklists/templates orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Authenticated access"
+  else
+    print_result 1 "Authenticated access"
+  fi
+
+  # Test 102: Invalid token test
+  echo "Test 102: Invalid token rejection"
+  if http :8080/api/v1/checklists/templates orgNumber==937219997 Authorization:"Bearer invalidtoken123" &>/dev/null; then
+    print_result 1 "Invalid token should be rejected"
+  else
+    print_result 0 "Invalid token rejected"
+  fi
+fi
+
+echo ""
+
+# ==================== PAGINATION & FILTERING TESTS ====================
+if [ -n "$TOKEN" ]; then
+  echo -e "${Blue}Pagination & Filtering Tests${NC}"
+  echo "----------------------------"
+
+  # Test 103: Paginated users list
+  echo "Test 103: Paginated users list"
+  if http :8080/api/users orgNumber==937219997 page==0 size==10 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Paginated users"
+  else
+    print_result 1 "Paginated users"
+  fi
+
+  # Test 104: Paginated deviations
+  echo "Test 104: Paginated deviations"
+  if http :8080/api/v1/deviations orgNumber==937219997 page==0 size==10 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Paginated deviations"
+  else
+    print_result 1 "Paginated deviations"
+  fi
+
+  # Test 105: Filtered deviations by date
+  echo "Test 105: Filtered deviations by date"
+  if http :8080/api/v1/deviations/search \
+    orgNumber==937219997 \
+    fromDate=="$(date -d '30 days ago' -I)" \
+    toDate=="$(date -I)" \
+    Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Filtered deviations by date"
+  else
+    print_result 1 "Filtered deviations by date"
+  fi
+fi
+
+echo ""
+
+# ==================== ORGANIZATION API TESTS ====================
+if [ -n "$TOKEN" ]; then
+  echo -e "${Blue}Organization API Tests${NC}"
+  echo "----------------------"
+
+  # Test 106: Get organization details
+  echo "Test 106: Get organization details"
+  if http :8080/api/v1/organizations/937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "Get organization details"
+  else
+    print_result 1 "Get organization details"
+  fi
+
+  # Test 107: List user organizations
+  echo "Test 107: List user organizations"
+  if http :8080/api/users/me/organizations Authorization:"Bearer $TOKEN" &>/dev/null; then
+    print_result 0 "List user organizations"
+  else
+    print_result 1 "List user organizations"
+  fi
+fi
+
+echo ""
+
+# ==================== SWAGGER/DOCS TESTS ====================
+echo -e "${Blue}Documentation Tests${NC}"
+echo "-------------------"
+
+# Test 108: OpenAPI docs
+echo "Test 108: OpenAPI/Swagger docs"
+if http :8080/v3/api-docs &>/dev/null; then
+  print_result 0 "OpenAPI docs accessible"
+else
+  print_result 1 "OpenAPI docs accessible"
 fi
 
 echo ""

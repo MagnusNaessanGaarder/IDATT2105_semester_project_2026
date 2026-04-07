@@ -33,7 +33,7 @@ spring:
     enabled: true
     validate-on-migrate: false
 
-  # Docker Compose
+  # Compose
   docker:
     compose:
       enabled: false
