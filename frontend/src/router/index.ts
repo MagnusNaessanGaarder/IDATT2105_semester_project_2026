@@ -90,6 +90,12 @@ const router = createRouter({
           meta: { title: 'Rapporter' },
         },
         {
+          path: 'eksport',
+          name: 'Export',
+          component: () => import('@/features/export/views/ExportView.vue'),
+          meta: { title: 'Eksport', allowedRoles: ['MANAGER', 'ADMIN'] },
+        },
+        {
           path: 'dokumenter',
           name: 'Documents',
           component: () => import('@/features/dashboard/views/DocumentsView.vue'),
