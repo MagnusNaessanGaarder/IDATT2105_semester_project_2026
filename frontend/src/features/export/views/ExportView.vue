@@ -84,7 +84,7 @@ onBeforeUnmount(() => resetActiveJob())
     <!-- Hard error banner -->
     <div v-if="error" class="banner banner--error" role="alert">
       <span>{{ error }}</span>
-      <button type="button" class="banner__dismiss" @click="dismissError">✕</button>
+      <button type="button" class="banner__dismiss" aria-label="Lukk feilmelding" @click="dismissError">✕</button>
     </div>
 
     <!-- Stall warning banner (softer — job may still complete) -->
