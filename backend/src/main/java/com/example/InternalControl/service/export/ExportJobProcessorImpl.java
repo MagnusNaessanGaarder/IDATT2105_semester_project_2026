@@ -8,11 +8,13 @@ import com.example.InternalControl.repository.document.OrganizationDocumentRepos
 import com.example.InternalControl.repository.document.OrganizationDocumentVersionRepository;
 import com.example.InternalControl.repository.export.ExportJobRepository;
 import com.example.InternalControl.service.storage.BlobStorageService;
+import com.example.InternalControl.model.export.ExportFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
@@ -30,55 +32,70 @@ public class ExportJobProcessorImpl implements ExportJobProcessor {
 
   @Override
   @Async("exportTaskExecutor")
-  @Transactional
   public void processExportJobAsync(Long exportJobId) {
     log.info("Starting async processing of export job {}", exportJobId);
 
-    ExportJob job = exportJobRepository.findById(exportJobId)
-        .orElseThrow(() -> new IllegalStateException("Export job not found: " + exportJobId));
+    setJobStatus(exportJobId, ExportStatus.RUNNING, null);
 
     try {
-      job.setStatus(ExportStatus.RUNNING);
-      exportJobRepository.save(job);
+      ExportJob job = exportJobRepository.findById(exportJobId)
+              .orElseThrow(() -> new IllegalStateException("Export job not found: " + exportJobId));
 
       byte[] content = exportGeneratorService.generateExport(job);
 
       String fileName = generateFileName(job);
-      String contentType = job.getFormat().name().equals("pdf") ? "application/pdf" : "application/json";
+      String contentType = job.getFormat() == ExportFormat.PDF ? "application/pdf" : "application/json";
       String directory = "exports";
 
       String blobName = blobStorageService.uploadFile(
-          job.getOrgNumber(),
-          directory,
-          fileName,
-          new ByteArrayInputStream(content),
-          content.length,
-          contentType
+              job.getOrgNumber(), directory, fileName,
+              new ByteArrayInputStream(content), content.length, contentType
       );
 
       OrganizationDocument document = createDocumentRecord(job, fileName, contentType, content.length, directory, blobName);
 
-      job.setStatus(ExportStatus.COMPLETED);
-      job.setResultDocumentId(document.getDocumentId());
-      job.setCompletedAt(LocalDateTime.now());
-      exportJobRepository.save(job);
-
-      log.info("Export job {} completed successfully. Document ID: {}", exportJobId, document.getDocumentId());
+      completeJob(exportJobId, document.getDocumentId());
+      log.info("Export job {} completed successfully.", exportJobId);
 
     } catch (Exception e) {
       log.error("Export job {} failed", exportJobId, e);
-
-      job.setStatus(ExportStatus.FAILED);
-      job.setFailureReason(e.getMessage());
-      job.setCompletedAt(LocalDateTime.now());
-      exportJobRepository.save(job);
+      failJob(exportJobId, e.getMessage());
     }
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void setJobStatus(Long exportJobId, ExportStatus status, String reason) {
+    ExportJob job = exportJobRepository.findById(exportJobId)
+            .orElseThrow(() -> new IllegalStateException("Export job not found: " + exportJobId));
+    job.setStatus(status);
+    if (reason != null) job.setFailureReason(reason);
+    exportJobRepository.save(job);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void completeJob(Long exportJobId, Long documentId) {
+    ExportJob job = exportJobRepository.findById(exportJobId)
+            .orElseThrow(() -> new IllegalStateException("Export job not found: " + exportJobId));
+    job.setStatus(ExportStatus.COMPLETED);
+    job.setResultDocumentId(documentId);
+    job.setCompletedAt(LocalDateTime.now());
+    exportJobRepository.save(job);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void failJob(Long exportJobId, String reason) {
+    ExportJob job = exportJobRepository.findById(exportJobId)
+            .orElseThrow(() -> new IllegalStateException("Export job not found: " + exportJobId));
+    job.setStatus(ExportStatus.FAILED);
+    job.setFailureReason(reason);
+    job.setCompletedAt(LocalDateTime.now());
+    exportJobRepository.save(job);
   }
 
   private OrganizationDocument createDocumentRecord(ExportJob job, String fileName, String contentType, long fileSize, String directory, String blobName) {
     OrganizationDocument document = new OrganizationDocument();
     document.setOrgNumber(job.getOrgNumber());
-    document.setDocumentType("EXPORT");
+    document.setDocumentType("REPORT_EXPORT");
     document.setTitle(fileName);
     document.setDescription("Export: " + job.getExportType() + " in " + job.getFormat() + " format");
     document.setCreatedByUserId(job.getRequestedByUserId());
