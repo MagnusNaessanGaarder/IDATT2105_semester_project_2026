@@ -4,6 +4,8 @@ import com.example.InternalControl.model.checklist.ChecklistRun;
 import com.example.InternalControl.model.checklist.ChecklistRunItem;
 import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.export.ExportJob;
+import com.example.InternalControl.model.temperature.TemperatureLogEntry;
+import com.example.InternalControl.model.training.TrainingRecord;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -92,142 +94,6 @@ public class OpenPdfGenerator implements PdfGenerator {
   }
 
   @Override
-  public byte[] generateFullComplianceReport(Map<String, Object> data, ExportJob job) {
-    log.info("Generating full compliance PDF for job {}", job.getExportJobId());
-
-    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-      Document document = new Document(PageSize.A4);
-      PdfWriter.getInstance(document, baos);
-      document.open();
-
-      addTitle(document, "Full Compliance Report", job);
-      addSummary(document, 0, job);
-
-      document.add(new Paragraph("This is a comprehensive compliance report."));
-      document.add(Chunk.NEWLINE);
-
-      addFooter(document);
-      document.close();
-
-      return baos.toByteArray();
-    } catch (Exception e) {
-      log.error("Failed to generate compliance PDF for job {}", job.getExportJobId(), e);
-      throw new RuntimeException("PDF generation failed", e);
-    }
-  }
-
-  private void addTitle(Document document, String title, ExportJob job) throws DocumentException {
-    Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
-    Paragraph titlePara = new Paragraph(title, titleFont);
-    titlePara.setAlignment(Element.ALIGN_CENTER);
-    document.add(titlePara);
-    document.add(Chunk.NEWLINE);
-
-    Font subtitleFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
-    String dateRange = job.getRequestedAt() != null
-        ? job.getRequestedAt().format(DATE_FORMATTER)
-        : "N/A";
-    Paragraph subtitle = new Paragraph(
-        String.format("Organization: %s | Generated: %s", job.getOrgNumber(), dateRange),
-        subtitleFont
-    );
-    subtitle.setAlignment(Element.ALIGN_CENTER);
-    document.add(subtitle);
-    document.add(Chunk.NEWLINE);
-  }
-
-  private void addSummary(Document document, int count, ExportJob job) throws DocumentException {
-    Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
-    Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
-
-    document.add(new Paragraph("Summary:", boldFont));
-    document.add(new Paragraph("Total Records: " + count, normalFont));
-    document.add(new Paragraph("Report Type: " + job.getExportType(), normalFont));
-    document.add(new Paragraph("Format: " + job.getFormat(), normalFont));
-    document.add(Chunk.NEWLINE);
-  }
-
-  private void addChecklistTable(Document document, List<ChecklistRun> runs) throws DocumentException {
-    PdfPTable table = new PdfPTable(5);
-    table.setWidthPercentage(100);
-    table.setWidths(new float[]{2, 3, 2, 2, 1});
-
-    Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
-    String[] headers = {"Date", "Template", "Location", "Status", "Items"};
-    for (String header : headers) {
-      PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
-      cell.setBackgroundColor(Color.LIGHT_GRAY);
-      table.addCell(cell);
-    }
-
-    Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
-    for (ChecklistRun run : runs) {
-      table.addCell(new Phrase(run.getRunDate().format(DATE_FORMATTER), cellFont));
-      table.addCell(new Phrase(run.getTemplate() != null ? run.getTemplate().getTitle() : "N/A", cellFont));
-      table.addCell(new Phrase(run.getLocationId() != null ? "Location " + run.getLocationId() : "N/A", cellFont));
-      table.addCell(new Phrase(run.getStatus().name(), cellFont));
-      table.addCell(new Phrase(String.valueOf(run.getItems().size()), cellFont));
-    }
-
-    document.add(table);
-  }
-
-  private void addDeviationTable(Document document, List<DeviationReport> reports) throws DocumentException {
-    PdfPTable table = new PdfPTable(5);
-    table.setWidthPercentage(100);
-    table.setWidths(new float[]{2, 3, 2, 2, 2});
-
-    Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
-    String[] headers = {"Date", "Title", "Severity", "Status", "Assigned To"};
-    for (String header : headers) {
-      PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
-      cell.setBackgroundColor(Color.LIGHT_GRAY);
-      table.addCell(cell);
-    }
-
-    Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
-    for (DeviationReport report : reports) {
-      table.addCell(new Phrase(report.getCreatedAt().format(DATE_FORMATTER), cellFont));
-      table.addCell(new Phrase(report.getTitle(), cellFont));
-      table.addCell(new Phrase(report.getSeverity().name(), cellFont));
-      table.addCell(new Phrase(report.getStatus().name(), cellFont));
-      table.addCell(new Phrase(report.getAssignedTo() != null ? report.getAssignedTo().toString() : "Unassigned", cellFont));
-    }
-
-    document.add(table);
-  }
-
-  @Override
-  public byte[] generateAuditReport(Map<String, Object> data, ExportJob job) {
-    log.info("Generating audit PDF for job {}", job.getExportJobId());
-
-    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-      Document document = new Document(PageSize.A4);
-      PdfWriter.getInstance(document, baos);
-      document.open();
-
-      addTitle(document, "Audit Report", job);
-      addSummary(document, 0, job);
-
-      document.add(new Paragraph("This report contains audit trail information."));
-      document.add(Chunk.NEWLINE);
-
-      Integer totalRuns = (Integer) data.getOrDefault("totalRuns", 0);
-      Integer totalReports = (Integer) data.getOrDefault("totalReports", 0);
-      document.add(new Paragraph("Checklist Runs Audited: " + totalRuns));
-      document.add(new Paragraph("Deviation Reports Audited: " + totalReports));
-
-      addFooter(document);
-      document.close();
-
-      return baos.toByteArray();
-    } catch (Exception e) {
-      log.error("Failed to generate audit PDF for job {}", job.getExportJobId(), e);
-      throw new RuntimeException("PDF generation failed", e);
-    }
-  }
-
-  @Override
   public byte[] generateTemperatureReport(Map<String, Object> data, ExportJob job) {
     log.info("Generating temperature PDF for job {}", job.getExportJobId());
 
@@ -236,17 +102,50 @@ public class OpenPdfGenerator implements PdfGenerator {
       PdfWriter.getInstance(document, baos);
       document.open();
 
+      @SuppressWarnings("unchecked")
+      List<com.example.InternalControl.model.temperature.TemperatureLogEntry> entries =
+              (List<com.example.InternalControl.model.temperature.TemperatureLogEntry>)
+                      data.getOrDefault("temperatureLogs", List.of());
+
       addTitle(document, "Temperature Report", job);
-      addSummary(document, 0, job);
+      addSummary(document, entries.size(), job);
 
-      document.add(new Paragraph("This report contains temperature monitoring data."));
-      document.add(Chunk.NEWLINE);
+      if (!entries.isEmpty()) {
+        Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+        long alertCount = entries.stream()
+                .filter(e -> Boolean.TRUE.equals(e.getIsAlert())).count();
+        document.add(new Paragraph("Alerts: " + alertCount, boldFont));
+        document.add(Chunk.NEWLINE);
 
-      document.add(new Paragraph("Temperature readings are recorded from checklist runs with temperature checks."));
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100);
+        table.setWidths(new float[]{3, 2, 2, 3});
+
+        Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
+        for (String header : new String[]{"Measured At", "Temperature (°C)", "Alert", "Note"}) {
+          PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
+          cell.setBackgroundColor(Color.LIGHT_GRAY);
+          table.addCell(cell);
+        }
+
+        Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
+        for (var entry : entries) {
+          table.addCell(new Phrase(entry.getMeasuredAt().format(DATE_TIME_FORMATTER), cellFont));
+          table.addCell(new Phrase(entry.getTemperatureC().toPlainString(), cellFont));
+          PdfPCell alertCell = new PdfPCell(new Phrase(Boolean.TRUE.equals(entry.getIsAlert()) ? "YES" : "No", cellFont));
+          if (Boolean.TRUE.equals(entry.getIsAlert())) {
+            alertCell.setBackgroundColor(new Color(255, 200, 200));
+          }
+          table.addCell(alertCell);
+          table.addCell(new Phrase(entry.getNoteText() != null ? entry.getNoteText() : "", cellFont));
+        }
+        document.add(table);
+      } else {
+        document.add(new Paragraph("No temperature records found for the selected period."));
+      }
 
       addFooter(document);
       document.close();
-
       return baos.toByteArray();
     } catch (Exception e) {
       log.error("Failed to generate temperature PDF for job {}", job.getExportJobId(), e);
@@ -263,22 +162,221 @@ public class OpenPdfGenerator implements PdfGenerator {
       PdfWriter.getInstance(document, baos);
       document.open();
 
+      @SuppressWarnings("unchecked")
+      List<com.example.InternalControl.model.training.TrainingRecord> records =
+              (List<com.example.InternalControl.model.training.TrainingRecord>)
+                      data.getOrDefault("trainingRecords", List.of());
+
       addTitle(document, "Training Report", job);
-      addSummary(document, 0, job);
+      addSummary(document, records.size(), job);
 
-      document.add(new Paragraph("This report contains training compliance information."));
-      document.add(Chunk.NEWLINE);
+      if (!records.isEmpty()) {
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100);
+        table.setWidths(new float[]{3, 3, 2, 2});
 
-      document.add(new Paragraph("Training records are tracked through deviation reports and checklist completions."));
+        Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
+        for (String header : new String[]{"Title", "Type", "Status", "Completed At"}) {
+          PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
+          cell.setBackgroundColor(Color.LIGHT_GRAY);
+          table.addCell(cell);
+        }
+
+        Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
+        for (var record : records) {
+          table.addCell(new Phrase(record.getTitle(), cellFont));
+          table.addCell(new Phrase(record.getTrainingType() != null ? record.getTrainingType().name() : "N/A", cellFont));
+          table.addCell(new Phrase(record.getStatus() != null ? record.getStatus().name() : "N/A", cellFont));
+          table.addCell(new Phrase(record.getCompletedAt() != null ? record.getCompletedAt().format(DATE_TIME_FORMATTER) : "—", cellFont));
+        }
+        document.add(table);
+      } else {
+        document.add(new Paragraph("No training records found."));
+      }
 
       addFooter(document);
       document.close();
-
       return baos.toByteArray();
     } catch (Exception e) {
       log.error("Failed to generate training PDF for job {}", job.getExportJobId(), e);
       throw new RuntimeException("PDF generation failed", e);
     }
+  }
+
+  @Override
+  public byte[] generateFullComplianceReport(Map<String, Object> data, ExportJob job) {
+    log.info("Generating full compliance PDF for job {}", job.getExportJobId());
+
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      Document document = new Document(PageSize.A4);
+      PdfWriter.getInstance(document, baos);
+      document.open();
+
+      @SuppressWarnings("unchecked")
+      List<ChecklistRun> runs = (List<ChecklistRun>) data.getOrDefault("checklistRuns", List.of());
+      @SuppressWarnings("unchecked")
+      List<DeviationReport> reports = (List<DeviationReport>) data.getOrDefault("deviationReports", List.of());
+      @SuppressWarnings("unchecked")
+      List<com.example.InternalControl.model.temperature.TemperatureLogEntry> entries =
+              (List<com.example.InternalControl.model.temperature.TemperatureLogEntry>) data.getOrDefault("temperatureLogs", List.of());
+      @SuppressWarnings("unchecked")
+      List<com.example.InternalControl.model.training.TrainingRecord> trainingRecords =
+              (List<com.example.InternalControl.model.training.TrainingRecord>) data.getOrDefault("trainingRecords", List.of());
+
+      addTitle(document, "Full Compliance Report", job);
+
+      Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+      Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+      document.add(new Paragraph("Summary:", boldFont));
+      document.add(new Paragraph("Checklist Runs: " + runs.size(), normalFont));
+      document.add(new Paragraph("Deviation Reports: " + reports.size(), normalFont));
+      document.add(new Paragraph("Temperature Records: " + entries.size(), normalFont));
+      document.add(new Paragraph("Training Records: " + trainingRecords.size(), normalFont));
+      document.add(Chunk.NEWLINE);
+
+      if (!runs.isEmpty()) {
+        document.add(new Paragraph("Checklist Runs", boldFont));
+        document.add(Chunk.NEWLINE);
+        addChecklistTable(document, runs);
+        document.add(Chunk.NEWLINE);
+      }
+
+      if (!reports.isEmpty()) {
+        document.add(new Paragraph("Deviation Reports", boldFont));
+        document.add(Chunk.NEWLINE);
+        addDeviationTable(document, reports);
+        document.add(Chunk.NEWLINE);
+      }
+
+      addFooter(document);
+      document.close();
+      return baos.toByteArray();
+    } catch (Exception e) {
+      log.error("Failed to generate compliance PDF for job {}", job.getExportJobId(), e);
+      throw new RuntimeException("PDF generation failed", e);
+    }
+  }
+
+  @Override
+  public byte[] generateAuditReport(Map<String, Object> data, ExportJob job) {
+    log.info("Generating audit PDF for job {}", job.getExportJobId());
+
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      Document document = new Document(PageSize.A4);
+      PdfWriter.getInstance(document, baos);
+      document.open();
+
+      @SuppressWarnings("unchecked")
+      List<ChecklistRun> runs = (List<ChecklistRun>) data.getOrDefault("checklistRuns", List.of());
+      @SuppressWarnings("unchecked")
+      List<DeviationReport> reports = (List<DeviationReport>) data.getOrDefault("deviationReports", List.of());
+
+      addTitle(document, "Audit Report", job);
+
+      Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+      Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+      document.add(new Paragraph("Summary:", boldFont));
+      document.add(new Paragraph("Checklist Runs Audited: " + runs.size(), normalFont));
+      document.add(new Paragraph("Deviation Reports Audited: " + reports.size(), normalFont));
+      document.add(Chunk.NEWLINE);
+
+      if (!runs.isEmpty()) {
+        document.add(new Paragraph("Checklist Runs", boldFont));
+        document.add(Chunk.NEWLINE);
+        addChecklistTable(document, runs);
+        document.add(Chunk.NEWLINE);
+      }
+
+      if (!reports.isEmpty()) {
+        document.add(new Paragraph("Deviation Reports", boldFont));
+        document.add(Chunk.NEWLINE);
+        addDeviationTable(document, reports);
+        document.add(Chunk.NEWLINE);
+      }
+
+      addFooter(document);
+      document.close();
+      return baos.toByteArray();
+    } catch (Exception e) {
+      log.error("Failed to generate audit PDF for job {}", job.getExportJobId(), e);
+      throw new RuntimeException("PDF generation failed", e);
+    }
+  }
+
+  private void addTitle(Document document, String title, ExportJob job) throws DocumentException {
+    Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+    Paragraph titlePara = new Paragraph(title, titleFont);
+    titlePara.setAlignment(Element.ALIGN_CENTER);
+    document.add(titlePara);
+    document.add(Chunk.NEWLINE);
+
+    Font subtitleFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
+    String dateRange = job.getRequestedAt() != null
+            ? job.getRequestedAt().format(DATE_FORMATTER)
+            : "N/A";
+    Paragraph subtitle = new Paragraph(
+            String.format("Organization: %s | Generated: %s", job.getOrgNumber(), dateRange),
+            subtitleFont
+    );
+    subtitle.setAlignment(Element.ALIGN_CENTER);
+    document.add(subtitle);
+    document.add(Chunk.NEWLINE);
+  }
+
+  private void addSummary(Document document, int count, ExportJob job) throws DocumentException {
+    Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
+    Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+    document.add(new Paragraph("Summary:", boldFont));
+    document.add(new Paragraph("Total Records: " + count, normalFont));
+    document.add(new Paragraph("Report Type: " + job.getExportType(), normalFont));
+    document.add(new Paragraph("Format: " + job.getFormat(), normalFont));
+    document.add(Chunk.NEWLINE);
+  }
+
+  private void addChecklistTable(Document document, List<ChecklistRun> runs) throws DocumentException {
+    PdfPTable table = new PdfPTable(5);
+    table.setWidthPercentage(100);
+    table.setWidths(new float[]{2, 3, 2, 2, 1});
+
+    Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
+    for (String header : new String[]{"Date", "Template", "Location", "Status", "Items"}) {
+      PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
+      cell.setBackgroundColor(Color.LIGHT_GRAY);
+      table.addCell(cell);
+    }
+
+    Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
+    for (ChecklistRun run : runs) {
+      table.addCell(new Phrase(run.getRunDate().format(DATE_FORMATTER), cellFont));
+      table.addCell(new Phrase(run.getTemplate() != null ? run.getTemplate().getTitle() : "N/A", cellFont));
+      table.addCell(new Phrase(run.getLocationId() != null ? "Location " + run.getLocationId() : "N/A", cellFont));
+      table.addCell(new Phrase(run.getStatus().name(), cellFont));
+      table.addCell(new Phrase(String.valueOf(run.getItems().size()), cellFont));
+    }
+    document.add(table);
+  }
+
+  private void addDeviationTable(Document document, List<DeviationReport> reports) throws DocumentException {
+    PdfPTable table = new PdfPTable(5);
+    table.setWidthPercentage(100);
+    table.setWidths(new float[]{2, 3, 2, 2, 2});
+
+    Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
+    for (String header : new String[]{"Date", "Title", "Severity", "Status", "Assigned To"}) {
+      PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
+      cell.setBackgroundColor(Color.LIGHT_GRAY);
+      table.addCell(cell);
+    }
+
+    Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
+    for (DeviationReport report : reports) {
+      table.addCell(new Phrase(report.getCreatedAt().format(DATE_FORMATTER), cellFont));
+      table.addCell(new Phrase(report.getTitle(), cellFont));
+      table.addCell(new Phrase(report.getSeverity().name(), cellFont));
+      table.addCell(new Phrase(report.getStatus().name(), cellFont));
+      table.addCell(new Phrase(report.getAssignedTo() != null ? report.getAssignedTo().toString() : "Unassigned", cellFont));
+    }
+    document.add(table);
   }
 
   private void addFooter(Document document) throws DocumentException {
