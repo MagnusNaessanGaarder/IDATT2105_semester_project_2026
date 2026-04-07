@@ -80,7 +80,7 @@ public class DashboardService {
 
         // Training stats
         LocalDateTime thresholdDate = LocalDateTime.now().plusDays(30);
-        long expiringTrainingCount = trainingRecordRepository.findExpiringByOrgNumber(orgNumber, thresholdDate).size();
+        long expiringTrainingCount = trainingRecordRepository.findExpiringSoon(orgNumber, thresholdDate).size();
 
         // Calculate compliance score
         double complianceScore = calculateComplianceScore(

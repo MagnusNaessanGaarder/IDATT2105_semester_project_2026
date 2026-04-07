@@ -1,6 +1,7 @@
 package com.example.InternalControl.repository.audit;
 
 import com.example.InternalControl.model.audit.AuditLog;
+import com.example.InternalControl.model.user.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +26,6 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     List<AuditLog> findByOrgNumberAndCreatedAtAfter(@Param("orgNumber") Integer orgNumber, @Param("since") LocalDateTime since);
 
     List<AuditLog> findByEntityTypeAndEntityId(String entityType, Long entityId);
+
+    List<AuditLog> findByActedByUserOrderByCreatedAtDesc(AppUser actedByUser);
 }

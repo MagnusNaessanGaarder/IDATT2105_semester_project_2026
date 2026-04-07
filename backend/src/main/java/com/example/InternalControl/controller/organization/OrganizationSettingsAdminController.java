@@ -6,6 +6,11 @@ import com.example.InternalControl.model.organization.Organization;
 import com.example.InternalControl.model.organization.OrganizationSettings;
 import com.example.InternalControl.repository.organization.OrganizationRepository;
 import com.example.InternalControl.repository.organization.OrganizationSettingsRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +31,9 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/admin/organizations/settings")
 @RequiredArgsConstructor
 @Slf4j
-public class OrganizationSettingsController {
+@Tag(name = "Organization Settings Admin", description = "Administrative endpoints for managing organization settings")
+@SecurityRequirement(name = "bearerAuth")
+public class OrganizationSettingsAdminController {
 
     private final OrganizationSettingsRepository settingsRepository;
     private final OrganizationRepository organizationRepository;
@@ -39,6 +46,11 @@ public class OrganizationSettingsController {
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get organization settings", description = "Retrieve settings for a specific organization")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved settings"),
+            @ApiResponse(responseCode = "404", description = "Organization not found")
+    })
     public ResponseEntity<OrganizationSettingsResponse> getSettings(
             @RequestParam Integer orgNumber) {
         log.info("Getting settings for organization: {}", orgNumber);
@@ -58,6 +70,12 @@ public class OrganizationSettingsController {
      */
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update organization settings", description = "Update settings for a specific organization (ADMIN only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully updated settings"),
+            @ApiResponse(responseCode = "404", description = "Organization not found"),
+            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     public ResponseEntity<OrganizationSettingsResponse> updateSettings(
             @RequestParam Integer orgNumber,
             @Valid @RequestBody OrganizationSettingsRequest request) {

@@ -144,8 +144,28 @@ public class AuthService {
         }
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse refreshToken(String refreshToken) {
-        String email = jwtService.extractUsername(refreshToken);
+        // Validate token format first
+        if (refreshToken == null || refreshToken.isBlank()) {
+            LOGGER.warn("Refresh token is null or empty");
+            throw new IllegalArgumentException("Refresh token is required");
+        }
+        
+        // Check if token has valid JWT format (should have 2 periods)
+        if (refreshToken.chars().filter(ch -> ch == '.').count() != 2) {
+            LOGGER.warn("Invalid refresh token format");
+            throw new IllegalArgumentException("Invalid refresh token format");
+        }
+        
+        String email;
+        try {
+            email = jwtService.extractUsername(refreshToken);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to extract username from refresh token: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+        
         LOGGER.info("Token refresh for {}", email);
 
         AppUser user = userRepository.findByEmail(email)

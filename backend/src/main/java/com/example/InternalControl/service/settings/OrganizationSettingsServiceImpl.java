@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementation of OrganizationSettingsService.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -23,7 +26,7 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     @Override
     @Transactional(readOnly = true)
     public OrganizationSettingsResponse getSettings(Integer orgNumber) {
-        OrganizationSettings settings = settingsRepository.findById(orgNumber.longValue())
+        OrganizationSettings settings = settingsRepository.findById(orgNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Organization settings not found for org: " + orgNumber));
 
         return mapToResponse(settings);
@@ -33,11 +36,11 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     @Transactional
     @Audited(action = ActionType.UPDATE, entityType = "OrganizationSettings")
     public OrganizationSettingsResponse updateSettings(Integer orgNumber, OrganizationSettingsRequest request, Long userId) {
-        OrganizationSettings settings = settingsRepository.findById(orgNumber.longValue())
+        OrganizationSettings settings = settingsRepository.findById(orgNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Organization settings not found for org: " + orgNumber));
 
         settings.setTimezoneName(request.getTimezoneName());
-        settings.setLocalCode(request.getLocaleCode());
+        settings.setLocaleCode(request.getLocaleCode());
         settings.setEnableFoodModule(request.getEnableFoodModule());
         settings.setEnableAlcoholModule(request.getEnableAlcoholModule());
         settings.setDefaultTempMinC(request.getDefaultTempMinC());
@@ -58,15 +61,15 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     @Audited(action = ActionType.CREATE, entityType = "OrganizationSettings")
     public OrganizationSettingsResponse createDefaultSettings(Integer orgNumber) {
         // Check if settings already exist
-        if (settingsRepository.existsById(orgNumber.longValue())) {
+        if (settingsRepository.existsById(orgNumber)) {
             log.debug("Settings already exist for org: {}", orgNumber);
             return getSettings(orgNumber);
         }
 
         OrganizationSettings settings = OrganizationSettings.builder()
-                .orgNumber(orgNumber.longValue())
+                .orgNumber(orgNumber)
                 .timezoneName("Europe/Oslo")
-                .localCode("nb-NO")
+                .localeCode("nb-NO")
                 .enableFoodModule(true)
                 .enableAlcoholModule(true)
                 .reminderEmailEnabled(true)
@@ -82,12 +85,12 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
         return OrganizationSettingsResponse.builder()
                 .orgNumber(settings.getOrgNumber())
                 .timezoneName(settings.getTimezoneName())
-                .localeCode(settings.getLocalCode())
-                .enableFoodModule(settings.isEnableFoodModule())
-                .enableAlcoholModule(settings.isEnableAlcoholModule())
+                .localeCode(settings.getLocaleCode())
+                .enableFoodModule(settings.getEnableFoodModule())
+                .enableAlcoholModule(settings.getEnableAlcoholModule())
                 .defaultTempMinC(settings.getDefaultTempMinC())
                 .defaultTempMaxC(settings.getDefaultTempMaxC())
-                .reminderEmailEnabled(settings.isReminderEmailEnabled())
+                .reminderEmailEnabled(settings.getReminderEmailEnabled())
                 .notificationEmail(settings.getNotificationEmail())
                 .retentionUserMonths(settings.getRetentionUserMonths())
                 .retentionAuditMonths(settings.getRetentionAuditMonths())

@@ -64,13 +64,4 @@ public class TrainingRecord {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    public enum TrainingType {
-        FOOD_HYGIENE, ALLERGEN_HANDLING, TEMPERATURE_CONTROL,
-        CLEANING_ROUTINES, RESPONSIBLE_ALCOHOL_SERVICE, AGE_VERIFICATION, OTHER
-    }
-
-    public enum TrainingStatus {
-        ASSIGNED, COMPLETED, EXPIRED
-    }
 }
