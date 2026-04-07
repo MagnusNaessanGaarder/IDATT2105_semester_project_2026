@@ -12,6 +12,11 @@ import com.example.InternalControl.repository.user.AppUserRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import com.example.InternalControl.security.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -38,6 +43,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "User Management", description = "Manage users within organizations")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
     private final AppUserRepository userRepository;
@@ -54,6 +61,8 @@ public class UserController {
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get all users", description = "Retrieve all users in an organization")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved users")
     public ResponseEntity<List<UserResponse>> getAllUsers(
             @RequestParam Integer orgNumber) {
         log.info("Getting all users for organization: {}", orgNumber);
@@ -76,6 +85,11 @@ public class UserController {
      */
     @GetMapping("/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @userSecurity.isCurrentUser(#userId)")
+    @Operation(summary = "Get user by ID", description = "Retrieve a specific user by ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved user"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     public ResponseEntity<UserResponse> getUser(
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
@@ -96,6 +110,12 @@ public class UserController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create user", description = "Create a new user in an organization (ADMIN only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "User successfully created"),
+            @ApiResponse(responseCode = "400", description = "Invalid input or email already exists"),
+            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     public ResponseEntity<UserResponse> createUser(
             @Valid @RequestBody UserCreateRequest request,
             HttpServletRequest httpRequest) {
@@ -166,6 +186,12 @@ public class UserController {
      */
     @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN') or @userSecurity.isCurrentUser(#userId)")
+    @Operation(summary = "Update user", description = "Update user details")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User successfully updated"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequest request,
@@ -226,6 +252,12 @@ public class UserController {
      */
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete user", description = "Soft delete (deactivate) a user (ADMIN only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "User successfully deactivated"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     public ResponseEntity<Void> deleteUser(
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {

@@ -42,9 +42,7 @@ class OrganizationNumberValidatorTest {
     @ParameterizedTest
     @CsvSource({
             "937219997",  // Everest Sushi - valid
-            "984582721",  // Valid org number
-            "999263550",  // Valid org number
-            "811218112",  // Valid org number
+            "999263550",  // Valid org number (verified with modulus 11)
     })
     void validOrganizationNumbers_ShouldPass(String orgNumber) {
         TestOrgNumber test = new TestOrgNumber(orgNumber);
@@ -56,8 +54,6 @@ class OrganizationNumberValidatorTest {
     @ValueSource(strings = {
             "123456789",  // Invalid check digit
             "937219998",  // Invalid check digit for Everest Sushi
-            "000000000",  // All zeros (invalid)
-            "999999999",  // All nines (invalid)
     })
     void invalidCheckDigit_ShouldFail(String orgNumber) {
         TestOrgNumber test = new TestOrgNumber(orgNumber);

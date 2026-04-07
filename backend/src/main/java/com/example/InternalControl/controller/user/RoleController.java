@@ -6,6 +6,11 @@ import com.example.InternalControl.model.user.UserOrganizationRole;
 import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +34,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/admin/roles")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Role Management", description = "Manage roles and user role assignments")
+@SecurityRequirement(name = "bearerAuth")
 public class RoleController {
 
     private final RoleRepository roleRepository;
@@ -41,6 +48,8 @@ public class RoleController {
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get all roles", description = "Retrieve all available roles in the system")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved roles")
     public ResponseEntity<List<RoleResponse>> getAllRoles() {
         log.info("Getting all roles");
 
@@ -61,6 +70,11 @@ public class RoleController {
      */
     @GetMapping("/{roleId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get role by ID", description = "Retrieve a specific role by its ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved role"),
+            @ApiResponse(responseCode = "404", description = "Role not found")
+    })
     public ResponseEntity<RoleResponse> getRole(@PathVariable Long roleId) {
         log.info("Getting role: {}", roleId);
 
@@ -79,6 +93,8 @@ public class RoleController {
      */
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @userSecurity.isCurrentUser(#userId)")
+    @Operation(summary = "Get user roles", description = "Retrieve roles assigned to a specific user in an organization")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved user roles")
     public ResponseEntity<List<RoleResponse>> getUserRoles(
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
@@ -104,6 +120,12 @@ public class RoleController {
      */
     @PostMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Assign role to user", description = "Assign a role to a user in an organization (ADMIN only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Role successfully assigned"),
+            @ApiResponse(responseCode = "200", description = "Role already assigned"),
+            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     public ResponseEntity<Void> assignRoleToUser(
             @PathVariable Long userId,
             @RequestParam Integer orgNumber,
@@ -142,6 +164,12 @@ public class RoleController {
      */
     @DeleteMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Remove role from user", description = "Remove a role from a user in an organization (ADMIN only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Role successfully removed"),
+            @ApiResponse(responseCode = "404", description = "User role assignment not found"),
+            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     public ResponseEntity<Void> removeRoleFromUser(
             @PathVariable Long userId,
             @RequestParam Integer orgNumber,
