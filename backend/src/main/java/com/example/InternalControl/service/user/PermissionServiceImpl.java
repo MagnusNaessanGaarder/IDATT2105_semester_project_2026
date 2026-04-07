@@ -5,6 +5,7 @@ import com.example.InternalControl.model.user.Permission;
 import com.example.InternalControl.model.user.RolePermission;
 import com.example.InternalControl.repository.user.PermissionRepository;
 import com.example.InternalControl.repository.user.RolePermissionRepository;
+import com.example.InternalControl.repository.user.RoleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class PermissionServiceImpl implements PermissionService {
 
     private final PermissionRepository permissionRepository;
     private final RolePermissionRepository rolePermissionRepository;
+    private final RoleRepository roleRepository;
 
     @Override
     public List<PermissionResponse> getAllPermissions() {
@@ -54,6 +56,11 @@ public class PermissionServiceImpl implements PermissionService {
     @Transactional
     public void assignPermissionToRole(Long roleId, Long permissionId) {
         log.info("Assigning permission {} to role {}", permissionId, roleId);
+
+        // Verify role exists
+        if (!roleRepository.existsById(roleId)) {
+            throw new EntityNotFoundException("Role not found: " + roleId);
+        }
 
         // Verify permission exists
         permissionRepository.findById(permissionId)

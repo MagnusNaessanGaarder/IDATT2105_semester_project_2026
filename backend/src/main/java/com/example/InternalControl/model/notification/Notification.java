@@ -37,7 +37,7 @@ public class Notification {
 
     @Column(name = "notification_type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private NotificationType notificationType;
+    private com.example.InternalControl.model.notification.NotificationType notificationType;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -47,7 +47,7 @@ public class Notification {
 
     @Column(name = "related_entity_type")
     @Enumerated(EnumType.STRING)
-    private RelatedEntityType relatedEntityType;
+    private com.example.InternalControl.model.notification.RelatedEntityType relatedEntityType;
 
     @Column(name = "related_entity_id")
     private Long relatedEntityId;
@@ -62,14 +62,4 @@ public class Notification {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    public enum NotificationType {
-        TASK_OVERDUE, TEMPERATURE_ALERT, DEVIATION_ASSIGNED,
-        DEVIATION_STATUS_CHANGED, TRAINING_EXPIRING, DOCUMENT_UPLOADED, GENERAL
-    }
-
-    public enum RelatedEntityType {
-        CHECKLIST_RUN, TEMPERATURE_LOG_ENTRY, DEVIATION_REPORT,
-        TRAINING_RECORD, ORGANIZATION_DOCUMENT, EXPORT_JOB, OTHER
-    }
 }

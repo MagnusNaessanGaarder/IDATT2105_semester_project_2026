@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -64,8 +65,8 @@ class OrganizationSettingsControllerTest {
                 .localeCode("nb-NO")
                 .enableFoodModule(true)
                 .enableAlcoholModule(true)
-                .defaultTempMinC(2.0)
-                .defaultTempMaxC(8.0)
+                .defaultTempMinC(BigDecimal.valueOf(2.0))
+                .defaultTempMaxC(BigDecimal.valueOf(8.0))
                 .reminderEmailEnabled(true)
                 .notificationEmail("admin@everest-sushi.no")
                 .retentionUserMonths(24)
@@ -146,8 +147,8 @@ class OrganizationSettingsControllerTest {
                 .localeCode("en-GB")
                 .enableFoodModule(false)
                 .enableAlcoholModule(true)
-                .defaultTempMinC(0.0)
-                .defaultTempMaxC(5.0)
+                .defaultTempMinC(BigDecimal.valueOf(0.0))
+                .defaultTempMaxC(BigDecimal.valueOf(5.0))
                 .reminderEmailEnabled(false)
                 .notificationEmail("new@everest-sushi.no")
                 .retentionUserMonths(12)
@@ -161,8 +162,8 @@ class OrganizationSettingsControllerTest {
                 .localeCode("en-GB")
                 .enableFoodModule(false)
                 .enableAlcoholModule(true)
-                .defaultTempMinC(0.0)
-                .defaultTempMaxC(5.0)
+                .defaultTempMinC(BigDecimal.valueOf(0.0))
+                .defaultTempMaxC(BigDecimal.valueOf(5.0))
                 .reminderEmailEnabled(false)
                 .notificationEmail("new@everest-sushi.no")
                 .retentionUserMonths(12)

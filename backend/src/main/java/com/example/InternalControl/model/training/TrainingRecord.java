@@ -38,7 +38,7 @@ public class TrainingRecord {
 
     @Column(name = "training_type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private TrainingType trainingType;
+    private com.example.InternalControl.model.training.TrainingType trainingType;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -52,7 +52,7 @@ public class TrainingRecord {
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private TrainingStatus status = TrainingStatus.ASSIGNED;
+    private com.example.InternalControl.model.training.TrainingStatus status = com.example.InternalControl.model.training.TrainingStatus.ASSIGNED;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "certificate_document_id")
@@ -64,13 +64,4 @@ public class TrainingRecord {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    public enum TrainingType {
-        FOOD_HYGIENE, ALLERGEN_HANDLING, TEMPERATURE_CONTROL,
-        CLEANING_ROUTINES, RESPONSIBLE_ALCOHOL_SERVICE, AGE_VERIFICATION, OTHER
-    }
-
-    public enum TrainingStatus {
-        ASSIGNED, COMPLETED, EXPIRED
-    }
 }

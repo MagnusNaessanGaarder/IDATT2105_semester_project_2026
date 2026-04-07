@@ -32,7 +32,7 @@ public class OrganizationSettingsRequest {
     @Email(message = "Invalid email format")
     private String notificationEmail;
 
-    private Long retentionUserMonths;
+    private Integer retentionUserMonths;
 
-    private Long retentionAuditMonths;
+    private Integer retentionAuditMonths;
 }
