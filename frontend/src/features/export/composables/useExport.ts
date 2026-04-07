@@ -129,11 +129,15 @@ export function useExport() {
         },
       })
 
-      const blob = new Blob([response.data], { type: response.headers['content-type'] ?? 'application/pdf' })
+      const job = exports.value.find((e) => e.exportJobId === exportJobId) ?? activeJob.value
+      const ext = job?.format === 'JSON' ? 'json' : 'pdf'
+      const mimeType = job?.format === 'JSON' ? 'application/json' : 'application/pdf'
+
+      const blob = new Blob([response.data], { type: mimeType })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `export-${exportJobId}.pdf`
+      link.download = `export-${exportJobId}.${ext}`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
