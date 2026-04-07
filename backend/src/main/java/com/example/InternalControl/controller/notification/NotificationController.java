@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * REST Controller for Notification operations.
+ * All endpoints require authentication and users can only access their own notifications.
+ */
 @RestController
 @RequestMapping("/api/v1/notifications")
 @Tag(name = "Notifications", description = "User notification management")
@@ -39,6 +44,7 @@ public class NotificationController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<Notification>> getNotifications(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -51,6 +57,7 @@ public class NotificationController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @GetMapping("/unread-count")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Map<String, Long>> getUnreadCount(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -67,6 +74,7 @@ public class NotificationController {
         @ApiResponse(responseCode = "404", description = "Notification not found")
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Notification> getNotification(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -81,6 +89,7 @@ public class NotificationController {
         @ApiResponse(responseCode = "404", description = "Notification not found")
     })
     @PutMapping("/{id}/read")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Void> markAsRead(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -95,6 +104,7 @@ public class NotificationController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     @PutMapping("/read-all")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Void> markAllAsRead(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -109,6 +119,7 @@ public class NotificationController {
         @ApiResponse(responseCode = "404", description = "Notification not found")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Void> deleteNotification(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
