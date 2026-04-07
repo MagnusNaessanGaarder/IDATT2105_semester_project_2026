@@ -110,10 +110,7 @@ public class JwtService {
       keyBytes = secretKey.getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }
     if (keyBytes.length < 32) {
-      // Pad to get 32 bytes for HMAC-SHA256
-      byte[] padded = new byte[32];
-      System.arraycopy(keyBytes, 0, padded, 0, Math.min(keyBytes.length, 32));
-      keyBytes = padded;
+      throw new IllegalStateException("JWT secret key must be at least 256 bits (32 bytes) for HMAC-SHA256");
     }
     return Keys.hmacShaKeyFor(keyBytes);
   }
