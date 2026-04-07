@@ -144,6 +144,7 @@ public class AuthService {
         }
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse refreshToken(String refreshToken) {
         // Validate token format first
         if (refreshToken == null || refreshToken.isBlank()) {
