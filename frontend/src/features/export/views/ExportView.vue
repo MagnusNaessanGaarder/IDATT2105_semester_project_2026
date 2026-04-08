@@ -117,6 +117,7 @@ onBeforeUnmount(() => resetActiveJob())
                 type="button"
                 class="format-btn"
                 :class="{ 'format-btn--active': exportFormat === fmt }"
+                :aria-pressed="exportFormat === fmt"
                 @click="exportFormat = fmt"
             >
               <span class="format-btn__icon">{{ fmt === 'PDF' ? '📄' : '{ }' }}</span>
