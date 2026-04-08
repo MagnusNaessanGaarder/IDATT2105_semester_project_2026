@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Primary;
 public class JacksonConfig {
 
   /**
-   * Creates the primary ObjectMapper bean with date/time support.
+   * Creates the primary ObjectMapper bean with Java 8 date/time support.
    */
   @Bean
   @Primary

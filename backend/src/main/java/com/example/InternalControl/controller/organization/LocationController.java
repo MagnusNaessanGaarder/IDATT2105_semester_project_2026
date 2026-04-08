@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/locations")
+@RequestMapping("/api/locations")
 @Tag(name = "Locations", description = "Manage locations/areas within an organization")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor

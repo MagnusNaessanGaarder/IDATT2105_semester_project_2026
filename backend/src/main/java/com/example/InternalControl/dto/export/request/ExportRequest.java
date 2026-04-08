@@ -1,7 +1,7 @@
 package com.example.InternalControl.dto.export.request;
 
 import com.example.InternalControl.model.export.ExportFormat;
-import com.example.InternalControl.model.export.ExportType;
+import com.example.InternalControl.shared.enums.ExportType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,9 +1,6 @@
 package com.example.InternalControl.controller.temperature;
 
-import com.example.InternalControl.dto.temperature.request.TemperatureLogEntryRequest;
-import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRequest;
-import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
-import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
+import com.example.InternalControl.dto.temperature.*;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.example.InternalControl.service.temperature.TemperatureLogService;
@@ -17,7 +14,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,7 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/temperature")
+@RequestMapping("/api/temperature")
 @RequiredArgsConstructor
 @Tag(name = "Temperature Logging", description = "Temperature monitoring for food safety compliance")
 @SecurityRequirement(name = "bearerAuth")
@@ -51,7 +47,7 @@ public class TemperatureLogController {
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
-    return ResponseEntity.status(HttpStatus.CREATED).body(temperatureLogService.createLogPoint(request, orgNumber));
+    return ResponseEntity.status(201).body(temperatureLogService.createLogPoint(request, orgNumber));
   }
 
   @GetMapping("/points")
@@ -128,7 +124,7 @@ public class TemperatureLogController {
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
-    return ResponseEntity.status(HttpStatus.CREATED).body(temperatureLogService.recordEntry(request, orgNumber, userId));
+    return ResponseEntity.status(201).body(temperatureLogService.recordEntry(request, orgNumber, userId));
   }
 
   @GetMapping("/entries")

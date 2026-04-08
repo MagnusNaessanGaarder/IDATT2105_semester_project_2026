@@ -28,7 +28,7 @@ import java.net.URI;
  * Controller for export operations.
  */
 @RestController
-@RequestMapping("/api/v1/exports")
+@RequestMapping("/api/exports")
 @RequiredArgsConstructor
 @Tag(name = "Export", description = "Export operations for compliance reports")
 @SecurityRequirement(name = "bearerAuth")

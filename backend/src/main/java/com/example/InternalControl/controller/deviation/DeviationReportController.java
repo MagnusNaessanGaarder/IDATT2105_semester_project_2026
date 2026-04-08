@@ -41,7 +41,7 @@ import java.util.List;
  * REST Controller for Deviation/Incident Report operations.
  */
 @RestController
-@RequestMapping("/api/v1/deviations")
+@RequestMapping("/api/deviations")
 @Tag(name = "Deviation Reports", description = "Manage deviation and incident reports")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
@@ -57,7 +57,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<DeviationReport>> getReports(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -74,7 +73,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<DeviationReport> getReport(
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
@@ -91,7 +89,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<DeviationReport>> searchReports(
             @RequestParam Integer orgNumber,
             @RequestParam(required = false) DeviationStatus status,
@@ -113,7 +110,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping("/status/{status}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<DeviationReport>> getReportsByStatus(
             @PathVariable DeviationStatus status,
             @RequestParam Integer orgNumber,
@@ -130,7 +126,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping("/severity/{severity}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<DeviationReport>> getReportsBySeverity(
             @PathVariable Severity severity,
             @RequestParam Integer orgNumber,
@@ -147,7 +142,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping("/assigned/{assignedToId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<DeviationReport>> getReportsAssignedTo(
             @PathVariable Long assignedToId,
             @RequestParam Integer orgNumber,
@@ -166,7 +160,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Organization or referenced user not found")
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<DeviationReport> createReport(
             @Valid @RequestBody DeviationReportCreateRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -194,7 +187,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<DeviationReport> updateReport(
             @PathVariable Long id,
             @Valid @RequestBody DeviationReportUpdateRequest requestDto,
@@ -275,7 +267,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PostMapping("/{id}/immediate-action")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<DeviationReport> addImmediateAction(
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
@@ -296,7 +287,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PostMapping("/{id}/cause-analysis")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<DeviationReport> addCauseAnalysis(
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
@@ -317,7 +307,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PostMapping("/{id}/corrective-action")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<DeviationReport> addCorrectiveAction(
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
@@ -338,7 +327,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "404", description = "Deviation report not found")
     })
     @PostMapping("/{id}/complete")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<DeviationReport> completeReport(
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
@@ -376,7 +364,6 @@ public class DeviationReportController {
         @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping("/count/open")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<Long> getOpenReportCount(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

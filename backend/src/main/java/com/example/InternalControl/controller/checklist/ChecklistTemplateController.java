@@ -33,7 +33,7 @@ import java.util.List;
  * REST Controller for Checklist Template operations.
  */
 @RestController
-@RequestMapping("/api/v1/checklists/templates")
+@RequestMapping("/api/checklists/templates")
 @Tag(name = "Checklist Templates", description = "Manage checklist templates")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
@@ -44,7 +44,6 @@ public class ChecklistTemplateController {
 
     @Operation(summary = "Get all templates for organization")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistTemplate>> getTemplates(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -55,7 +54,6 @@ public class ChecklistTemplateController {
 
     @Operation(summary = "Get template by ID")
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistTemplate> getTemplate(
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
@@ -67,7 +65,6 @@ public class ChecklistTemplateController {
 
     @Operation(summary = "Get templates by module type")
     @GetMapping("/module/{moduleType}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistTemplate>> getTemplatesByModule(
             @PathVariable ModuleType moduleType,
             @RequestParam Integer orgNumber,
@@ -79,7 +76,6 @@ public class ChecklistTemplateController {
 
     @Operation(summary = "Get active templates")
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistTemplate>> getActiveTemplates(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
