@@ -1,13 +1,30 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useIkMatData, type Checklist } from '../composables/useIkMatData'
+import { useAuthStore } from '@/stores/auth'
+import BaseModal from '@/shared/components/BaseModal.vue'
+import BaseSpinner from '@/shared/components/BaseSpinner.vue'
+import ErrorMessage from '@/shared/components/ErrorMessage.vue'
 
+const authStore = useAuthStore()
 const { checklists, completionForChecklist } = useIkMatData()
+
+const isAdmin = computed(() => authStore.isAdmin)
 
 const selectedFrequency = ref<'Alle' | 'Daglig' | 'Ukentlig' | 'Månedlig'>('Alle')
 const expandedId = ref<number | null>(null)
+const optionsOpenId = ref<number | null>(null)
+const showEditModal = ref(false)
+const selectedChecklist = ref<Checklist | null>(null)
 
 const checklistState = ref<Checklist[]>(checklists.map((item) => ({ ...item, items: item.items.map((task) => ({ ...task })) })))
+
+const formData = ref({
+  name: '',
+  description: '',
+  frequency: 'Daglig' as 'Daglig' | 'Ukentlig' | 'Månedlig',
+  law_unit: '',
+})
 
 const frequencies = computed(() => ['Alle', 'Daglig', 'Ukentlig', 'Månedlig'] as const)
 
@@ -25,6 +42,49 @@ const sorted = computed(() => {
 
 const toggleExpanded = (id: number) => {
   expandedId.value = expandedId.value === id ? null : id
+  optionsOpenId.value = null
+}
+
+const toggleOptions = (id: number, event: Event) => {
+  event.stopPropagation()
+  optionsOpenId.value = optionsOpenId.value === id ? null : id
+}
+
+const openEditModal = (checklist: Checklist, event: Event) => {
+  event.stopPropagation()
+  optionsOpenId.value = null
+  selectedChecklist.value = checklist
+  formData.value = {
+    name: checklist.name,
+    description: checklist.description,
+    frequency: checklist.frequency as 'Daglig' | 'Ukentlig' | 'Månedlig',
+    law_unit: checklist.law_unit,
+  }
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  selectedChecklist.value = null
+}
+
+const handleUpdateChecklist = async () => {
+  if (!selectedChecklist.value) return
+
+  checklistState.value = checklistState.value.map((checklist) => {
+    if (checklist.id !== selectedChecklist.value?.id) {
+      return checklist
+    }
+    return {
+      ...checklist,
+      name: formData.value.name,
+      description: formData.value.description,
+      frequency: formData.value.frequency,
+      law_unit: formData.value.law_unit,
+    }
+  })
+
+  closeEditModal()
 }
 
 const toggleTask = (checklistId: number, itemId: number) => {
@@ -75,16 +135,36 @@ const toggleTask = (checklistId: number, itemId: number) => {
     <div class="checklist-list">
       <article v-for="checklist in sorted" :key="checklist.id" class="checklist-card">
         <button class="checklist-head" :aria-expanded="expandedId === checklist.id" @click="toggleExpanded(checklist.id)">
-          <div>
+          <div class="checklist-head__content">
             <p class="checklist-head__title">{{ checklist.name }}</p>
             <p class="checklist-head__meta">{{ checklist.frequency }} · {{ checklist.law_unit }}</p>
           </div>
 
-          <div class="checklist-head__progress">
-            <div class="progress-track" role="progressbar" :aria-valuenow="completionForChecklist(checklist)" aria-valuemin="0" aria-valuemax="100">
-              <div class="progress-track__fill" :style="{ width: `${completionForChecklist(checklist)}%` }" />
+          <div class="checklist-head__actions">
+            <div class="checklist-head__progress">
+              <div class="progress-track" role="progressbar" :aria-valuenow="completionForChecklist(checklist)" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-track__fill" :style="{ width: `${completionForChecklist(checklist)}%` }" />
+              </div>
+              <span>{{ completionForChecklist(checklist) }}%</span>
             </div>
-            <span>{{ completionForChecklist(checklist) }}%</span>
+
+            <div v-if="isAdmin" class="options-menu">
+              <button
+                class="options-menu__trigger"
+                type="button"
+                aria-label="Åpne handlinger"
+                :aria-expanded="optionsOpenId === checklist.id"
+                @click="toggleOptions(checklist.id, $event)"
+              >
+                <span class="dot" />
+                <span class="dot" />
+                <span class="dot" />
+              </button>
+
+              <div v-if="optionsOpenId === checklist.id" class="options-menu__list" role="menu">
+                <button class="options-menu__item" type="button" role="menuitem" @click="openEditModal(checklist, $event)">Rediger</button>
+              </div>
+            </div>
           </div>
         </button>
 
@@ -105,6 +185,36 @@ const toggleTask = (checklistId: number, itemId: number) => {
     </div>
 
     <div v-if="sorted.length === 0" class="empty-state">Ingen sjekklister matcher valgt filter.</div>
+
+    <!-- Edit Checklist Modal -->
+    <BaseModal :open="showEditModal" title="Rediger sjekkliste" @close="closeEditModal">
+      <form id="editChecklistForm" class="checklist-form" @submit.prevent="handleUpdateChecklist">
+        <div class="form-group">
+          <label for="checklistName">Navn</label>
+          <input id="checklistName" v-model="formData.name" type="text" required />
+        </div>
+        <div class="form-group">
+          <label for="checklistDescription">Beskrivelse</label>
+          <textarea id="checklistDescription" v-model="formData.description" rows="3" />
+        </div>
+        <div class="form-group">
+          <label for="checklistFrequency">Frekvens</label>
+          <select id="checklistFrequency" v-model="formData.frequency" required>
+            <option value="Daglig">Daglig</option>
+            <option value="Ukentlig">Ukentlig</option>
+            <option value="Månedlig">Månedlig</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="checklistLawUnit">Lovhenvisning</label>
+          <input id="checklistLawUnit" v-model="formData.law_unit" type="text" required />
+        </div>
+      </form>
+      <template #footer>
+        <button type="button" class="action-btn action-btn--ghost" @click="closeEditModal">Avbryt</button>
+        <button type="submit" form="editChecklistForm" class="action-btn">Lagre endringer</button>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -176,6 +286,11 @@ const toggleTask = (checklistId: number, itemId: number) => {
   text-align: left;
 }
 
+.checklist-head__content {
+  flex: 1;
+  min-width: 0;
+}
+
 .checklist-head__title {
   margin: 0;
   color: var(--color-foreground);
@@ -187,6 +302,12 @@ const toggleTask = (checklistId: number, itemId: number) => {
   margin: 0.25rem 0 0;
   color: var(--color-gray-500);
   font-size: var(--font-size-xs);
+}
+
+.checklist-head__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .checklist-head__progress {
@@ -216,6 +337,63 @@ const toggleTask = (checklistId: number, itemId: number) => {
   height: 100%;
   background: var(--ik-mat-primary);
   transition: width var(--transition-base);
+}
+
+.options-menu {
+  position: relative;
+}
+
+.options-menu__trigger {
+  aspect-ratio: 1 / 1;
+  min-height: 2rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.options-menu__trigger:hover {
+  background: var(--color-accent);
+}
+
+.dot {
+  width: 0.2rem;
+  height: 0.2rem;
+  background: var(--color-gray-600);
+  border-radius: 100%;
+}
+
+.options-menu__list {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  z-index: 20;
+  min-width: 9rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.options-menu__item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  color: var(--color-foreground);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.options-menu__item:hover {
+  background: var(--color-accent);
 }
 
 .checklist-body {
@@ -282,5 +460,84 @@ const toggleTask = (checklistId: number, itemId: number) => {
   color: var(--color-gray-600);
   text-align: center;
   padding: 1.2rem;
+}
+
+/* Form styles */
+.checklist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-group label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+}
+
+.form-group textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--ik-mat-primary);
+}
+
+.action-btn {
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--ik-mat-primary);
+  color: var(--color-primary-foreground);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  opacity: 0.9;
+}
+
+.action-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-gray-700);
+}
+
+.action-btn--ghost:hover {
+  background: var(--color-accent);
+}
+
+@media (max-width: 48rem) {
+  .checklist-head__progress {
+    min-width: 5rem;
+  }
+
+  .options-menu__list {
+    right: 0;
+    left: auto;
+  }
 }
 </style>
