@@ -5,6 +5,8 @@ import com.example.InternalControl.model.enums.RunStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +32,15 @@ public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long
 
     @EntityGraph(attributePaths = {"template", "template.items", "items"})
     Optional<ChecklistRun> findByRunIdAndOrgNumber(Long runId, Integer orgNumber);
+
+    @Query("SELECT DISTINCT r FROM ChecklistRun r LEFT JOIN FETCH r.template LEFT JOIN FETCH r.items WHERE r.orgNumber = :orgNumber")
+    List<ChecklistRun> findByOrgNumberWithTemplate(@Param("orgNumber") Integer orgNumber);
+
+    @Query("SELECT DISTINCT r FROM ChecklistRun r LEFT JOIN FETCH r.template LEFT JOIN FETCH r.items WHERE r.orgNumber = :orgNumber AND r.runDate BETWEEN :from AND :to")
+    List<ChecklistRun> findByOrgNumberAndRunDateBetweenWithTemplate(
+            @Param("orgNumber") Integer orgNumber,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to);
 
     /**
      * Check if run exists for template and date.
