@@ -16,6 +16,7 @@ const {
 
 const selectedCategory = ref<string>('all')
 const query = ref('')
+const openMenuId = ref<number | null>(null)
 
 const categories = computed(() => {
   const unique = new Set(documents.value.map((d) => d.documentType))
@@ -51,6 +52,23 @@ const canEmbed = computed(() => {
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') closePreview()
 }
+
+let closeMenuTimeout = null
+
+function scheduleCloseMenu() {
+  clearCloseMenuTimeout()
+  closeMenuTimeout = setTimeout(() => {
+    openMenuId.value = null
+  }, 90)
+}
+
+function clearCloseMenuTimeout() {
+  if (closeMenuTimeout) {
+    clearTimeout(closeMenuTimeout)
+    closeMenuTimeout = null
+  }
+}
+
 </script>
 
 <template>
@@ -67,7 +85,6 @@ function onKeydown(e: KeyboardEvent) {
       </button>
     </header>
 
-    <!-- Upload modal (dual-mode) -->
     <UploadDocumentModal
       :open="showUploadModal"
       :succeeds-document="versionTargetDoc ?? undefined"
@@ -161,38 +178,66 @@ function onKeydown(e: KeyboardEvent) {
             <td class="actions-cell">
               <!-- Preview -->
               <button
-                class="action-btn action-btn--ghost"
-                type="button"
-                title="Forhåndsvis"
-                @click="openPreview(doc)"
+                  class="action-btn action-btn--ghost"
+                  type="button"
+                  title="Forhåndsvis"
+                  @click="openPreview(doc)"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 Vis
               </button>
 
-              <!-- Download -->
-              <button
-                class="action-btn action-btn--ghost"
-                type="button"
-                :disabled="downloadingId === doc.documentId"
-                title="Last ned"
-                @click="downloadDocument(doc)"
-              >
-                <span v-if="downloadingId === doc.documentId" class="spinner-sm" />
-                <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                {{ downloadingId === doc.documentId ? 'Laster…' : 'Last ned' }}
-              </button>
+              <div class="row-menu" @mouseenter="clearCloseMenuTimeout" @mouseleave="scheduleCloseMenu">
+                <button
+                    class="action-btn action-btn--ghost row-menu__trigger"
+                    type="button"
+                    :aria-label="`Flere handlinger for ${doc.title}`"
+                    :aria-expanded="openMenuId === doc.documentId"
+                    @click="openMenuId = openMenuId === doc.documentId ? null : doc.documentId"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+                </button>
 
-              <!-- New version -->
-              <button
-                class="action-btn action-btn--version"
-                type="button"
-                :title="`Last opp v${doc.currentVersion + 1}`"
-                @click="openUploadVersion(doc)"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                Ny versjon
-              </button>
+                <div v-if="openMenuId === doc.documentId" class="row-menu__dropdown" role="menu" @mouseenter="clearCloseMenuTimeout" @mouseleave="scheduleCloseMenu">
+                  <button
+                      class="row-menu__item"
+                      type="button"
+                      role="menuitem"
+                      :disabled="downloadingId === doc.documentId"
+                      @click="openMenuId = null; downloadDocument(doc)"
+                  >
+                    <span v-if="downloadingId === doc.documentId" class="spinner-sm" />
+                    <svg
+                        v-else
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    {{ downloadingId === doc.documentId ? 'Laster…' : 'Last ned' }}
+                  </button>
+
+                  <button
+                      class="row-menu__item"
+                      type="button"
+                      role="menuitem"
+                      @click="openMenuId = null; openUploadVersion(doc)"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                    Last opp ny versjon
+                    <span class="row-menu__hint">v{{ doc.currentVersion + 1 }}</span>
+                  </button>
+                </div>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -348,8 +393,28 @@ th { font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 
 .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .action-btn--ghost { background: transparent; color: var(--color-gray-600); border: 1px solid var(--color-border); }
 .action-btn--ghost:hover:not(:disabled) { background: var(--color-gray-50); border-color: var(--color-gray-400); }
-.action-btn--version { background: var(--ik-mat-bg, #e8f6f7); color: var(--ik-mat-primary, #0d7377); border: 1px solid rgba(13,115,119,0.25); }
-.action-btn--version:hover { background: rgba(13,115,119,0.15); }
+
+/* ⋯ row menu */
+.row-menu { position: relative; }
+.row-menu__trigger { padding: 0.35rem 0.5rem; }
+.row-menu__dropdown {
+  position: absolute; right: 0; top: calc(100% + 4px); z-index: 50;
+  background: var(--color-card); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+  min-width: 13rem; padding: 0.25rem;
+}
+.row-menu__item {
+  display: flex; align-items: center; gap: 0.5rem; width: 100%;
+  padding: 0.5rem 0.65rem; border-radius: var(--radius-sm);
+  background: transparent; border: none; font-family: inherit;
+  font-size: var(--font-size-xs); font-weight: 500; color: var(--color-gray-700);
+  cursor: pointer; text-align: left; transition: background var(--transition-fast);
+}
+.row-menu__item:hover { background: var(--color-gray-100); }
+.row-menu__hint {
+  margin-left: auto; font-size: var(--font-size-xs);
+  color: var(--color-gray-400); font-weight: 400;
+}
 
 .retry-btn { padding: 0.3rem 0.75rem; border-radius: var(--radius-sm); background: transparent; border: 1px solid currentColor; font-size: var(--font-size-xs); font-weight: 600; cursor: pointer; }
 
