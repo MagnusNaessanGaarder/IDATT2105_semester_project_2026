@@ -4,6 +4,7 @@ import com.example.InternalControl.dto.user.IdentityResponse;
 import com.example.InternalControl.dto.user.LinkIdentityRequest;
 import com.example.InternalControl.service.user.IdentityProviderService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -40,6 +41,7 @@ public class IdentityProviderController {
     })
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @userSecurity.isCurrentUser(#userId)")
+    @Parameter(description = "Identifier of the userId")
     public ResponseEntity<List<IdentityResponse>> getUserIdentities(@PathVariable Long userId) {
         log.info("Getting identities for user: {}", userId);
         return ResponseEntity.ok(identityService.getUserIdentities(userId));
@@ -56,6 +58,7 @@ public class IdentityProviderController {
     @PostMapping("/user/{userId}/link")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @userSecurity.isCurrentUser(#userId)")
     public ResponseEntity<IdentityResponse> linkIdentity(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @Valid @RequestBody LinkIdentityRequest request) {
         log.info("Linking identity for user: {}, provider: {}", userId, request.getProviderName());
@@ -72,6 +75,7 @@ public class IdentityProviderController {
     @DeleteMapping("/user/{userId}/{identityId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @userSecurity.isCurrentUser(#userId)")
     public ResponseEntity<Void> unlinkIdentity(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @PathVariable Long identityId) {
         log.info("Unlinking identity: {} for user: {}", identityId, userId);

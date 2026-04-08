@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Response DTO for organization settings.
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "OrganizationSettingsResponse", description = "DTO for OrganizationSettingsResponse")
 public class OrganizationSettingsResponse {
 
     private Integer orgNumber;

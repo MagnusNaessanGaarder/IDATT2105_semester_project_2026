@@ -6,6 +6,7 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.analytics.DashboardService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -37,6 +38,7 @@ public class AnalyticsController {
     })
     @GetMapping("/dashboard/summary")
     public ResponseEntity<DashboardSummaryResponse> getDashboardSummary(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -52,6 +54,7 @@ public class AnalyticsController {
     })
     @GetMapping("/compliance-score")
     public ResponseEntity<ComplianceScoreResponse> getComplianceScore(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();

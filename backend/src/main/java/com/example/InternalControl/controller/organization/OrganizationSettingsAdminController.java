@@ -4,6 +4,7 @@ import com.example.InternalControl.dto.settings.OrganizationSettingsRequest;
 import com.example.InternalControl.dto.settings.OrganizationSettingsResponse;
 import com.example.InternalControl.service.settings.OrganizationSettingsService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -47,6 +48,7 @@ public class OrganizationSettingsAdminController {
             @ApiResponse(responseCode = "404", description = "Organization not found")
     })
     public ResponseEntity<OrganizationSettingsResponse> getSettings(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber) {
         log.info("Getting settings for organization: {}", orgNumber);
         return ResponseEntity.ok(settingsService.getSettings(orgNumber));
@@ -69,6 +71,7 @@ public class OrganizationSettingsAdminController {
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<OrganizationSettingsResponse> updateSettings(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @Valid @RequestBody OrganizationSettingsRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
