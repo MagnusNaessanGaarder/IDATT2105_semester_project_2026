@@ -1,4 +1,4 @@
-import { client } from '@/api/client'
+import { client } from '@/api/client.ts'
 
 export type ExportType =
     | 'AUDIT_REPORT'
