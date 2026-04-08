@@ -5,7 +5,6 @@ import com.example.InternalControl.dto.temperature.request.TemperatureLogEntryRe
 import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRequest;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
-import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.temperature.TemperatureLogService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;

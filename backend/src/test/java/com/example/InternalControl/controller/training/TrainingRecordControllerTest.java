@@ -6,7 +6,9 @@ import com.example.InternalControl.model.training.TrainingRecord;
 import com.example.InternalControl.model.training.TrainingStatus;
 import com.example.InternalControl.model.training.TrainingType;
 import com.example.InternalControl.service.training.TrainingRecordService;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -40,32 +41,15 @@ class TrainingRecordControllerTest extends AbstractIntegrationTest {
     @MockBean
     private TrainingRecordService trainingRecordService;
 
-    private static final Integer ORG_NUMBER = 123456789;
+    @MockBean
+    private UserOrganizationService userOrgService;
+
+    private static final Integer ORG_NUMBER = 937219997;
     private static final String BASE_URL = "/api/v1/training";
 
-    @Test
-    @WithMockUser(roles = {"MANAGER"})
-    void createTrainingRecord_AsManager_ReturnsCreated() throws Exception {
-        // Given
-        TrainingRecordRequest request = new TrainingRecordRequest();
-        request.setUserId(1L);
-        request.setTrainingType(TrainingType.FOOD_HYGIENE);
-        request.setTitle("Food Hygiene Training");
-
-        TrainingRecord record = new TrainingRecord();
-        record.setTrainingRecordId(1L);
-        record.setTitle("Food Hygiene Training");
-
-        when(trainingRecordService.createTrainingRecord(any(), eq(ORG_NUMBER), anyLong()))
-                .thenReturn(record);
-
-        // When & Then
-        mockMvc.perform(post(BASE_URL)
-                        .param("orgNumber", ORG_NUMBER.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.trainingRecordId").value(1));
+    @BeforeEach
+    void setUp() {
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 
     @Test
@@ -99,6 +83,48 @@ class TrainingRecordControllerTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(roles = {"MANAGER"})
+    void createTrainingRecord_AsManager_ReturnsCreated() throws Exception {
+        // Given
+        TrainingRecordRequest request = new TrainingRecordRequest();
+        request.setUserId(1L);
+        request.setTrainingType(TrainingType.FOOD_HYGIENE);
+        request.setTitle("Food Hygiene Training");
+
+        TrainingRecord record = new TrainingRecord();
+        record.setTrainingRecordId(1L);
+        record.setTitle("Food Hygiene Training");
+
+        when(trainingRecordService.createTrainingRecord(any(), eq(ORG_NUMBER), anyLong()))
+                .thenReturn(record);
+
+        // When & Then
+        mockMvc.perform(post(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.trainingRecordId").value(1));
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void createTrainingRecord_AsEmployee_ReturnsForbidden() throws Exception {
+        // Given
+        TrainingRecordRequest request = new TrainingRecordRequest();
+        request.setUserId(1L);
+        request.setTrainingType(TrainingType.FOOD_HYGIENE);
+        request.setTitle("Food Hygiene Training");
+
+        // When & Then
+        mockMvc.perform(post(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = {"MANAGER"})
     void updateTrainingRecord_AsManager_ReturnsOk() throws Exception {
         // Given
         TrainingRecordRequest request = new TrainingRecordRequest();
@@ -120,8 +146,8 @@ class TrainingRecordControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
-    void deleteTrainingRecord_AsManager_ReturnsNoContent() throws Exception {
+    @WithMockUser(roles = {"ADMIN"})
+    void deleteTrainingRecord_AsAdmin_ReturnsNoContent() throws Exception {
         // When & Then
         mockMvc.perform(delete(BASE_URL + "/1")
                         .param("orgNumber", ORG_NUMBER.toString()))
@@ -129,8 +155,8 @@ class TrainingRecordControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
-    void completeTrainingRecord_AsEmployee_ReturnsOk() throws Exception {
+    @WithMockUser(roles = {"MANAGER"})
+    void completeTrainingRecord_AsManager_ReturnsOk() throws Exception {
         // Given
         TrainingRecord record = new TrainingRecord();
         record.setTrainingRecordId(1L);
@@ -143,5 +169,14 @@ class TrainingRecordControllerTest extends AbstractIntegrationTest {
         mockMvc.perform(post(BASE_URL + "/1/complete")
                         .param("orgNumber", ORG_NUMBER.toString()))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void completeTrainingRecord_AsEmployee_ReturnsForbidden() throws Exception {
+        // When & Then - only ADMIN/MANAGER can complete
+        mockMvc.perform(post(BASE_URL + "/1/complete")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isForbidden());
     }
 }

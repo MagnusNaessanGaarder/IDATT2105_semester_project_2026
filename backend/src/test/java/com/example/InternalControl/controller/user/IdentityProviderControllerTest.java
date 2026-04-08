@@ -38,28 +38,48 @@ class IdentityProviderControllerTest extends AbstractIntegrationTest {
     @MockBean
     private IdentityProviderService identityProviderService;
 
-    private static final String BASE_URL = "/api/v1/users/identities";
+    private static final String BASE_URL = "/api/v1/identity";
+    private static final Long USER_ID = 1L;
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
-    void getUserIdentities_AsAuthenticatedUser_ReturnsOk() throws Exception {
+    @WithMockUser(roles = {"ADMIN"})
+    void getUserIdentities_AsAdmin_ReturnsOk() throws Exception {
         // Given
         IdentityResponse identity = IdentityResponse.builder()
                 .identityId(1L)
                 .providerName("google")
                 .build();
 
-        when(identityProviderService.getUserIdentities(anyLong())).thenReturn(List.of(identity));
+        when(identityProviderService.getUserIdentities(USER_ID)).thenReturn(List.of(identity));
 
         // When & Then
-        mockMvc.perform(get(BASE_URL))
+        mockMvc.perform(get(BASE_URL + "/user/{userId}", USER_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].providerName").value("google"));
     }
 
     @Test
+    @WithMockUser(roles = {"MANAGER"})
+    void getUserIdentities_AsManager_ReturnsOk() throws Exception {
+        // Given
+        when(identityProviderService.getUserIdentities(USER_ID)).thenReturn(List.of());
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/user/{userId}", USER_ID))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @WithMockUser(roles = {"EMPLOYEE"})
-    void linkIdentity_AsAuthenticatedUser_ReturnsCreated() throws Exception {
+    void getUserIdentities_AsEmployee_ReturnsForbidden() throws Exception {
+        // When & Then - employee can't access other user's identities
+        mockMvc.perform(get(BASE_URL + "/user/{userId}", 2L))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    void linkIdentity_AsAdmin_ReturnsCreated() throws Exception {
         // Given
         LinkIdentityRequest request = new LinkIdentityRequest();
         request.setProviderName("google");
@@ -70,10 +90,10 @@ class IdentityProviderControllerTest extends AbstractIntegrationTest {
                 .providerName("google")
                 .build();
 
-        when(identityProviderService.linkIdentity(anyLong(), any())).thenReturn(response);
+        when(identityProviderService.linkIdentity(eq(USER_ID), any())).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(post(BASE_URL)
+        mockMvc.perform(post(BASE_URL + "/user/{userId}/link", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -82,18 +102,44 @@ class IdentityProviderControllerTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(roles = {"EMPLOYEE"})
-    void unlinkIdentity_AsAuthenticatedUser_ReturnsNoContent() throws Exception {
+    void linkIdentity_AsEmployee_ReturnsForbidden() throws Exception {
         // Given
-        doNothing().when(identityProviderService).unlinkIdentity(anyLong(), eq(1L));
+        LinkIdentityRequest request = new LinkIdentityRequest();
+        request.setProviderName("google");
+        request.setProviderUserId("google-123");
 
         // When & Then
-        mockMvc.perform(delete(BASE_URL + "/1"))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(post(BASE_URL + "/user/{userId}/link", 2L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    void getSupportedProviders_AsAdmin_ReturnsOk() throws Exception {
+    void unlinkIdentity_AsAdmin_ReturnsNoContent() throws Exception {
+        // Given
+        doNothing().when(identityProviderService).unlinkIdentity(USER_ID, 1L);
+
+        // When & Then
+        mockMvc.perform(delete(BASE_URL + "/user/{userId}/{identityId}", USER_ID, 1L))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void unlinkIdentity_AsEmployee_ReturnsForbidden() throws Exception {
+        // When & Then
+        mockMvc.perform(delete(BASE_URL + "/user/{userId}/{identityId}", 2L, 1L))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getSupportedProviders_AsAuthenticatedUser_ReturnsOk() throws Exception {
+        // Given
+        when(identityProviderService.getSupportedProviders()).thenReturn(List.of("vipps", "google", "microsoft"));
+
         // When & Then
         mockMvc.perform(get(BASE_URL + "/providers"))
                 .andExpect(status().isOk());
