@@ -205,8 +205,8 @@ const filteredControls = computed(() => {
 <template>
   <div class="daily-control-page">
     <header class="page-header">
-      <h1>Daglig kontroll</h1>
-      <p class="subtitle">Daglige kontrollpunkter for ansvarlig alkoholservering</p>
+      <h1>Sjekkliste</h1>
+      <p class="subtitle">Daglig kontroll med sjekkliste for ansvarlig alkoholservering</p>
     </header>
 
     <ControlProgressCard :completed="completed" :total="total" />
@@ -268,7 +268,7 @@ const filteredControls = computed(() => {
           Vedlegg (url eller filnavn)
           <input v-model="formState.attachment" type="text" />
         </label>
-        <label class="control-form__checkbox">
+        <label v-if="formMode === 'edit'" class="control-form__checkbox">
           <input v-model="formState.is_checked" type="checkbox" />
           Fullført
         </label>

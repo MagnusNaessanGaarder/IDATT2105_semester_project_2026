@@ -35,7 +35,7 @@ dev:
 	@echo "  MySQL started"
 	@echo ""
 	@echo "[2/3] Starting backend..."
-	@(cd backend && set -a && [ -f .env ] && . ./.env || true && set +a && ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
+	@(cd backend && SPRING_DATASOURCE_URL=jdbc:mysql://127.0.0.1:3306/internal_control SPRING_DATASOURCE_USERNAME=ik_root SPRING_DATASOURCE_PASSWORD=ikroot ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
 	@sleep 15
 	@echo "  Backend started"
 	@echo ""
