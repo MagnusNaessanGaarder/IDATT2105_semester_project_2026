@@ -1,25 +1,23 @@
 package com.example.InternalControl.controller.checklist;
 
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.dto.checklist.request.ChecklistRunCreateRequest;
 import com.example.InternalControl.model.checklist.ChecklistRun;
 import com.example.InternalControl.model.enums.RunStatus;
-import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistRunService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -28,14 +26,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Unit tests for ChecklistRunController.
+ * Integration tests for ChecklistRunController using TestContainers.
  *
  * @author TriTacLe
  * @since 1.0
  */
-@WebMvcTest(ChecklistRunController.class)
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class ChecklistRunControllerTest {
+class ChecklistRunControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -115,7 +113,6 @@ class ChecklistRunControllerTest {
     }
 
     @Test
-    @Disabled("Fails due to templateId field naming mismatch - needs entity fix")
     @WithMockUser(roles = {"MANAGER"})
     void createRun_WithValidRequest_ReturnsCreatedRun() throws Exception {
         // Given
