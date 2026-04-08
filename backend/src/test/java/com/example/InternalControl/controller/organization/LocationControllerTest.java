@@ -1,5 +1,6 @@
 package com.example.InternalControl.controller.organization;
 
+import com.example.InternalControl.model.enums.LocationType;
 import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
@@ -66,7 +67,13 @@ class LocationControllerTest {
         // Mock userOrgService to return true for organization access
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
         
-        mockLocation = new Location();
+        mockLocation = Location.builder()
+                .locationId(1L)
+                .orgNumber(937219997)
+                .name("Test Location")
+                .locationType(LocationType.STORAGE)
+                .isActive(true)
+                .build();
     }
 
     @Test
@@ -103,11 +110,12 @@ class LocationControllerTest {
     }
 
     @Test
-
     void getLocationById_ExistingLocation_ReturnsOk() throws Exception {
         when(locationService.getLocationById(anyLong())).thenReturn(mockLocation);
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
 
-        mockMvc.perform(get("/api/v1/locations/1"))
+        mockMvc.perform(get("/api/v1/locations/1")
+                        .param("orgNumber", "937219997"))
                 .andExpect(status().isOk());
     }
 
@@ -136,20 +144,25 @@ class LocationControllerTest {
     }
 
     @Test
-
     void updateLocation_ValidRequest_ReturnsOk() throws Exception {
+        when(locationService.getLocationById(anyLong())).thenReturn(mockLocation);
         when(locationService.updateLocation(anyLong(), any())).thenReturn(mockLocation);
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
 
         mockMvc.perform(put("/api/v1/locations/1")
+                        .param("orgNumber", "937219997")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Updated Name\"}"))
                 .andExpect(status().isOk());
     }
 
     @Test
-
     void deleteLocation_ReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/v1/locations/1"))
+        when(locationService.getLocationById(anyLong())).thenReturn(mockLocation);
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+
+        mockMvc.perform(delete("/api/v1/locations/1")
+                        .param("orgNumber", "937219997"))
                 .andExpect(status().isNoContent());
     }
 }
