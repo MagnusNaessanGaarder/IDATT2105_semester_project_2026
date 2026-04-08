@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { exportApi, type ExportRequest, type ExportResponse } from '../api'
+import { useAuthStore } from '@/stores/auth.ts'
+import { exportApi, type ExportRequest, type ExportResponse } from '../api.ts'
 import {client} from "@/api/client.ts";
 import axios from "axios";
 
