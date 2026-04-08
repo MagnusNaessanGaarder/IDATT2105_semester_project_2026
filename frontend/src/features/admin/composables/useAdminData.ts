@@ -1,7 +1,6 @@
 import { reactive, ref } from 'vue'
 import { client } from '@/api/client'
 import { withOrgNumber } from '@/shared/utils/orgContext'
-import { ensureDemoData } from '@/shared/utils/seedDemoData'
 
 export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF'
 export type UserStatus = 'active' | 'inactive'
@@ -25,6 +24,7 @@ export interface SettingItem {
   description?: string
   type: 'select' | 'toggle' | 'number' | 'info'
   current_value: unknown
+  active?: boolean
   options?: string[]
   min?: number
   max?: number
@@ -63,6 +63,18 @@ interface ExportPageApi {
   }>
 }
 
+interface FileApi {
+  documentId: number
+  title: string
+  updatedAt: string | null
+}
+
+interface TemperatureAlertApi {
+  entryId: number
+  measuredAt: string
+  temperatureC: number
+}
+
 const users = reactive<AdminUser[]>([])
 const settings = reactive({
   system: {
@@ -74,6 +86,7 @@ const settings = reactive({
         description: 'Standardsprak for brukergrensesnitt',
         type: 'select',
         current_value: 'nb-NO',
+        active: true,
         options: ['nb-NO', 'en-US'],
       },
       {
@@ -81,6 +94,7 @@ const settings = reactive({
         label: 'Tidssone',
         type: 'select',
         current_value: 'Europe/Oslo',
+        active: true,
         options: ['Europe/Oslo', 'UTC'],
       },
     ] as SettingItem[],
@@ -94,6 +108,7 @@ const settings = reactive({
         description: 'Send varsler ved kritiske avvik',
         type: 'toggle',
         current_value: true,
+        active: false,
       },
       {
         id: 'digest_frequency',
@@ -101,6 +116,7 @@ const settings = reactive({
         description: 'Hyppighet for oppsummeringsvarsler',
         type: 'select',
         current_value: 'Ukentlig',
+        active: false,
         options: ['Daglig', 'Ukentlig', 'Manedlig'],
       },
     ] as SettingItem[],
@@ -113,6 +129,7 @@ const settings = reactive({
         label: 'Sesjon utlop (min)',
         type: 'number',
         current_value: 60,
+        active: false,
         min: 15,
         max: 240,
       },
@@ -121,6 +138,7 @@ const settings = reactive({
         label: 'Krev MFA for administratorer',
         type: 'toggle',
         current_value: true,
+        active: false,
       },
     ] as SettingItem[],
   },
@@ -132,6 +150,7 @@ const settings = reactive({
         label: 'Frekvens',
         type: 'select',
         current_value: 'Daglig',
+        active: false,
         options: ['Daglig', 'Ukentlig'],
       },
       {
@@ -139,12 +158,14 @@ const settings = reactive({
         label: 'Sist sikkerhetskopiert',
         type: 'info',
         current_value: new Date().toISOString(),
+        active: false,
       },
     ] as SettingItem[],
   },
 })
 
 const auditLog = reactive<AuditLogEntry[]>([])
+let deviationsEndpointUnavailable = false
 
 let hasLoaded = false
 let loadInFlight: Promise<void> | null = null
@@ -209,6 +230,25 @@ const roleForUser = (role: string | undefined): UserRole => {
   return 'STAFF'
 }
 
+const updateSetting = (id: string, patch: Partial<SettingItem>) => {
+  const sections = [
+    settings.system.items,
+    settings.notification_preferences.items,
+    settings.security.items,
+    settings.backup.items,
+  ]
+
+  for (const sectionItems of sections) {
+    const target = sectionItems.find((item) => item.id === id)
+    if (!target) {
+      continue
+    }
+
+    Object.assign(target, patch)
+    break
+  }
+}
+
 const loadData = async (): Promise<void> => {
   if (hasLoaded) {
     return
@@ -223,14 +263,30 @@ const loadData = async (): Promise<void> => {
     error.value = null
 
     try {
-      await ensureDemoData()
-
-      const [deviationsResponse, exportsResponse] = await Promise.allSettled([
-        client.get<DeviationApi[]>('/deviations', {
-          params: withOrgNumber({}),
-        }),
+      const [deviationsResponse, exportsResponse, filesResponse, alertsResponse] = await Promise.allSettled([
+        deviationsEndpointUnavailable
+          ? Promise.resolve({ data: [] as DeviationApi[] })
+          : client.get<DeviationApi[]>('/deviations', {
+            params: withOrgNumber({}),
+            skipGlobalErrorLog: true,
+          }).catch((err: unknown) => {
+            if (typeof err === 'object' && err !== null && 'response' in err) {
+              const response = (err as { response?: { status?: number } }).response
+              if (response?.status === 500) {
+                deviationsEndpointUnavailable = true
+                return { data: [] as DeviationApi[] }
+              }
+            }
+            throw err
+          }),
         client.get<ExportPageApi>('/exports', {
           params: withOrgNumber({ page: 0, size: 50 }),
+        }),
+        client.get<FileApi[]>('/files', {
+          params: withOrgNumber({}),
+        }),
+        client.get<TemperatureAlertApi[]>('/temperature/alerts', {
+          params: withOrgNumber({}),
         }),
       ])
 
@@ -252,54 +308,111 @@ const loadData = async (): Promise<void> => {
         last_login: fallbackLastLogin,
       })
 
+      const deviations = deviationsResponse.status === 'fulfilled' ? deviationsResponse.value.data : []
+      const exports = exportsResponse.status === 'fulfilled' ? exportsResponse.value.data.content : []
+      const files = filesResponse.status === 'fulfilled' ? filesResponse.value.data : []
+      const alerts = alertsResponse.status === 'fulfilled' ? alertsResponse.value.data : []
+
       const entries: AuditLogEntry[] = []
 
-      if (deviationsResponse.status === 'fulfilled') {
-        deviationsResponse.value.data.forEach((report) => {
-          entries.push({
-            id: report.reportId,
-            timestamp: report.updatedAt ?? new Date().toISOString(),
-            user: 'System',
-            action: 'DEVIATION_UPDATED',
-            resource: report.title,
-            details: `Status: ${report.status}, alvorlighet: ${report.severity}`,
-            ip_address: '-',
-            result: 'SUCCESS',
-          })
+      deviations.forEach((report: DeviationApi) => {
+        entries.push({
+          id: report.reportId,
+          timestamp: report.updatedAt ?? new Date().toISOString(),
+          user: 'System',
+          action: 'DEVIATION_UPDATED',
+          resource: report.title,
+          details: `Status: ${report.status}, alvorlighet: ${report.severity}`,
+          ip_address: '-',
+          result: 'SUCCESS',
         })
-      }
+      })
 
-      if (exportsResponse.status === 'fulfilled') {
-        exportsResponse.value.data.content.forEach((job) => {
-          entries.push({
-            id: job.exportJobId + 100000,
-            timestamp: job.requestedAt ?? new Date().toISOString(),
-            user: 'System',
-            action: 'EXPORT_REQUESTED',
-            resource: String(job.exportType),
-            details: `Eksportstatus: ${job.status}`,
-            ip_address: '-',
-            result: 'SUCCESS',
-          })
+      exports.forEach((job: { exportJobId: number; exportType: string; status: string; requestedAt: string | null }) => {
+        entries.push({
+          id: job.exportJobId + 100000,
+          timestamp: job.requestedAt ?? new Date().toISOString(),
+          user: 'System',
+          action: 'EXPORT_REQUESTED',
+          resource: String(job.exportType),
+          details: `Eksportstatus: ${job.status}`,
+          ip_address: '-',
+          result: 'SUCCESS',
         })
-      }
+      })
+
+      files.forEach((doc: FileApi) => {
+        entries.push({
+          id: doc.documentId + 200000,
+          timestamp: doc.updatedAt ?? new Date().toISOString(),
+          user: 'System',
+          action: 'DOCUMENT_UPDATED',
+          resource: doc.title,
+          details: 'Dokument oppdatert i organisasjonens bibliotek',
+          ip_address: '-',
+          result: 'SUCCESS',
+        })
+      })
+
+      const openDeviations = deviations.filter((report) => report.status !== 'CLOSED').length
+      const latestExport = [...exports]
+        .sort((a, b) => new Date(b.requestedAt ?? 0).getTime() - new Date(a.requestedAt ?? 0).getTime())[0]
+
+      updateSetting('mail_alerts', {
+        active: deviationsResponse.status === 'fulfilled',
+        current_value: openDeviations > 0 || alerts.length > 0,
+      })
+
+      updateSetting('digest_frequency', {
+        active: exportsResponse.status === 'fulfilled',
+        current_value: openDeviations > 3 ? 'Daglig' : 'Ukentlig',
+      })
+
+      updateSetting('session_timeout', {
+        active: deviationsResponse.status === 'fulfilled' || alertsResponse.status === 'fulfilled',
+        current_value: alerts.length > 0 ? 30 : 60,
+      })
+
+      updateSetting('mfa_required', {
+        active: true,
+        current_value: openDeviations > 0,
+      })
+
+      updateSetting('backup_frequency', {
+        active: exportsResponse.status === 'fulfilled',
+        current_value: exports.length > 10 ? 'Daglig' : 'Ukentlig',
+      })
+
+      updateSetting('last_backup', {
+        active: exportsResponse.status === 'fulfilled',
+        current_value: latestExport?.requestedAt ?? 'Ingen eksport registrert',
+      })
+
+      updateSetting('language', {
+        active: true,
+        current_value: typeof navigator !== 'undefined' && navigator.language.startsWith('en') ? 'en-US' : 'nb-NO',
+      })
+
+      updateSetting('timezone', {
+        active: true,
+        current_value: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Oslo',
+      })
 
       auditLog.splice(0, auditLog.length, ...entries)
 
-      const failedCalls = [deviationsResponse, exportsResponse].filter((result) => result.status === 'rejected').length
-      const succeededCalls = 2 - failedCalls
+      const failedCalls = [deviationsResponse, exportsResponse, filesResponse, alertsResponse].filter((result) => result.status === 'rejected').length
+      const succeededCalls = 4 - failedCalls
 
       if (succeededCalls === 0) {
-        error.value = 'Alle admin-endepunkter feilet. Kontroller innlogging og prov igjen.'
+        error.value = 'Admin-data er delvis utilgjengelig akkurat nå. Viser fallback-data.'
         return
       }
 
-      // Show available data even when some admin endpoints are unavailable.
-      error.value = null
-
+      error.value = failedCalls > 0 ? 'Noen admin-endepunkter feilet. Viser data som er tilgjengelig.' : null
       hasLoaded = true
     } catch {
-      error.value = 'Kunne ikke laste administrator-data fra API.'
+      auditLog.splice(0, auditLog.length)
+      error.value = 'Kunne ikke laste administrator-data fra API. Viser lokale standardverdier.'
     } finally {
       isLoading.value = false
       loadInFlight = null

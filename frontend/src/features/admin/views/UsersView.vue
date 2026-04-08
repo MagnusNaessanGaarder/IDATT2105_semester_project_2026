@@ -1,23 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { type AdminUser, useAdminData } from '../composables/useAdminData'
 
 const data = useAdminData()
-const users = ref<AdminUser[]>([...data.users])
-
-watch(
-  () => data.users,
-  (nextUsers) => {
-    users.value = nextUsers.map((user) => ({ ...user }))
-  },
-  { immediate: true, deep: true },
-)
 
 const query = ref('')
 const roleFilter = ref<'all' | 'ADMIN' | 'MANAGER' | 'STAFF'>('all')
 
 const filteredUsers = computed(() => {
-  return users.value.filter((user) => {
+  return data.users.filter((user) => {
     const matchesRole = roleFilter.value === 'all' || user.role === roleFilter.value
     const search = query.value.trim().toLowerCase()
     const matchesQuery =
@@ -30,7 +21,7 @@ const filteredUsers = computed(() => {
   })
 })
 
-const activeUsersCount = computed(() => users.value.filter((user) => user.status === 'active').length)
+const activeUsersCount = computed(() => data.users.filter((user) => user.status === 'active').length)
 
 const roleSummaries = computed(() => {
   const roles: Array<'ADMIN' | 'MANAGER' | 'STAFF'> = ['ADMIN', 'MANAGER', 'STAFF']
@@ -39,7 +30,7 @@ const roleSummaries = computed(() => {
     label: data.roleLabel(role),
     tone: data.roleTone(role),
     description: data.roleDescription(role),
-    count: users.value.filter((user) => user.role === role).length,
+    count: data.users.filter((user) => user.role === role).length,
   }))
 })
 
@@ -48,7 +39,7 @@ const handleEditUser = (user: AdminUser) => {
 }
 
 const handleToggleUser = (userId: number) => {
-  users.value = users.value.map((user) => {
+  const nextUsers: AdminUser[] = data.users.map((user) => {
     if (user.id !== userId) {
       return user
     }
@@ -58,6 +49,8 @@ const handleToggleUser = (userId: number) => {
       status: user.status === 'active' ? 'inactive' : 'active',
     }
   })
+
+  data.users.splice(0, data.users.length, ...nextUsers)
 }
 </script>
 
@@ -71,7 +64,7 @@ const handleToggleUser = (userId: number) => {
       <button class="create-btn" type="button">+ Ny bruker</button>
     </header>
 
-    <section v-if="data.error" class="empty-state">
+    <section v-if="data.error" class="warning-state">
       <p>{{ data.error }}</p>
       <button type="button" class="action-btn" @click="data.reload">Prøv igjen</button>
     </section>
@@ -80,9 +73,9 @@ const handleToggleUser = (userId: number) => {
       <p>Laster brukere...</p>
     </section>
 
-    <section v-if="!data.isLoading && !data.error" class="stats-row" aria-label="Brukerstatistikk">
+    <section v-if="!data.isLoading" class="stats-row" aria-label="Brukerstatistikk">
       <article class="stats-card">
-        <strong>{{ users.length }}</strong>
+        <strong>{{ data.users.length }}</strong>
         <span>Brukere totalt</span>
       </article>
       <article class="stats-card">
@@ -90,16 +83,16 @@ const handleToggleUser = (userId: number) => {
         <span>Aktive brukere</span>
       </article>
       <article class="stats-card">
-        <strong>{{ users.filter((user) => !user.certifications_valid).length }}</strong>
+        <strong>{{ data.users.filter((user) => !user.certifications_valid).length }}</strong>
         <span>Mangler gyldige sertifiseringer</span>
       </article>
       <article class="stats-card">
-        <strong>{{ new Set(users.map((user) => user.department)).size }}</strong>
+        <strong>{{ new Set(data.users.map((user) => user.department)).size }}</strong>
         <span>Avdelinger</span>
       </article>
     </section>
 
-    <section v-if="!data.isLoading && !data.error" class="roles-grid" aria-label="Rolleoversikt">
+    <section v-if="!data.isLoading" class="roles-grid" aria-label="Rolleoversikt">
       <article v-for="role in roleSummaries" :key="role.role" class="role-card">
         <p class="role-pill" :class="`role-pill--${role.tone}`">{{ role.label }}</p>
         <p class="role-description">{{ role.description }}</p>
@@ -107,7 +100,7 @@ const handleToggleUser = (userId: number) => {
       </article>
     </section>
 
-    <section v-if="!data.isLoading && !data.error" class="users-table-card">
+    <section v-if="!data.isLoading" class="users-table-card">
       <div class="table-toolbar">
         <input v-model="query" type="search" class="table-search" placeholder="Søk etter brukere" />
         <select v-model="roleFilter" class="role-select" aria-label="Filtrer på rolle">
@@ -163,7 +156,7 @@ const handleToggleUser = (userId: number) => {
       </div>
     </section>
 
-    <div v-if="!data.isLoading && !data.error && filteredUsers.length === 0" class="empty-state">
+    <div v-if="!data.isLoading && filteredUsers.length === 0" class="empty-state">
       <p>Ingen brukere funnet</p>
     </div>
   </div>
@@ -172,19 +165,19 @@ const handleToggleUser = (userId: number) => {
 <style scoped>
 .users-view {
   display: grid;
-  gap: 1rem;
+  gap: var(--spacing-lg);
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: var(--font-size-3xl);
+  font-size: clamp(1.8rem, 2.4vw, var(--font-size-3xl));
   font-weight: 700;
   letter-spacing: -0.015em;
 }
@@ -194,28 +187,42 @@ const handleToggleUser = (userId: number) => {
   color: var(--color-gray-500);
 }
 
+.warning-state {
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-md);
+  color: var(--color-warning);
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
 .create-btn {
-  min-height: 2.7rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-foreground);
-  color: var(--color-background);
+  min-height: var(--touch-target);
+  padding: var(--button-padding-md);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--spacing-md);
 }
 
 .stats-card {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-card);
   text-align: center;
-  padding: 0.85rem;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .stats-card strong {
@@ -233,14 +240,15 @@ const handleToggleUser = (userId: number) => {
 .roles-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--spacing-md);
 }
 
 .role-card {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-card);
-  padding: 0.8rem;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .role-pill {
@@ -281,21 +289,22 @@ const handleToggleUser = (userId: number) => {
 
 .users-table-card {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-card);
-  padding: 0.75rem;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .table-toolbar {
   display: flex;
   justify-content: space-between;
-  gap: 0.6rem;
-  margin-bottom: 0.75rem;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .table-search,
 .role-select {
-  min-height: 2.6rem;
+  min-height: var(--touch-target);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-gray-50);
@@ -319,7 +328,7 @@ table {
 th,
 td {
   text-align: left;
-  padding: 0.7rem;
+  padding: 0.85rem 0.75rem;
   border-bottom: 1px solid var(--color-gray-100);
   vertical-align: middle;
 }
@@ -339,8 +348,8 @@ th {
 }
 
 .avatar {
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 2rem;
+  height: 2rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -386,14 +395,15 @@ th {
 }
 
 .action-btn {
-  min-height: 2rem;
-  padding: 0.25rem 0.6rem;
-  border: none;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-foreground);
+  background: var(--color-primary);
   color: var(--color-primary-foreground);
   font-size: var(--font-size-xs);
   font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
 .action-btn--ghost {
@@ -409,6 +419,7 @@ th {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   color: var(--color-gray-600);
+  box-shadow: var(--shadow-sm);
 }
 
 @media (max-width: 48rem) {

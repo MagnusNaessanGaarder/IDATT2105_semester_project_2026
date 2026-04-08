@@ -1,7 +1,6 @@
 import { reactive, ref } from 'vue'
 import { client } from '@/api/client'
 import { getOrgNumber, orgHeaders, withOrgNumber } from '@/shared/utils/orgContext'
-import { ensureDemoData } from '@/shared/utils/seedDemoData'
 
 export interface DashboardStat {
   label: string
@@ -112,9 +111,11 @@ const quickActions = reactive<QuickAction[]>([
 const reports = reactive<ReportItem[]>([])
 const documents = reactive<DocumentItem[]>([])
 const notifications = reactive<NotificationItem[]>([])
+let deviationsEndpointUnavailable = false
 
 let hasLoaded = false
 let loadInFlight: Promise<void> | null = null
+let lastLoadedOrgNumber: number | null = null
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
@@ -182,8 +183,14 @@ const splitIsoDate = (iso: string | null): { date: string; time: string } => {
   }
 }
 
+const hasResponse = (value: unknown): value is { response?: unknown } => {
+  return typeof value === 'object' && value !== null && 'response' in value
+}
+
 const loadData = async (): Promise<void> => {
-  if (hasLoaded) {
+  const orgNumber = getOrgNumber()
+
+  if (hasLoaded && lastLoadedOrgNumber === orgNumber) {
     return
   }
 
@@ -196,9 +203,6 @@ const loadData = async (): Promise<void> => {
     error.value = null
 
     try {
-      await ensureDemoData()
-
-      const orgNumber = getOrgNumber()
       const [filesResponse, exportsResponse, deviationsResponse, alertsResponse] = await Promise.allSettled([
         client.get<FileApi[]>('/files', {
           params: withOrgNumber({}),
@@ -207,18 +211,30 @@ const loadData = async (): Promise<void> => {
         client.get<ExportPageApi>('/exports', {
           params: withOrgNumber({ page: 0, size: 50 }),
         }),
-        client.get<DeviationApi[]>('/deviations', {
-          params: withOrgNumber({}),
-        }),
+        deviationsEndpointUnavailable
+          ? Promise.resolve({ data: [] as DeviationApi[] })
+          : client.get<DeviationApi[]>('/deviations', {
+            params: withOrgNumber({}),
+            skipGlobalErrorLog: true,
+          }).catch((err: unknown) => {
+            if (hasResponse(err)) {
+              const response = err.response as { status?: number } | undefined
+              if (response?.status === 500) {
+                deviationsEndpointUnavailable = true
+                return { data: [] as DeviationApi[] }
+              }
+            }
+            throw err
+          }),
         client.get<TemperatureAlertApi[]>('/temperature/alerts', {
           params: withOrgNumber({}),
         }),
       ])
 
-      const files = filesResponse.status === 'fulfilled' ? filesResponse.value.data : []
-      const exports = exportsResponse.status === 'fulfilled' ? exportsResponse.value.data.content : []
-      const deviations = deviationsResponse.status === 'fulfilled' ? deviationsResponse.value.data : []
-      const alerts = alertsResponse.status === 'fulfilled' ? alertsResponse.value.data : []
+      const files = (filesResponse.status === 'fulfilled' ? filesResponse.value.data : []) as FileApi[]
+      const exports = (exportsResponse.status === 'fulfilled' ? exportsResponse.value.data.content : []) as ExportApi[]
+      const deviations = (deviationsResponse.status === 'fulfilled' ? deviationsResponse.value.data : []) as DeviationApi[]
+      const alerts = (alertsResponse.status === 'fulfilled' ? alertsResponse.value.data : []) as TemperatureAlertApi[]
 
       const mappedDocuments: DocumentItem[] = files.map((doc) => ({
         id: doc.documentId,
@@ -352,17 +368,21 @@ const loadData = async (): Promise<void> => {
         return
       }
 
-      // Keep rendering partial data when at least one endpoint succeeded.
       error.value = null
 
       hasLoaded = true
-      void orgNumber
-    } catch {
+      lastLoadedOrgNumber = orgNumber
+    } catch (err: unknown) {
       dashboardStats.splice(0, dashboardStats.length)
       reports.splice(0, reports.length)
       documents.splice(0, documents.length)
       notifications.splice(0, notifications.length)
-      error.value = 'Kunne ikke laste dashboard-data fra API.'
+
+      if (!hasResponse(err) || !err.response) {
+        error.value = 'Backend er ikke tilgjengelig. Kontroller at API kjører på port 8080.'
+      } else {
+        error.value = 'Kunne ikke laste dashboard-data fra API.'
+      }
     } finally {
       isLoading.value = false
       loadInFlight = null

@@ -1,43 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { type AuditLogEntry, type SettingItem, useAdminData } from '../composables/useAdminData'
 
 const data = useAdminData()
 
-const settingsState = ref({
-  system: { section_title: '', items: [] as SettingItem[] },
-  notification_preferences: { section_title: '', items: [] as SettingItem[] },
-  security: { section_title: '', items: [] as SettingItem[] },
-  backup: { section_title: '', items: [] as SettingItem[] },
-}) as {
-  value: {
-    system: { section_title: string; items: SettingItem[] }
-    notification_preferences: { section_title: string; items: SettingItem[] }
-    security: { section_title: string; items: SettingItem[] }
-    backup: { section_title: string; items: SettingItem[] }
-  }
-}
-
-watch(
-  () => data.settings,
-  (nextSettings) => {
-    settingsState.value = {
-      system: JSON.parse(JSON.stringify(nextSettings.system)),
-      notification_preferences: JSON.parse(JSON.stringify(nextSettings.notification_preferences)),
-      security: JSON.parse(JSON.stringify(nextSettings.security)),
-      backup: JSON.parse(JSON.stringify(nextSettings.backup)),
-    }
-  },
-  { immediate: true, deep: true },
-)
-
 const query = ref('')
 
 const sections = computed(() => [
-  settingsState.value.system,
-  settingsState.value.notification_preferences,
-  settingsState.value.security,
-  settingsState.value.backup,
+  data.settings.system,
+  data.settings.notification_preferences,
+  data.settings.security,
+  data.settings.backup,
 ])
 
 const filteredAuditLog = computed(() => {
@@ -70,6 +43,8 @@ const updateSetting = (sectionIndex: number, itemId: string, nextValue: unknown)
   item.current_value = nextValue
 }
 
+const isSettingActive = (item: SettingItem) => item.active !== false
+
 const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.timestamp)
 </script>
 
@@ -86,32 +61,29 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
       </div>
     </header>
 
-    <section v-if="data.error" class="audit-section">
-      <header class="audit-header">
-        <h2>Kunne ikke hente innstillinger</h2>
-        <button class="btn btn--primary" type="button" @click="data.reload">Prøv igjen</button>
-      </header>
+    <section v-if="data.error" class="warning-state">
       <p>{{ data.error }}</p>
+      <button class="btn btn--primary" type="button" @click="data.reload">Prøv igjen</button>
     </section>
 
-    <section v-else-if="data.isLoading" class="audit-section">
+    <section v-if="data.isLoading" class="audit-section">
       <header class="audit-header">
         <h2>Laster innstillinger...</h2>
       </header>
     </section>
 
-    <section v-if="!data.isLoading && !data.error" class="settings-summary" aria-label="Systemoversikt">
+    <section v-if="!data.isLoading" class="settings-summary" aria-label="Systemoversikt">
       <article class="summary-card">
         <strong>{{ sections.length }}</strong>
         <span>Konfigurasjonsseksjoner</span>
       </article>
       <article class="summary-card">
-        <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'toggle').length }}</strong>
-        <span>Brytere</span>
+        <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'toggle' && isSettingActive(item)).length }}</strong>
+        <span>Aktive brytere</span>
       </article>
       <article class="summary-card">
-        <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'number').length }}</strong>
-        <span>Numeriske felt</span>
+        <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'number' && isSettingActive(item)).length }}</strong>
+        <span>Aktive numeriske felt</span>
       </article>
       <article class="summary-card">
         <strong>{{ data.auditLog.length }}</strong>
@@ -119,14 +91,15 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
       </article>
     </section>
 
-    <section v-if="!data.isLoading && !data.error" class="settings-grid" aria-label="Konfigurasjonspanel">
+    <section v-if="!data.isLoading" class="settings-grid" aria-label="Konfigurasjonspanel">
       <article v-for="(section, sectionIndex) in sections" :key="section.section_title" class="settings-section">
         <h2 class="settings-title">{{ section.section_title }}</h2>
         <div class="settings-items">
-          <div v-for="item in section.items" :key="item.id" class="setting-item">
+          <div v-for="item in section.items" :key="item.id" class="setting-item" :class="{ 'setting-item--inactive': !isSettingActive(item) }">
             <div class="setting-header">
               <label :for="item.id" class="setting-label">{{ item.label }}</label>
               <p v-if="item.description" class="setting-description">{{ item.description }}</p>
+              <p class="setting-state">{{ isSettingActive(item) ? 'Aktiv fra API-data' : 'Inaktiv (mangler datagrunnlag)' }}</p>
             </div>
 
             <div class="setting-control">
@@ -135,6 +108,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
                 :id="item.id"
                 class="setting-select"
                 :value="String(item.current_value)"
+                :disabled="!isSettingActive(item)"
                 @change="updateSetting(sectionIndex, item.id, ($event.target as HTMLSelectElement).value)"
               >
                 <option v-for="option in item.options" :key="option">{{ option }}</option>
@@ -145,6 +119,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
                   :id="item.id"
                   type="checkbox"
                   :checked="Boolean(item.current_value)"
+                  :disabled="!isSettingActive(item)"
                   @change="updateSetting(sectionIndex, item.id, ($event.target as HTMLInputElement).checked)"
                 >
                 <span>{{ Boolean(item.current_value) ? 'På' : 'Av' }}</span>
@@ -158,6 +133,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
                 :value="Number(item.current_value)"
                 :min="item.min"
                 :max="item.max"
+                :disabled="!isSettingActive(item)"
                 @change="updateSetting(sectionIndex, item.id, Number(($event.target as HTMLInputElement).value))"
               >
 
@@ -168,7 +144,7 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
       </article>
     </section>
 
-    <section v-if="!data.isLoading && !data.error" class="audit-section">
+    <section v-if="!data.isLoading" class="audit-section">
       <header class="audit-header">
         <h2>Revisjonslogg</h2>
         <input v-model="query" class="audit-search" type="search" placeholder="Søk i hendelser" />
@@ -229,6 +205,18 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
 .subtitle {
   margin-top: 0.4rem;
   color: var(--color-gray-500);
+}
+
+.warning-state {
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-md);
+  color: var(--color-warning);
+  padding: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
 }
 
 .header-actions {
@@ -299,6 +287,10 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
   border-bottom: none;
 }
 
+.setting-item--inactive {
+  opacity: 0.6;
+}
+
 .setting-header {
   display: flex;
   flex-direction: column;
@@ -315,6 +307,12 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
   margin: 0;
   font-size: var(--font-size-xs);
   color: var(--color-gray-600);
+}
+
+.setting-state {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
 }
 
 .setting-control {

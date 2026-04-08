@@ -1,7 +1,6 @@
 import { reactive, ref } from 'vue'
 import { client } from '@/api/client'
 import { withOrgNumber } from '@/shared/utils/orgContext'
-import { ensureDemoData } from '@/shared/utils/seedDemoData'
 
 export interface DailyControlItem {
   id: number
@@ -75,6 +74,7 @@ const certificationTypes = reactive<string[]>([])
 const employees = reactive<EmployeeCertification[]>([])
 const laws = reactive<LawItem[]>([])
 const demands = reactive<DemandItem[]>([])
+let checklistRunsEndpointUnavailable = false
 
 let hasLoaded = false
 let loadInFlight: Promise<void> | null = null
@@ -124,11 +124,11 @@ const formattedDate = (value: string): string => {
   return parsedDate.toLocaleDateString('nb-NO')
 }
 
-const totalCertificates = () => employees.reduce((sum, employee) => sum + employee.certifications.length, 0)
+const totalCertificates = () => employees.reduce((sum: number, employee: EmployeeCertification) => sum + employee.certifications.length, 0)
 
 const certificateCounts = (): Record<CertificateStatus, number> => employees.reduce(
-  (counts, employee) => {
-    employee.certifications.forEach((certification) => {
+  (counts: Record<CertificateStatus, number>, employee: EmployeeCertification) => {
+    employee.certifications.forEach((certification: EmployeeCertificate) => {
       const status = certificateStatus(certification.expire_date)
       counts[status] += 1
     })
@@ -142,10 +142,10 @@ const certificateCounts = (): Record<CertificateStatus, number> => employees.red
 )
 
 const staffWithExpired = () => employees
-  .filter((employee) => employee.certifications.some((certification) => certificateStatus(certification.expire_date) === 'Utgått'))
-  .map((employee) => employee.name)
+  .filter((employee: EmployeeCertification) => employee.certifications.some((certification: EmployeeCertificate) => certificateStatus(certification.expire_date) === 'Utgått'))
+  .map((employee: EmployeeCertification) => employee.name)
 
-const completedControls = () => dailyControls.filter((item) => item.is_checked).length
+const completedControls = () => dailyControls.filter((item: DailyControlItem) => item.is_checked).length
 const pendingControls = () => dailyControls.length - completedControls()
 const completionRate = () => (dailyControls.length > 0 ? Math.round((completedControls() / dailyControls.length) * 100) : 0)
 
@@ -181,26 +181,36 @@ const loadData = async (): Promise<void> => {
     error.value = null
 
     try {
-      await ensureDemoData()
-
       const [templatesResponse, runsResponse] = await Promise.allSettled([
         client.get<ChecklistTemplateApi[]>('/checklists/templates/module/ALCOHOL', {
           params: withOrgNumber({}),
         }),
-        client.get<ChecklistRunApi[]>('/checklists/runs', {
-          params: withOrgNumber({}),
-        }),
+        checklistRunsEndpointUnavailable
+          ? Promise.resolve({ data: [] as ChecklistRunApi[] })
+          : client.get<ChecklistRunApi[]>('/checklists/runs', {
+            params: withOrgNumber({}),
+            skipGlobalErrorLog: true,
+          }).catch((err: unknown) => {
+            if (typeof err === 'object' && err !== null && 'response' in err) {
+              const response = (err as { response?: { status?: number } }).response
+              if (response?.status === 500) {
+                checklistRunsEndpointUnavailable = true
+                return { data: [] as ChecklistRunApi[] }
+              }
+            }
+            throw err
+          }),
       ])
 
-      const templates = templatesResponse.status === 'fulfilled' ? templatesResponse.value.data : []
-      const allRuns = runsResponse.status === 'fulfilled' ? runsResponse.value.data : []
-      const alcoholTemplateIds = new Set(templates.map((template) => template.templateId))
-      const alcoholRuns = allRuns.filter((run) => alcoholTemplateIds.has(run.templateId))
+      const templates = (templatesResponse.status === 'fulfilled' ? templatesResponse.value.data : []) as ChecklistTemplateApi[]
+      const allRuns = (runsResponse.status === 'fulfilled' ? runsResponse.value.data : []) as ChecklistRunApi[]
+      const alcoholTemplateIds = new Set(templates.map((template: ChecklistTemplateApi) => template.templateId))
+      const alcoholRuns = allRuns.filter((run: ChecklistRunApi) => alcoholTemplateIds.has(run.templateId))
 
-      const mappedControls = alcoholRuns
+      const mappedControlsFromRuns = alcoholRuns
         .slice()
-        .sort((a, b) => new Date(b.completedAt ?? b.runDate ?? 0).getTime() - new Date(a.completedAt ?? a.runDate ?? 0).getTime())
-        .map((run) => {
+        .sort((a: ChecklistRunApi, b: ChecklistRunApi) => new Date(b.completedAt ?? b.runDate ?? 0).getTime() - new Date(a.completedAt ?? a.runDate ?? 0).getTime())
+        .map((run: ChecklistRunApi) => {
           const split = splitIsoDateTime(run.completedAt ?? run.runDate)
           return {
             id: run.runId,
@@ -217,8 +227,26 @@ const loadData = async (): Promise<void> => {
           } satisfies DailyControlItem
         })
 
+      const mappedControlsFromTemplates = templates.map((template: ChecklistTemplateApi) => ({
+        id: template.templateId,
+        name: template.title,
+        law_unit: 'ALKOHOLLOVEN',
+        employee: 'Ikke registrert',
+        comment: template.description ?? '',
+        completion_date: {
+          date: '',
+          time: '',
+        },
+        attachment: null,
+        is_checked: false,
+      } satisfies DailyControlItem))
+
+      const mappedControls = mappedControlsFromRuns.length > 0
+        ? mappedControlsFromRuns
+        : mappedControlsFromTemplates
+
       const employeeMap = new Map<string, EmployeeCertification>()
-      alcoholRuns.forEach((run) => {
+      alcoholRuns.forEach((run: ChecklistRunApi) => {
         const employeeName = run.performedByUserId ? `Bruker ${run.performedByUserId}` : 'Ukjent'
         const current = employeeMap.get(employeeName) ?? { name: employeeName, certifications: [] }
         const completedDate = splitIsoDateTime(run.completedAt ?? run.runDate).date
@@ -242,7 +270,21 @@ const loadData = async (): Promise<void> => {
         employee.certifications.forEach((certification) => typeSet.add(certification.name))
       })
 
-      const mappedLaws: LawItem[] = templates.map((template) => ({
+      templates.forEach((template: ChecklistTemplateApi) => {
+        typeSet.add(template.title)
+      })
+
+      if (employeeMap.size === 0 && templates.length > 0) {
+        employeeMap.set('Ikke registrert', {
+          name: 'Ikke registrert',
+          certifications: templates.map((template: ChecklistTemplateApi) => ({
+            name: template.title,
+            expire_date: '',
+          })),
+        })
+      }
+
+      const mappedLaws: LawItem[] = templates.map((template: ChecklistTemplateApi) => ({
         name: template.title,
         type: 'Forskrift',
         short: template.description ?? 'Operativ kontroll for ansvarlig servering',
@@ -288,9 +330,7 @@ const loadData = async (): Promise<void> => {
         return
       }
 
-      // Render partial data when possible instead of replacing with full-page error.
       error.value = null
-
       hasLoaded = true
     } catch {
       dailyControls.splice(0, dailyControls.length)
