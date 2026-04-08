@@ -117,12 +117,12 @@ public class OpenPdfGenerator implements PdfGenerator {
         document.add(new Paragraph("Alerts: " + alertCount, boldFont));
         document.add(Chunk.NEWLINE);
 
-        PdfPTable table = new PdfPTable(4);
+        PdfPTable table = new PdfPTable(5);
         table.setWidthPercentage(100);
-        table.setWidths(new float[]{3, 2, 2, 3});
+        table.setWidths(new float[]{2, 2, 2, 1, 3});
 
         Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
-        for (String header : new String[]{"Measured At", "Temperature (°C)", "Alert", "Note"}) {
+        for (String header : new String[]{"Measured At", "Log Point", "Temperature (°C)", "Alert", "Note"}) {
           PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
           cell.setBackgroundColor(Color.LIGHT_GRAY);
           table.addCell(cell);
@@ -131,6 +131,8 @@ public class OpenPdfGenerator implements PdfGenerator {
         Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
         for (var entry : entries) {
           table.addCell(new Phrase(entry.getMeasuredAt().format(DATE_TIME_FORMATTER), cellFont));
+          String logPointName = entry.getLogPoint() != null ? entry.getLogPoint().getName() : "—";
+          table.addCell(new Phrase(logPointName, cellFont));
           table.addCell(new Phrase(entry.getTemperatureC().toPlainString(), cellFont));
           PdfPCell alertCell = new PdfPCell(new Phrase(Boolean.TRUE.equals(entry.getIsAlert()) ? "YES" : "No", cellFont));
           if (Boolean.TRUE.equals(entry.getIsAlert())) {
