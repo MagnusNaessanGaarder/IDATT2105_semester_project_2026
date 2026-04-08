@@ -1,4 +1,4 @@
-import { client } from '@/api/client'
+import { client } from '@/api/client.ts'
 
 export type ExportType =
     | 'AUDIT_REPORT'
@@ -32,6 +32,10 @@ export interface ExportResponse {
   failureReason?: string | null
   requestedAt: string
   completedAt?: string | null
+  /** Display name of the user who requested the export */
+  requestedByDisplayName?: string | null
+  /** JSON string of filter parameters (dateFrom, dateTo, locationId, checklistType) */
+  parametersJson?: string | null
 }
 
 export interface PagedExportResponse {

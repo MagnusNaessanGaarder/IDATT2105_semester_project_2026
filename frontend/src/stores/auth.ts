@@ -10,6 +10,16 @@ interface AuthError {
   code?: string
 }
 
+interface ApiError {
+  response?: {
+    data?: {
+      error?: string
+      fieldErrors?: Record<string, string>
+    }
+  }
+  message?: string
+}
+
 interface JwtPayload {
   exp?: number
 }
@@ -194,15 +204,16 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function parseError(err: unknown): AuthError {
-    const typedErr = err as ErrorShape
-    if (typedErr.response?.data?.error) {
-      return { message: typedErr.response.data.error }
+
+    const error = err as ApiError
+    if (error.response?.data?.error) {
+      return { message: error.response.data.error }
     }
-    if (typedErr.response?.data?.fieldErrors) {
-      return { message: Object.values(typedErr.response.data.fieldErrors).join(', ') }
+    if (error.response?.data?.fieldErrors) {
+      return { message: Object.values(error.response.data.fieldErrors).join(', ') }
     }
-    if (typedErr.message) {
-      return { message: typedErr.message }
+    if (error.message) {
+      return { message: error.message }
     }
     return { message: 'Something went wrong. Please try again.' }
   }

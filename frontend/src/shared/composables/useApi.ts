@@ -22,12 +22,14 @@ type ApiErrorShape = {
   }
 }
 
-export function useApi<T, A extends unknown[]>(apiFn: (...args: A) => Promise<T>) {
+export function useApi<T, Args extends unknown[] = unknown[]>(
+  apiFn: (...args: Args) => Promise<T>
+) {
   const data = ref<T | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  async function execute(...args: A): Promise<T | null> {
+  async function execute(...args: Args): Promise<T | null> {
     isLoading.value = true
     error.value = null
     try {
@@ -35,8 +37,9 @@ export function useApi<T, A extends unknown[]>(apiFn: (...args: A) => Promise<T>
       data.value = result
       return result
     } catch (e: unknown) {
-      const apiError = e as ApiErrorShape
-      error.value = apiError.response?.data?.message ?? 'Noe gikk galt'
+
+      const err = e as { response?: { data?: { message?: string } } }
+      error.value = err.response?.data?.message ?? 'Noe gikk galt'
       throw e
     } finally {
       isLoading.value = false

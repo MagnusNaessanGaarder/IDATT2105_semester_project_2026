@@ -29,20 +29,23 @@ dev:
 		cd frontend && npm install; \
 	fi
 	@echo ""
-	@echo "[1/3] Starting MySQL (Docker)..."
+	@echo "[1/4] Starting MySQL (Docker)..."
 	@docker compose -f compose-dev.yaml up -d mysql 2>/dev/null || docker start backend-mysql-1 2>/dev/null || true
 	@sleep 5
 	@echo "  MySQL started"
 	@echo ""
-	@echo "[2/3] Starting backend..."
+	@echo "[2/4] Starting backend..."
 	@(cd backend && ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
 	@sleep 15
 	@echo "  Backend started"
 	@echo ""
-	@echo "[3/3] Starting frontend..."
+	@echo "[3/4] Starting frontend..."
 	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
 	@sleep 3
 	@echo "  Frontend started"
+	@echo ""
+	@echo "[4/4] Seeding example document..."
+	@bash seed-document.sh 2>&1 | sed 's/^/  /' || echo "  Seed skipped (check seed-document.sh or Azure config)"
 	@echo ""
 	@echo "========================================"
 	@echo "  Started!"
@@ -77,7 +80,7 @@ stop:
 	@# Stop Docker
 	@-docker stop backend-mysql-1 2>/dev/null || true
 	@-docker rm backend-mysql-1 2>/dev/null || true
-	@-docker compose -f compose-dev.yaml down -v 
+	@-docker compose -f compose-dev.yaml down -v
 	@echo "  All services stopped"
 	@echo ""
 
