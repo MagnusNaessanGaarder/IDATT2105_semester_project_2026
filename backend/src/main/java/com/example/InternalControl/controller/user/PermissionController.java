@@ -4,6 +4,7 @@ import com.example.InternalControl.dto.user.AssignPermissionRequest;
 import com.example.InternalControl.dto.user.PermissionResponse;
 import com.example.InternalControl.service.user.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

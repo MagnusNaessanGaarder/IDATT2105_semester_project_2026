@@ -7,6 +7,7 @@ import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

@@ -7,6 +7,7 @@ import com.example.InternalControl.model.organization.OrganizationSettings;
 import com.example.InternalControl.repository.organization.OrganizationRepository;
 import com.example.InternalControl.repository.organization.OrganizationSettingsRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
