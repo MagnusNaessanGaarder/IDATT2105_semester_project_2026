@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST controller for permission management.
- * Provides endpoints for managing permissions and role-permission assignments.
+ * REST controller for permission management. Provides endpoints for managing
+ * permissions and role-permission assignments.
  */
 @RestController
 @RequestMapping("/api/admin/permissions")
@@ -35,9 +35,9 @@ public class PermissionController {
 
     @Operation(summary = "Get all permissions")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved permissions"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved permissions"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
@@ -48,10 +48,10 @@ public class PermissionController {
 
     @Operation(summary = "Get permission by ID")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved permission"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "404", description = "Permission not found")
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved permission"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Permission not found")
     })
     @GetMapping("/{permissionId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
@@ -63,9 +63,9 @@ public class PermissionController {
 
     @Operation(summary = "Get permissions for a role")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved role permissions"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved role permissions"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping("/role/{roleId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
@@ -77,11 +77,11 @@ public class PermissionController {
 
     @Operation(summary = "Assign permission to role")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Permission assigned successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - requires ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "Permission or role not found")
+        @ApiResponse(responseCode = "201", description = "Permission assigned successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - requires ADMIN role"),
+        @ApiResponse(responseCode = "404", description = "Permission or role not found")
     })
     @PostMapping("/role/{roleId}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -96,10 +96,10 @@ public class PermissionController {
 
     @Operation(summary = "Remove permission from role")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Permission removed successfully"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - requires ADMIN role"),
-            @ApiResponse(responseCode = "404", description = "Permission assignment not found")
+        @ApiResponse(responseCode = "204", description = "Permission removed successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - requires ADMIN role"),
+        @ApiResponse(responseCode = "404", description = "Permission assignment not found")
     })
     @DeleteMapping("/role/{roleId}/{permissionId}")
     @PreAuthorize("hasRole('ADMIN')")

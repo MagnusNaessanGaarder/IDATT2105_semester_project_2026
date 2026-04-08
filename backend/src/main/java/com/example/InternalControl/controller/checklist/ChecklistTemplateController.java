@@ -54,8 +54,8 @@ public class ChecklistTemplateController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistTemplate>> getTemplates(
-                @Parameter(description = "Organization number identifying the tenant", required = true)
-                @RequestParam Integer orgNumber,
+            @Parameter(description = "Organization number identifying the tenant", required = true)
+            @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
         validateUserOrganizationAccess(userId, orgNumber);
@@ -90,8 +90,9 @@ public class ChecklistTemplateController {
     @GetMapping("/module/{moduleType}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistTemplate>> getTemplatesByModule(
-                @Parameter(description = "Module type (IK_MAT or IK_ALKOHOL)")
-                @PathVariable ModuleType moduleType,
+            @Parameter(description = "Module type (FOOD or ALCOHOL)", required = true)
+            @PathVariable ModuleType moduleType,
+            @Parameter(description = "Organization number identifying the tenant", required = true)
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
