@@ -1,38 +1,28 @@
 package com.example.InternalControl.controller.analytics;
 
+import com.example.InternalControl.AbstractIntegrationTest;
+import com.example.InternalControl.dto.analytics.ComplianceScoreResponse;
 import com.example.InternalControl.dto.analytics.DashboardSummaryResponse;
-import com.example.InternalControl.security.CustomUserDetails;
-import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.analytics.DashboardService;
-import com.example.InternalControl.service.user.UserOrganizationService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
-
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * @author TriTacLe
- * @since 1.0
+ * Integration tests for AnalyticsController using TestContainers.
  */
-@WebMvcTest(controllers = AnalyticsController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class AnalyticsControllerTest {
+class AnalyticsControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -40,61 +30,44 @@ class AnalyticsControllerTest {
     @MockBean
     private DashboardService dashboardService;
 
-    @MockBean
-    private JwtService jwtService;
+    private static final Integer ORG_NUMBER = 123456789;
+    private static final String BASE_URL = "/api/v1/analytics";
 
-    @MockBean
-    private UserOrganizationService userOrgService;
-
-    private DashboardSummaryResponse mockStats;
-
-    @BeforeEach
-    void setUp() {
-        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-        
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        
-        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
-        
-        mockStats = DashboardSummaryResponse.builder()
-                .openDeviations(5)
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getDashboardSummary_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        DashboardSummaryResponse response = DashboardSummaryResponse.builder()
+                .checklistsCompletedToday(5)
+                .openDeviations(2)
+                .complianceScore(85.5)
                 .build();
-    }
 
-    @Test
-    void getDashboardStats_AsAdmin_ReturnsOk() throws Exception {
-        when(dashboardService.getDashboardSummary(anyInt())).thenReturn(mockStats);
+        when(dashboardService.getDashboardSummary(ORG_NUMBER)).thenReturn(response);
 
-        mockMvc.perform(get("/api/v1/analytics/dashboard/summary")
-                        .param("orgNumber", "937219997"))
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/dashboard")
+                        .param("orgNumber", ORG_NUMBER.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.openDeviations").value(5));
+                .andExpect(jsonPath("$.checklistsCompletedToday").value(5))
+                .andExpect(jsonPath("$.complianceScore").value(85.5));
     }
 
     @Test
-    void getDashboardStats_AsManager_ReturnsOk() throws Exception {
-        when(dashboardService.getDashboardSummary(anyInt())).thenReturn(mockStats);
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getComplianceScore_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        ComplianceScoreResponse response = ComplianceScoreResponse.builder()
+                .currentScore(85)
+                .status("GOOD")
+                .build();
 
-        mockMvc.perform(get("/api/v1/analytics/dashboard/summary")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
-    }
+        when(dashboardService.getComplianceScore(ORG_NUMBER)).thenReturn(response);
 
-    @Test
-    void getDashboardStats_ReturnsOk() throws Exception {
-        when(dashboardService.getDashboardSummary(anyInt())).thenReturn(mockStats);
-
-        mockMvc.perform(get("/api/v1/analytics/dashboard/summary")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void getComplianceReport_AsAdmin_ReturnsOk() throws Exception {
-        mockMvc.perform(get("/api/v1/analytics/compliance-score")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/compliance-score")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentScore").value(85));
     }
 }

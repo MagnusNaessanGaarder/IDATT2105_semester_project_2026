@@ -1,41 +1,33 @@
 package com.example.InternalControl.controller.user;
 
+import com.example.InternalControl.AbstractIntegrationTest;
+import com.example.InternalControl.dto.user.AssignPermissionRequest;
 import com.example.InternalControl.dto.user.PermissionResponse;
-import com.example.InternalControl.security.CustomUserDetails;
-import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.user.PermissionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * @author TriTacLe
- * @since 1.0
+ * Integration tests for PermissionController using TestContainers.
  */
-@WebMvcTest(controllers = PermissionController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class PermissionControllerTest {
+class PermissionControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -46,104 +38,118 @@ class PermissionControllerTest {
     @MockBean
     private PermissionService permissionService;
 
-    @MockBean
-    private JwtService jwtService;
-
-    private PermissionResponse mockPermission;
-
-    @BeforeEach
-    void setUp() {
-        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-        
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        
-        mockPermission = PermissionResponse.builder()
-                .permissionId(1L)
-                .permissionKey("READ_DEVIATIONS")
-                .description("Can read deviation reports")
-                .build();
-    }
+    private static final String BASE_URL = "/api/admin/permissions";
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void getAllPermissions_AsAdmin_ReturnsOk() throws Exception {
-        List<PermissionResponse> permissions = Arrays.asList(mockPermission);
-        when(permissionService.getAllPermissions()).thenReturn(permissions);
+        // Given
+        PermissionResponse permission = PermissionResponse.builder()
+                .permissionId(1L)
+                .permissionKey("USER_READ")
+                .build();
 
-        mockMvc.perform(get("/api/admin/permissions"))
+        when(permissionService.getAllPermissions()).thenReturn(List.of(permission));
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].permissionId").value(1));
+                .andExpect(jsonPath("$[0].permissionKey").value("USER_READ"));
     }
 
     @Test
+    @WithMockUser(roles = {"MANAGER"})
     void getAllPermissions_AsManager_ReturnsOk() throws Exception {
-        List<PermissionResponse> permissions = Arrays.asList(mockPermission);
-        when(permissionService.getAllPermissions()).thenReturn(permissions);
+        // Given
+        when(permissionService.getAllPermissions()).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/admin/permissions"))
+        // When & Then
+        mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void getAllPermissions_ReturnsOk() throws Exception {
-        List<PermissionResponse> permissions = Arrays.asList(mockPermission);
-        when(permissionService.getAllPermissions()).thenReturn(permissions);
-
-        mockMvc.perform(get("/api/admin/permissions"))
-                .andExpect(status().isOk());
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getAllPermissions_AsEmployee_ReturnsForbidden() throws Exception {
+        // When & Then
+        mockMvc.perform(get(BASE_URL))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void getAllPermissions_AsEmployee_ReturnsOk() throws Exception {
-        List<PermissionResponse> permissions = Arrays.asList(mockPermission);
-        when(permissionService.getAllPermissions()).thenReturn(permissions);
+    @WithMockUser(roles = {"ADMIN"})
+    void getPermissionById_AsAdmin_ReturnsOk() throws Exception {
+        // Given
+        PermissionResponse permission = PermissionResponse.builder()
+                .permissionId(1L)
+                .permissionKey("USER_READ")
+                .build();
 
-        mockMvc.perform(get("/api/admin/permissions"))
-                .andExpect(status().isOk());
-    }
+        when(permissionService.getPermissionById(1L)).thenReturn(permission);
 
-    @Test
-    void getPermissionById_Existing_ReturnsOk() throws Exception {
-        when(permissionService.getPermissionById(anyLong())).thenReturn(mockPermission);
-
-        mockMvc.perform(get("/api/admin/permissions/1"))
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.permissionId").value(1));
+                .andExpect(jsonPath("$.permissionKey").value("USER_READ"));
     }
 
     @Test
-    void getPermissionsByRole_ReturnsRolePermissions() throws Exception {
-        List<PermissionResponse> permissions = Arrays.asList(mockPermission);
-        when(permissionService.getPermissionsByRoleId(anyLong())).thenReturn(permissions);
+    @WithMockUser(roles = {"ADMIN"})
+    void getPermissionsByRole_AsAdmin_ReturnsOk() throws Exception {
+        // Given
+        when(permissionService.getPermissionsByRoleId(1L)).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/admin/permissions/role/1"))
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/role/1"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void assignPermissionToRole_ValidRequest_ReturnsCreated() throws Exception {
-        String request = "{\"permissionId\": 1}";
+    @WithMockUser(roles = {"ADMIN"})
+    void assignPermissionToRole_AsAdmin_ReturnsCreated() throws Exception {
+        // Given
+        AssignPermissionRequest request = new AssignPermissionRequest();
+        request.setPermissionId(1L);
 
-        mockMvc.perform(post("/api/admin/permissions/role/1")
+        doNothing().when(permissionService).assignPermissionToRole(1L, 1L);
+
+        // When & Then
+        mockMvc.perform(post(BASE_URL + "/role/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(request))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
     }
 
     @Test
-    void assignPermissionToRole_AsManager_ReturnsCreated() throws Exception {
-        String request = "{\"permissionId\": 1}";
+    @WithMockUser(roles = {"MANAGER"})
+    void assignPermissionToRole_AsManager_ReturnsForbidden() throws Exception {
+        // Given
+        AssignPermissionRequest request = new AssignPermissionRequest();
+        request.setPermissionId(1L);
 
-        mockMvc.perform(post("/api/admin/permissions/role/1")
+        // When & Then
+        mockMvc.perform(post(BASE_URL + "/role/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(request))
-                .andExpect(status().isCreated());
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void removePermissionFromRole_ReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/admin/permissions/role/1/1"))
+    @WithMockUser(roles = {"ADMIN"})
+    void removePermissionFromRole_AsAdmin_ReturnsNoContent() throws Exception {
+        // Given
+        doNothing().when(permissionService).removePermissionFromRole(1L, 1L);
+
+        // When & Then
+        mockMvc.perform(delete(BASE_URL + "/role/1/1"))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(roles = {"MANAGER"})
+    void removePermissionFromRole_AsManager_ReturnsForbidden() throws Exception {
+        // When & Then
+        mockMvc.perform(delete(BASE_URL + "/role/1/1"))
+                .andExpect(status().isForbidden());
     }
 }

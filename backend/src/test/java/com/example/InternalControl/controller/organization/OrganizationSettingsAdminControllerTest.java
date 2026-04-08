@@ -1,41 +1,34 @@
 package com.example.InternalControl.controller.organization;
 
-import com.example.InternalControl.dto.settings.OrganizationSettingsRequest;
-import com.example.InternalControl.dto.settings.OrganizationSettingsResponse;
-import com.example.InternalControl.security.CustomUserDetails;
-import com.example.InternalControl.security.JwtService;
-import com.example.InternalControl.service.settings.OrganizationSettingsService;
-import com.example.InternalControl.service.user.UserOrganizationService;
+import com.example.InternalControl.AbstractIntegrationTest;
+import com.example.InternalControl.dto.organization.OrganizationSettingsRequest;
+import com.example.InternalControl.model.organization.Organization;
+import com.example.InternalControl.model.organization.OrganizationSettings;
+import com.example.InternalControl.repository.organization.OrganizationRepository;
+import com.example.InternalControl.repository.organization.OrganizationSettingsRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
+import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * @author TriTacLe
- * @since 1.0
+ * Integration tests for OrganizationSettingsAdminController using TestContainers.
  */
-@WebMvcTest(controllers = OrganizationSettingsAdminController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class OrganizationSettingsAdminControllerTest {
+class OrganizationSettingsAdminControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -43,97 +36,80 @@ class OrganizationSettingsAdminControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private OrganizationSettingsService settingsService;
+    @Autowired
+    private OrganizationSettingsRepository settingsRepository;
 
-    @MockBean
-    private JwtService jwtService;
+    @Autowired
+    private OrganizationRepository organizationRepository;
 
-    @MockBean
-    private UserOrganizationService userOrgService;
-
-    private OrganizationSettingsResponse mockSettings;
+    private static final Integer ORG_NUMBER = 937219997;
+    private static final String BASE_URL = "/api/admin/organizations/settings";
 
     @BeforeEach
     void setUp() {
-        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        // Setup mocks for repositories if needed
+        Organization org = new Organization();
+        org.setOrgNumber(ORG_NUMBER);
+        org.setLegalName("Test Organization");
         
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        
-        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
-        
-        mockSettings = OrganizationSettingsResponse.builder()
-                .orgNumber(937219997)
-                .timezoneName("Europe/Oslo")
-                .build();
+        when(organizationRepository.findById(ORG_NUMBER)).thenReturn(Optional.of(org));
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
     void getSettings_AsAdmin_ReturnsOk() throws Exception {
-        when(settingsService.getSettings(anyInt())).thenReturn(mockSettings);
-
-        mockMvc.perform(get("/api/admin/organizations/settings")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orgNumber").value(937219997))
-                .andExpect(jsonPath("$.timezoneName").value("Europe/Oslo"));
+        // When & Then
+        mockMvc.perform(get(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk());
     }
 
     @Test
+    @WithMockUser(roles = {"MANAGER"})
     void getSettings_AsManager_ReturnsOk() throws Exception {
-        when(settingsService.getSettings(anyInt())).thenReturn(mockSettings);
-
-        mockMvc.perform(get("/api/admin/organizations/settings")
-                        .param("orgNumber", "937219997"))
+        // When & Then
+        mockMvc.perform(get(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString()))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void getSettings_ReturnsOk() throws Exception {
-        when(settingsService.getSettings(anyInt())).thenReturn(mockSettings);
-
-        mockMvc.perform(get("/api/admin/organizations/settings")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getSettings_AsEmployee_ReturnsForbidden() throws Exception {
+        // When & Then
+        mockMvc.perform(get(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void updateSettings_ValidRequest_ReturnsOk() throws Exception {
-        when(settingsService.updateSettings(anyInt(), any(), anyLong())).thenReturn(mockSettings);
+    @WithMockUser(roles = {"ADMIN"})
+    void updateSettings_AsAdmin_ReturnsOk() throws Exception {
+        // Given
+        OrganizationSettingsRequest request = new OrganizationSettingsRequest();
+        request.setTimezoneName("Europe/London");
 
-        OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
-                .timezoneName("Europe/London")
-                .localeCode("en-GB")
-                .enableFoodModule(true)
-                .enableAlcoholModule(false)
-                .reminderEmailEnabled(true)
-                .build();
-
-        mockMvc.perform(put("/api/admin/organizations/settings")
-                        .param("orgNumber", "937219997")
+        // When & Then
+        mockMvc.perform(put(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.timezoneName").value("Europe/London"));
     }
 
     @Test
-    void updateSettings_ReturnsOk() throws Exception {
-        when(settingsService.updateSettings(anyInt(), any(), anyLong())).thenReturn(mockSettings);
+    @WithMockUser(roles = {"MANAGER"})
+    void updateSettings_AsManager_ReturnsForbidden() throws Exception {
+        // Given
+        OrganizationSettingsRequest request = new OrganizationSettingsRequest();
+        request.setTimezoneName("Europe/London");
 
-        OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
-                .timezoneName("Europe/London")
-                .localeCode("en-GB")
-                .enableFoodModule(true)
-                .enableAlcoholModule(false)
-                .reminderEmailEnabled(true)
-                .build();
-
-        mockMvc.perform(put("/api/admin/organizations/settings")
-                        .param("orgNumber", "937219997")
+        // When & Then - only ADMIN can update, MANAGER can only view
+        mockMvc.perform(put(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
     }
 }

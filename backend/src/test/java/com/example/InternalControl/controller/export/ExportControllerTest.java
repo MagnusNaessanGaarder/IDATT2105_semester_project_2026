@@ -1,31 +1,23 @@
 package com.example.InternalControl.controller.export;
 
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.dto.export.request.ExportRequest;
 import com.example.InternalControl.dto.export.response.ExportResponse;
 import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.model.export.ExportStatus;
 import com.example.InternalControl.model.export.ExportType;
-import com.example.InternalControl.security.CustomUserDetails;
-import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.export.ExportService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -33,12 +25,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * @author TriTacLe
- * @since 1.0
+ * Integration tests for ExportController using TestContainers.
  */
-@WebMvcTest(controllers = ExportController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class ExportControllerTest {
+class ExportControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,96 +41,67 @@ class ExportControllerTest {
     private ExportService exportService;
 
     @MockBean
-    private JwtService jwtService;
-
-    @MockBean
     private UserOrganizationService userOrgService;
 
-    private ExportResponse mockResponse;
+    private static final Integer ORG_NUMBER = 123456789;
+    private static final String BASE_URL = "/api/v1/exports";
 
     @BeforeEach
     void setUp() {
-        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-        
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        
-        // Mock userOrgService to return true for organization access
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
-        
-        mockResponse = ExportResponse.builder()
-                .exportJobId(1L)
-                .exportType(ExportType.CHECKLIST_REPORT)
-                .format(ExportFormat.PDF)
-                .status(ExportStatus.PENDING)
-                .build();
     }
 
     @Test
-
-    void createExport_ValidRequest_ReturnsCreated() throws Exception {
-        when(exportService.createExportJob(any(), anyInt(), anyLong())).thenReturn(mockResponse);
-
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void createExport_AsEmployee_ReturnsCreated() throws Exception {
+        // Given
         ExportRequest request = new ExportRequest();
         request.setExportType(ExportType.CHECKLIST_REPORT);
         request.setFormat(ExportFormat.PDF);
 
-        mockMvc.perform(post("/api/v1/exports")
-                        .param("orgNumber", "937219997")
+        ExportResponse response = ExportResponse.builder()
+                .exportJobId(1L)
+                .status(ExportStatus.PENDING)
+                .build();
+
+        when(exportService.createExportJob(any(), eq(ORG_NUMBER), anyLong())).thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(post(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.exportJobId").value(1));
     }
 
-    // @Test
-    // void getExportStatus_ExistingJob_ReturnsOk() throws Exception {
-    //     // Note: Controller doesn't have /status endpoint, skipping this test
-    //     when(exportService.getExportStatus(anyLong(), anyInt())).thenReturn(mockResponse);
-    //     when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
-    //
-    //     mockMvc.perform(get("/api/v1/exports/1/status")
-    //                     .param("orgNumber", "937219997"))
-    //             .andExpect(status().isOk())
-    //             .andExpect(jsonPath("$.status").value("PENDING"));
-    // }
-
     @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getExportStatus_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        ExportResponse response = ExportResponse.builder()
+                .exportJobId(1L)
+                .status(ExportStatus.COMPLETED)
+                .build();
 
-    void getDownloadUrl_CompletedJob_ReturnsOk() throws Exception {
-        when(exportService.getDownloadUrl(anyLong(), anyInt())).thenReturn("https://example.com/download");
+        when(exportService.getExportStatus(1L, ORG_NUMBER)).thenReturn(response);
 
-        mockMvc.perform(get("/api/v1/exports/1/download")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/1")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exportJobId").value(1));
     }
 
-    // @Test
-    // void createExport_Unauthenticated_ReturnsUnauthorized() throws Exception {
-    //     // Note: With addFilters=false, security filters are not tested
-    //     ExportRequest request = new ExportRequest();
-    //     request.setExportType(ExportType.CHECKLIST_REPORT);
-    //     request.setFormat(ExportFormat.PDF);
-    //
-    //     mockMvc.perform(post("/api/v1/exports")
-    //                     .param("orgNumber", "937219997")
-    //                     .contentType(MediaType.APPLICATION_JSON)
-    //                     .content(objectMapper.writeValueAsString(request)))
-    //             .andExpect(status().isUnauthorized());
-    // }
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getDownloadUrl_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        when(exportService.getDownloadUrl(1L, ORG_NUMBER)).thenReturn("https://example.com/download/1");
 
-    // @Test
-    // void createExport_AsEmployee_ReturnsForbidden() throws Exception {
-    //     // Note: With addFilters=false, role-based access control is not tested
-    //     ExportRequest request = new ExportRequest();
-    //     request.setExportType(ExportType.CHECKLIST_REPORT);
-    //     request.setFormat(ExportFormat.PDF);
-    //
-    //     mockMvc.perform(post("/api/v1/exports")
-    //                     .param("orgNumber", "937219997")
-    //                     .contentType(MediaType.APPLICATION_JSON)
-    //                     .content(objectMapper.writeValueAsString(request)))
-    //             .andExpect(status().isForbidden());
-    // }
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/1/download")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk());
+    }
 }

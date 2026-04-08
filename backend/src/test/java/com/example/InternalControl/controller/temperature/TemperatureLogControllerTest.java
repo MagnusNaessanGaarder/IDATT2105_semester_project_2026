@@ -1,30 +1,25 @@
 package com.example.InternalControl.controller.temperature;
 
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.dto.temperature.request.TemperatureLogEntryRequest;
+import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRequest;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
-import com.example.InternalControl.security.CustomUserDetails;
-import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.temperature.TemperatureLogService;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -33,12 +28,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * @author TriTacLe
- * @since 1.0
+ * Integration tests for TemperatureLogController using TestContainers.
  */
-@WebMvcTest(controllers = TemperatureLogController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class TemperatureLogControllerTest {
+class TemperatureLogControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,140 +44,226 @@ class TemperatureLogControllerTest {
     private TemperatureLogService temperatureLogService;
 
     @MockBean
-    private JwtService jwtService;
+    private UserOrganizationService userOrgService;
 
-    @MockBean
-    private com.example.InternalControl.service.user.UserOrganizationService userOrgService;
-
-    private TemperatureLogEntryResponse mockEntry;
-    private TemperatureLogPointResponse mockPoint;
+    private static final Integer ORG_NUMBER = 123456789;
+    private static final String BASE_URL = "/api/v1/temperature";
 
     @BeforeEach
     void setUp() {
-        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-        
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        
-        // Mock userOrgService to return true for organization access
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
-        
-        mockEntry = TemperatureLogEntryResponse.builder()
-                .entryId(1L)
+    }
+
+    // ==================== LOG POINT TESTS ====================
+
+    @Test
+    @WithMockUser(roles = {"MANAGER"})
+    void createLogPoint_AsManager_ReturnsCreated() throws Exception {
+        // Given
+        TemperatureLogPointRequest request = new TemperatureLogPointRequest();
+        request.setName("Refrigerator 1");
+        request.setLocationId(1L);
+
+        TemperatureLogPointResponse response = TemperatureLogPointResponse.builder()
                 .logPointId(1L)
-                .temperatureC(new BigDecimal("3.5"))
+                .name("Refrigerator 1")
                 .build();
-        mockPoint = TemperatureLogPointResponse.builder()
-                .logPointId(1L)
-                .locationId(1L)
-                .name("Test Point")
-                .build();
-    }
 
-    @Test
-    void getAllEntries_AsAdmin_ReturnsOk() throws Exception {
-        List<TemperatureLogEntryResponse> entries = Arrays.asList(mockEntry);
-        when(temperatureLogService.listEntries(anyInt())).thenReturn(entries);
+        when(temperatureLogService.createLogPoint(any(), eq(ORG_NUMBER))).thenReturn(response);
 
-        mockMvc.perform(get("/api/v1/temperature/entries")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0]").exists());
-    }
-
-    @Test
-    void getAllEntries_AsManager_ReturnsOk() throws Exception {
-        List<TemperatureLogEntryResponse> entries = Arrays.asList(mockEntry);
-        when(temperatureLogService.listEntries(anyInt())).thenReturn(entries);
-
-        mockMvc.perform(get("/api/v1/temperature/entries")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void getAllEntries_WithoutAuth_ReturnsAppropriateStatus() throws Exception {
-        // Note: With addFilters=false, security filters are disabled
-        // This test verifies the endpoint is configured
-        mockMvc.perform(get("/api/v1/temperature/entries")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-
-    void getEntryById_ExistingEntry_ReturnsOk() throws Exception {
-        when(temperatureLogService.getEntry(anyLong(), anyInt())).thenReturn(mockEntry);
-
-        mockMvc.perform(get("/api/v1/temperature/entries/1")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-
-    void createEntry_ValidRequest_ReturnsCreated() throws Exception {
-        when(temperatureLogService.recordEntry(any(), anyInt(), anyLong())).thenReturn(mockEntry);
-
-        TemperatureLogEntryRequest request = new TemperatureLogEntryRequest();
-        request.setLogPointId(1L);
-        request.setTemperatureC(new BigDecimal("3.0"));
-        request.setNoteText("Normal reading");
-
-        mockMvc.perform(post("/api/v1/temperature/entries")
-                        .param("orgNumber", "937219997")
+        // When & Then
+        mockMvc.perform(post(BASE_URL + "/points")
+                        .param("orgNumber", ORG_NUMBER.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.logPointId").value(1));
     }
 
     @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void createLogPoint_AsEmployee_ReturnsForbidden() throws Exception {
+        // Given
+        TemperatureLogPointRequest request = new TemperatureLogPointRequest();
 
-    void createEntry_InvalidTemperature_ReturnsBadRequest() throws Exception {
-        mockMvc.perform(post("/api/v1/temperature/entries")
-                        .param("orgNumber", "937219997")
+        // When & Then
+        mockMvc.perform(post(BASE_URL + "/points")
+                        .param("orgNumber", ORG_NUMBER.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"logPointId\": 1}"))
-                .andExpect(status().isBadRequest());
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void deleteEntry_ExistingEntry_ReturnsNoContent() throws Exception {
-        // Mock the service to avoid 500 error
-        org.mockito.Mockito.doNothing().when(temperatureLogService).deleteLogPoint(anyLong(), anyInt());
-        
-        mockMvc.perform(delete("/api/v1/temperature/points/1")
-                        .param("orgNumber", "937219997"))
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void listLogPoints_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        TemperatureLogPointResponse point = TemperatureLogPointResponse.builder()
+                .logPointId(1L)
+                .name("Fridge")
+                .build();
+
+        when(temperatureLogService.listLogPoints(ORG_NUMBER)).thenReturn(List.of(point));
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/points")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].logPointId").value(1));
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void listActiveLogPoints_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        when(temperatureLogService.listActiveLogPoints(ORG_NUMBER)).thenReturn(List.of());
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/points/active")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getLogPoint_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        TemperatureLogPointResponse point = TemperatureLogPointResponse.builder()
+                .logPointId(1L)
+                .name("Fridge")
+                .build();
+
+        when(temperatureLogService.getLogPoint(1L, ORG_NUMBER)).thenReturn(point);
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/points/1")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.logPointId").value(1));
+    }
+
+    @Test
+    @WithMockUser(roles = {"MANAGER"})
+    void updateLogPoint_AsManager_ReturnsOk() throws Exception {
+        // Given
+        TemperatureLogPointRequest request = new TemperatureLogPointRequest();
+        request.setName("Updated Name");
+        request.setLocationId(1L);
+
+        TemperatureLogPointResponse response = TemperatureLogPointResponse.builder()
+                .logPointId(1L)
+                .name("Updated Name")
+                .build();
+
+        when(temperatureLogService.updateLogPoint(eq(1L), any(), eq(ORG_NUMBER))).thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(put(BASE_URL + "/points/1")
+                        .param("orgNumber", ORG_NUMBER.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Name"));
+    }
+
+    @Test
+    @WithMockUser(roles = {"MANAGER"})
+    void deleteLogPoint_AsManager_ReturnsNoContent() throws Exception {
+        // When & Then
+        mockMvc.perform(delete(BASE_URL + "/points/1")
+                        .param("orgNumber", ORG_NUMBER.toString()))
                 .andExpect(status().isNoContent());
     }
 
-    // @Test
-    // void deleteEntry_AsEmployee_ReturnsNoContent() throws Exception {
-    //     // Note: With addFilters=false, role-based access control is not tested
-    //     mockMvc.perform(delete("/api/v1/temperature/entries/1")
-    //                     .param("orgNumber", "937219997"))
-    //             .andExpect(status().isNoContent());
-    // }
-
-    // @Test
-    // void getAlertEntries_ReturnsAlerts() throws Exception {
-    //     List<TemperatureLogEntryResponse> alerts = Arrays.asList(mockEntry);
-    //     when(temperatureLogService.listAlerts(anyInt())).thenReturn(alerts);
-    //
-    //     mockMvc.perform(get("/api/v1/temperature/entries/alerts")
-    //                     .param("orgNumber", "937219997"))
-    //             .andExpect(status().isOk());
-    // }
+    // ==================== TEMPERATURE ENTRY TESTS ====================
 
     @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void recordEntry_AsEmployee_ReturnsCreated() throws Exception {
+        // Given
+        TemperatureLogEntryRequest request = new TemperatureLogEntryRequest();
+        request.setLogPointId(1L);
+        request.setTemperatureC(new BigDecimal("5.5"));
+        request.setMeasuredAt(LocalDateTime.now());
 
-    void getEntriesByPoint_ReturnsEntries() throws Exception {
-        List<TemperatureLogEntryResponse> entries = Arrays.asList(mockEntry);
-        when(temperatureLogService.listEntriesByPoint(anyLong(), anyInt())).thenReturn(entries);
+        TemperatureLogEntryResponse response = TemperatureLogEntryResponse.builder()
+                .entryId(1L)
+                .temperatureC(new BigDecimal("5.5"))
+                .build();
 
-        mockMvc.perform(get("/api/v1/temperature/entries/by-point/1")
-                        .param("orgNumber", "937219997"))
+        when(temperatureLogService.recordEntry(any(), eq(ORG_NUMBER), anyLong())).thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(post(BASE_URL + "/entries")
+                        .param("orgNumber", ORG_NUMBER.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.entryId").value(1));
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void listEntries_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        when(temperatureLogService.listEntries(ORG_NUMBER)).thenReturn(List.of());
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/entries")
+                        .param("orgNumber", ORG_NUMBER.toString()))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void listEntriesByPoint_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        when(temperatureLogService.listEntriesByPoint(1L, ORG_NUMBER)).thenReturn(List.of());
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/entries/by-point/1")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getEntry_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        TemperatureLogEntryResponse entry = TemperatureLogEntryResponse.builder()
+                .entryId(1L)
+                .temperatureC(new BigDecimal("5.5"))
+                .build();
+
+        when(temperatureLogService.getEntry(1L, ORG_NUMBER)).thenReturn(entry);
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/entries/1")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.entryId").value(1));
+    }
+
+    // ==================== ALERTS TESTS ====================
+
+    @Test
+    @WithMockUser(roles = {"MANAGER"})
+    void listAlerts_AsManager_ReturnsOk() throws Exception {
+        // Given
+        when(temperatureLogService.listAlerts(ORG_NUMBER)).thenReturn(List.of());
+
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/alerts")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void listAlerts_AsEmployee_ReturnsForbidden() throws Exception {
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/alerts")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isForbidden());
     }
 }

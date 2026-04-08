@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,18 +16,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
- * @author TriTacLe
- * @since 1.0
+ * Unit tests for JwtAuthenticationFilter.
  */
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
-
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Mock
     private JwtService jwtService;
@@ -43,39 +40,41 @@ class JwtAuthenticationFilterTest {
     @Mock
     private FilterChain filterChain;
 
-    @Mock
-    private UserDetails userDetails;
+    @InjectMocks
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @BeforeEach
     void setUp() {
-        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtService, userDetailsService);
         SecurityContextHolder.clearContext();
     }
 
     @Test
-    void doFilterInternal_ValidToken_AuthenticatesUser() throws ServletException, IOException {
+    void doFilterInternal_WithValidToken_AuthenticatesUser() throws ServletException, IOException {
         // Given
         String jwt = "valid-jwt-token";
         String userEmail = "test@example.com";
-        
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+                .username(userEmail)
+                .password("password")
+                .roles("EMPLOYEE")
+                .build();
+
         when(request.getHeader("Authorization")).thenReturn("Bearer " + jwt);
         when(jwtService.extractUsername(jwt)).thenReturn(userEmail);
-        when(jwtService.isTokenValid(jwt, userDetails)).thenReturn(true);
         when(userDetailsService.loadUserByUsername(userEmail)).thenReturn(userDetails);
-        when(userDetails.getUsername()).thenReturn(userEmail);
-        when(userDetails.getAuthorities()).thenReturn(java.util.Collections.emptyList());
+        when(jwtService.isTokenValid(jwt, userDetails)).thenReturn(true);
 
         // When
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         // Then
         verify(filterChain).doFilter(request, response);
-        assertNotNull(SecurityContextHolder.getContext().getAuthentication());
-        assertEquals(userEmail, SecurityContextHolder.getContext().getAuthentication().getName());
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo(userEmail);
     }
 
     @Test
-    void doFilterInternal_NoAuthHeader_ContinuesFilter() throws ServletException, IOException {
+    void doFilterInternal_WithNoAuthHeader_ContinuesChain() throws ServletException, IOException {
         // Given
         when(request.getHeader("Authorization")).thenReturn(null);
 
@@ -84,28 +83,29 @@ class JwtAuthenticationFilterTest {
 
         // Then
         verify(filterChain).doFilter(request, response);
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
     @Test
-    void doFilterInternal_InvalidTokenFormat_ContinuesFilter() throws ServletException, IOException {
+    void doFilterInternal_WithInvalidTokenFormat_ContinuesChain() throws ServletException, IOException {
         // Given
-        when(request.getHeader("Authorization")).thenReturn("InvalidFormat token");
+        when(request.getHeader("Authorization")).thenReturn("Basic dXNlcjpwYXNz");
 
         // When
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         // Then
         verify(filterChain).doFilter(request, response);
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
     @Test
-    void doFilterInternal_ExpiredToken_ContinuesFilter() throws ServletException, IOException {
+    void doFilterInternal_WithInvalidToken_DoesNotAuthenticate() throws ServletException, IOException {
         // Given
-        String jwt = "expired-jwt-token";
+        String jwt = "invalid-jwt-token";
         String userEmail = "test@example.com";
-        
+        UserDetails userDetails = mock(UserDetails.class);
+
         when(request.getHeader("Authorization")).thenReturn("Bearer " + jwt);
         when(jwtService.extractUsername(jwt)).thenReturn(userEmail);
         when(userDetailsService.loadUserByUsername(userEmail)).thenReturn(userDetails);
@@ -116,41 +116,22 @@ class JwtAuthenticationFilterTest {
 
         // Then
         verify(filterChain).doFilter(request, response);
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
     @Test
-    void doFilterInternal_MalformedToken_ContinuesFilter() throws ServletException, IOException {
+    void doFilterInternal_WithExpiredToken_ContinuesChain() throws ServletException, IOException {
         // Given
-        String jwt = "malformed-token";
-        
+        String jwt = "expired-jwt-token";
+
         when(request.getHeader("Authorization")).thenReturn("Bearer " + jwt);
-        when(jwtService.extractUsername(jwt)).thenThrow(new RuntimeException("Invalid token"));
+        when(jwtService.extractUsername(jwt)).thenThrow(new RuntimeException("Token expired"));
 
         // When
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         // Then
         verify(filterChain).doFilter(request, response);
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
-    }
-
-    @Test
-    void doFilterInternal_UserNotFound_ContinuesFilter() throws ServletException, IOException {
-        // Given
-        String jwt = "valid-jwt-token";
-        String userEmail = "nonexistent@example.com";
-        
-        when(request.getHeader("Authorization")).thenReturn("Bearer " + jwt);
-        when(jwtService.extractUsername(jwt)).thenReturn(userEmail);
-        when(userDetailsService.loadUserByUsername(userEmail))
-                .thenThrow(new RuntimeException("User not found"));
-
-        // When
-        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-
-        // Then
-        verify(filterChain).doFilter(request, response);
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 }

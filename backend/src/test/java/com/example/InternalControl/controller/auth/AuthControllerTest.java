@@ -4,14 +4,10 @@ import com.example.InternalControl.dto.auth.request.LoginRequest;
 import com.example.InternalControl.dto.auth.request.RefreshTokenRequest;
 import com.example.InternalControl.dto.auth.request.RegisterRequest;
 import com.example.InternalControl.dto.auth.response.AuthResponse;
-import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.auth.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,10 +20,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * @author TriTacLe
- * @since 1.0
+ * Unit tests for AuthController.
  */
-@WebMvcTest(controllers = AuthController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
@@ -40,169 +35,189 @@ class AuthControllerTest {
     @MockBean
     private AuthService authService;
 
-    @MockBean
-    private JwtService jwtService;
-
-    private AuthResponse mockAuthResponse;
-
-    @BeforeEach
-    void setUp() {
-        mockAuthResponse = AuthResponse.builder()
-                .accessToken("mock-access-token")
-                .refreshToken("mock-refresh-token")
-                .email("test@example.com")
-                .role("ADMIN")
-                .build();
-    }
+    private static final String REGISTER_URL = "/api/v1/auth/register";
+    private static final String LOGIN_URL = "/api/v1/auth/login";
+    private static final String REFRESH_URL = "/api/v1/auth/refresh";
 
     @Test
-    void register_ValidRequest_ReturnsCreated() throws Exception {
+    void register_WithValidRequest_ReturnsCreated() throws Exception {
         // Given
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("newuser@example.com");
-        request.setPassword("TestPass123!");
-        request.setFullName("Test User");
-        request.setPhone("12345678");
+        RegisterRequest request = new RegisterRequest(
+                "Test User",
+                "test@example.com",
+                "+4712345678",
+                "Password123!"
+        );
 
-        when(authService.register(any(RegisterRequest.class))).thenReturn(mockAuthResponse);
+        AuthResponse response = AuthResponse.builder()
+                .accessToken("access-token")
+                .refreshToken("refresh-token")
+                .email("test@example.com")
+                .role("EMPLOYEE")
+                .build();
+
+        when(authService.register(any(RegisterRequest.class))).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(post("/api/v1/auth/register")
+        mockMvc.perform(post(REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.accessToken").value("mock-access-token"))
+                .andExpect(jsonPath("$.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"))
                 .andExpect(jsonPath("$.email").value("test@example.com"));
     }
 
     @Test
-    void register_InvalidEmail_ReturnsBadRequest() throws Exception {
-        // Given
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("invalid-email");
-        request.setPassword("TestPass123!");
-        request.setFullName("Test User");
+    void register_WithInvalidEmail_ReturnsBadRequest() throws Exception {
+        // Given - invalid email format
+        RegisterRequest request = new RegisterRequest(
+                "Test User",
+                "invalid-email",
+                null,
+                "Password123!"
+        );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/auth/register")
+        mockMvc.perform(post(REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void register_WeakPassword_ReturnsBadRequest() throws Exception {
-        // Given
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("test@example.com");
-        request.setPassword("123"); // Too weak
-        request.setFullName("Test User");
+    void register_WithShortPassword_ReturnsBadRequest() throws Exception {
+        // Given - password too short
+        RegisterRequest request = new RegisterRequest(
+                "Test User",
+                "test@example.com",
+                null,
+                "123"
+        );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/auth/register")
+        mockMvc.perform(post(REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void login_ValidCredentials_ReturnsOk() throws Exception {
-        // Given
-        LoginRequest request = new LoginRequest();
-        request.setEmail("admin@everest-sushi.no");
-        request.setPassword("Test1234!");
-
-        when(authService.login(any(LoginRequest.class))).thenReturn(mockAuthResponse);
+    void register_WithBlankName_ReturnsBadRequest() throws Exception {
+        // Given - blank display name
+        RegisterRequest request = new RegisterRequest(
+                "",
+                "test@example.com",
+                null,
+                "Password123!"
+        );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/auth/login")
+        mockMvc.perform(post(REGISTER_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void login_WithValidCredentials_ReturnsOk() throws Exception {
+        // Given
+        LoginRequest request = new LoginRequest(
+                "test@example.com",
+                "Password123!"
+        );
+
+        AuthResponse response = AuthResponse.builder()
+                .accessToken("access-token")
+                .refreshToken("refresh-token")
+                .email("test@example.com")
+                .role("EMPLOYEE")
+                .build();
+
+        when(authService.login(any(LoginRequest.class))).thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(post(LOGIN_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists());
+                .andExpect(jsonPath("$.accessToken").value("access-token"))
+                .andExpect(jsonPath("$.email").value("test@example.com"));
     }
 
     @Test
-    void login_InvalidCredentials_ReturnsError() throws Exception {
+    void login_WithInvalidEmailFormat_ReturnsBadRequest() throws Exception {
         // Given
-        LoginRequest request = new LoginRequest();
-        request.setEmail("wrong@example.com");
-        request.setPassword("WrongPass!");
-
-        when(authService.login(any(LoginRequest.class)))
-                .thenThrow(new RuntimeException("Invalid credentials"));
-
-        // When & Then - controller may return 401 or 500 depending on exception handling
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(result -> {
-                    int status = result.getResponse().getStatus();
-                    if (status < 400) {
-                        throw new AssertionError("Expected error status but got: " + status);
-                    }
-                });
-    }
-
-    @Test
-    void login_EmptyEmail_ReturnsBadRequest() throws Exception {
-        // Given
-        LoginRequest request = new LoginRequest();
-        request.setEmail("");
-        request.setPassword("Test1234!");
+        LoginRequest request = new LoginRequest(
+                "invalid-email",
+                "Password123!"
+        );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/auth/login")
+        mockMvc.perform(post(LOGIN_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void refresh_ValidToken_ReturnsOk() throws Exception {
-        // Given - use record constructor
-        String jsonBody = "{\"refreshToken\": \"valid-refresh-token\"}";
-
-        when(authService.refreshToken(any(String.class))).thenReturn(mockAuthResponse);
+    void login_WithBlankPassword_ReturnsBadRequest() throws Exception {
+        // Given
+        LoginRequest request = new LoginRequest(
+                "test@example.com",
+                ""
+        );
 
         // When & Then
-        mockMvc.perform(post("/api/v1/auth/refresh")
+        mockMvc.perform(post(LOGIN_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void refresh_WithValidToken_ReturnsOk() throws Exception {
+        // Given
+        RefreshTokenRequest request = new RefreshTokenRequest("valid-refresh-token");
+
+        AuthResponse response = AuthResponse.builder()
+                .accessToken("new-access-token")
+                .refreshToken("new-refresh-token")
+                .email("test@example.com")
+                .role("EMPLOYEE")
+                .build();
+
+        when(authService.refreshToken("valid-refresh-token")).thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(post(REFRESH_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").exists());
+                .andExpect(jsonPath("$.accessToken").value("new-access-token"));
     }
 
     @Test
-    void refresh_InvalidToken_ReturnsError() throws Exception {
+    void refresh_WithBlankToken_ReturnsBadRequest() throws Exception {
         // Given
-        String jsonBody = "{\"refreshToken\": \"invalid-token\"}";
-
-        when(authService.refreshToken(any(String.class)))
-                .thenThrow(new IllegalArgumentException("Invalid token"));
-
-        // When & Then - controller may return 401 or 500 depending on exception handling
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody))
-                .andExpect(result -> {
-                    int status = result.getResponse().getStatus();
-                    if (status < 400) {
-                        throw new AssertionError("Expected error status but got: " + status);
-                    }
-                });
-    }
-
-    @Test
-    void refresh_EmptyToken_ReturnsBadRequest() throws Exception {
-        // Given
-        String jsonBody = "{\"refreshToken\": \"\"}";
+        RefreshTokenRequest request = new RefreshTokenRequest("");
 
         // When & Then
-        mockMvc.perform(post("/api/v1/auth/refresh")
+        mockMvc.perform(post(REFRESH_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void refresh_WithNullToken_ReturnsBadRequest() throws Exception {
+        // Given
+        RefreshTokenRequest request = new RefreshTokenRequest(null);
+
+        // When & Then
+        mockMvc.perform(post(REFRESH_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 }

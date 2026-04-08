@@ -1,29 +1,20 @@
 package com.example.InternalControl.controller.organization;
 
-import com.example.InternalControl.model.enums.LocationType;
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.model.organization.Location;
-import com.example.InternalControl.security.CustomUserDetails;
-import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.organization.LocationService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -32,12 +23,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * @author TriTacLe
- * @since 1.0
+ * Integration tests for LocationController using TestContainers.
  */
-@WebMvcTest(controllers = LocationController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class LocationControllerTest {
+class LocationControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,120 +39,124 @@ class LocationControllerTest {
     private LocationService locationService;
 
     @MockBean
-    private JwtService jwtService;
-
-    @MockBean
     private UserOrganizationService userOrgService;
 
-    private Location mockLocation;
+    private static final Integer ORG_NUMBER = 123456789;
+    private static final String BASE_URL = "/api/v1/locations";
 
     @BeforeEach
     void setUp() {
-        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-        
-        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        
-        // Mock userOrgService to return true for organization access
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
-        
-        mockLocation = Location.builder()
-                .locationId(1L)
-                .orgNumber(937219997)
-                .name("Test Location")
-                .locationType(LocationType.STORAGE)
-                .isActive(true)
-                .build();
     }
 
     @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getLocations_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        Location location = new Location();
+        location.setLocationId(1L);
+        location.setName("Kitchen");
 
-    void getAllLocations_AsAdmin_ReturnsOk() throws Exception {
-        List<Location> locations = Arrays.asList(mockLocation);
-        when(locationService.getLocationsByOrg(anyInt())).thenReturn(locations);
+        when(locationService.getLocationsByOrg(ORG_NUMBER)).thenReturn(List.of(location));
 
-        mockMvc.perform(get("/api/v1/locations")
-                        .param("orgNumber", "937219997"))
+        // When & Then
+        mockMvc.perform(get(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0]").exists());
+                .andExpect(jsonPath("$[0].locationId").value(1));
     }
 
     @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void getLocation_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        Location location = new Location();
+        location.setLocationId(1L);
+        location.setName("Kitchen");
+        location.setOrgNumber(ORG_NUMBER);
 
-    void getAllLocations_AsManager_ReturnsOk() throws Exception {
-        List<Location> locations = Arrays.asList(mockLocation);
-        when(locationService.getLocationsByOrg(anyInt())).thenReturn(locations);
+        when(locationService.getLocationById(1L)).thenReturn(location);
 
-        mockMvc.perform(get("/api/v1/locations")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
+        // When & Then
+        mockMvc.perform(get(BASE_URL + "/1")
+                        .param("orgNumber", ORG_NUMBER.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.locationId").value(1));
     }
 
     @Test
-    void getAllLocations_ReturnsOk() throws Exception {
-        List<Location> locations = Arrays.asList(mockLocation);
-        when(locationService.getLocationsByOrg(anyInt())).thenReturn(locations);
+    @WithMockUser(roles = {"ADMIN"})
+    void createLocation_AsAdmin_ReturnsCreated() throws Exception {
+        // Given
+        Location location = new Location();
+        location.setName("New Location");
 
-        mockMvc.perform(get("/api/v1/locations")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
-    }
+        Location created = new Location();
+        created.setLocationId(1L);
+        created.setName("New Location");
 
-    @Test
-    void getLocationById_ExistingLocation_ReturnsOk() throws Exception {
-        when(locationService.getLocationById(anyLong())).thenReturn(mockLocation);
-        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+        when(locationService.createLocation(any(Location.class), eq(ORG_NUMBER))).thenReturn(created);
 
-        mockMvc.perform(get("/api/v1/locations/1")
-                        .param("orgNumber", "937219997"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-
-    void createLocation_ValidRequest_ReturnsCreated() throws Exception {
-        when(locationService.createLocation(any(), anyInt())).thenReturn(mockLocation);
-
-        mockMvc.perform(post("/api/v1/locations")
-                        .param("orgNumber", "937219997")
+        // When & Then
+        mockMvc.perform(post(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Kjøleskap 1\"}"))
-                .andExpect(status().isCreated());
+                        .content(objectMapper.writeValueAsString(location)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.locationId").value(1));
     }
 
     @Test
+    @WithMockUser(roles = {"EMPLOYEE"})
+    void createLocation_AsEmployee_ReturnsForbidden() throws Exception {
+        // Given
+        Location location = new Location();
+        location.setName("New Location");
 
-    void createLocation_ReturnsCreated() throws Exception {
-        when(locationService.createLocation(any(), anyInt())).thenReturn(mockLocation);
-
-        mockMvc.perform(post("/api/v1/locations")
-                        .param("orgNumber", "937219997")
+        // When & Then
+        mockMvc.perform(post(BASE_URL)
+                        .param("orgNumber", ORG_NUMBER.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Test\"}"))
-                .andExpect(status().isCreated());
+                        .content(objectMapper.writeValueAsString(location)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void updateLocation_ValidRequest_ReturnsOk() throws Exception {
-        when(locationService.getLocationById(anyLong())).thenReturn(mockLocation);
-        when(locationService.updateLocation(anyLong(), any())).thenReturn(mockLocation);
-        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+    @WithMockUser(roles = {"MANAGER"})
+    void updateLocation_AsManager_ReturnsOk() throws Exception {
+        // Given
+        Location existing = new Location();
+        existing.setLocationId(1L);
+        existing.setName("Old Name");
+        existing.setOrgNumber(ORG_NUMBER);
 
-        mockMvc.perform(put("/api/v1/locations/1")
-                        .param("orgNumber", "937219997")
+        Location updated = new Location();
+        updated.setName("Updated Name");
+
+        when(locationService.getLocationById(1L)).thenReturn(existing);
+        when(locationService.updateLocation(eq(1L), any(Location.class))).thenReturn(updated);
+
+        // When & Then
+        mockMvc.perform(put(BASE_URL + "/1")
+                        .param("orgNumber", ORG_NUMBER.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Updated Name\"}"))
+                        .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void deleteLocation_ReturnsNoContent() throws Exception {
-        when(locationService.getLocationById(anyLong())).thenReturn(mockLocation);
-        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+    @WithMockUser(roles = {"ADMIN"})
+    void deleteLocation_AsAdmin_ReturnsNoContent() throws Exception {
+        // Given
+        Location existing = new Location();
+        existing.setLocationId(1L);
+        existing.setOrgNumber(ORG_NUMBER);
 
-        mockMvc.perform(delete("/api/v1/locations/1")
-                        .param("orgNumber", "937219997"))
+        when(locationService.getLocationById(1L)).thenReturn(existing);
+
+        // When & Then
+        mockMvc.perform(delete(BASE_URL + "/1")
+                        .param("orgNumber", ORG_NUMBER.toString()))
                 .andExpect(status().isNoContent());
     }
 }
