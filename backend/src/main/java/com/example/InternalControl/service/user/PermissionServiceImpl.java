@@ -15,9 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Implementation of PermissionService.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j

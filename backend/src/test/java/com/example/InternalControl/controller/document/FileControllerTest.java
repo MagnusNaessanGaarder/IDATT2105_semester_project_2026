@@ -1,19 +1,28 @@
 package com.example.InternalControl.controller.document;
 
-import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.model.document.OrganizationDocument;
 import com.example.InternalControl.repository.document.OrganizationDocumentRepository;
 import com.example.InternalControl.repository.document.OrganizationDocumentVersionRepository;
+import com.example.InternalControl.security.CustomUserDetails;
+import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.document.DocumentService;
 import com.example.InternalControl.service.storage.BlobStorageService;
+import com.example.InternalControl.service.user.UserOrganizationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -22,14 +31,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Integration tests for FileController using TestContainers.
+ * Unit tests for FileController.
  *
  * @author TriTacLe
  * @since 1.0
  */
-@SpringBootTest
+@WebMvcTest(controllers = FileController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
-class FileControllerTest extends AbstractIntegrationTest {
+class FileControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -46,8 +55,24 @@ class FileControllerTest extends AbstractIntegrationTest {
     @MockBean
     private OrganizationDocumentVersionRepository versionRepo;
 
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private UserOrganizationService userOrgService;
+
+    @BeforeEach
+    void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+    }
+
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
     void listDocuments_WithValidOrgNumber_ReturnsDocuments() throws Exception {
         // Given
         OrganizationDocument doc = new OrganizationDocument();
@@ -59,14 +84,13 @@ class FileControllerTest extends AbstractIntegrationTest {
                 .thenReturn(List.of(doc));
 
         // When & Then
-        mockMvc.perform(get("/api/files")
-                        .header("X-Org-Number", "123456789"))
+        mockMvc.perform(get("/api/v1/files")
+                        .param("orgNumber", "123456789"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].documentId").value(1));
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
     void listDocuments_WithCategoryFilter_ReturnsFilteredDocuments() throws Exception {
         // Given
         OrganizationDocument doc = new OrganizationDocument();
@@ -78,23 +102,22 @@ class FileControllerTest extends AbstractIntegrationTest {
                 .thenReturn(List.of(doc));
 
         // When & Then
-        mockMvc.perform(get("/api/files")
-                        .header("X-Org-Number", "123456789")
+        mockMvc.perform(get("/api/v1/files")
+                        .param("orgNumber", "123456789")
                         .param("category", "POLICY"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Policy Document"));
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
     void listDocuments_WithNoDocuments_ReturnsEmptyList() throws Exception {
         // Given
         when(documentRepo.findByOrgNumberAndActiveTrue(123456789))
                 .thenReturn(java.util.Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/files")
-                        .header("X-Org-Number", "123456789"))
+        mockMvc.perform(get("/api/v1/files")
+                        .param("orgNumber", "123456789"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());

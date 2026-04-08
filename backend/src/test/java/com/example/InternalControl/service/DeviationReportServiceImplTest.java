@@ -11,7 +11,9 @@ import com.example.InternalControl.repository.user.AppUserRepository;
 import com.example.InternalControl.repository.deviation.DeviationReportRepository;
 import com.example.InternalControl.repository.organization.LocationRepository;
 import com.example.InternalControl.repository.organization.OrganizationRepository;
+import com.example.InternalControl.service.audit.AuditLogService;
 import com.example.InternalControl.service.deviation.DeviationReportServiceImpl;
+import com.example.InternalControl.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +54,12 @@ class DeviationReportServiceImplTest {
 
     @Mock
     private AppUserRepository appUserRepository;
+
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private DeviationReportServiceImpl deviationReportService;

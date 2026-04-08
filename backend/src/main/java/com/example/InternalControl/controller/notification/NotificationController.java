@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * REST Controller for Notification operations.
- * All endpoints require authentication and users can only access their own notifications.
+ * @author TriTacLe
+ * @since 1.0
  */
 @RestController
 @RequestMapping("/api/v1/notifications")
