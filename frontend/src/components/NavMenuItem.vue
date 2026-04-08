@@ -48,7 +48,7 @@ const handleSelect = () => {
       :while-tap="{ scale: 0.995 }"
       :transition="{ duration: 0.16 }"
     >
-      <span v-if="props.variant === 'main'" class="menu-item__icon" v-html="props.icon" />
+      <span v-if="props.variant === 'main'" class="menu-item__icon" aria-hidden="true">{{ props.icon }}</span>
       <span class="menu-item__label">{{ props.label }}</span>
       <span v-if="props.badge" class="menu-item__badge">{{ props.badge }}</span>
       <svg

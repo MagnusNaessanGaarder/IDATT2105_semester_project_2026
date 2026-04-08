@@ -29,9 +29,9 @@ client.interceptors.request.use(
 
 // Handle 401 errors with automatic token refresh
 let isRefreshing = false
-let failedQueue: { resolve: (value: string) => void; reject: (reason: any) => void }[] = []
+let failedQueue: { resolve: (value: string) => void; reject: (reason: unknown) => void }[] = []
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((promise) => {
     if (error) {
       promise.reject(error)
