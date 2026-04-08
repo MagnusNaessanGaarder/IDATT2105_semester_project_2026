@@ -62,6 +62,7 @@ class JwtAuthenticationFilterTest {
         when(jwtService.extractUsername(jwt)).thenReturn(userEmail);
         when(jwtService.isTokenValid(jwt, userDetails)).thenReturn(true);
         when(userDetailsService.loadUserByUsername(userEmail)).thenReturn(userDetails);
+        when(userDetails.getUsername()).thenReturn(userEmail);
         when(userDetails.getAuthorities()).thenReturn(java.util.Collections.emptyList());
 
         // When
