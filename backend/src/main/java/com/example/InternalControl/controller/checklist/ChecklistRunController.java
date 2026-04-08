@@ -184,9 +184,12 @@ public class ChecklistRunController {
 
     private ChecklistRunItemResponse mapToItemResponse(ChecklistRunItem item) {
         String templateItemLabel = null;
-        if (item.getRun() != null && item.getRun().getTemplate() != null) {
+        if (item.getRun() != null
+            && item.getRun().getTemplate() != null
+            && item.getRun().getTemplate().getItems() != null) {
             templateItemLabel = item.getRun().getTemplate().getItems().stream()
-                    .filter(templateItem -> templateItem.getItemId().equals(item.getTemplateItemId()))
+                    .filter(templateItem -> templateItem.getItemId() != null
+                        && templateItem.getItemId().equals(item.getTemplateItemId()))
                     .findFirst()
                     .map(ChecklistTemplateItem::getLabel)
                     .orElse(null);

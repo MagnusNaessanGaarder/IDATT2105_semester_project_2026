@@ -1,6 +1,7 @@
 package com.example.InternalControl.model.checklist;
 
 import com.example.InternalControl.model.enums.ItemType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +26,7 @@ public class ChecklistTemplateItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "template_id", nullable = false)
+    @JsonIgnore
     private ChecklistTemplate template;
 
     @Column(name = "sort_order", nullable = false)
