@@ -91,6 +91,7 @@ class UserControllerTest {
 
         testUserOrg = UserOrganization.builder()
                 .id(new UserOrganizationId(1L, 937219997))
+                .user(testUser)
                 .isActive(true)
                 .joinedAt(LocalDateTime.now())
                 .build();
@@ -171,7 +172,7 @@ class UserControllerTest {
         UserCreateRequest request = UserCreateRequest.builder()
                 .displayName("New User")
                 .email("new@example.com")
-                .password("password123")
+                .password("Password123!")
                 .orgNumber(937219997)
                 .roleIds(Collections.emptyList())
                 .build();
@@ -205,7 +206,7 @@ class UserControllerTest {
         UserCreateRequest request = UserCreateRequest.builder()
                 .displayName("New User")
                 .email("existing@example.com")
-                .password("password123")
+                .password("Password123!")
                 .orgNumber(937219997)
                 .build();
 
@@ -224,7 +225,7 @@ class UserControllerTest {
         UserCreateRequest request = UserCreateRequest.builder()
                 .displayName("New User")
                 .email("new@example.com")
-                .password("password123")
+                .password("Password123!")
                 .orgNumber(937219997)
                 .roleIds(Collections.emptyList())
                 .build();

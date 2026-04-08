@@ -94,9 +94,9 @@ class ExportControllerTest {
     }
 
     @Test
-
     void getExportStatus_ExistingJob_ReturnsOk() throws Exception {
         when(exportService.getExportStatus(anyLong(), anyInt())).thenReturn(mockResponse);
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
 
         mockMvc.perform(get("/api/v1/exports/1/status")
                         .param("orgNumber", "937219997"))

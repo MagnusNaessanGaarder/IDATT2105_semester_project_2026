@@ -65,9 +65,14 @@ class IdentityProviderControllerTest {
     }
 
     @Test
-
     void getUserIdentities_Authenticated_ReturnsOk() throws Exception {
-        List<IdentityResponse> identities = Arrays.asList(mockIdentity);
+        IdentityResponse identity = IdentityResponse.builder()
+                .identityId(1L)
+                .userId(1L)
+                .providerName("VIPPS")
+                .providerUserId("vipp-user-123")
+                .build();
+        List<IdentityResponse> identities = Arrays.asList(identity);
         when(identityProviderService.getUserIdentities(anyLong())).thenReturn(identities);
 
         mockMvc.perform(get("/api/v1/identity/user/1"))
@@ -77,16 +82,24 @@ class IdentityProviderControllerTest {
 
     @Test
     void getUserIdentities_Unauthenticated_ReturnsUnauthorized() throws Exception {
+        // Clear security context to simulate unauthenticated user
+        SecurityContextHolder.clearContext();
+        
         mockMvc.perform(get("/api/v1/identity/user/1"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-
     void linkIdentity_ValidRequest_ReturnsCreated() throws Exception {
-        when(identityProviderService.linkIdentity(anyLong(), any())).thenReturn(mockIdentity);
+        IdentityResponse response = IdentityResponse.builder()
+                .identityId(1L)
+                .userId(1L)
+                .providerName("VIPPS")
+                .providerUserId("vipp-user-123")
+                .build();
+        when(identityProviderService.linkIdentity(anyLong(), any())).thenReturn(response);
 
-        String request = "{\"provider\": \"VIPPS\", \"providerUserId\": \"vipp-user-123\", \"accessToken\": \"token\"}";
+        String request = "{\"providerName\": \"VIPPS\", \"providerUserId\": \"vipp-user-123\"}";
 
         mockMvc.perform(post("/api/v1/identity/user/1/link")
                         .contentType(MediaType.APPLICATION_JSON)

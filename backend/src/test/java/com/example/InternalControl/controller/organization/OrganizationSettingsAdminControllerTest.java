@@ -106,6 +106,9 @@ class OrganizationSettingsAdminControllerTest {
         OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
                 .timezoneName("Europe/London")
                 .localeCode("en-GB")
+                .enableFoodModule(true)
+                .enableAlcoholModule(false)
+                .reminderEmailEnabled(true)
                 .build();
 
         mockMvc.perform(put("/api/admin/organizations/settings")
@@ -121,6 +124,10 @@ class OrganizationSettingsAdminControllerTest {
 
         OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
                 .timezoneName("Europe/London")
+                .localeCode("en-GB")
+                .enableFoodModule(true)
+                .enableAlcoholModule(false)
+                .reminderEmailEnabled(true)
                 .build();
 
         mockMvc.perform(put("/api/admin/organizations/settings")
