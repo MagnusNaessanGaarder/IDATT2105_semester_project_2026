@@ -44,7 +44,7 @@ export interface UserUpdateRequest {
  * @returns Promise with array of users
  */
 export async function getUsers(orgNumber: number): Promise<User[]> {
-  const response = await client.get('/users', {
+  const response = await client.get('/api/users', {
     params: { orgNumber },
   })
   return response.data
@@ -57,7 +57,7 @@ export async function getUsers(orgNumber: number): Promise<User[]> {
  * @returns Promise with user data
  */
 export async function getUser(userId: number, orgNumber: number): Promise<User> {
-  const response = await client.get(`/users/${userId}`, {
+  const response = await client.get(`/api/users/${userId}`, {
     params: { orgNumber },
   })
   return response.data
@@ -69,7 +69,7 @@ export async function getUser(userId: number, orgNumber: number): Promise<User> 
  * @returns Promise with created user
  */
 export async function createUser(userData: UserCreateRequest): Promise<User> {
-  const response = await client.post('/users', userData)
+  const response = await client.post('/api/users', userData)
   return response.data
 }
 
@@ -85,7 +85,7 @@ export async function updateUser(
   orgNumber: number,
   userData: UserUpdateRequest
 ): Promise<User> {
-  const response = await client.put(`/users/${userId}`, userData, {
+  const response = await client.put(`/api/users/${userId}`, userData, {
     params: { orgNumber },
   })
   return response.data
@@ -98,7 +98,7 @@ export async function updateUser(
  * @returns Promise that resolves when deleted
  */
 export async function deleteUser(userId: number, orgNumber: number): Promise<void> {
-  await client.delete(`/users/${userId}`, {
+  await client.delete(`/api/users/${userId}`, {
     params: { orgNumber },
   })
 }

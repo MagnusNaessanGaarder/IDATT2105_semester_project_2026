@@ -16,7 +16,6 @@ export function useUsers() {
   const error = ref<string | null>(null)
 
   // Use useApi for individual operations
-  const fetchApi = useApi(usersApi.getUsers)
   const createApi = useApi(usersApi.createUser)
   const updateApi = useApi(usersApi.updateUser)
   const deleteApi = useApi(usersApi.deleteUser)
@@ -45,10 +44,11 @@ export function useUsers() {
    */
   async function createUser(userData: UserCreateRequest): Promise<User> {
     const newUser = await createApi.execute(userData)
-    if (newUser) {
-      users.value.push(newUser)
+    if (!newUser) {
+      throw new Error('Failed to create user')
     }
-    return newUser!
+    users.value.push(newUser)
+    return newUser
   }
 
   /**
@@ -63,13 +63,14 @@ export function useUsers() {
     userData: UserUpdateRequest
   ): Promise<User> {
     const updatedUser = await updateApi.execute(userId, orgNumber, userData)
-    if (updatedUser) {
-      const index = users.value.findIndex((u) => u.userId === userId)
-      if (index !== -1) {
-        users.value[index] = updatedUser
-      }
+    if (!updatedUser) {
+      throw new Error('Failed to update user')
     }
-    return updatedUser!
+    const index = users.value.findIndex((u) => u.userId === userId)
+    if (index !== -1) {
+      users.value[index] = updatedUser
+    }
+    return updatedUser
   }
 
   /**

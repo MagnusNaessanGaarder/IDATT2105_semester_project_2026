@@ -15,7 +15,7 @@ const isAdmin = computed(() => authStore.isAdmin)
 
 // Local state for UI
 const query = ref('')
-const roleFilter = ref<'all' | 'ADMIN' | 'MANAGER' | 'STAFF'>('all')
+const roleFilter = ref<'all' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE'>('all')
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const selectedUser = ref<User | null>(null)
@@ -27,6 +27,13 @@ const formData = ref({
   phone: '',
   roleIds: [] as number[],
 })
+
+// Available roles for selection
+const availableRoles = [
+  { id: 1, name: 'ADMIN', label: 'Admin' },
+  { id: 2, name: 'MANAGER', label: 'Leder' },
+  { id: 3, name: 'EMPLOYEE', label: 'Ansatt' },
+]
 
 // Load users on mount and when org changes
 onMounted(() => {
@@ -49,7 +56,8 @@ async function loadUsers() {
 
 // Filter users based on search and role
 const filteredUsers = computed(() => {
-  return usersComposable.users.filter((user) => {
+  const users = usersComposable.users
+  return users.filter((user) => {
     const matchesRole = roleFilter.value === 'all' || usersComposable.getUserRole(user) === roleFilter.value
     const search = query.value.trim().toLowerCase()
     const matchesQuery =
@@ -62,16 +70,32 @@ const filteredUsers = computed(() => {
 })
 
 // Statistics
-const activeUsersCount = computed(() => usersComposable.users.filter((u) => u.isActive).length)
+const activeUsersCount = computed(() => {
+  const users = usersComposable.users
+  return users.filter((u) => u.isActive).length
+})
+
+const inactiveUsersCount = computed(() => {
+  const users = usersComposable.users
+  return users.filter((u) => !u.isActive).length
+})
+
+const uniqueRolesCount = computed(() => {
+  const users = usersComposable.users
+  const allRoleNames = users.flatMap((u) => u.roles?.map((r) => r.roleName) || [])
+  const uniqueRoles = new Set(allRoleNames.filter(Boolean))
+  return uniqueRoles.size
+})
 
 const roleSummaries = computed(() => {
-  const roles: Array<'ADMIN' | 'MANAGER' | 'STAFF'> = ['ADMIN', 'MANAGER', 'STAFF']
+  const users = usersComposable.users
+  const roles: Array<'ADMIN' | 'MANAGER' | 'EMPLOYEE'> = ['ADMIN', 'MANAGER', 'EMPLOYEE']
   return roles.map((role) => ({
     role,
     label: roleLabel(role),
     tone: roleTone(role),
     description: roleDescription(role),
-    count: usersComposable.users.filter((user) => usersComposable.getUserRole(user) === role).length,
+    count: users.filter((user) => usersComposable.getUserRole(user) === role).length,
   }))
 })
 
@@ -100,7 +124,7 @@ function openCreateModal() {
     displayName: '',
     email: '',
     phone: '',
-    roleIds: [],
+    roleIds: [3], // Default to EMPLOYEE role
   }
   showCreateModal.value = true
 }
@@ -111,7 +135,7 @@ function openEditModal(user: User) {
     displayName: user.displayName,
     email: user.email,
     phone: user.phone || '',
-    roleIds: user.roles.map((r) => r.roleId),
+    roleIds: user.roles?.map((r) => r.roleId) || [],
   }
   showEditModal.value = true
 }
@@ -218,11 +242,11 @@ async function handleDeleteUser(user: User) {
           <span>Aktive brukere</span>
         </article>
         <article class="stats-card">
-          <strong>{{ usersComposable.users.filter((u) => !u.isActive).length }}</strong>
+          <strong>{{ inactiveUsersCount }}</strong>
           <span>Inaktive brukere</span>
         </article>
         <article class="stats-card">
-          <strong>{{ new Set(usersComposable.users.map((u) => u.roles[0]?.roleName)).size }}</strong>
+          <strong>{{ uniqueRolesCount }}</strong>
           <span>Roller</span>
         </article>
       </section>
@@ -242,7 +266,7 @@ async function handleDeleteUser(user: User) {
             <option value="all">Alle roller</option>
             <option value="ADMIN">Admin</option>
             <option value="MANAGER">Leder</option>
-            <option value="STAFF">Ansatt</option>
+            <option value="EMPLOYEE">Ansatt</option>
           </select>
         </div>
 
@@ -304,7 +328,7 @@ async function handleDeleteUser(user: User) {
 
     <!-- Create User Modal -->
     <BaseModal :open="showCreateModal" title="Ny bruker" @close="closeModals">
-      <form class="user-form" @submit.prevent="handleCreateUser">
+      <form id="createUserForm" class="user-form" @submit.prevent="handleCreateUser">
         <div class="form-group">
           <label for="displayName">Navn</label>
           <input id="displayName" v-model="formData.displayName" type="text" required />
@@ -317,11 +341,19 @@ async function handleDeleteUser(user: User) {
           <label for="phone">Telefon</label>
           <input id="phone" v-model="formData.phone" type="tel" />
         </div>
+        <div class="form-group">
+          <label for="role">Rolle</label>
+          <select id="role" v-model="formData.roleIds" multiple required>
+            <option v-for="role in availableRoles" :key="role.id" :value="role.id">
+              {{ role.label }}
+            </option>
+          </select>
+        </div>
         <ErrorMessage v-if="usersComposable.createError" :message="usersComposable.createError" />
       </form>
       <template #footer>
         <button type="button" class="action-btn action-btn--ghost" @click="closeModals">Avbryt</button>
-        <button type="button" class="action-btn" :disabled="usersComposable.isCreating" @click="handleCreateUser">
+        <button type="submit" form="createUserForm" class="action-btn" :disabled="usersComposable.isCreating">
           <BaseSpinner v-if="usersComposable.isCreating" size="small" />
           <span v-else>Opprett bruker</span>
         </button>
@@ -330,7 +362,7 @@ async function handleDeleteUser(user: User) {
 
     <!-- Edit User Modal -->
     <BaseModal :open="showEditModal" title="Rediger bruker" @close="closeModals">
-      <form class="user-form" @submit.prevent="handleUpdateUser">
+      <form id="editUserForm" class="user-form" @submit.prevent="handleUpdateUser">
         <div class="form-group">
           <label for="editDisplayName">Navn</label>
           <input id="editDisplayName" v-model="formData.displayName" type="text" required />
@@ -343,7 +375,16 @@ async function handleDeleteUser(user: User) {
           <label for="editPhone">Telefon</label>
           <input id="editPhone" v-model="formData.phone" type="tel" />
         </div>
+        <div class="form-group">
+          <label for="editRole">Rolle</label>
+          <select id="editRole" v-model="formData.roleIds" multiple required>
+            <option v-for="role in availableRoles" :key="role.id" :value="role.id">
+              {{ role.label }}
+            </option>
+          </select>
+        </div>
         <ErrorMessage v-if="usersComposable.updateError" :message="usersComposable.updateError" />
+        <ErrorMessage v-if="usersComposable.deleteError" :message="usersComposable.deleteError" />
       </form>
       <template #footer>
         <button type="button" class="action-btn action-btn--ghost" @click="closeModals">Avbryt</button>
@@ -357,7 +398,7 @@ async function handleDeleteUser(user: User) {
           <BaseSpinner v-if="usersComposable.isDeleting" size="small" />
           <span v-else>Deaktiver</span>
         </button>
-        <button type="button" class="action-btn" :disabled="usersComposable.isUpdating" @click="handleUpdateUser">
+        <button type="submit" form="editUserForm" class="action-btn" :disabled="usersComposable.isUpdating">
           <BaseSpinner v-if="usersComposable.isUpdating" size="small" />
           <span v-else>Lagre endringer</span>
         </button>
@@ -651,7 +692,8 @@ th {
   color: var(--color-gray-700);
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   min-height: 2.5rem;
   padding: 0 0.75rem;
   border: 1px solid var(--color-border);
@@ -659,9 +701,15 @@ th {
   font-size: var(--font-size-sm);
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: var(--color-foreground);
+}
+
+.form-group select[multiple] {
+  min-height: 6rem;
+  padding: 0.5rem;
 }
 
 @media (max-width: 48rem) {
