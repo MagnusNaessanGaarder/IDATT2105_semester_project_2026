@@ -237,11 +237,12 @@ watch(currentScreen, (routeName) => {
     left: 0;
     width: var(--sidebar-width);
     height: 100vh;
-    background: linear-gradient(180deg, var(--color-card) 0%, var(--color-card-muted) 100%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(251, 250, 247, 0.98) 100%);
     border-right: 0.0625rem solid var(--color-border);
     display: flex;
     flex-direction: column;
     z-index: 50;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), var(--shadow-sm);
   }
 
   @media (min-width: 48rem) {
@@ -255,9 +256,9 @@ watch(currentScreen, (routeName) => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
     border-bottom: 0.0625rem solid var(--color-border);
-    background: linear-gradient(180deg, rgba(18, 50, 74, 0.08) 0%, rgba(18, 50, 74, 0) 100%);
+    background: linear-gradient(180deg, rgba(22, 58, 79, 0.08) 0%, rgba(22, 58, 79, 0) 100%);
   }
 
   .brand-block {
@@ -267,19 +268,20 @@ watch(currentScreen, (routeName) => {
   }
 
   .app-title {
-    font-size: var(--font-size-xl);
+    font-size: 1.125rem;
     font-family: var(--font-family-display);
-    font-weight: 800;
-    letter-spacing: 0.01em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     line-height: var(--line-height-tight);
     color: var(--color-primary);
     margin: 0;
+    text-transform: uppercase;
   }
 
   .app-business {
     margin: 0;
     font-size: var(--font-size-xs);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--color-gray-500);
     font-weight: var(--font-weight-semibold);
@@ -289,19 +291,20 @@ watch(currentScreen, (routeName) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
     background: transparent;
     border: none;
     border-radius: var(--radius-md);
     cursor: pointer;
     color: var(--color-gray-600);
-    transition: background-color var(--transition-fast), color var(--transition-fast);
+    transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   }
 
   .close-btn:hover {
     background: var(--color-accent);
     color: var(--color-foreground);
+    transform: translateY(-1px);
   }
 
   @media (min-width: 48rem) {
@@ -313,16 +316,14 @@ watch(currentScreen, (routeName) => {
   .sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-sm) 0;
+    padding: var(--spacing-sm) 0.5rem var(--spacing-md);
     display: flex;
     flex-direction: column;
     gap: 0;
   }
 
   .sidebar-footer {
-    position: sticky;
-    bottom: 0;
-    background: var(--color-card);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(251, 250, 247, 1) 100%);
     border-top: 0.0625rem solid var(--color-border);
     box-shadow: 0 -0.375rem 1rem rgba(16, 38, 58, 0.05);
     z-index: 10;

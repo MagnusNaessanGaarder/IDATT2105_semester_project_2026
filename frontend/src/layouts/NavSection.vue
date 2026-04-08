@@ -128,7 +128,7 @@ const getIcon = (iconName: string) => {
 
 <style scoped>
 .nav-section {
-  margin-bottom: 0;
+  margin-bottom: 0.25rem;
   width: 100%;
 }
 
@@ -136,7 +136,7 @@ const getIcon = (iconName: string) => {
   overflow: hidden;
   border-left: none;
   margin-left: 0;
-  margin-top: 0;
+  margin-top: 0.15rem;
   background: none;
 }
 
@@ -166,7 +166,7 @@ const getIcon = (iconName: string) => {
 
 .collapse-enter-to,
 .collapse-leave-from {
-  max-height: 31.25rem;
+  max-height: 34rem;
   opacity: 1;
 }
 
