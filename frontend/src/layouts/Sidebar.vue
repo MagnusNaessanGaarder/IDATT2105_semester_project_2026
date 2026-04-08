@@ -316,7 +316,7 @@ watch(currentScreen, (routeName) => {
   .sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-sm) 0.5rem var(--spacing-md);
+    padding: var(--spacing-sm) 0 var(--spacing-md);
     display: flex;
     flex-direction: column;
     gap: 0;

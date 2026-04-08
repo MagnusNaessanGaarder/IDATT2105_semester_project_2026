@@ -128,7 +128,7 @@ const getIcon = (iconName: string) => {
 
 <style scoped>
 .nav-section {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
   width: 100%;
 }
 

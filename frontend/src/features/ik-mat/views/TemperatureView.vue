@@ -17,7 +17,7 @@ const okCount = computed(() => temperatureRecords.filter((record) => isTemperatu
     </header>
 
     <section v-if="alerts.length > 0" class="alert-banner" role="alert">
-      <p><strong>{{ alerts.length }}</strong> målinger er utenfor grenseverdi og krever oppfølging.</p>
+      <p><strong>{{ alerts.length }}</strong> Målinger er utenfor grenseverdi og krever oppfølging.</p>
       <router-link :to="{ name: 'Deviations' }">Se avvik</router-link>
     </section>
 

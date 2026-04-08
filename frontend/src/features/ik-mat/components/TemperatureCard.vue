@@ -79,6 +79,9 @@ const isWithinRange = computed(() => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   transition: box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
@@ -163,12 +166,15 @@ const isWithinRange = computed(() => {
 
 .temperature-card__body {
   padding: 1.5rem;
+  flex: 1;
+  display: flex;
 }
 
 .temperature-card__temperature-display {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
+  width: 100%;
 }
 
 .temperature-card__current {
@@ -193,6 +199,7 @@ const isWithinRange = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  grid-column: 1 / -1;
 }
 
 .temperature-card__range-label {
@@ -211,11 +218,15 @@ const isWithinRange = computed(() => {
 
 .temperature-card__range-indicator {
   margin-top: 0.5rem;
+  width: 100%;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
 }
 
 .temperature-card__range-bar {
   position: relative;
   height: 0.5rem;
+  width: 100%;
   background: var(--color-gray-200);
   border-radius: var(--radius-full);
   overflow: visible;

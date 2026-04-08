@@ -84,16 +84,17 @@ const handleSelect = () => {
   cursor: pointer;
   text-align: left;
   font-family: var(--font-family-ui);
-  border-radius: var(--radius-md);
+  border-radius: 0;
+  border-left: 0.25rem solid transparent;
   transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .menu-item__button--main {
-  padding: 0.85rem var(--spacing-md);
+  padding: 0.85rem calc(var(--spacing-md) - 0.25rem) 0.85rem var(--spacing-md);
 }
 
 .menu-item__button--sub {
-  padding: 0.7rem var(--spacing-md);
+  padding: 0.7rem calc(var(--spacing-md) - 0.25rem) 0.7rem var(--spacing-md);
 }
 
 .menu-item__icon {
@@ -158,10 +159,9 @@ const handleSelect = () => {
 
 .menu-item--active .menu-item__button {
   background-color: color-mix(in srgb, var(--color-accent-hover) 70%, var(--color-card));
-  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
-  padding-left: var(--spacing-md);
+  border-left-color: var(--color-primary);
   color: var(--color-primary);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
 .menu-item--active .menu-item__label,
