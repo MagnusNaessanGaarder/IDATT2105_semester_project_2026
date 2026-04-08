@@ -47,6 +47,7 @@ public class NotificationController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Notification>> getNotifications(
             @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber) {
         Long userId = userDetails.getUserId();
         return ResponseEntity.ok(notificationService.getUserNotifications(userId, orgNumber));
@@ -61,6 +62,7 @@ public class NotificationController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Long>> getUnreadCount(
             @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber) {
         Long userId = userDetails.getUserId();
         Long count = notificationService.getUnreadCount(userId, orgNumber);
@@ -78,6 +80,7 @@ public class NotificationController {
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Notification> getNotification(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -93,6 +96,7 @@ public class NotificationController {
     @PutMapping("/{id}/read")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> markAsRead(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -109,6 +113,7 @@ public class NotificationController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> markAllAsRead(
             @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber) {
         Long userId = userDetails.getUserId();
         notificationService.markAllAsRead(userId, orgNumber);
@@ -124,6 +129,7 @@ public class NotificationController {
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteNotification(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();

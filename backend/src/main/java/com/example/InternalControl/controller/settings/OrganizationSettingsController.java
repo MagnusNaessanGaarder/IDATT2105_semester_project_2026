@@ -43,6 +43,7 @@ public class OrganizationSettingsController {
     })
     @GetMapping
     public ResponseEntity<OrganizationSettingsResponse> getSettings(
+            @Parameter(description = "Identifier of the orgNumber")
             @PathVariable Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -61,6 +62,7 @@ public class OrganizationSettingsController {
     @PutMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<OrganizationSettingsResponse> updateSettings(
+            @Parameter(description = "Identifier of the orgNumber")
             @PathVariable Integer orgNumber,
             @Valid @RequestBody OrganizationSettingsRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

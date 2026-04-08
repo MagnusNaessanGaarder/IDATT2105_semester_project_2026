@@ -90,6 +90,7 @@ public class ChecklistRunController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistRunResponse> getRun(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -111,6 +112,7 @@ public class ChecklistRunController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ChecklistRunResponse> createRun(
             @Valid @RequestBody ChecklistRunCreateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -143,6 +145,7 @@ public class ChecklistRunController {
     @PutMapping("/{id}/complete")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistRunResponse> completeRun(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -164,9 +167,11 @@ public class ChecklistRunController {
     @PutMapping("/{runId}/items/{itemId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistRunItemResponse> updateRunItem(
+            @Parameter(description = "Identifier of the runId")
             @PathVariable Long runId,
             @PathVariable Long itemId,
             @Valid @RequestBody ChecklistRunItemUpdateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -195,6 +200,7 @@ public class ChecklistRunController {
     @GetMapping("/{id}/items")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistRunItemResponse>> getRunItems(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

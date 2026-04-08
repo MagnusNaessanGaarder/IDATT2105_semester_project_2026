@@ -72,6 +72,7 @@ public class ChecklistTemplateController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistTemplate> getTemplate(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -107,6 +108,7 @@ public class ChecklistTemplateController {
     @GetMapping("/active")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistTemplate>> getActiveTemplates(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -125,6 +127,7 @@ public class ChecklistTemplateController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ChecklistTemplate> createTemplate(
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -160,6 +163,7 @@ public class ChecklistTemplateController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ChecklistTemplate> updateTemplate(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -188,6 +192,7 @@ public class ChecklistTemplateController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> deleteTemplate(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

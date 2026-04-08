@@ -55,6 +55,7 @@ public class PermissionController {
     })
     @GetMapping("/{permissionId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Parameter(description = "Identifier of the permissionId")
     public ResponseEntity<PermissionResponse> getPermission(@PathVariable Long permissionId) {
         log.info("Getting permission: {}", permissionId);
         return ResponseEntity.ok(permissionService.getPermissionById(permissionId));
@@ -68,6 +69,7 @@ public class PermissionController {
     })
     @GetMapping("/role/{roleId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Parameter(description = "Identifier of the roleId")
     public ResponseEntity<List<PermissionResponse>> getPermissionsByRole(@PathVariable Long roleId) {
         log.info("Getting permissions for role: {}", roleId);
         return ResponseEntity.ok(permissionService.getPermissionsByRoleId(roleId));
@@ -84,6 +86,7 @@ public class PermissionController {
     @PostMapping("/role/{roleId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> assignPermissionToRole(
+            @Parameter(description = "Identifier of the roleId")
             @PathVariable Long roleId,
             @Valid @RequestBody AssignPermissionRequest request) {
         log.info("Assigning permission {} to role {}", request.getPermissionId(), roleId);
@@ -101,6 +104,7 @@ public class PermissionController {
     @DeleteMapping("/role/{roleId}/{permissionId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> removePermissionFromRole(
+            @Parameter(description = "Identifier of the roleId")
             @PathVariable Long roleId,
             @PathVariable Long permissionId) {
         log.info("Removing permission {} from role {}", permissionId, roleId);

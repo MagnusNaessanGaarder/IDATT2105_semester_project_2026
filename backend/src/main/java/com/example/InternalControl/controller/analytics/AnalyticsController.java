@@ -38,6 +38,7 @@ public class AnalyticsController {
     })
     @GetMapping("/dashboard/summary")
     public ResponseEntity<DashboardSummaryResponse> getDashboardSummary(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -53,6 +54,7 @@ public class AnalyticsController {
     })
     @GetMapping("/compliance-score")
     public ResponseEntity<ComplianceScoreResponse> getComplianceScore(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();

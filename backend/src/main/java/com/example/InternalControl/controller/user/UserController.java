@@ -69,6 +69,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     public ResponseEntity<List<UserResponse>> getAllUsers(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber) {
         log.info("Getting all users for organization: {}", orgNumber);
 
@@ -96,6 +97,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     public ResponseEntity<UserResponse> getUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
         log.info("Getting user: {} for organization: {}", userId, orgNumber);
@@ -198,6 +200,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<UserResponse> updateUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequest request,
             @RequestParam Integer orgNumber) {
@@ -264,6 +267,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<Void> deleteUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
         log.info("Deleting user: {} from organization: {}", userId, orgNumber);

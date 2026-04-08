@@ -80,6 +80,7 @@ public class RoleController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved role"),
             @ApiResponse(responseCode = "404", description = "Role not found")
     })
+    @Parameter(description = "Identifier of the roleId")
     public ResponseEntity<RoleResponse> getRole(@PathVariable Long roleId) {
         log.info("Getting role: {}", roleId);
 
@@ -105,6 +106,7 @@ public class RoleController {
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     public ResponseEntity<List<RoleResponse>> getUserRoles(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
         log.info("Getting roles for user: {} in organization: {}", userId, orgNumber);
@@ -136,6 +138,7 @@ public class RoleController {
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<Void> assignRoleToUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber,
             @RequestParam Long roleId) {
@@ -180,6 +183,7 @@ public class RoleController {
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<Void> removeRoleFromUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber,
             @RequestParam Long roleId) {

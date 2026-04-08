@@ -53,6 +53,7 @@ public class OrganizationSettingsAdminController {
             @ApiResponse(responseCode = "404", description = "Organization not found")
     })
     public ResponseEntity<OrganizationSettingsResponse> getSettings(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber) {
         log.info("Getting settings for organization: {}", orgNumber);
 
@@ -78,6 +79,7 @@ public class OrganizationSettingsAdminController {
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<OrganizationSettingsResponse> updateSettings(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @Valid @RequestBody OrganizationSettingsRequest request) {
         log.info("Updating settings for organization: {}", orgNumber);
