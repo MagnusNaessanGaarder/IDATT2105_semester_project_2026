@@ -14,20 +14,23 @@
  */
 import { ref } from 'vue'
 
-export function useApi<T>(apiFn: (...args: any[]) => Promise<T>) {
+export function useApi<T, Args extends unknown[] = unknown[]>(
+  apiFn: (...args: Args) => Promise<T>
+) {
   const data = ref<T | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  async function execute(...args: any[]): Promise<T | null> {
+  async function execute(...args: Args): Promise<T | null> {
     isLoading.value = true
     error.value = null
     try {
       const result = await apiFn(...args)
       data.value = result
       return result
-    } catch (e: any) {
-      error.value = e.response?.data?.message ?? 'Noe gikk galt'
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } } }
+      error.value = err.response?.data?.message ?? 'Noe gikk galt'
       throw e
     } finally {
       isLoading.value = false
