@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { exportApi, type ExportRequest, type ExportResponse } from '../api'
 import {client} from "@/api/client.ts";
+import axios from "axios";
 
 const POLL_INTERVAL_RUNNING_MS = 3000
 const POLL_INTERVAL_PENDING_MS = 8000
