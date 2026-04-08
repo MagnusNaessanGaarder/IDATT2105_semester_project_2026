@@ -1,27 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { TemperatureRecord } from '../types'
 
-interface TemperatureRecord {
-  id: number
-  location: string
-  temperature_c: number
-  min_temp: number
-  max_temp: number
-  recorded_by: string
-  recorded_date: string
-  recorded_time: string
-  status: 'ok' | 'warning' | 'critical'
-}
+  const props = defineProps<{
+    record: TemperatureRecord
+  }>()
 
-const props = defineProps<{
-  record: TemperatureRecord
-}>()
-
-const statusLabel = computed(() => {
-  const { status } = props.record
-  if (status === 'critical') return 'Kritisk'
-  if (status === 'warning') return 'Advarsel'
-  return 'OK'
+  const statusLabel = computed(() => {
+    const { status } = props.record
+    if (status === 'critical') return 'Kritisk'
+    if (status === 'warning') return 'Advarsel'
+    return 'OK'
 })
 
 const statusIcon = computed(() => {

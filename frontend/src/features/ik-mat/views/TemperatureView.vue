@@ -1,23 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useIkMatData } from '../composables/useIkMatData'
+import TemperatureCard from '../components/TemperatureCard.vue'
 
-const { temperatureRecords, isTemperatureInRange, formatDate } = useIkMatData()
+const { temperatureRecords, isTemperatureInRange } = useIkMatData()
 
 const alerts = computed(() => temperatureRecords.filter((record) => !isTemperatureInRange(record)))
 const okCount = computed(() => temperatureRecords.filter((record) => isTemperatureInRange(record)).length)
-
-const statusLabel = (status: 'ok' | 'warning' | 'critical') => {
-  if (status === 'critical') {
-    return 'Kritisk'
-  }
-
-  if (status === 'warning') {
-    return 'Advarsel'
-  }
-
-  return 'OK'
-}
 </script>
 
 <template>
@@ -47,31 +36,8 @@ const statusLabel = (status: 'ok' | 'warning' | 'critical') => {
       </article>
     </section>
 
-    <section class="table-card" aria-label="Temperaturtabell">
-      <table>
-        <thead>
-          <tr>
-            <th>Lokasjon</th>
-            <th>Temp</th>
-            <th>Grense</th>
-            <th>Status</th>
-            <th>Tid</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="record in temperatureRecords" :key="record.id">
-            <td>{{ record.location }}</td>
-            <td>{{ record.temperature_c }}°C</td>
-            <td>{{ record.min_temp }}°C - {{ record.max_temp }}°C</td>
-            <td>
-              <span class="status-pill" :class="isTemperatureInRange(record) ? 'status-pill--good' : 'status-pill--danger'">
-                {{ isTemperatureInRange(record) ? 'OK' : statusLabel(record.status) }}
-              </span>
-            </td>
-            <td>{{ formatDate(record.recorded_date) }} kl. {{ record.recorded_time }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <section class="card-grid" aria-label="Temperaturkort">
+      <TemperatureCard v-for="record in temperatureRecords" :key="record.id" :record="record" />
     </section>
   </div>
 </template>
@@ -157,36 +123,10 @@ const statusLabel = (status: 'ok' | 'warning' | 'critical') => {
   border-left: 0.25rem solid var(--color-warning);
 }
 
-.table-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-card);
-  padding: 0.65rem;
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  text-align: left;
-  padding: 0.6rem;
-  border-bottom: 1px solid var(--color-border);
-  font-size: var(--font-size-sm);
-}
-
-th {
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-600);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-td {
-  color: var(--color-foreground);
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 0.9rem;
 }
 
 .status-pill {

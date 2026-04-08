@@ -1,28 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-
-interface ChecklistItem {
-  id: number
-  task: string
-  required: boolean
-  completed: boolean
-  notes: string | null
-}
-
-interface Checklist {
-  id: number
-  name: string
-  category: string
-  frequency: string
-  description: string
-  created_date: string
-  law_unit: string
-  items: ChecklistItem[]
-  completed_by: string | null
-  completion_date: string | null
-  completion_time: string | null
-  status: 'completed' | 'pending' | 'overdue'
-}
+import type { Checklist } from '../types'
 
 const props = defineProps<{
   checklist: Checklist

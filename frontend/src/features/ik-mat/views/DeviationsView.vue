@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useIkMatData } from '../composables/useIkMatData'
+import DeviationCard from '../components/DeviationCard.vue'
 
 const { deviations, formatDate } = useIkMatData()
 
@@ -60,24 +61,12 @@ const severityLabel = (severity: 'low' | 'medium' | 'high') => {
 
     <section class="deviations-layout">
       <aside class="deviation-list" aria-label="Avviksliste">
-        <button
+        <DeviationCard
           v-for="item in filtered"
           :key="item.id"
-          class="deviation-list__item"
-          :class="{ 'deviation-list__item--active': selectedDeviation?.id === item.id }"
-          @click="selectedId = item.id"
-        >
-          <p class="deviation-list__title">{{ item.title }}</p>
-          <p class="deviation-list__meta">{{ item.location }} · {{ formatDate(item.reported_date) }}</p>
-          <div class="deviation-list__chips">
-            <span class="status-chip" :class="item.status === 'resolved' ? 'status-chip--good' : item.status === 'in-progress' ? 'status-chip--warn' : 'status-chip--danger'">
-              {{ statusLabel(item.status) }}
-            </span>
-            <span class="status-chip" :class="item.severity === 'high' ? 'status-chip--danger' : item.severity === 'medium' ? 'status-chip--warn' : 'status-chip--info'">
-              {{ severityLabel(item.severity) }}
-            </span>
-          </div>
-        </button>
+          :deviation="item"
+          @view="selectedId = item.id"
+        />
       </aside>
 
       <article class="deviation-detail" v-if="selectedDeviation">

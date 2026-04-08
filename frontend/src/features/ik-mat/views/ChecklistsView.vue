@@ -1,56 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useIkMatData, type Checklist } from '../composables/useIkMatData'
+import { useIkMatData } from '../composables/useIkMatData'
+import { useChecklistViewState } from '../composables/useChecklistViewState'
 
 const { checklists, completionForChecklist } = useIkMatData()
 
-const selectedFrequency = ref<'Alle' | 'Daglig' | 'Ukentlig' | 'Månedlig'>('Alle')
-const expandedId = ref<number | null>(null)
-
-const checklistState = ref<Checklist[]>(checklists.map((item) => ({ ...item, items: item.items.map((task) => ({ ...task })) })))
-
-const frequencies = computed(() => ['Alle', 'Daglig', 'Ukentlig', 'Månedlig'] as const)
-
-const filtered = computed(() => {
-  if (selectedFrequency.value === 'Alle') {
-    return checklistState.value
-  }
-
-  return checklistState.value.filter((item) => item.frequency === selectedFrequency.value)
-})
-
-const sorted = computed(() => {
-  return [...filtered.value].sort((a, b) => completionForChecklist(a) - completionForChecklist(b))
-})
-
-const toggleExpanded = (id: number) => {
-  expandedId.value = expandedId.value === id ? null : id
-}
-
-const toggleTask = (checklistId: number, itemId: number) => {
-  checklistState.value = checklistState.value.map((checklist) => {
-    if (checklist.id !== checklistId) {
-      return checklist
-    }
-
-    const updatedItems = checklist.items.map((task) => {
-      if (task.id !== itemId) {
-        return task
-      }
-
-      return {
-        ...task,
-        completed: !task.completed,
-      }
-    })
-
-    return {
-      ...checklist,
-      items: updatedItems,
-      status: updatedItems.every((task) => task.completed) ? 'completed' : 'pending',
-    }
-  })
-}
+const { selectedFrequency, expandedId, frequencies, sorted, toggleExpanded, toggleTask } = useChecklistViewState(
+  checklists,
+  completionForChecklist,
+)
 </script>
 
 <template>

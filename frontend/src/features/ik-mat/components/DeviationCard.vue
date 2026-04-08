@@ -1,19 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-
-interface Deviation {
-  id: number
-  title: string
-  description: string
-  severity: 'low' | 'medium' | 'high'
-  reported_by: string
-  reported_date: string
-  reported_time: string
-  location: string
-  immediate_action: string
-  corrective_action: string
-  status: 'open' | 'in-progress' | 'resolved'
-}
+import type { Deviation } from '../types'
 
 const props = defineProps<{
   deviation: Deviation
