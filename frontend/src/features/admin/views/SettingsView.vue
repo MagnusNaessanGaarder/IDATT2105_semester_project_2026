@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import {
   type AuditLogEntry,
   type SettingItem,
@@ -28,6 +28,7 @@ const backendSettings = ref<BackendSettings | null>(null)
 const hasChanges = ref(false)
 const showSuccessMessage = ref(false)
 const successMessage = ref('')
+const successTimeoutId = ref<number | null>(null)
 
 const query = ref('')
 
@@ -121,8 +122,12 @@ const handleSave = async () => {
     hasChanges.value = false
     successMessage.value = 'Innstillinger lagret'
     showSuccessMessage.value = true
-    setTimeout(() => {
+    if (successTimeoutId.value !== null) {
+      window.clearTimeout(successTimeoutId.value)
+    }
+    successTimeoutId.value = window.setTimeout(() => {
       showSuccessMessage.value = false
+      successTimeoutId.value = null
     }, 3000)
   }
 }
@@ -144,6 +149,12 @@ const handleExport = () => {
 
 onMounted(() => {
   loadBackendSettings()
+})
+
+onUnmounted(() => {
+  if (successTimeoutId.value !== null) {
+    window.clearTimeout(successTimeoutId.value)
+  }
 })
 </script>
 

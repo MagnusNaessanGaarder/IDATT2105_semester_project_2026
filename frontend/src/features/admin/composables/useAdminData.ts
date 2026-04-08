@@ -156,6 +156,18 @@ const applyPersistenceMetadata = (source: SettingsState): SettingsState => {
 
 const settings = applyPersistenceMetadata(rawSettings)
 
+const localeToLanguageOption = (localeCode: string | undefined): string => {
+  if (localeCode === 'en_US') return 'English'
+  if (localeCode === 'sv_SE') return 'Swedish'
+  return 'Norwegian'
+}
+
+const languageOptionToLocale = (value: unknown): string => {
+  if (value === 'English' || value === 'en_US') return 'en_US'
+  if (value === 'Swedish' || value === 'sv_SE') return 'sv_SE'
+  return 'nb_NO'
+}
+
 const readLocalSettings = (orgNumber: number): Record<string, unknown> => {
   if (typeof localStorage === 'undefined') {
     return {}
@@ -228,7 +240,7 @@ const mapBackendSettingsToFrontend = (
           description: 'Velg systemspråk',
           type: 'select',
           persistence: 'backend',
-          current_value: backendSettings.localeCode === 'nb_NO' ? 'Norwegian' : backendSettings.localeCode,
+          current_value: localeToLanguageOption(backendSettings.localeCode),
           options: ['Norwegian', 'English', 'Swedish'],
         },
         {
@@ -348,8 +360,8 @@ const mapFrontendSettingsToBackend = (
   const notificationItems = frontendSettings.notification_preferences.items
   const backupItems = frontendSettings.backup.items
 
-  const languageValue = systemItems.find(i => i.id === 'language')?.current_value || 'Norwegian'
-  const localeCode = languageValue === 'Norwegian' ? 'nb_NO' : languageValue === 'English' ? 'en_US' : 'sv_SE'
+  const languageValue = systemItems.find(i => i.id === 'language')?.current_value ?? 'Norwegian'
+  const localeCode = languageOptionToLocale(languageValue)
 
   const timezone = systemItems.find(i => i.id === 'timezone')?.current_value || 'Europe/Oslo'
   const reminderEnabled = notificationItems.find(i => i.id === 'email_critical')?.current_value === true

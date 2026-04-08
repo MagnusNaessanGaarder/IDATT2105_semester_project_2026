@@ -4,6 +4,10 @@ import Sidebar from './Sidebar.vue'
 
 const isSidebarOpen = ref(false)
 
+const openSidebar = () => {
+  isSidebarOpen.value = true
+}
+
 const closeSidebar = () => {
   isSidebarOpen.value = false
 }
@@ -14,6 +18,15 @@ const closeSidebar = () => {
     <a href="#main-content" class="skip-link">
       Hopp til hovedinnhold
     </a>
+
+    <button
+      class="sidebar-toggle"
+      type="button"
+      aria-label="Åpne meny"
+      @click="openSidebar"
+    >
+      ☰
+    </button>
     
     <div 
       v-if="isSidebarOpen" 
@@ -69,6 +82,24 @@ const closeSidebar = () => {
   top: 8px;
 }
 
+.sidebar-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 60;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--color-foreground);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
@@ -90,6 +121,10 @@ const closeSidebar = () => {
 }
 
 @media (min-width: 768px) {
+  .sidebar-toggle {
+    display: none;
+  }
+
   .main-content {
     padding: var(--spacing-xl);
   }
