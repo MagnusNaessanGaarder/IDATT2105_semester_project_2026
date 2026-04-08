@@ -43,9 +43,9 @@ const businessLabel = computed(() => {
   }
 
   return rootDomain
-    .split('-')
-    .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
+      .split('-')
+      .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ')
 })
 
 const sections = computed(() => [
@@ -80,7 +80,10 @@ const sections = computed(() => [
     items: [
       { id: 'reports', label: 'Rapporter', route: 'Reports' },
       { id: 'documents', label: 'Dokumenter', route: 'Documents' },
-      { id: 'notifications', label: 'Varsler', route: 'Notifications' }
+      { id: 'notifications', label: 'Varsler', route: 'Notifications' },
+      ...(user.value?.role === 'MANAGER' || user.value?.role === 'ADMIN'
+          ? [{ id: 'export', label: 'Eksport', route: 'Export' }]
+          : [])
     ]
   },
   ...(user.value?.role === 'ADMIN' ? [{
@@ -184,22 +187,22 @@ watch(currentScreen, (routeName) => {
 
 <template>
   <motion.aside
-    class="sidebar"
-    :initial="sidebarInitial"
-    :animate="sidebarAnimation"
-    role="navigation"
-    aria-label="Hovednavigasjon"
+      class="sidebar"
+      :initial="sidebarInitial"
+      :animate="sidebarAnimation"
+      role="navigation"
+      aria-label="Hovednavigasjon"
   >
     <div class="sidebar-header">
       <div class="brand-block">
         <h1 class="app-title">IK-Kontroll</h1>
         <p class="app-business">{{ businessLabel }}</p>
       </div>
-      <button 
-        v-if="isOpen"
-        class="close-btn"
-        @click="emit('close')"
-        aria-label="Lukk meny"
+      <button
+          v-if="isOpen"
+          class="close-btn"
+          @click="emit('close')"
+          aria-label="Lukk meny"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -207,115 +210,115 @@ watch(currentScreen, (routeName) => {
         </svg>
       </button>
     </div>
-    
+
     <nav class="sidebar-nav">
       <NavSection
-        v-for="section in sections"
-        :key="section.key"
-        :section="section"
-        :is-expanded="isSectionExpanded(section.key)"
-        :current-screen="currentScreen"
-        @toggle="toggleSection(section.key)"
-        @navigate-dashboard="(route) => navigateToDashboard(route)"
-        @navigate-screen="(route) => navigateToScreen(route, section.key)"
+          v-for="section in sections"
+          :key="section.key"
+          :section="section"
+          :is-expanded="isSectionExpanded(section.key)"
+          :current-screen="currentScreen"
+          @toggle="toggleSection(section.key)"
+          @navigate-dashboard="(route) => navigateToDashboard(route)"
+          @navigate-screen="(route) => navigateToScreen(route, section.key)"
       />
     </nav>
-    
+
     <div class="sidebar-footer">
-      <SidebarUser 
-        v-if="user"
-        :user="user"
+      <SidebarUser
+          v-if="user"
+          :user="user"
       />
     </div>
   </motion.aside>
 </template>
 
 <style scoped>
+.sidebar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--color-card);
+  border-right: 0.0625rem solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+}
+
+@media (min-width: 48rem) {
   .sidebar {
     position: sticky;
     top: 0;
-    left: 0;
-    width: var(--sidebar-width);
-    height: 100vh;
-    background: var(--color-card);
-    border-right: 0.0625rem solid var(--color-border);
-    display: flex;
-    flex-direction: column;
-    z-index: 50;
   }
+}
 
-  @media (min-width: 48rem) {
-    .sidebar {
-      position: sticky;
-      top: 0;
-    }
-  }
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
+  border-bottom: 0.0625rem solid var(--color-border);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.02) 0%, rgba(15, 23, 42, 0) 100%);
+}
 
-  .sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
-    border-bottom: 0.0625rem solid var(--color-border);
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.02) 0%, rgba(15, 23, 42, 0) 100%);
-  }
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
 
-  .brand-block {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
+.app-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  color: var(--color-primary);
+  margin: 0;
+}
 
-  .app-title {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    letter-spacing: 0.02em;
-    color: var(--color-primary);
-    margin: 0;
-  }
+.app-business {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  font-weight: var(--font-weight-medium);
+}
 
-  .app-business {
-    margin: 0;
-    font-size: var(--font-size-xs);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--color-gray-500);
-    font-weight: var(--font-weight-medium);
-  }
+.close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
 
+@media (min-width: 48rem) {
   .close-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
+    display: none;
   }
+}
 
-  @media (min-width: 48rem) {
-    .close-btn {
-      display: none;
-    }
-  }
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-sm) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
-  .sidebar-nav {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--spacing-sm) 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .sidebar-footer {
-    position: sticky;
-    bottom: 0;
-    background: var(--color-card);
-    border-top: 0.0625rem solid var(--color-border);
-    box-shadow: 0 -0.375rem 1rem rgba(15, 23, 42, 0.04);
-    z-index: 10;
-  }
+.sidebar-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-card);
+  border-top: 0.0625rem solid var(--color-border);
+  box-shadow: 0 -0.375rem 1rem rgba(15, 23, 42, 0.04);
+  z-index: 10;
+}
 
 </style>

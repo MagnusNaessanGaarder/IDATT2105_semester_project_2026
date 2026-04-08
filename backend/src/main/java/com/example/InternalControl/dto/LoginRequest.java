@@ -5,9 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 
 /**
  * DTO for login requests.
- *
- * @author TriTacLe
- * @since 1.0
  */
 public record LoginRequest(
         @NotBlank(message = "Email is required")

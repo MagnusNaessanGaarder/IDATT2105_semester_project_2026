@@ -10,9 +10,7 @@ import java.time.LocalDate;
 
 /**
  * Request DTO for creating a checklist run from template.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder

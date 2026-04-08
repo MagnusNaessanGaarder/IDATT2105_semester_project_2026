@@ -17,10 +17,7 @@ import java.util.Map;
 
 /**
  * Standard global error handling used across all APIS
- * 
- * @author TriTacLe
- * @since 1.0
- */
+ *  */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {

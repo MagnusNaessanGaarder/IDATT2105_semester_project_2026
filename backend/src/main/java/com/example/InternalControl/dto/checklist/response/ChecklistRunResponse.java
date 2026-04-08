@@ -12,9 +12,7 @@ import java.util.List;
 
 /**
  * Response DTO for checklist run.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder

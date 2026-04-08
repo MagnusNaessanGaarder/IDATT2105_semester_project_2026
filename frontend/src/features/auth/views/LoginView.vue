@@ -105,64 +105,6 @@ const handleLogin = async () => {
   max-width: 400px;
 }
 
-/* Mock Users Info */
-.mock-users-info {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-radius: var(--radius-md);
-  padding: 20px;
-  margin-bottom: 24px;
-}
-
-.mock-users-info h3 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0369a1;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.mock-user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mock-user {
-  background: white;
-  border: 1px solid #e0f2fe;
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.mock-user:hover {
-  background: #f0f9ff;
-  border-color: #7dd3fc;
-  transform: translateX(4px);
-}
-
-.mock-user strong {
-  color: #0c4a6e;
-}
-
-.mock-user small {
-  color: #64748b;
-  font-size: 11px;
-}
-
-.mock-hint {
-  margin: 12px 0 0 0;
-  font-size: 11px;
-  color: #64748b;
-  text-align: center;
-  font-style: italic;
-}
-
 /* Form */
 .login-form {
   background: var(--color-card);

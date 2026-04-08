@@ -8,7 +8,7 @@ declare module 'axios' {
 }
 
 export const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ client.interceptors.response.use(
 
       try {
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/auth/refresh`,
+          `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'}/auth/refresh`,
           { refreshToken }
         )
 

@@ -2,8 +2,8 @@ package com.example.InternalControl.controller.export;
 
 import com.example.InternalControl.dto.export.request.ExportRequest;
 import com.example.InternalControl.dto.export.response.ExportResponse;
-import com.example.InternalControl.security.JwtService;
-import com.example.InternalControl.service.UserOrganizationService;
+import com.example.InternalControl.security.CustomUserDetails;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import com.example.InternalControl.service.export.ExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,13 +12,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -26,21 +26,15 @@ import java.net.URI;
 
 /**
  * Controller for export operations.
- *
- * @author TriTacLe
- * @since 1.0
  */
 @RestController
-@RequestMapping("/api/exports")
+@RequestMapping("/api/v1/exports")
 @RequiredArgsConstructor
 @Tag(name = "Export", description = "Export operations for compliance reports")
 @SecurityRequirement(name = "bearerAuth")
 public class ExportController {
 
-  private static final int BEARER_PREFIX_LENGTH = 7;
-
   private final ExportService exportService;
-  private final JwtService jwtService;
   private final UserOrganizationService userOrgService;
 
   @PostMapping
@@ -54,9 +48,9 @@ public class ExportController {
   public ResponseEntity<ExportResponse> createExport(
       @Valid @RequestBody ExportRequest request,
       @RequestParam Integer orgNumber,
-      HttpServletRequest httpRequest) {
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-    Long userId = extractUserId(httpRequest);
+    Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
 
     ExportResponse result = exportService.createExportJob(request, orgNumber, userId);
@@ -81,9 +75,9 @@ public class ExportController {
   public ResponseEntity<ExportResponse> getExportStatus(
       @Parameter(description = "Export job ID") @PathVariable Long exportJobId,
       @RequestParam Integer orgNumber,
-      HttpServletRequest httpRequest) {
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-    Long userId = extractUserId(httpRequest);
+    Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
 
     ExportResponse result = exportService.getExportStatus(exportJobId, orgNumber);
@@ -102,9 +96,9 @@ public class ExportController {
   public ResponseEntity<String> downloadExport(
       @Parameter(description = "Export job ID") @PathVariable Long exportJobId,
       @RequestParam Integer orgNumber,
-      HttpServletRequest httpRequest) {
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-    Long userId = extractUserId(httpRequest);
+    Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
 
     String downloadUrl = exportService.getDownloadUrl(exportJobId, orgNumber);
@@ -120,26 +114,13 @@ public class ExportController {
   public ResponseEntity<Page<ExportResponse>> listExports(
       @RequestParam Integer orgNumber,
       Pageable pageable,
-      HttpServletRequest httpRequest) {
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-    Long userId = extractUserId(httpRequest);
+    Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
 
     Page<ExportResponse> results = exportService.listExports(orgNumber, pageable);
     return ResponseEntity.ok(results);
-  }
-
-  private Long extractUserId(HttpServletRequest request) {
-    String authHeader = request.getHeader("Authorization");
-    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-      throw new IllegalArgumentException("Missing or invalid Authorization header");
-    }
-    String token = authHeader.substring(BEARER_PREFIX_LENGTH);
-    Long userId = jwtService.extractUserId(token);
-    if (userId == null) {
-      throw new IllegalArgumentException("User ID not found in token");
-    }
-    return userId;
   }
 
   private void validateUserOrganizationAccess(Long userId, Integer orgNumber) {

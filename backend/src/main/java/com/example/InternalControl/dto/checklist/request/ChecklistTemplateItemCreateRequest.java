@@ -13,9 +13,7 @@ import java.math.BigDecimal;
 
 /**
  * Request DTO for creating a checklist template item.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder

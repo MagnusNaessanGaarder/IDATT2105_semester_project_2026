@@ -10,9 +10,7 @@ import java.math.BigDecimal;
 
 /**
  * Response DTO for checklist template item.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder

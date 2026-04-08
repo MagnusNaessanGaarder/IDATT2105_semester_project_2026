@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Request DTO for adding actions to a deviation report.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder

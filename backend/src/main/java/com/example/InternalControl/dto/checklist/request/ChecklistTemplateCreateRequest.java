@@ -14,9 +14,7 @@ import java.util.List;
 
 /**
  * Request DTO for creating a checklist template.
- *
- * @author TriTacLe
- * @since 1.0
+
  */
 @Data
 @Builder
