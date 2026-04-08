@@ -288,7 +288,7 @@ public class UserController {
 
         List<com.example.InternalControl.dto.user.RoleResponse> roles = userRoles.stream()
                 .map(uor -> com.example.InternalControl.dto.user.RoleResponse.builder()
-                        .roleId(uor.getRoleId())
+                               .roleId(uor.getId().getRoleId())
                         .roleName(uor.getRole() != null ? uor.getRole().getRoleName() : "UNKNOWN")
                         .description(uor.getRole() != null ? uor.getRole().getDescription() : null)
                         .isSystemRole(uor.getRole() != null ? uor.getRole().getIsSystemRole() : false)

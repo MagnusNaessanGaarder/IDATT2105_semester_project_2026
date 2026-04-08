@@ -35,7 +35,7 @@ public class OrganizationSettings {
 
   @Column(name = "locale_code", nullable = false)
   @Builder.Default
-  private String localCode = "nb-NO";
+  private String localeCode = "nb-NO";
 
   @Column(name = "enable_food_module", nullable = false)
   @Builder.Default

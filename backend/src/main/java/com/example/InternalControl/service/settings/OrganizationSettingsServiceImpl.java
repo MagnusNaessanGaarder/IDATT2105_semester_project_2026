@@ -83,17 +83,17 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
 
     private OrganizationSettingsResponse mapToResponse(OrganizationSettings settings) {
         return OrganizationSettingsResponse.builder()
-                .orgNumber(settings.getOrgNumber())
+                .orgNumber(Math.toIntExact(settings.getOrgNumber()))
                 .timezoneName(settings.getTimezoneName())
                 .localeCode(settings.getLocaleCode())
-                .enableFoodModule(settings.getEnableFoodModule())
-                .enableAlcoholModule(settings.getEnableAlcoholModule())
+                .enableFoodModule(settings.isEnableFoodModule())
+                .enableAlcoholModule(settings.isEnableAlcoholModule())
                 .defaultTempMinC(settings.getDefaultTempMinC())
                 .defaultTempMaxC(settings.getDefaultTempMaxC())
-                .reminderEmailEnabled(settings.getReminderEmailEnabled())
+                .reminderEmailEnabled(settings.isReminderEmailEnabled())
                 .notificationEmail(settings.getNotificationEmail())
-                .retentionUserMonths(settings.getRetentionUserMonths())
-                .retentionAuditMonths(settings.getRetentionAuditMonths())
+                .retentionUserMonths(Math.toIntExact(settings.getRetentionUserMonths()))
+                .retentionAuditMonths(Math.toIntExact(settings.getRetentionAuditMonths()))
                 .createdAt(settings.getCreatedAt())
                 .updatedAt(settings.getUpdatedAt())
                 .build();

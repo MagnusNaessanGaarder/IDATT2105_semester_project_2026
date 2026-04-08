@@ -34,4 +34,7 @@ public interface UserOrganizationRepository extends JpaRepository<UserOrganizati
   boolean existsByUserIdAndOrgNumber(
       @Param("userId") Long userId,
       @Param("orgNumber") Integer orgNumber);
+
+    @Query("SELECT uo FROM UserOrganization uo WHERE uo.organization.orgNumber = :orgNumber")
+    List<UserOrganization> findByOrgNumber(@Param("orgNumber") Integer orgNumber);
 }

@@ -59,4 +59,6 @@ public class UserOrganization {
   // it should @Anine
   // @Column(name = "updated_at", nullable = false)
   // private LocalDateTime updatedAt;
-}
+    @Column(name = "left_at")
+    private LocalDateTime leftAt;
+  }
