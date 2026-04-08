@@ -1,5 +1,6 @@
 package com.example.InternalControl.controller.deviation;
 
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.dto.deviation.request.DeviationReportCreateRequest;
 import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.enums.DeviationStatus;
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -28,14 +29,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Unit tests for DeviationReportController.
+ * Integration tests for DeviationReportController using TestContainers.
  *
  * @author TriTacLe
  * @since 1.0
  */
-@WebMvcTest(DeviationReportController.class)
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class DeviationReportControllerTest {
+class DeviationReportControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

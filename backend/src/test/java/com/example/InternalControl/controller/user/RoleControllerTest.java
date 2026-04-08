@@ -1,5 +1,6 @@
 package com.example.InternalControl.controller.user;
 
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.model.user.Role;
 import com.example.InternalControl.model.user.UserOrganizationRole;
 import com.example.InternalControl.model.user.UserOrganizationRoleId;
@@ -11,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,11 +28,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Unit tests for RoleController.
+ * Integration tests for RoleController using TestContainers.
  */
-@WebMvcTest(RoleController.class)
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class RoleControllerTest {
+class RoleControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

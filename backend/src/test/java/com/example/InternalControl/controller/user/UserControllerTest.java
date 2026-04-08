@@ -1,5 +1,6 @@
 package com.example.InternalControl.controller.user;
 
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.dto.user.UserCreateRequest;
 import com.example.InternalControl.dto.user.UserUpdateRequest;
 import com.example.InternalControl.model.user.AppUser;
@@ -17,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,11 +36,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Unit tests for UserController.
+ * Integration tests for UserController using TestContainers.
  */
-@WebMvcTest(UserController.class)
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class UserControllerTest {
+class UserControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

@@ -1,5 +1,6 @@
 package com.example.InternalControl.controller.document;
 
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.model.document.OrganizationDocument;
 import com.example.InternalControl.repository.document.OrganizationDocumentRepository;
 import com.example.InternalControl.repository.document.OrganizationDocumentVersionRepository;
@@ -8,7 +9,7 @@ import com.example.InternalControl.service.storage.BlobStorageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,14 +22,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Unit tests for FileController.
+ * Integration tests for FileController using TestContainers.
  *
  * @author TriTacLe
  * @since 1.0
  */
-@WebMvcTest(FileController.class)
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class FileControllerTest {
+class FileControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

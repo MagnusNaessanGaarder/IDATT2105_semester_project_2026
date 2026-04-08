@@ -1,9 +1,9 @@
 package com.example.InternalControl.controller.checklist;
 
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.dto.checklist.request.ChecklistTemplateCreateRequest;
 import com.example.InternalControl.model.checklist.ChecklistTemplate;
 import com.example.InternalControl.model.enums.ModuleType;
-import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistTemplateService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,13 +11,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -26,14 +25,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Unit tests for ChecklistTemplateController.
+ * Integration tests for ChecklistTemplateController using TestContainers.
  *
  * @author TriTacLe
  * @since 1.0
  */
-@WebMvcTest(ChecklistTemplateController.class)
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class ChecklistTemplateControllerTest {
+class ChecklistTemplateControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
