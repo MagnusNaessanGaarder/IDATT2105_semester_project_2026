@@ -47,8 +47,8 @@ public class RoleController {
      * @return list of roles
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Get all roles", description = "Retrieve all available roles in the system")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get all roles", description = "Retrieve all available roles in the system (ADMIN only)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successfully retrieved roles"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -73,8 +73,8 @@ public class RoleController {
      * @return the role
      */
     @GetMapping("/{roleId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Get role by ID", description = "Retrieve a specific role by its ID")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get role by ID", description = "Retrieve a specific role by its ID (ADMIN only)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successfully retrieved role"),
             @ApiResponse(responseCode = "404", description = "Role not found")
@@ -96,8 +96,8 @@ public class RoleController {
      * @return list of roles
      */
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @userSecurity.isCurrentUser(#userId)")
-    @Operation(summary = "Get user roles", description = "Retrieve roles assigned to a specific user in an organization")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get user roles", description = "Retrieve roles assigned to a specific user in an organization (ADMIN only)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successfully retrieved user roles"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
