@@ -62,7 +62,11 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get all users", description = "Retrieve all users in an organization")
-    @ApiResponse(responseCode = "200", description = "Successfully retrieved users")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved users"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public ResponseEntity<List<UserResponse>> getAllUsers(
             @RequestParam Integer orgNumber) {
         log.info("Getting all users for organization: {}", orgNumber);
