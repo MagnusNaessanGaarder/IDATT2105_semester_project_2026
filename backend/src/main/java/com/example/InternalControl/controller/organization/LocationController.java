@@ -5,6 +5,8 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.organization.LocationService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
@@ -30,6 +32,11 @@ public class LocationController {
 
   @GetMapping
   @Operation(summary = "Get all locations for organization")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved locations"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
   public ResponseEntity<List<Location>> getLocations(
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -40,6 +47,12 @@ public class LocationController {
 
   @GetMapping("/{id}")
   @Operation(summary = "Get location by ID")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved location"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Location not found")
+  })
   public ResponseEntity<Location> getLocation(
       @PathVariable Long id,
       @RequestParam Integer orgNumber,
@@ -55,6 +68,12 @@ public class LocationController {
 
   @PostMapping
   @Operation(summary = "Create new location")
+  @ApiResponses({
+      @ApiResponse(responseCode = "201", description = "Location created successfully"),
+      @ApiResponse(responseCode = "400", description = "Bad request"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
   @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Location> createLocation(
       @Valid @RequestBody Location location,
@@ -68,6 +87,13 @@ public class LocationController {
 
   @PutMapping("/{id}")
   @Operation(summary = "Update location")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Location updated successfully"),
+      @ApiResponse(responseCode = "400", description = "Bad request"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Location not found")
+  })
   @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Location> updateLocation(
       @PathVariable Long id,
@@ -85,6 +111,12 @@ public class LocationController {
 
   @DeleteMapping("/{id}")
   @Operation(summary = "Delete location (soft delete)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "204", description = "Location deleted successfully"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Location not found")
+  })
   @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Void> deleteLocation(
       @PathVariable Long id,
