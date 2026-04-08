@@ -12,6 +12,25 @@ interface AuthError {
 
 interface JwtPayload {
   exp?: number
+  orgNumber?: number | string
+  org_number?: number | string
+  organizationNumber?: number | string
+  organization_number?: number | string
+}
+
+const parseOrgNumber = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed
+    }
+  }
+
+  return null
 }
 
 const getStoredOrganizations = (): OrganizationRole[] => {
@@ -99,6 +118,9 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('email')
     sessionStorage.removeItem('role')
     sessionStorage.removeItem('organizations')
+    sessionStorage.removeItem('orgNumber')
+    sessionStorage.removeItem('selectedOrgNumber')
+    sessionStorage.removeItem('currentOrgNumber')
   }
 
   async function checkAuth() {
@@ -181,11 +203,36 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem('email', response.email)
     sessionStorage.setItem('role', response.role)
     sessionStorage.setItem('organizations', JSON.stringify(response.organizations || []))
+
+    const orgFromList = parseOrgNumber(response.organizations?.[0]?.orgNumber)
+    const payload = decodeJwtPayload(response.accessToken)
+    const orgFromToken = parseOrgNumber(payload?.orgNumber)
+      ?? parseOrgNumber(payload?.org_number)
+      ?? parseOrgNumber(payload?.organizationNumber)
+      ?? parseOrgNumber(payload?.organization_number)
+
+    const resolvedOrg = orgFromList ?? orgFromToken
+    if (resolvedOrg) {
+      sessionStorage.setItem('orgNumber', String(resolvedOrg))
+      sessionStorage.setItem('selectedOrgNumber', String(resolvedOrg))
+      sessionStorage.setItem('currentOrgNumber', String(resolvedOrg))
+    }
   }
 
   function parseError(err: any): AuthError {
+    if (!err?.response) {
+      return { message: 'Backend er ikke tilgjengelig. Kontroller at API kjører på port 8080.' }
+    }
+
+    if (err.response?.status === 401) {
+      return { message: 'Ugyldig e-post eller passord' }
+    }
+
     if (err.response?.data?.error) {
       return { message: err.response.data.error }
+    }
+    if (err.response?.data?.message) {
+      return { message: err.response.data.message }
     }
     if (err.response?.data?.fieldErrors) {
       return { message: Object.values(err.response.data.fieldErrors).join(', ') }
