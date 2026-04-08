@@ -1,6 +1,7 @@
 # Internal Control System - foreløpig README for at dåkk skal kun å kjør applikasjonen
 
-Hvis nånn andre gruppa ser på REPOET og kopiere koden e dåkk støgg - det kan få oss utvist (æ satt inn script som sir github bruker te kæm som skjer repoet og sett at flere av dåkk homsa har sett på repoet)
+Hvis nånn andre gruppa ser på REPOET og kopiere koden e dåkk støgg - det kan få oss utvist (æ satt inn script som sir
+github bruker te kæm som skjer repoet og sett at flere av dåkk homsa har sett på repoet)
 Semester project for IDATT2105 - Fullstack application for internal control in service businesses.
 
 ## Quick Start (dev)
@@ -195,3 +196,10 @@ docker stop backend-mysql-1
 docker rm backend-mysql-1
 docker volume rm idatt2105_semester_project_2026_mysql-dev-data
 ```
+
+_Note_: Once a migration has been performed, it is best practice to alter tables in further migrations, though this is
+most important once the app is in production.
+
+The naming convention is ``Vx_y_z__migration_title.sql``. Note the double underscore after version. Flyway will throw an
+error if this convention is not followed.
+For minor changes, consider increasing `y` or `z` rather than the major version number `x`.
