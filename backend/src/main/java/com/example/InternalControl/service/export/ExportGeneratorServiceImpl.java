@@ -150,10 +150,12 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
         data.put("totalReports", reports.size());
       }
       case TEMPERATURE_REPORT -> {
-        List<TemperatureLogEntry> entries = temperatureLogEntryRepository.findByOrgNumberWithLogPointOrderByMeasuredAtDesc(job.getOrgNumber());
+        List<TemperatureLogEntry> entries = temperatureLogEntryRepository
+                .findByOrgNumberWithLogPointOrderByMeasuredAtDesc(job.getOrgNumber());
+        long alertCount = entries.stream().filter(e -> Boolean.TRUE.equals(e.getIsAlert())).count();
         data.put("temperatureLogs", entries);
         data.put("totalRecords", entries.size());
-        entries.stream().filter(e -> Boolean.TRUE.equals(e.getIsAlert())).count();
+        data.put("totalAlerts", alertCount);
       }
       case TRAINING_REPORT -> {
         List<TrainingRecord> records = trainingRecordRepository
@@ -166,6 +168,7 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
         List<DeviationReport> reports = deviationReportRepository.findByOrgNumber(job.getOrgNumber());
         List<TemperatureLogEntry> entries = temperatureLogEntryRepository
                 .findByOrgNumberOrderByMeasuredAtDesc(job.getOrgNumber());
+        long alertCount = entries.stream().filter(e -> Boolean.TRUE.equals(e.getIsAlert())).count();
         List<TrainingRecord> records = trainingRecordRepository.findByOrgNumber(job.getOrgNumber());
         data.put("checklistRuns", runs);
         data.put("deviationReports", reports);
@@ -174,6 +177,7 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
         data.put("totalRuns", runs.size());
         data.put("totalReports", reports.size());
         data.put("totalRecords", entries.size());
+        data.put("alertCount", alertCount);
         entries.stream().filter(e -> Boolean.TRUE.equals(e.getIsAlert())).count();
       }
     }
