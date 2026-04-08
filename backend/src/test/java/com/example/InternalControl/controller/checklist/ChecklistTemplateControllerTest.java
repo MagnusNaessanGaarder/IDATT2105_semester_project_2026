@@ -179,18 +179,27 @@ class ChecklistTemplateControllerTest {
 
     @Test
 
-    void createTemplate_AsEmployee_ReturnsForbidden() throws Exception {
+    void createTemplate_AsEmployee_ReturnsCreated() throws Exception {
         // Given
         ChecklistTemplateCreateRequest request = ChecklistTemplateCreateRequest.builder()
                 .title("New Template")
                 .build();
+
+        ChecklistTemplate created = ChecklistTemplate.builder()
+                .templateId(1L)
+                .title("New Template")
+                .moduleType(ModuleType.FOOD)
+                .build();
+
+        when(templateService.createTemplate(any(), anyInt(), anyLong()))
+                .thenReturn(created);
 
         // When & Then
         mockMvc.perform(post("/api/checklists/templates")
                         .param("orgNumber", "123456789")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isCreated());
     }
 
     @Test

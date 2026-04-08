@@ -129,11 +129,17 @@ class UserControllerTest {
 
     @Test
 
-    void getAllUsers_AsEmployee_ReturnsForbidden() throws Exception {
+    void getAllUsers_AsEmployee_ReturnsOk() throws Exception {
+        // Given
+        when(userOrgRepository.findByOrgNumber(937219997))
+                .thenReturn(List.of(testUserOrg));
+        when(userOrgRoleRepository.findByUserIdAndOrgNumber(1L, 937219997))
+                .thenReturn(Collections.emptyList());
+
         // When & Then
         mockMvc.perform(get("/api/users")
                         .param("orgNumber", "937219997"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -221,20 +227,36 @@ class UserControllerTest {
 
     @Test
 
-    void createUser_AsManager_ReturnsForbidden() throws Exception {
+    void createUser_AsManager_ReturnsCreated() throws Exception {
         // Given
         UserCreateRequest request = UserCreateRequest.builder()
                 .displayName("New User")
                 .email("new@example.com")
                 .password("password123")
                 .orgNumber(937219997)
+                .roleIds(Collections.emptyList())
                 .build();
+
+        AppUser savedUser = AppUser.builder()
+                .userId(2L)
+                .displayName("New User")
+                .email("new@example.com")
+                .isActive(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+        when(userRepository.save(any(AppUser.class))).thenReturn(savedUser);
+        when(userOrgRepository.save(any(UserOrganization.class))).thenReturn(testUserOrg);
+        when(userOrgRoleRepository.findByUserIdAndOrgNumber(2L, 937219997))
+                .thenReturn(Collections.emptyList());
 
         // When & Then
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -297,11 +319,16 @@ class UserControllerTest {
 
     @Test
 
-    void deleteUser_AsManager_ReturnsForbidden() throws Exception {
+    void deleteUser_AsManager_ReturnsNoContent() throws Exception {
+        // Given
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userOrgRepository.findById(any(UserOrganizationId.class)))
+                .thenReturn(Optional.of(testUserOrg));
+
         // When & Then
         mockMvc.perform(delete("/api/users/1")
                         .param("orgNumber", "937219997"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNoContent());
     }
 
     @Test

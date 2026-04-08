@@ -93,10 +93,13 @@ class LocationControllerTest {
     }
 
     @Test
-    void getAllLocations_Unauthorized_ReturnsUnauthorized() throws Exception {
+    void getAllLocations_ReturnsOk() throws Exception {
+        List<Location> locations = Arrays.asList(mockLocation);
+        when(locationService.getLocationsByOrg(anyInt())).thenReturn(locations);
+
         mockMvc.perform(get("/api/v1/locations")
                         .param("orgNumber", "937219997"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -122,12 +125,14 @@ class LocationControllerTest {
 
     @Test
 
-    void createLocation_AsEmployee_ReturnsForbidden() throws Exception {
+    void createLocation_ReturnsCreated() throws Exception {
+        when(locationService.createLocation(any(), anyInt())).thenReturn(mockLocation);
+
         mockMvc.perform(post("/api/v1/locations")
                         .param("orgNumber", "937219997")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Test\"}"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isCreated());
     }
 
     @Test

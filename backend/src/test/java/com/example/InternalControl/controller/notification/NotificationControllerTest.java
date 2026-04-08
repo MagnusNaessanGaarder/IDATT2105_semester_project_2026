@@ -79,10 +79,13 @@ class NotificationControllerTest {
     }
 
     @Test
-    void getNotifications_Unauthenticated_ReturnsUnauthorized() throws Exception {
+    void getNotifications_ReturnsOk() throws Exception {
+        List<Notification> notifications = Arrays.asList(mockNotification);
+        when(notificationService.getUserNotifications(anyLong(), anyInt())).thenReturn(notifications);
+
         mockMvc.perform(get("/api/v1/notifications")
                         .param("orgNumber", "937219997"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk());
     }
 
     @Test

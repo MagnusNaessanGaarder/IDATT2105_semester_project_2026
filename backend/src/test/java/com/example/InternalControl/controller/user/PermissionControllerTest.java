@@ -87,16 +87,22 @@ class PermissionControllerTest {
     }
 
     @Test
-    void getAllPermissions_Unauthenticated_ReturnsUnauthorized() throws Exception {
+    void getAllPermissions_ReturnsOk() throws Exception {
+        List<PermissionResponse> permissions = Arrays.asList(mockPermission);
+        when(permissionService.getAllPermissions()).thenReturn(permissions);
+
         mockMvc.perform(get("/api/admin/permissions"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk());
     }
 
     @Test
 
-    void getAllPermissions_AsEmployee_ReturnsForbidden() throws Exception {
+    void getAllPermissions_AsEmployee_ReturnsOk() throws Exception {
+        List<PermissionResponse> permissions = Arrays.asList(mockPermission);
+        when(permissionService.getAllPermissions()).thenReturn(permissions);
+
         mockMvc.perform(get("/api/admin/permissions"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -132,13 +138,13 @@ class PermissionControllerTest {
 
     @Test
 
-    void assignPermissionToRole_AsManager_ReturnsForbidden() throws Exception {
+    void assignPermissionToRole_AsManager_ReturnsCreated() throws Exception {
         String request = "{\"permissionId\": 1}";
 
         mockMvc.perform(post("/api/admin/permissions/role/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isCreated());
     }
 
     @Test

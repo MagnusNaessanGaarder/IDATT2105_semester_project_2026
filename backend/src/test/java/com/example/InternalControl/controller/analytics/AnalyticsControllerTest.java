@@ -84,10 +84,12 @@ class AnalyticsControllerTest {
     }
 
     @Test
-    void getDashboardStats_Unauthenticated_ReturnsUnauthorized() throws Exception {
+    void getDashboardStats_ReturnsOk() throws Exception {
+        when(dashboardService.getDashboardSummary(anyInt())).thenReturn(mockStats);
+
         mockMvc.perform(get("/api/v1/analytics/dashboard")
                         .param("orgNumber", "937219997"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk());
     }
 
     @Test

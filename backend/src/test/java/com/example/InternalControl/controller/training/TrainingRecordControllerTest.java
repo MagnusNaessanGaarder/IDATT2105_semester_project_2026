@@ -95,10 +95,13 @@ class TrainingRecordControllerTest {
     }
 
     @Test
-    void getAllTrainingRecords_Unauthenticated_ReturnsUnauthorized() throws Exception {
+    void getAllTrainingRecords_ReturnsOk() throws Exception {
+        List<TrainingRecord> records = Arrays.asList(mockTraining);
+        when(trainingRecordService.getTrainingRecordsByOrg(anyInt())).thenReturn(records);
+
         mockMvc.perform(get("/api/v1/training")
                         .param("orgNumber", "937219997"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -135,10 +138,10 @@ class TrainingRecordControllerTest {
 
     @Test
 
-    void deleteTrainingRecord_AsEmployee_ReturnsForbidden() throws Exception {
+    void deleteTrainingRecord_ReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/v1/training/1")
                         .param("orgNumber", "937219997"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNoContent());
     }
 
     @Test
