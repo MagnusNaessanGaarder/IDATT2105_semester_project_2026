@@ -5,11 +5,11 @@ import com.example.InternalControl.model.training.TrainingRecord;
 import com.example.InternalControl.model.training.TrainingStatus;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.training.TrainingRecordService;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,9 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author TriTacLe
  * @since 1.0
  */
-@WebMvcTest(TrainingRecordController.class)
+@WebMvcTest(controllers = TrainingRecordController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
-@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 class TrainingRecordControllerTest {
 
     @Autowired
@@ -47,6 +46,9 @@ class TrainingRecordControllerTest {
 
     @MockBean
     private JwtService jwtService;
+
+    @MockBean
+    private UserOrganizationService userOrgService;
 
     private TrainingRecord mockTraining;
 

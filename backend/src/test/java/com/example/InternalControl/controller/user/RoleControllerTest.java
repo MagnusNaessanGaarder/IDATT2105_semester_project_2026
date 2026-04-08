@@ -6,10 +6,13 @@ import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.AppUserRepository;
 import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
+import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.security.UserSecurity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Unit tests for RoleController.
  */
-@WebMvcTest(RoleController.class)
+@WebMvcTest(controllers = RoleController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 class RoleControllerTest {
 
@@ -41,6 +44,9 @@ class RoleControllerTest {
 
     @MockBean
     private UserOrganizationRoleRepository userOrgRoleRepository;
+
+    @MockBean
+    private JwtService jwtService;
 
     private Role adminRole;
     private Role managerRole;

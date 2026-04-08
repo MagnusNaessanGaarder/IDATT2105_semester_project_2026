@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -32,9 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author TriTacLe
  * @since 1.0
  */
-@WebMvcTest(TemperatureLogController.class)
+@WebMvcTest(controllers = TemperatureLogController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
-@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 class TemperatureLogControllerTest {
 
     @Autowired
@@ -48,6 +46,9 @@ class TemperatureLogControllerTest {
 
     @MockBean
     private JwtService jwtService;
+
+    @MockBean
+    private com.example.InternalControl.service.user.UserOrganizationService userOrgService;
 
     private TemperatureLogEntryResponse mockEntry;
     private TemperatureLogPointResponse mockPoint;

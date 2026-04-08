@@ -3,10 +3,13 @@ package com.example.InternalControl.controller.document;
 import com.example.InternalControl.model.document.OrganizationDocument;
 import com.example.InternalControl.repository.document.OrganizationDocumentRepository;
 import com.example.InternalControl.repository.document.OrganizationDocumentVersionRepository;
+import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.document.DocumentService;
 import com.example.InternalControl.service.storage.BlobStorageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -26,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author TriTacLe
  * @since 1.0
  */
-@WebMvcTest(FileController.class)
+@WebMvcTest(controllers = FileController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 class FileControllerTest {
 
@@ -44,6 +47,12 @@ class FileControllerTest {
 
     @MockBean
     private OrganizationDocumentVersionRepository versionRepo;
+
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private com.example.InternalControl.service.user.UserOrganizationService userOrgService;
 
     @Test
     @WithMockUser(roles = {"EMPLOYEE"})

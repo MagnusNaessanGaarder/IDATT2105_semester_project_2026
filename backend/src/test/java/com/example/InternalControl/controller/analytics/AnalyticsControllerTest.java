@@ -3,10 +3,10 @@ package com.example.InternalControl.controller.analytics;
 import com.example.InternalControl.dto.analytics.DashboardSummaryResponse;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.analytics.DashboardService;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -24,9 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author TriTacLe
  * @since 1.0
  */
-@WebMvcTest(AnalyticsController.class)
+@WebMvcTest(controllers = AnalyticsController.class, excludeAutoConfiguration = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
-@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 class AnalyticsControllerTest {
 
     @Autowired
@@ -37,6 +36,9 @@ class AnalyticsControllerTest {
 
     @MockBean
     private JwtService jwtService;
+
+    @MockBean
+    private UserOrganizationService userOrgService;
 
     private DashboardSummaryResponse mockStats;
 
