@@ -5,7 +5,7 @@ export default defineConfig({
     specPattern: 'cypress/e2e/**/*.cy.ts',
     baseUrl: 'http://localhost:5173',
     env: {
-      apiUrl: 'http://localhost:8080/api'
+      apiUrl: 'http://localhost:8080/api/v1'
     },
     setupNodeEvents(on, config) {
       on('task', {

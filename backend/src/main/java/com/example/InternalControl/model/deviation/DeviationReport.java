@@ -6,6 +6,7 @@ import com.example.InternalControl.model.enums.Severity;
 import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.model.document.OrganizationDocument;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -147,6 +148,7 @@ public class DeviationReport {
   @JoinTable(name = "deviation_report_document", joinColumns = @JoinColumn(name = "report_id"), inverseJoinColumns = @JoinColumn(name = "document_id"))
   @JsonIgnore
   @Builder.Default
+  @JsonIgnore
   private Set<OrganizationDocument> documents = new HashSet<>();
 
   public void addDocument(OrganizationDocument document) {

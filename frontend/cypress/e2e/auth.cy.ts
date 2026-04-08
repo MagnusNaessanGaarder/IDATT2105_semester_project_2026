@@ -42,8 +42,8 @@ describe('Authentication Flow', () => {
       cy.get('input#email').clear()
       cy.get('input#password').clear()
       
-      // Type credentials
-      cy.get('input#email').type('admin@everest-sushi.no')
+      // Type credentials (using admin2 which has working password)
+      cy.get('input#email').type('admin2@everest-sushi.no')
       cy.get('input#password').type('Test1234!')
       
       // Submit form
@@ -56,7 +56,7 @@ describe('Authentication Flow', () => {
       cy.window().then((win) => {
         expect(win.sessionStorage.getItem('accessToken')).to.not.be.null
         expect(win.sessionStorage.getItem('refreshToken')).to.not.be.null
-        expect(win.sessionStorage.getItem('email')).to.equal('admin@everest-sushi.no')
+        expect(win.sessionStorage.getItem('email')).to.equal('admin2@everest-sushi.no')
         expect(win.sessionStorage.getItem('role')).to.equal('ADMIN')
       })
     })
@@ -142,7 +142,7 @@ describe('Authentication Flow', () => {
     it('should clear session and redirect to login on logout', () => {
       // First login for real
       cy.visit('/login')
-      cy.get('input#email').clear().type('admin@everest-sushi.no')
+      cy.get('input#email').clear().type('admin2@everest-sushi.no')
       cy.get('input#password').clear().type('Test1234!')
       cy.get('button[type="submit"]').click()
       

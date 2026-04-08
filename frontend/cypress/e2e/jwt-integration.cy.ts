@@ -6,7 +6,7 @@
 
 describe('JWT Authentication Integration', () => {
   const testUser = {
-    email: 'admin@everest-sushi.no',
+    email: 'admin2@everest-sushi.no',
     password: 'Test1234!',
     role: 'ADMIN'
   }
