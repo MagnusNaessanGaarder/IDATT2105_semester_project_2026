@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 
 /**
  * Response DTO for export job status and result.
-
  */
 @Data
 @Builder
@@ -25,4 +24,6 @@ public class ExportResponse {
   private String failureReason;
   private LocalDateTime requestedAt;
   private LocalDateTime completedAt;
+  private String requestedByDisplayName;
+  private String parametersJson;
 }
