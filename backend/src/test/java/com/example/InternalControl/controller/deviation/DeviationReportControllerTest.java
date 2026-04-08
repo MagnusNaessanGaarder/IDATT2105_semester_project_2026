@@ -18,6 +18,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -59,12 +63,17 @@ class DeviationReportControllerTest {
 
     @BeforeEach
     void setUp() {
-        userDetails = new CustomUserDetails(1L, "test@example.com", "password", Collections.emptyList());
+        userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+    // @WithMockUser(roles = {"EMPLOYEE"})
     void getReports_WithValidRequest_ReturnsReports() throws Exception {
         // Given
         DeviationReport report = DeviationReport.builder()
@@ -86,7 +95,7 @@ class DeviationReportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+    // @WithMockUser(roles = {"EMPLOYEE"})
     void getReport_WithValidId_ReturnsReport() throws Exception {
         // Given
         DeviationReport report = DeviationReport.builder()
@@ -107,7 +116,7 @@ class DeviationReportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+    // @WithMockUser(roles = {"EMPLOYEE"})
     void createReport_WithValidRequest_ReturnsCreatedReport() throws Exception {
         // Given
         DeviationReportCreateRequest request = DeviationReportCreateRequest.builder()
@@ -137,7 +146,7 @@ class DeviationReportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+    // @WithMockUser(roles = {"MANAGER"})
     void getReportsByStatus_WithValidStatus_ReturnsReports() throws Exception {
         // Given
         DeviationReport report = DeviationReport.builder()
@@ -157,7 +166,7 @@ class DeviationReportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+    // @WithMockUser(roles = {"EMPLOYEE"})
     void getOpenReportCount_ReturnsCount() throws Exception {
         // Given
         when(deviationReportService.getOpenReportCount(123456789))
@@ -171,7 +180,7 @@ class DeviationReportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+    // @WithMockUser(roles = {"EMPLOYEE"})
     void getReports_WithServiceError_ReturnsNotFound() throws Exception {
         // Given
         when(deviationReportService.getReportsByOrg(123456789))
@@ -184,7 +193,7 @@ class DeviationReportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+    // @WithMockUser(roles = {"EMPLOYEE"})
     void getReports_WithInvalidOrgNumber_ReturnsNotFound() throws Exception {
         // Given
         when(userOrgService.isUserInOrganization(anyLong(), anyInt()))
