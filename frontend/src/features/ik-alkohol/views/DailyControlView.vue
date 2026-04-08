@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useAlkoholData } from '../composables/useAlkoholData'
 import { useAuthStore } from '@/stores/auth'
 import ControllItem from '../components/ControllItem.vue'
@@ -10,7 +10,7 @@ import type { DailyControlItem } from '../composables/useAlkoholData'
 const { dailyControls } = useAlkoholData()
 const authStore = useAuthStore()
 
-const controls = ref(dailyControls.map((item) => ({ ...item })))
+const controls = ref<DailyControlItem[]>([])
 const filter = ref<'all' | 'checked' | 'pending'>('all')
 const isAdmin = computed(() => authStore.isAdmin)
 
@@ -192,6 +192,14 @@ const filteredControls = computed(() => {
 
   return controls.value
 })
+
+watch(
+  dailyControls,
+  (items) => {
+    controls.value = items.map((item) => ({ ...item }))
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

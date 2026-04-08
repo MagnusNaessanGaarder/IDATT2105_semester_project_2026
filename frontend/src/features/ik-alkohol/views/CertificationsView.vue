@@ -6,14 +6,14 @@ const { certificationTypes, employees, certificateCounts, certificateStatus, for
 
 const statusCount = computed(() => {
   return {
-    Gyldig: certificateCounts.Gyldig,
-    UtløperSnart: certificateCounts['Utløper snart'],
-    Utgått: certificateCounts.Utgått,
+    Gyldig: certificateCounts.value.Gyldig,
+    UtløperSnart: certificateCounts.value['Utløper snart'],
+    Utgått: certificateCounts.value.Utgått,
   }
 })
 
 const rows = computed(() => {
-  return employees.flatMap((employee) => {
+  return employees.value.flatMap((employee) => {
     if (employee.certifications.length === 0) {
       return [
         {
