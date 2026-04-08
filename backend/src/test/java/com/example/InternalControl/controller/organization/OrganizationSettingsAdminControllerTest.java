@@ -2,8 +2,10 @@ package com.example.InternalControl.controller.organization;
 
 import com.example.InternalControl.dto.settings.OrganizationSettingsRequest;
 import com.example.InternalControl.dto.settings.OrganizationSettingsResponse;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.settings.OrganizationSettingsService;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,11 +16,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -45,15 +49,27 @@ class OrganizationSettingsAdminControllerTest {
     @MockBean
     private JwtService jwtService;
 
+    @MockBean
+    private UserOrganizationService userOrgService;
+
     private OrganizationSettingsResponse mockSettings;
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Mock userOrgService to return true for organization access
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+        
         mockSettings = new OrganizationSettingsResponse();
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getSettings_AsAdmin_ReturnsOk() throws Exception {
         when(settingsService.getSettings(anyInt())).thenReturn(mockSettings);
 
@@ -65,7 +81,7 @@ class OrganizationSettingsAdminControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void getSettings_AsManager_ReturnsOk() throws Exception {
         when(settingsService.getSettings(anyInt())).thenReturn(mockSettings);
 
@@ -82,7 +98,7 @@ class OrganizationSettingsAdminControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void updateSettings_ValidRequest_ReturnsOk() throws Exception {
         when(settingsService.updateSettings(anyInt(), any(), anyLong())).thenReturn(mockSettings);
 
@@ -99,7 +115,7 @@ class OrganizationSettingsAdminControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void updateSettings_AsEmployee_ReturnsForbidden() throws Exception {
         OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
                 .timezoneName("Europe/London")

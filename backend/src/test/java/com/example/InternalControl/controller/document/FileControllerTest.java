@@ -3,9 +3,11 @@ package com.example.InternalControl.controller.document;
 import com.example.InternalControl.model.document.OrganizationDocument;
 import com.example.InternalControl.repository.document.OrganizationDocumentRepository;
 import com.example.InternalControl.repository.document.OrganizationDocumentVersionRepository;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.document.DocumentService;
 import com.example.InternalControl.service.storage.BlobStorageService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -13,9 +15,13 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -54,8 +60,19 @@ class FileControllerTest {
     @MockBean
     private com.example.InternalControl.service.user.UserOrganizationService userOrgService;
 
+    @BeforeEach
+    void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Mock userOrgService to return true for organization access
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+    }
+
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
     void listDocuments_WithValidOrgNumber_ReturnsDocuments() throws Exception {
         // Given
         OrganizationDocument doc = new OrganizationDocument();
@@ -74,7 +91,7 @@ class FileControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void listDocuments_WithCategoryFilter_ReturnsFilteredDocuments() throws Exception {
         // Given
         OrganizationDocument doc = new OrganizationDocument();
@@ -94,7 +111,7 @@ class FileControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void listDocuments_WithNoDocuments_ReturnsEmptyList() throws Exception {
         // Given
         when(documentRepo.findByOrgNumberAndActiveTrue(123456789))

@@ -1,6 +1,7 @@
 package com.example.InternalControl.controller.organization;
 
 import com.example.InternalControl.model.organization.Location;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.organization.LocationService;
 import com.example.InternalControl.service.user.UserOrganizationService;
@@ -14,10 +15,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -52,11 +57,20 @@ class LocationControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Mock userOrgService to return true for organization access
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+        
         mockLocation = new Location();
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getAllLocations_AsAdmin_ReturnsOk() throws Exception {
         List<Location> locations = Arrays.asList(mockLocation);
         when(locationService.getLocationsByOrg(anyInt())).thenReturn(locations);
@@ -68,7 +82,7 @@ class LocationControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void getAllLocations_AsManager_ReturnsOk() throws Exception {
         List<Location> locations = Arrays.asList(mockLocation);
         when(locationService.getLocationsByOrg(anyInt())).thenReturn(locations);
@@ -86,7 +100,7 @@ class LocationControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getLocationById_ExistingLocation_ReturnsOk() throws Exception {
         when(locationService.getLocationById(anyLong())).thenReturn(mockLocation);
 
@@ -95,7 +109,7 @@ class LocationControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void createLocation_ValidRequest_ReturnsCreated() throws Exception {
         when(locationService.createLocation(any(), anyInt())).thenReturn(mockLocation);
 
@@ -107,7 +121,7 @@ class LocationControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void createLocation_AsEmployee_ReturnsForbidden() throws Exception {
         mockMvc.perform(post("/api/v1/locations")
                         .param("orgNumber", "937219997")
@@ -117,7 +131,7 @@ class LocationControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void updateLocation_ValidRequest_ReturnsOk() throws Exception {
         when(locationService.updateLocation(anyLong(), any())).thenReturn(mockLocation);
 
@@ -128,7 +142,7 @@ class LocationControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void deleteLocation_ReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/v1/locations/1"))
                 .andExpect(status().isNoContent());

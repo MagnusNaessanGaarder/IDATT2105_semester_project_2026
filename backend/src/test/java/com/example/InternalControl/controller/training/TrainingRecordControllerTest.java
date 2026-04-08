@@ -3,6 +3,7 @@ package com.example.InternalControl.controller.training;
 import com.example.InternalControl.dto.training.TrainingRecordRequest;
 import com.example.InternalControl.model.training.TrainingRecord;
 import com.example.InternalControl.model.training.TrainingStatus;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.training.TrainingRecordService;
 import com.example.InternalControl.service.user.UserOrganizationService;
@@ -16,10 +17,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -54,11 +59,20 @@ class TrainingRecordControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Mock userOrgService to return true for organization access
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+        
         mockTraining = new TrainingRecord();
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getAllTrainingRecords_AsAdmin_ReturnsOk() throws Exception {
         List<TrainingRecord> records = Arrays.asList(mockTraining);
         when(trainingRecordService.getTrainingRecordsByOrg(anyInt())).thenReturn(records);
@@ -70,7 +84,7 @@ class TrainingRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void getAllTrainingRecords_AsManager_ReturnsOk() throws Exception {
         List<TrainingRecord> records = Arrays.asList(mockTraining);
         when(trainingRecordService.getTrainingRecordsByOrg(anyInt())).thenReturn(records);
@@ -88,7 +102,7 @@ class TrainingRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getTrainingRecordById_Existing_ReturnsOk() throws Exception {
         when(trainingRecordService.getTrainingRecord(anyLong(), anyInt())).thenReturn(mockTraining);
 
@@ -98,7 +112,7 @@ class TrainingRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getTrainingRecordsByUser_ReturnsUserRecords() throws Exception {
         List<TrainingRecord> records = Arrays.asList(mockTraining);
         when(trainingRecordService.getTrainingRecordsByUser(anyLong())).thenReturn(records);
@@ -108,7 +122,7 @@ class TrainingRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getExpiringTraining_ReturnsExpiringRecords() throws Exception {
         List<TrainingRecord> records = Arrays.asList(mockTraining);
         when(trainingRecordService.getExpiringTrainingRecords(anyInt(), anyInt())).thenReturn(records);
@@ -120,7 +134,7 @@ class TrainingRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void deleteTrainingRecord_AsEmployee_ReturnsForbidden() throws Exception {
         mockMvc.perform(delete("/api/v1/training/1")
                         .param("orgNumber", "937219997"))
@@ -128,7 +142,7 @@ class TrainingRecordControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getTrainingStatistics_AsAdmin_ReturnsOk() throws Exception {
         when(trainingRecordService.getExpiringCount(anyInt())).thenReturn(5L);
 

@@ -3,6 +3,7 @@ package com.example.InternalControl.controller.notification;
 import com.example.InternalControl.dto.notification.NotificationDeliveryResponse;
 import com.example.InternalControl.model.notification.DeliveryChannel;
 import com.example.InternalControl.model.notification.DeliveryStatus;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.notification.NotificationDeliveryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,11 +17,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -49,6 +54,12 @@ class NotificationDeliveryControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
         mockDelivery = NotificationDeliveryResponse.builder()
                 .deliveryId(1L)
                 .notificationId(1L)
@@ -59,7 +70,7 @@ class NotificationDeliveryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getDeliveryStatus_AsAdmin_ReturnsOk() throws Exception {
         List<NotificationDeliveryResponse> deliveries = Arrays.asList(mockDelivery);
         when(deliveryService.getDeliveriesByNotificationId(anyLong())).thenReturn(deliveries);
@@ -70,7 +81,7 @@ class NotificationDeliveryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void getDeliveryStatus_AsManager_ReturnsOk() throws Exception {
         List<NotificationDeliveryResponse> deliveries = Arrays.asList(mockDelivery);
         when(deliveryService.getDeliveriesByNotificationId(anyLong())).thenReturn(deliveries);
@@ -86,21 +97,21 @@ class NotificationDeliveryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void retryFailedDeliveries_AsAdmin_ReturnsOk() throws Exception {
         mockMvc.perform(post("/api/v1/notifications/delivery/1/retry"))
                 .andExpect(status().isAccepted());
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void retryFailedDeliveries_AsEmployee_ReturnsForbidden() throws Exception {
         mockMvc.perform(post("/api/v1/notifications/delivery/1/retry"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getPendingDeliveries_AsAdmin_ReturnsOk() throws Exception {
         List<NotificationDeliveryResponse> deliveries = Arrays.asList(mockDelivery);
         Page<NotificationDeliveryResponse> page = new PageImpl<>(deliveries);
@@ -111,7 +122,7 @@ class NotificationDeliveryControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getFailedDeliveries_AsAdmin_ReturnsOk() throws Exception {
         NotificationDeliveryResponse failedDelivery = NotificationDeliveryResponse.builder()
                 .deliveryId(1L)

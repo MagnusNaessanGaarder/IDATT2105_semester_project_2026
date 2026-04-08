@@ -18,7 +18,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -57,11 +60,18 @@ class ChecklistRunControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Mock userOrgService to return true for organization access
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getRuns_WithValidRequest_ReturnsRuns() throws Exception {
         // Given
         ChecklistRun run = ChecklistRun.builder()
@@ -81,7 +91,7 @@ class ChecklistRunControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getRuns_WithStatusFilter_ReturnsFilteredRuns() throws Exception {
         // Given
         ChecklistRun run = ChecklistRun.builder()
@@ -102,7 +112,7 @@ class ChecklistRunControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getRun_WithValidId_ReturnsRun() throws Exception {
         // Given
         ChecklistRun run = ChecklistRun.builder()
@@ -122,7 +132,7 @@ class ChecklistRunControllerTest {
 
     @Test
     @Disabled("Fails due to templateId field naming mismatch - needs entity fix")
-    @WithMockUser(roles = {"MANAGER"})
+
     void createRun_WithValidRequest_ReturnsCreatedRun() throws Exception {
         // Given
         ChecklistRunCreateRequest request = ChecklistRunCreateRequest.builder()
@@ -148,7 +158,7 @@ class ChecklistRunControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void completeRun_WithValidId_ReturnsCompletedRun() throws Exception {
         // Given
         ChecklistRun completed = ChecklistRun.builder()
@@ -167,7 +177,7 @@ class ChecklistRunControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getRunItems_WithValidId_ReturnsItems() throws Exception {
         // Given
         ChecklistRun run = ChecklistRun.builder()
@@ -185,7 +195,7 @@ class ChecklistRunControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getRuns_WithInvalidOrg_ReturnsNotFound() throws Exception {
         // Given
         when(userOrgService.isUserInOrganization(anyLong(), anyInt()))

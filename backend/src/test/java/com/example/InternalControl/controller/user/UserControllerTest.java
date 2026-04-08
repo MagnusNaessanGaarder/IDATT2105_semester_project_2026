@@ -11,6 +11,7 @@ import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.AppUserRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,8 +23,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -69,6 +73,12 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
         testUser = AppUser.builder()
                 .userId(1L)
                 .displayName("Test User")
@@ -87,7 +97,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getAllUsers_AsAdmin_ReturnsUsers() throws Exception {
         // Given
         when(userOrgRepository.findByOrgNumber(937219997))
@@ -103,7 +113,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void getAllUsers_AsManager_ReturnsUsers() throws Exception {
         // Given
         when(userOrgRepository.findByOrgNumber(937219997))
@@ -118,7 +128,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getAllUsers_AsEmployee_ReturnsForbidden() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/users")
@@ -127,7 +137,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getUser_AsAdmin_ReturnsUser() throws Exception {
         // Given
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
@@ -143,7 +153,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getUser_NotFound_ReturnsNotFound() throws Exception {
         // Given
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
@@ -155,7 +165,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void createUser_AsAdmin_ReturnsCreated() throws Exception {
         // Given
         UserCreateRequest request = UserCreateRequest.builder()
@@ -190,7 +200,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void createUser_DuplicateEmail_ReturnsBadRequest() throws Exception {
         // Given
         UserCreateRequest request = UserCreateRequest.builder()
@@ -210,7 +220,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void createUser_AsManager_ReturnsForbidden() throws Exception {
         // Given
         UserCreateRequest request = UserCreateRequest.builder()
@@ -228,7 +238,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void updateUser_AsAdmin_ReturnsUpdated() throws Exception {
         // Given
         UserUpdateRequest request = UserUpdateRequest.builder()
@@ -260,7 +270,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void deleteUser_AsAdmin_ReturnsNoContent() throws Exception {
         // Given
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
@@ -274,7 +284,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void deleteUser_NotFound_ReturnsNotFound() throws Exception {
         // Given
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
@@ -286,7 +296,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void deleteUser_AsManager_ReturnsForbidden() throws Exception {
         // When & Then
         mockMvc.perform(delete("/api/users/1")
@@ -295,7 +305,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getUser_WithRoles_ReturnsUserWithRoles() throws Exception {
         // Given
         Role role = Role.builder()

@@ -6,6 +6,7 @@ import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.AppUserRepository;
 import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.security.UserSecurity;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +17,10 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -54,6 +58,12 @@ class RoleControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
         adminRole = Role.builder()
                 .roleId(1L)
                 .roleName("ADMIN")
@@ -77,7 +87,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getAllRoles_AsAdmin_ReturnsAllRoles() throws Exception {
         // Given
         when(roleRepository.findAll())
@@ -93,7 +103,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void getAllRoles_AsManager_ReturnsAllRoles() throws Exception {
         // Given
         when(roleRepository.findAll())
@@ -106,7 +116,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getAllRoles_AsEmployee_ReturnsForbidden() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/admin/roles"))
@@ -114,7 +124,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getRole_AsAdmin_ReturnsRole() throws Exception {
         // Given
         when(roleRepository.findById(1L)).thenReturn(Optional.of(adminRole));
@@ -128,7 +138,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getRole_NotFound_ReturnsNotFound() throws Exception {
         // Given
         when(roleRepository.findById(999L)).thenReturn(Optional.empty());
@@ -139,7 +149,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getUserRoles_AsAdmin_ReturnsUserRoles() throws Exception {
         // Given
         UserOrganizationRole userRole = UserOrganizationRole.builder()
@@ -160,7 +170,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getUserRoles_NoRoles_ReturnsEmptyList() throws Exception {
         // Given
         when(userOrgRoleRepository.findByUserIdAndOrgNumber(1L, 937219997))
@@ -174,7 +184,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void getUserRoles_AsManager_ReturnsUserRoles() throws Exception {
         // Given
         when(userOrgRoleRepository.findByUserIdAndOrgNumber(1L, 937219997))
@@ -187,7 +197,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getUserRoles_AsEmployee_ReturnsForbidden() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/admin/roles/user/1")
@@ -196,7 +206,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void assignRoleToUser_AsAdmin_ReturnsCreated() throws Exception {
         // Given
         when(userOrgRoleRepository.existsByUserIdAndOrgNumberAndRoleId(1L, 937219997, 2L))
@@ -212,7 +222,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void assignRoleToUser_AlreadyAssigned_ReturnsOk() throws Exception {
         // Given
         when(userOrgRoleRepository.existsByUserIdAndOrgNumberAndRoleId(1L, 937219997, 2L))
@@ -226,7 +236,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void assignRoleToUser_AsManager_ReturnsForbidden() throws Exception {
         // When & Then
         mockMvc.perform(post("/api/admin/roles/user/1")
@@ -236,7 +246,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void removeRoleFromUser_AsAdmin_ReturnsNoContent() throws Exception {
         // Given
         UserOrganizationRole userRole = UserOrganizationRole.builder()
@@ -256,7 +266,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void removeRoleFromUser_NotFound_ReturnsNotFound() throws Exception {
         // Given
         when(userOrgRoleRepository.findByUserIdAndOrgNumberAndRoleId(1L, 937219997, 999L))
@@ -270,7 +280,7 @@ class RoleControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void removeRoleFromUser_AsManager_ReturnsForbidden() throws Exception {
         // When & Then
         mockMvc.perform(delete("/api/admin/roles/user/1")

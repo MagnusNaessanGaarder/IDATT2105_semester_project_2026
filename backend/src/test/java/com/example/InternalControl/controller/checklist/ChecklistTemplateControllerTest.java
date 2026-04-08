@@ -17,7 +17,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
@@ -55,11 +58,18 @@ class ChecklistTemplateControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Mock userOrgService to return true for organization access
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getTemplates_WithValidRequest_ReturnsTemplates() throws Exception {
         // Given
         ChecklistTemplate template = ChecklistTemplate.builder()
@@ -80,7 +90,7 @@ class ChecklistTemplateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getTemplate_WithValidId_ReturnsTemplate() throws Exception {
         // Given
         ChecklistTemplate template = ChecklistTemplate.builder()
@@ -100,7 +110,7 @@ class ChecklistTemplateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getTemplatesByModule_WithValidModule_ReturnsTemplates() throws Exception {
         // Given
         ChecklistTemplate template = ChecklistTemplate.builder()
@@ -120,7 +130,7 @@ class ChecklistTemplateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getActiveTemplates_ReturnsActiveTemplates() throws Exception {
         // Given
         ChecklistTemplate template = ChecklistTemplate.builder()
@@ -140,7 +150,7 @@ class ChecklistTemplateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void createTemplate_WithValidRequest_ReturnsCreatedTemplate() throws Exception {
         // Given
         ChecklistTemplateCreateRequest request = ChecklistTemplateCreateRequest.builder()
@@ -168,7 +178,7 @@ class ChecklistTemplateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void createTemplate_AsEmployee_ReturnsForbidden() throws Exception {
         // Given
         ChecklistTemplateCreateRequest request = ChecklistTemplateCreateRequest.builder()
@@ -184,7 +194,7 @@ class ChecklistTemplateControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void getTemplates_WithInvalidOrg_ReturnsNotFound() throws Exception {
         // Given
         when(userOrgService.isUserInOrganization(anyLong(), anyInt()))

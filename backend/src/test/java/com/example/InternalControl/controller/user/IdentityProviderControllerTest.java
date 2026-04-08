@@ -2,6 +2,7 @@ package com.example.InternalControl.controller.user;
 
 import com.example.InternalControl.dto.user.IdentityResponse;
 
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.user.IdentityProviderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,10 +15,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -50,11 +55,17 @@ class IdentityProviderControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
         mockIdentity = new IdentityResponse();
     }
 
     @Test
-    @WithMockUser
+
     void getUserIdentities_Authenticated_ReturnsOk() throws Exception {
         List<IdentityResponse> identities = Arrays.asList(mockIdentity);
         when(identityProviderService.getUserIdentities(anyLong())).thenReturn(identities);
@@ -71,7 +82,7 @@ class IdentityProviderControllerTest {
     }
 
     @Test
-    @WithMockUser
+
     void linkIdentity_ValidRequest_ReturnsCreated() throws Exception {
         when(identityProviderService.linkIdentity(anyLong(), any())).thenReturn(mockIdentity);
 
@@ -84,14 +95,14 @@ class IdentityProviderControllerTest {
     }
 
     @Test
-    @WithMockUser
+
     void unlinkIdentity_ReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/v1/identity/user/1/1"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @WithMockUser
+
     void getSupportedProviders_ReturnsOk() throws Exception {
         mockMvc.perform(get("/api/v1/identity/providers"))
                 .andExpect(status().isOk());

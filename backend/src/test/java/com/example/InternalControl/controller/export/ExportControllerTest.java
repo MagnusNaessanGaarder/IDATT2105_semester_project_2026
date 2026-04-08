@@ -5,6 +5,7 @@ import com.example.InternalControl.dto.export.response.ExportResponse;
 import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.model.export.ExportStatus;
 import com.example.InternalControl.model.export.ExportType;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.export.ExportService;
 import com.example.InternalControl.service.user.UserOrganizationService;
@@ -18,8 +19,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -53,6 +59,15 @@ class ExportControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Mock userOrgService to return true for organization access
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+        
         mockResponse = ExportResponse.builder()
                 .exportJobId(1L)
                 .exportType(ExportType.CHECKLIST_REPORT)
@@ -62,7 +77,7 @@ class ExportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void createExport_ValidRequest_ReturnsCreated() throws Exception {
         when(exportService.createExportJob(any(), anyInt(), anyLong())).thenReturn(mockResponse);
 
@@ -79,7 +94,7 @@ class ExportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getExportStatus_ExistingJob_ReturnsOk() throws Exception {
         when(exportService.getExportStatus(anyLong(), anyInt())).thenReturn(mockResponse);
 
@@ -90,7 +105,7 @@ class ExportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
+
     void getDownloadUrl_CompletedJob_ReturnsOk() throws Exception {
         when(exportService.getDownloadUrl(anyLong(), anyInt())).thenReturn("https://example.com/download");
 
@@ -113,7 +128,7 @@ class ExportControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void createExport_AsEmployee_ReturnsForbidden() throws Exception {
         ExportRequest request = new ExportRequest();
         request.setExportType(ExportType.CHECKLIST_REPORT);

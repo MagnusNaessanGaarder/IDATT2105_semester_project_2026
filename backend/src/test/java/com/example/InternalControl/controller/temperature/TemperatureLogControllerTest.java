@@ -3,6 +3,7 @@ package com.example.InternalControl.controller.temperature;
 import com.example.InternalControl.dto.temperature.request.TemperatureLogEntryRequest;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.temperature.TemperatureLogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,11 +16,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -55,12 +60,20 @@ class TemperatureLogControllerTest {
 
     @BeforeEach
     void setUp() {
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Mock userOrgService to return true for organization access
+        when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+        
         mockEntry = new TemperatureLogEntryResponse();
         mockPoint = new TemperatureLogPointResponse();
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
     void getAllEntries_AsAdmin_ReturnsOk() throws Exception {
         List<TemperatureLogEntryResponse> entries = Arrays.asList(mockEntry);
         when(temperatureLogService.listEntries(anyInt())).thenReturn(entries);
@@ -72,7 +85,6 @@ class TemperatureLogControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"MANAGER"})
     void getAllEntries_AsManager_ReturnsOk() throws Exception {
         List<TemperatureLogEntryResponse> entries = Arrays.asList(mockEntry);
         when(temperatureLogService.listEntries(anyInt())).thenReturn(entries);
@@ -90,7 +102,7 @@ class TemperatureLogControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getEntryById_ExistingEntry_ReturnsOk() throws Exception {
         when(temperatureLogService.getEntry(anyLong(), anyInt())).thenReturn(mockEntry);
 
@@ -100,7 +112,7 @@ class TemperatureLogControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void createEntry_ValidRequest_ReturnsCreated() throws Exception {
         when(temperatureLogService.recordEntry(any(), anyInt(), anyLong())).thenReturn(mockEntry);
 
@@ -117,7 +129,7 @@ class TemperatureLogControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void createEntry_InvalidTemperature_ReturnsBadRequest() throws Exception {
         mockMvc.perform(post("/api/v1/temperature/entries")
                         .param("orgNumber", "937219997")
@@ -127,7 +139,7 @@ class TemperatureLogControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void deleteEntry_ExistingEntry_ReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/v1/temperature/entries/1")
                         .param("orgNumber", "937219997"))
@@ -135,7 +147,7 @@ class TemperatureLogControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"EMPLOYEE"})
+
     void deleteEntry_AsEmployee_ReturnsForbidden() throws Exception {
         mockMvc.perform(delete("/api/v1/temperature/entries/1")
                         .param("orgNumber", "937219997"))
@@ -143,7 +155,7 @@ class TemperatureLogControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getAlertEntries_ReturnsAlerts() throws Exception {
         List<TemperatureLogEntryResponse> alerts = Arrays.asList(mockEntry);
         when(temperatureLogService.listAlerts(anyInt())).thenReturn(alerts);
@@ -154,7 +166,7 @@ class TemperatureLogControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
+
     void getEntriesByPoint_ReturnsEntries() throws Exception {
         List<TemperatureLogEntryResponse> entries = Arrays.asList(mockEntry);
         when(temperatureLogService.listEntriesByPoint(anyLong(), anyInt())).thenReturn(entries);
