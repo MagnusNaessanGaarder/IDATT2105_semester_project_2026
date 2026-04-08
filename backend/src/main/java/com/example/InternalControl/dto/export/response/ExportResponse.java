@@ -46,4 +46,10 @@ public class ExportResponse {
 
     @Schema(description = "Timestamp when export was completed")
     private LocalDateTime completedAt;
+
+    @Schema(description = "Display name of user that requested job")
+    private String requestedByDisplayName;
+
+    @Schema(description = "Supplied parameters (e.g. date range")
+    private String parametersJson;
 }
