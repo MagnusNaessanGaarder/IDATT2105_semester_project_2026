@@ -1,5 +1,6 @@
 package com.example.InternalControl.dto.user;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,9 +21,9 @@ import java.util.List;
 @AllArgsConstructor
 public class UserResponse {
 
-    private Long userId;
+    @Schema(description = "Unique identifier for the user") private Long userId;
     private String displayName;
-    private String email;
+    @Schema(description = "User's email address") private String email;
     private String phone;
     private Boolean isActive;
     private LocalDateTime createdAt;

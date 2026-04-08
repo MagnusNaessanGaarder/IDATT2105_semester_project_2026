@@ -7,6 +7,7 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistTemplateService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -53,6 +54,7 @@ public class ChecklistTemplateController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistTemplate>> getTemplates(
+            @Parameter(description = "Organization number identifying the tenant", required = true)
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -70,6 +72,7 @@ public class ChecklistTemplateController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistTemplate> getTemplate(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -87,7 +90,9 @@ public class ChecklistTemplateController {
     @GetMapping("/module/{moduleType}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistTemplate>> getTemplatesByModule(
+            @Parameter(description = "Module type (FOOD or ALCOHOL)", required = true)
             @PathVariable ModuleType moduleType,
+            @Parameter(description = "Organization number identifying the tenant", required = true)
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -104,6 +109,7 @@ public class ChecklistTemplateController {
     @GetMapping("/active")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistTemplate>> getActiveTemplates(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -122,6 +128,7 @@ public class ChecklistTemplateController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ChecklistTemplate> createTemplate(
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -157,6 +164,7 @@ public class ChecklistTemplateController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ChecklistTemplate> updateTemplate(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -185,6 +193,7 @@ public class ChecklistTemplateController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> deleteTemplate(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

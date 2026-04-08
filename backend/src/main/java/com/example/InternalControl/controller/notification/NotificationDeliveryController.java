@@ -43,6 +43,7 @@ public class NotificationDeliveryController {
     @GetMapping("/{notificationId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<NotificationDeliveryResponse>> getDeliveriesByNotification(
+            @Parameter(description = "Identifier of the notificationId")
             @PathVariable Long notificationId) {
         log.info("Getting deliveries for notification: {}", notificationId);
         return ResponseEntity.ok(deliveryService.getDeliveriesByNotificationId(notificationId));
@@ -58,6 +59,7 @@ public class NotificationDeliveryController {
     @GetMapping("/{notificationId}/status/{channel}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<NotificationDeliveryResponse> getDeliveryByChannel(
+            @Parameter(description = "Identifier of the notificationId")
             @PathVariable Long notificationId,
             @PathVariable DeliveryChannel channel) {
         log.info("Getting delivery for notification {} and channel {}", notificationId, channel);
@@ -74,6 +76,7 @@ public class NotificationDeliveryController {
     @PostMapping("/{notificationId}/retry")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> retryDeliveries(
+            @Parameter(description = "Identifier of the notificationId")
             @PathVariable Long notificationId,
             @RequestParam(required = false) DeliveryChannel channel) {
         log.info("Retrying deliveries for notification: {}, channel: {}", notificationId, channel);

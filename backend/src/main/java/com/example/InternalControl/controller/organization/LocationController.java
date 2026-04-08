@@ -5,6 +5,7 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.organization.LocationService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -38,6 +39,7 @@ public class LocationController {
       @ApiResponse(responseCode = "403", description = "Forbidden")
   })
   public ResponseEntity<List<Location>> getLocations(
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
@@ -54,6 +56,7 @@ public class LocationController {
       @ApiResponse(responseCode = "404", description = "Location not found")
   })
   public ResponseEntity<Location> getLocation(
+      @Parameter(description = "Identifier of the id")
       @PathVariable Long id,
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -77,6 +80,7 @@ public class LocationController {
   @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Location> createLocation(
       @Valid @RequestBody Location location,
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
@@ -96,6 +100,7 @@ public class LocationController {
   })
   @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Location> updateLocation(
+      @Parameter(description = "Identifier of the id")
       @PathVariable Long id,
       @Valid @RequestBody Location location,
       @RequestParam Integer orgNumber,
@@ -119,6 +124,7 @@ public class LocationController {
   })
   @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
   public ResponseEntity<Void> deleteLocation(
+      @Parameter(description = "Identifier of the id")
       @PathVariable Long id,
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {

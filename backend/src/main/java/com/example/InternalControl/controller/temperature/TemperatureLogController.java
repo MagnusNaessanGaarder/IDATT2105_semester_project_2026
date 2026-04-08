@@ -47,6 +47,7 @@ public class TemperatureLogController {
   @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   public ResponseEntity<TemperatureLogPointResponse> createLogPoint(
       @Valid @RequestBody TemperatureLogPointRequest request,
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
@@ -63,6 +64,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogPointResponse>> listLogPoints(
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
@@ -79,6 +81,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogPointResponse>> listActiveLogPoints(
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
@@ -153,6 +156,7 @@ public class TemperatureLogController {
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<TemperatureLogEntryResponse> recordEntry(
       @Valid @RequestBody TemperatureLogEntryRequest request,
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
@@ -169,6 +173,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listEntries(
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
@@ -185,6 +190,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<Page<TemperatureLogEntryResponse>> listEntriesPaginated(
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       Pageable pageable,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -221,6 +227,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listEntriesByDateRange(
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       @RequestParam LocalDateTime from,
       @RequestParam LocalDateTime to,
@@ -257,6 +264,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listAlerts(
+      @Parameter(description = "The orgNumber parameter")
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();

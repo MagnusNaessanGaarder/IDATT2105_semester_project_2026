@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -59,9 +60,11 @@ public class ChecklistRunController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistRunResponse>> getRuns(
-            @RequestParam Integer orgNumber,
-            @RequestParam(required = false) RunStatus status,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+                @Parameter(description = "Organization number identifying the tenant", required = true)
+                @RequestParam Integer orgNumber,
+                @Parameter(description = "Filter by run status (optional)")
+                @RequestParam(required = false) RunStatus status,
+                @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
         validateUserOrganizationAccess(userId, orgNumber);
 
@@ -87,6 +90,7 @@ public class ChecklistRunController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistRunResponse> getRun(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -108,6 +112,7 @@ public class ChecklistRunController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ChecklistRunResponse> createRun(
             @Valid @RequestBody ChecklistRunCreateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -140,6 +145,7 @@ public class ChecklistRunController {
     @PutMapping("/{id}/complete")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistRunResponse> completeRun(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -161,9 +167,11 @@ public class ChecklistRunController {
     @PutMapping("/{runId}/items/{itemId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ChecklistRunItemResponse> updateRunItem(
+            @Parameter(description = "Identifier of the runId")
             @PathVariable Long runId,
             @PathVariable Long itemId,
             @Valid @RequestBody ChecklistRunItemUpdateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -192,6 +200,7 @@ public class ChecklistRunController {
     @GetMapping("/{id}/items")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistRunItemResponse>> getRunItems(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

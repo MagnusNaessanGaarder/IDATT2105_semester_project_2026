@@ -7,6 +7,7 @@ import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,8 +25,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * REST controller for role management operations.
- * Provides endpoints for managing roles and user role assignments.
+ * REST controller for role management operations. Provides endpoints for
+ * managing roles and user role assignments.
  *
  * @author TriTacLe
  * @since 1.0
@@ -50,9 +51,9 @@ public class RoleController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all roles", description = "Retrieve all available roles in the system (ADMIN only)")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved roles"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved roles"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     public ResponseEntity<List<RoleResponse>> getAllRoles() {
         log.info("Getting all roles");
@@ -76,9 +77,10 @@ public class RoleController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get role by ID", description = "Retrieve a specific role by its ID (ADMIN only)")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved role"),
-            @ApiResponse(responseCode = "404", description = "Role not found")
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved role"),
+        @ApiResponse(responseCode = "404", description = "Role not found")
     })
+    @Parameter(description = "Identifier of the roleId")
     public ResponseEntity<RoleResponse> getRole(@PathVariable Long roleId) {
         log.info("Getting role: {}", roleId);
 
@@ -99,11 +101,12 @@ public class RoleController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get user roles", description = "Retrieve roles assigned to a specific user in an organization (ADMIN only)")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved user roles"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved user roles"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     public ResponseEntity<List<RoleResponse>> getUserRoles(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
         log.info("Getting roles for user: {} in organization: {}", userId, orgNumber);
@@ -130,11 +133,12 @@ public class RoleController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Assign role to user", description = "Assign a role to a user in an organization (ADMIN only)")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Role successfully assigned"),
-            @ApiResponse(responseCode = "200", description = "Role already assigned"),
-            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+        @ApiResponse(responseCode = "201", description = "Role successfully assigned"),
+        @ApiResponse(responseCode = "200", description = "Role already assigned"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<Void> assignRoleToUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber,
             @RequestParam Long roleId) {
@@ -174,11 +178,12 @@ public class RoleController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Remove role from user", description = "Remove a role from a user in an organization (ADMIN only)")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Role successfully removed"),
-            @ApiResponse(responseCode = "404", description = "User role assignment not found"),
-            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+        @ApiResponse(responseCode = "204", description = "Role successfully removed"),
+        @ApiResponse(responseCode = "404", description = "User role assignment not found"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<Void> removeRoleFromUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber,
             @RequestParam Long roleId) {

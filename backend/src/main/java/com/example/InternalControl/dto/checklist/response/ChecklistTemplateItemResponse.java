@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Response DTO for checklist template item.
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "ChecklistTemplateItemResponse", description = "DTO for ChecklistTemplateItemResponse")
 public class ChecklistTemplateItemResponse {
 
     private Long itemId;
