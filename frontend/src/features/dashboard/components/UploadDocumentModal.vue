@@ -110,8 +110,22 @@ function runValidation() {
   errors.value = errs
 }
 
-watch(title,       () => { if (errors.value.title)       errors.value = { ...errors.value, title:       validateTitle(title.value)             ?? '' } })
-watch(description, () => { if (errors.value.description) errors.value = { ...errors.value, description: validateDescription(description.value) ?? '' } })
+watch(title, () => {
+  if (errors.value.title) {
+    const e = validateTitle(title.value)
+    const updated = { ...errors.value }
+    if (e) updated.title = e; else delete updated.title
+    errors.value = updated
+  }
+})
+watch(description, () => {
+  if (errors.value.description) {
+    const e = validateDescription(description.value)
+    const updated = { ...errors.value }
+    if (e) updated.description = e; else delete updated.description
+    errors.value = updated
+  }
+})
 
 function applyFile(f: File) {
   const err = validateFile(f)
