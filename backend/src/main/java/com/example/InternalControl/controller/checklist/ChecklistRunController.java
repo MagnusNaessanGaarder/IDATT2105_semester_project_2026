@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -59,9 +60,11 @@ public class ChecklistRunController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<List<ChecklistRunResponse>> getRuns(
-            @RequestParam Integer orgNumber,
-            @RequestParam(required = false) RunStatus status,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+                @Parameter(description = "Organization number identifying the tenant", required = true)
+                @RequestParam Integer orgNumber,
+                @Parameter(description = "Filter by run status (optional)")
+                @RequestParam(required = false) RunStatus status,
+                @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
         validateUserOrganizationAccess(userId, orgNumber);
 
