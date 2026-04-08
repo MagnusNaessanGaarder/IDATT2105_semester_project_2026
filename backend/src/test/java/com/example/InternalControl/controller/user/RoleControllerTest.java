@@ -8,7 +8,6 @@ import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
-import com.example.InternalControl.security.UserSecurity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +86,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void getAllRoles_AsAdmin_ReturnsAllRoles() throws Exception {
         // Given
         when(roleRepository.findAll())
@@ -103,7 +101,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void getAllRoles_AsManager_ReturnsAllRoles() throws Exception {
         // Given
         when(roleRepository.findAll())
@@ -116,7 +113,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void getAllRoles_AsEmployee_ReturnsOk() throws Exception {
         // Given
         when(roleRepository.findAll())
@@ -128,7 +124,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void getRole_AsAdmin_ReturnsRole() throws Exception {
         // Given
         when(roleRepository.findById(1L)).thenReturn(Optional.of(adminRole));
@@ -142,7 +137,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void getRole_NotFound_ReturnsNotFound() throws Exception {
         // Given
         when(roleRepository.findById(999L)).thenReturn(Optional.empty());
@@ -153,7 +147,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void getUserRoles_AsAdmin_ReturnsUserRoles() throws Exception {
         // Given
         UserOrganizationRole userRole = UserOrganizationRole.builder()
@@ -174,7 +167,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void getUserRoles_NoRoles_ReturnsEmptyList() throws Exception {
         // Given
         when(userOrgRoleRepository.findByUserIdAndOrgNumber(1L, 937219997))
@@ -188,7 +180,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void getUserRoles_AsManager_ReturnsUserRoles() throws Exception {
         // Given
         when(userOrgRoleRepository.findByUserIdAndOrgNumber(1L, 937219997))
@@ -201,7 +192,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void getUserRoles_AsEmployee_ReturnsOk() throws Exception {
         // Given
         when(userOrgRoleRepository.findByUserIdAndOrgNumber(1L, 937219997))
@@ -214,7 +204,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void assignRoleToUser_AsAdmin_ReturnsCreated() throws Exception {
         // Given
         when(userOrgRoleRepository.existsByUserIdAndOrgNumberAndRoleId(1L, 937219997, 2L))
@@ -230,7 +219,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void assignRoleToUser_AlreadyAssigned_ReturnsOk() throws Exception {
         // Given
         when(userOrgRoleRepository.existsByUserIdAndOrgNumberAndRoleId(1L, 937219997, 2L))
@@ -244,7 +232,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void assignRoleToUser_AsManager_ReturnsCreated() throws Exception {
         // Given
         when(userOrgRoleRepository.existsByUserIdAndOrgNumberAndRoleId(1L, 937219997, 2L))
@@ -260,7 +247,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void removeRoleFromUser_AsAdmin_ReturnsNoContent() throws Exception {
         // Given
         UserOrganizationRole userRole = UserOrganizationRole.builder()
@@ -280,7 +266,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void removeRoleFromUser_NotFound_ReturnsNotFound() throws Exception {
         // Given
         when(userOrgRoleRepository.findByUserIdAndOrgNumberAndRoleId(1L, 937219997, 999L))
@@ -294,7 +279,6 @@ class RoleControllerTest {
     }
 
     @Test
-
     void removeRoleFromUser_AsManager_ReturnsNoContent() throws Exception {
         // Given
         UserOrganizationRole userRole = UserOrganizationRole.builder()

@@ -59,14 +59,14 @@ class PermissionControllerTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
         
-        mockPermission = new PermissionResponse();
-        mockPermission.setPermissionId(1L);
-        mockPermission.setPermissionKey("READ_DEVIATIONS");
-        mockPermission.setDescription("Can read deviation reports");
+        mockPermission = PermissionResponse.builder()
+                .permissionId(1L)
+                .permissionKey("READ_DEVIATIONS")
+                .description("Can read deviation reports")
+                .build();
     }
 
     @Test
-
     void getAllPermissions_AsAdmin_ReturnsOk() throws Exception {
         List<PermissionResponse> permissions = Arrays.asList(mockPermission);
         when(permissionService.getAllPermissions()).thenReturn(permissions);
@@ -77,7 +77,6 @@ class PermissionControllerTest {
     }
 
     @Test
-
     void getAllPermissions_AsManager_ReturnsOk() throws Exception {
         List<PermissionResponse> permissions = Arrays.asList(mockPermission);
         when(permissionService.getAllPermissions()).thenReturn(permissions);
@@ -96,7 +95,6 @@ class PermissionControllerTest {
     }
 
     @Test
-
     void getAllPermissions_AsEmployee_ReturnsOk() throws Exception {
         List<PermissionResponse> permissions = Arrays.asList(mockPermission);
         when(permissionService.getAllPermissions()).thenReturn(permissions);
@@ -106,7 +104,6 @@ class PermissionControllerTest {
     }
 
     @Test
-
     void getPermissionById_Existing_ReturnsOk() throws Exception {
         when(permissionService.getPermissionById(anyLong())).thenReturn(mockPermission);
 
@@ -116,7 +113,6 @@ class PermissionControllerTest {
     }
 
     @Test
-
     void getPermissionsByRole_ReturnsRolePermissions() throws Exception {
         List<PermissionResponse> permissions = Arrays.asList(mockPermission);
         when(permissionService.getPermissionsByRoleId(anyLong())).thenReturn(permissions);
@@ -126,7 +122,6 @@ class PermissionControllerTest {
     }
 
     @Test
-
     void assignPermissionToRole_ValidRequest_ReturnsCreated() throws Exception {
         String request = "{\"permissionId\": 1}";
 
@@ -137,7 +132,6 @@ class PermissionControllerTest {
     }
 
     @Test
-
     void assignPermissionToRole_AsManager_ReturnsCreated() throws Exception {
         String request = "{\"permissionId\": 1}";
 
@@ -148,7 +142,6 @@ class PermissionControllerTest {
     }
 
     @Test
-
     void removePermissionFromRole_ReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/admin/permissions/role/1/1"))
                 .andExpect(status().isNoContent());

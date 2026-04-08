@@ -97,7 +97,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void getAllUsers_AsAdmin_ReturnsUsers() throws Exception {
         // Given
         when(userOrgRepository.findByOrgNumber(937219997))
@@ -113,7 +112,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void getAllUsers_AsManager_ReturnsUsers() throws Exception {
         // Given
         when(userOrgRepository.findByOrgNumber(937219997))
@@ -128,7 +126,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void getAllUsers_AsEmployee_ReturnsOk() throws Exception {
         // Given
         when(userOrgRepository.findByOrgNumber(937219997))
@@ -143,7 +140,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void getUser_AsAdmin_ReturnsUser() throws Exception {
         // Given
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
@@ -159,7 +155,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void getUser_NotFound_ReturnsNotFound() throws Exception {
         // Given
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
@@ -171,7 +166,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void createUser_AsAdmin_ReturnsCreated() throws Exception {
         // Given
         UserCreateRequest request = UserCreateRequest.builder()
@@ -206,7 +200,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void createUser_DuplicateEmail_ReturnsBadRequest() throws Exception {
         // Given
         UserCreateRequest request = UserCreateRequest.builder()
@@ -226,7 +219,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void createUser_AsManager_ReturnsCreated() throws Exception {
         // Given
         UserCreateRequest request = UserCreateRequest.builder()
@@ -260,7 +252,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void updateUser_AsAdmin_ReturnsUpdated() throws Exception {
         // Given
         UserUpdateRequest request = UserUpdateRequest.builder()
@@ -292,7 +283,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void deleteUser_AsAdmin_ReturnsNoContent() throws Exception {
         // Given
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
@@ -306,7 +296,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void deleteUser_NotFound_ReturnsNotFound() throws Exception {
         // Given
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
@@ -318,7 +307,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void deleteUser_AsManager_ReturnsNoContent() throws Exception {
         // Given
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
@@ -332,7 +320,6 @@ class UserControllerTest {
     }
 
     @Test
-
     void getUser_WithRoles_ReturnsUserWithRoles() throws Exception {
         // Given
         Role role = Role.builder()

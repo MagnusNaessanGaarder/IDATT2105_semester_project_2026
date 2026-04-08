@@ -7,6 +7,7 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.document.DocumentService;
 import com.example.InternalControl.service.storage.BlobStorageService;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ class FileControllerTest {
     private JwtService jwtService;
 
     @MockBean
-    private com.example.InternalControl.service.user.UserOrganizationService userOrgService;
+    private UserOrganizationService userOrgService;
 
     @BeforeEach
     void setUp() {
@@ -68,7 +69,6 @@ class FileControllerTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
         
-        // Mock userOrgService to return true for organization access
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 
@@ -84,14 +84,13 @@ class FileControllerTest {
                 .thenReturn(List.of(doc));
 
         // When & Then
-        mockMvc.perform(get("/api/files")
-                        .header("X-Org-Number", "123456789"))
+        mockMvc.perform(get("/api/v1/files")
+                        .param("orgNumber", "123456789"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].documentId").value(1));
     }
 
     @Test
-
     void listDocuments_WithCategoryFilter_ReturnsFilteredDocuments() throws Exception {
         // Given
         OrganizationDocument doc = new OrganizationDocument();
@@ -103,23 +102,22 @@ class FileControllerTest {
                 .thenReturn(List.of(doc));
 
         // When & Then
-        mockMvc.perform(get("/api/files")
-                        .header("X-Org-Number", "123456789")
+        mockMvc.perform(get("/api/v1/files")
+                        .param("orgNumber", "123456789")
                         .param("category", "POLICY"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Policy Document"));
     }
 
     @Test
-
     void listDocuments_WithNoDocuments_ReturnsEmptyList() throws Exception {
         // Given
         when(documentRepo.findByOrgNumberAndActiveTrue(123456789))
                 .thenReturn(java.util.Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/files")
-                        .header("X-Org-Number", "123456789"))
+        mockMvc.perform(get("/api/v1/files")
+                        .param("orgNumber", "123456789"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());

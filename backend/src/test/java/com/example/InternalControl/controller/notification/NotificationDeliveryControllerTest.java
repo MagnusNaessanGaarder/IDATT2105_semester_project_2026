@@ -70,7 +70,6 @@ class NotificationDeliveryControllerTest {
     }
 
     @Test
-
     void getDeliveryStatus_AsAdmin_ReturnsOk() throws Exception {
         List<NotificationDeliveryResponse> deliveries = Arrays.asList(mockDelivery);
         when(deliveryService.getDeliveriesByNotificationId(anyLong())).thenReturn(deliveries);
@@ -81,7 +80,6 @@ class NotificationDeliveryControllerTest {
     }
 
     @Test
-
     void getDeliveryStatus_AsManager_ReturnsOk() throws Exception {
         List<NotificationDeliveryResponse> deliveries = Arrays.asList(mockDelivery);
         when(deliveryService.getDeliveriesByNotificationId(anyLong())).thenReturn(deliveries);
@@ -100,21 +98,18 @@ class NotificationDeliveryControllerTest {
     }
 
     @Test
-
     void retryFailedDeliveries_AsAdmin_ReturnsOk() throws Exception {
         mockMvc.perform(post("/api/v1/notifications/delivery/1/retry"))
                 .andExpect(status().isAccepted());
     }
 
     @Test
-
     void retryFailedDeliveries_ReturnsAccepted() throws Exception {
         mockMvc.perform(post("/api/v1/notifications/delivery/1/retry"))
                 .andExpect(status().isAccepted());
     }
 
     @Test
-
     void getPendingDeliveries_AsAdmin_ReturnsOk() throws Exception {
         List<NotificationDeliveryResponse> deliveries = Arrays.asList(mockDelivery);
         Page<NotificationDeliveryResponse> page = new PageImpl<>(deliveries);
@@ -125,7 +120,6 @@ class NotificationDeliveryControllerTest {
     }
 
     @Test
-
     void getFailedDeliveries_AsAdmin_ReturnsOk() throws Exception {
         NotificationDeliveryResponse failedDelivery = NotificationDeliveryResponse.builder()
                 .deliveryId(1L)

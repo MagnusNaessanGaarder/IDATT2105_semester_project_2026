@@ -67,7 +67,6 @@ class NotificationControllerTest {
     }
 
     @Test
-
     void getNotifications_Authenticated_ReturnsOk() throws Exception {
         List<Notification> notifications = Arrays.asList(mockNotification);
         when(notificationService.getUserNotifications(anyLong(), anyInt())).thenReturn(notifications);
@@ -89,7 +88,6 @@ class NotificationControllerTest {
     }
 
     @Test
-
     void getUnreadCount_Authenticated_ReturnsOk() throws Exception {
         when(notificationService.getUnreadCount(anyLong(), anyInt())).thenReturn(5L);
 
@@ -100,14 +98,12 @@ class NotificationControllerTest {
     }
 
     @Test
-
     void markAsRead_ValidId_ReturnsNoContent() throws Exception {
         mockMvc.perform(put("/api/v1/notifications/1/read"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-
     void markAllAsRead_ReturnsNoContent() throws Exception {
         mockMvc.perform(put("/api/v1/notifications/read-all")
                         .param("orgNumber", "937219997"))
@@ -115,7 +111,6 @@ class NotificationControllerTest {
     }
 
     @Test
-
     void getNotificationById_Existing_ReturnsOk() throws Exception {
         when(notificationService.getNotification(anyLong(), anyLong())).thenReturn(mockNotification);
 
@@ -125,7 +120,6 @@ class NotificationControllerTest {
     }
 
     @Test
-
     void deleteNotification_ReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/api/v1/notifications/1"))
                 .andExpect(status().isNoContent());

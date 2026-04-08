@@ -62,14 +62,15 @@ class OrganizationSettingsAdminControllerTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
         
-        // Mock userOrgService to return true for organization access
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
         
-        mockSettings = new OrganizationSettingsResponse();
+        mockSettings = OrganizationSettingsResponse.builder()
+                .orgNumber(937219997)
+                .timezoneName("Europe/Oslo")
+                .build();
     }
 
     @Test
-
     void getSettings_AsAdmin_ReturnsOk() throws Exception {
         when(settingsService.getSettings(anyInt())).thenReturn(mockSettings);
 
@@ -81,7 +82,6 @@ class OrganizationSettingsAdminControllerTest {
     }
 
     @Test
-
     void getSettings_AsManager_ReturnsOk() throws Exception {
         when(settingsService.getSettings(anyInt())).thenReturn(mockSettings);
 
@@ -100,7 +100,6 @@ class OrganizationSettingsAdminControllerTest {
     }
 
     @Test
-
     void updateSettings_ValidRequest_ReturnsOk() throws Exception {
         when(settingsService.updateSettings(anyInt(), any(), anyLong())).thenReturn(mockSettings);
 
@@ -117,7 +116,6 @@ class OrganizationSettingsAdminControllerTest {
     }
 
     @Test
-
     void updateSettings_ReturnsOk() throws Exception {
         when(settingsService.updateSettings(anyInt(), any(), anyLong())).thenReturn(mockSettings);
 

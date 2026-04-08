@@ -56,29 +56,28 @@ class AnalyticsControllerTest {
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
         
-        // Mock userOrgService to return true for organization access
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
         
-        mockStats = DashboardSummaryResponse.builder().build();
+        mockStats = DashboardSummaryResponse.builder()
+                .openDeviations(5)
+                .build();
     }
 
     @Test
-
     void getDashboardStats_AsAdmin_ReturnsOk() throws Exception {
         when(dashboardService.getDashboardSummary(anyInt())).thenReturn(mockStats);
 
-        mockMvc.perform(get("/api/v1/analytics/dashboard")
+        mockMvc.perform(get("/api/v1/analytics/dashboard/summary")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.openDeviations").value(5));
     }
 
     @Test
-
     void getDashboardStats_AsManager_ReturnsOk() throws Exception {
         when(dashboardService.getDashboardSummary(anyInt())).thenReturn(mockStats);
 
-        mockMvc.perform(get("/api/v1/analytics/dashboard")
+        mockMvc.perform(get("/api/v1/analytics/dashboard/summary")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk());
     }
@@ -87,15 +86,14 @@ class AnalyticsControllerTest {
     void getDashboardStats_ReturnsOk() throws Exception {
         when(dashboardService.getDashboardSummary(anyInt())).thenReturn(mockStats);
 
-        mockMvc.perform(get("/api/v1/analytics/dashboard")
+        mockMvc.perform(get("/api/v1/analytics/dashboard/summary")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk());
     }
 
     @Test
-
     void getComplianceReport_AsAdmin_ReturnsOk() throws Exception {
-        mockMvc.perform(get("/api/v1/analytics/compliance")
+        mockMvc.perform(get("/api/v1/analytics/compliance-score")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk());
     }
