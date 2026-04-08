@@ -28,16 +28,16 @@ class ApiRedirectControllerTest {
     private JwtService jwtService;
 
     @Test
-    void redirectToSwagger_ReturnsRedirect() throws Exception {
-        mockMvc.perform(get("/"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/swagger-ui/index.html"));
+    void redirectToVersionedApi_ReturnsPermanentRedirect() throws Exception {
+        mockMvc.perform(get("/api/users"))
+                .andExpect(status().isPermanentRedirect())
+                .andExpect(redirectedUrl("/api/v1/users"));
     }
 
     @Test
-    void redirectToSwagger_WithPath_ReturnsRedirect() throws Exception {
-        mockMvc.perform(get("/api"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/swagger-ui/index.html"));
+    void redirectToVersionedApi_WithQueryParams_ReturnsPermanentRedirect() throws Exception {
+        mockMvc.perform(get("/api/users?page=0"))
+                .andExpect(status().isPermanentRedirect())
+                .andExpect(redirectedUrl("/api/v1/users?page=0"));
     }
 }
