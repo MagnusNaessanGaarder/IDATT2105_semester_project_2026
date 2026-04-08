@@ -14,6 +14,14 @@
  */
 import { ref } from 'vue'
 
+type ApiErrorShape = {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
+
 export function useApi<T, Args extends unknown[] = unknown[]>(
   apiFn: (...args: Args) => Promise<T>
 ) {
@@ -29,6 +37,7 @@ export function useApi<T, Args extends unknown[] = unknown[]>(
       data.value = result
       return result
     } catch (e: unknown) {
+
       const err = e as { response?: { data?: { message?: string } } }
       error.value = err.response?.data?.message ?? 'Noe gikk galt'
       throw e

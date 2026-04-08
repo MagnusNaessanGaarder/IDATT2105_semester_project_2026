@@ -19,9 +19,14 @@
  */
 import { reactive, ref, watch } from 'vue'
 
-export function useForm<T extends Record<string, any>>(
+type ValidationRule<T extends Record<string, unknown>> = (
+  value: unknown,
+  values: T
+) => true | string
+
+export function useForm<T extends Record<string, unknown>>(
   initialValues: T,
-  validationRules: Record<string, ((value: any, values: T) => true | string)[]> = {}
+  validationRules: Record<string, ValidationRule<T>[]> = {}
 ) {
   const values = reactive({ ...initialValues })
   const errors = reactive<Record<string, string>>({})
@@ -31,10 +36,11 @@ export function useForm<T extends Record<string, any>>(
   function validate(): boolean {
     Object.keys(errors).forEach((key) => delete errors[key])
     let isValid = true
+    const typedValues = values as T
 
     for (const [field, rules] of Object.entries(validationRules)) {
       for (const rule of rules) {
-        const result = rule(values[field], values as T)
+        const result = rule(typedValues[field as keyof T], typedValues)
         if (result !== true) {
           errors[field] = result
           isValid = false

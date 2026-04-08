@@ -1,4 +1,5 @@
  
+ 
 describe('Authentication Flow', () => {
   beforeEach(() => {
     // Clear sessionStorage before each test
@@ -54,8 +55,8 @@ describe('Authentication Flow', () => {
       
       // Should store tokens in sessionStorage
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.not.be.null
-        expect(win.sessionStorage.getItem('refreshToken')).to.not.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
+        expect(win.sessionStorage.getItem('refreshToken')).to.not.equal(null)
         expect(win.sessionStorage.getItem('email')).to.equal('admin2@everest-sushi.no')
         expect(win.sessionStorage.getItem('role')).to.equal('ADMIN')
       })
@@ -142,8 +143,10 @@ describe('Authentication Flow', () => {
     it('should clear session and redirect to login on logout', () => {
       // First login for real
       cy.visit('/login')
-      cy.get('input#email').clear().type('admin2@everest-sushi.no')
-      cy.get('input#password').clear().type('Test1234!')
+      cy.get('input#email').clear()
+      cy.get('input#email').type('admin2@everest-sushi.no')
+      cy.get('input#password').clear()
+      cy.get('input#password').type('Test1234!')
       cy.get('button[type="submit"]').click()
       
       // Wait for login to complete
@@ -151,7 +154,7 @@ describe('Authentication Flow', () => {
       
       // Verify we're logged in
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.not.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
       })
       
       // Clear session to simulate logout
@@ -164,8 +167,8 @@ describe('Authentication Flow', () => {
       
       // Verify session is cleared
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.be.null
-        expect(win.sessionStorage.getItem('email')).to.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.equal(null)
+        expect(win.sessionStorage.getItem('email')).to.equal(null)
       })
 
       // Should be on login page
