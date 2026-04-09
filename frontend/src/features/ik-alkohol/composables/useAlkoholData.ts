@@ -58,6 +58,25 @@ const demands = ref<DemandItem[]>([])
 const isLoading = ref(false)
 const hasLoaded = ref(false)
 
+interface ChecklistRunItemApi {
+  runItemId?: number
+  templateItemId?: number
+  templateItemLabel?: string | null
+  booleanValue?: boolean | null
+  commentText?: string | null
+  updatedAt?: string | null
+  createdAt?: string | null
+}
+
+interface ChecklistRunApi extends ChecklistRun {
+  runId?: number
+  templateTitle?: string | null
+  performedByUserId?: number | null
+  assignedToUserId?: number | null
+  runDate?: string | null
+  items?: ChecklistRunItemApi[]
+}
+
 const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
 
 const asBoolean = (value: unknown): boolean => value === true
@@ -85,21 +104,28 @@ const toCompletionDateParts = (value: unknown) => {
   }
 }
 
-const mapRunToDailyControl = (run: ChecklistRun, index: number): DailyControlItem => {
-  const source = run as Record<string, unknown>
+const mapRunItemToDailyControl = (
+  run: ChecklistRunApi,
+  item: ChecklistRunItemApi,
+  index: number,
+): DailyControlItem => {
   const completionDate = toCompletionDateParts(
-    source.completedAt ?? source.updatedAt ?? source.createdAt ?? source.runDate,
+    item.updatedAt ?? item.createdAt ?? run.runDate,
   )
 
   return {
-    id: Number(source.id ?? index + 1),
-    name: asString(source.templateTitle ?? source.name ?? source.title) || `Run ${index + 1}`,
-    law_unit: asString(source.status) || 'Ukjent status',
-    employee: asString(source.performedByUserId ?? source.assignedToUserId) || 'Ukjent',
-    comment: asString(source.notes ?? source.description ?? source.comment),
+    id: Number(item.runItemId ?? `${run.runId ?? 0}${index + 1}`),
+    name:
+      asString(item.templateItemLabel) ||
+      (item.templateItemId ? `Kontrollpunkt ${item.templateItemId}` : '') ||
+      asString(run.templateTitle) ||
+      `Kontrollpunkt ${index + 1}`,
+    law_unit: asString(run.templateTitle) || 'Daglig alkoholkontroll',
+    employee: asString(run.performedByUserId ?? run.assignedToUserId) || 'Ukjent',
+    comment: asString(item.commentText),
     completion_date: completionDate,
     attachment: null,
-    is_checked: asBoolean(source.status === 'COMPLETED' || source.completed),
+    is_checked: asBoolean(item.booleanValue),
   }
 }
 
@@ -112,7 +138,11 @@ const loadRuns = async () => {
 
   try {
     const result = await getRuns()
-    dailyControls.value = result.ok ? result.data.map(mapRunToDailyControl) : []
+    dailyControls.value = result.ok
+      ? (result.data as ChecklistRunApi[]).flatMap((run) =>
+          (run.items ?? []).map((item, index) => mapRunItemToDailyControl(run, item, index)),
+        )
+      : []
   } catch {
     dailyControls.value = []
   } finally {
