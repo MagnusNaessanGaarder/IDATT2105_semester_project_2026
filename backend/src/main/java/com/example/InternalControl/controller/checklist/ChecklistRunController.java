@@ -6,7 +6,6 @@ import com.example.InternalControl.dto.checklist.response.ChecklistRunItemRespon
 import com.example.InternalControl.dto.checklist.response.ChecklistRunResponse;
 import com.example.InternalControl.model.checklist.ChecklistRun;
 import com.example.InternalControl.model.checklist.ChecklistRunItem;
-import com.example.InternalControl.model.checklist.ChecklistTemplateItem;
 import com.example.InternalControl.model.enums.RunStatus;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistRunService;
@@ -188,20 +187,11 @@ public class ChecklistRunController {
     }
 
     private ChecklistRunItemResponse mapToItemResponse(ChecklistRunItem item) {
-        String templateItemLabel = null;
-        if (item.getRun() != null && item.getRun().getTemplate() != null) {
-            templateItemLabel = item.getRun().getTemplate().getItems().stream()
-                    .filter(templateItem -> templateItem.getItemId().equals(item.getTemplateItemId()))
-                    .findFirst()
-                    .map(ChecklistTemplateItem::getLabel)
-                    .orElse(null);
-        }
-
         return ChecklistRunItemResponse.builder()
                 .runItemId(item.getRunItemId())
                 .runId(item.getRun() != null ? item.getRun().getRunId() : null)
                 .templateItemId(item.getTemplateItemId())
-                .templateItemLabel(templateItemLabel)
+                .templateItemLabel(null)
                 .booleanValue(item.getBooleanValue())
                 .textValue(item.getTextValue())
                 .numericValue(item.getNumericValue())

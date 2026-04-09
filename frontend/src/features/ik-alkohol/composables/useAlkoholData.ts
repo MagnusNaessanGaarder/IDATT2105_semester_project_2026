@@ -1,4 +1,5 @@
-import alkoholData from '@/data/ik-alkohol.json'
+import { computed, ref } from 'vue'
+import { getRuns, type ChecklistRun } from '../api/checklistsRun'
 
 export interface DailyControlItem {
   id: number
@@ -49,11 +50,76 @@ export type CertificateStatus = 'Gyldig' | 'Utløper snart' | 'Utgått'
 
 const SOON_DAYS = 120
 
-const dailyControls = alkoholData['daily-control'] as DailyControlItem[]
-const certificationTypes = alkoholData.certifications.types
-const employees = alkoholData.certifications.employees as EmployeeCertification[]
-const laws = alkoholData.law_framework.laws as LawItem[]
-const demands = alkoholData.law_framework.demands as DemandItem[]
+const dailyControls = ref<DailyControlItem[]>([])
+const certificationTypes = ref<string[]>([])
+const employees = ref<EmployeeCertification[]>([])
+const laws = ref<LawItem[]>([])
+const demands = ref<DemandItem[]>([])
+const isLoading = ref(false)
+const hasLoaded = ref(false)
+
+const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
+
+const asBoolean = (value: unknown): boolean => value === true
+
+const toCompletionDateParts = (value: unknown) => {
+  const dateTime = asString(value)
+  if (!dateTime) {
+    return {
+      date: '',
+      time: '',
+    }
+  }
+
+  if (dateTime.includes('T')) {
+    const [date = '', time = ''] = dateTime.split('T')
+    return {
+      date,
+      time: time.replace('Z', '').slice(0, 8),
+    }
+  }
+
+  return {
+    date: dateTime.slice(0, 10),
+    time: '',
+  }
+}
+
+const mapRunToDailyControl = (run: ChecklistRun, index: number): DailyControlItem => {
+  const source = run as Record<string, unknown>
+  const completionDate = toCompletionDateParts(
+    source.completedAt ?? source.updatedAt ?? source.createdAt ?? source.runDate,
+  )
+
+  return {
+    id: Number(source.id ?? index + 1),
+    name: asString(source.templateTitle ?? source.name ?? source.title) || `Run ${index + 1}`,
+    law_unit: asString(source.status) || 'Ukjent status',
+    employee: asString(source.performedByUserId ?? source.assignedToUserId) || 'Ukjent',
+    comment: asString(source.notes ?? source.description ?? source.comment),
+    completion_date: completionDate,
+    attachment: null,
+    is_checked: asBoolean(source.status === 'COMPLETED' || source.completed),
+  }
+}
+
+const loadRuns = async () => {
+  if (hasLoaded.value || isLoading.value) {
+    return
+  }
+
+  isLoading.value = true
+
+  try {
+    const result = await getRuns()
+    dailyControls.value = result.ok ? result.data.map(mapRunToDailyControl) : []
+  } catch {
+    dailyControls.value = []
+  } finally {
+    hasLoaded.value = true
+    isLoading.value = false
+  }
+}
 
 const sectionsForLaw = (law: LawItem): LawSection[] => law.sub_sections ?? law['sub-sections'] ?? []
 
@@ -98,45 +164,57 @@ const formattedDate = (value: string): string => {
   return parsedDate.toLocaleDateString('nb-NO')
 }
 
-const totalCertificates = employees.reduce((sum, employee) => sum + employee.certifications.length, 0)
+const totalCertificates = computed(() => employees.value.reduce((sum, employee) => sum + employee.certifications.length, 0))
 
-const certificateCounts = employees.reduce(
-  (counts, employee) => {
-    employee.certifications.forEach((certification) => {
-      const status = certificateStatus(certification.expire_date)
-      counts[status] += 1
-    })
+const certificateCounts = computed(
+  () =>
+    employees.value.reduce(
+      (counts, employee) => {
+        employee.certifications.forEach((certification) => {
+          const status = certificateStatus(certification.expire_date)
+          counts[status] += 1
+        })
 
-    return counts
-  },
-  {
-    Gyldig: 0,
-    'Utløper snart': 0,
-    Utgått: 0,
-  } as Record<CertificateStatus, number>,
+        return counts
+      },
+      {
+        Gyldig: 0,
+        'Utløper snart': 0,
+        Utgått: 0,
+      } as Record<CertificateStatus, number>,
+    ),
 )
 
-const staffWithExpired = employees
-  .filter((employee) => employee.certifications.some((certification) => certificateStatus(certification.expire_date) === 'Utgått'))
-  .map((employee) => employee.name)
+const staffWithExpired = computed(() =>
+  employees.value
+    .filter((employee) => employee.certifications.some((certification) => certificateStatus(certification.expire_date) === 'Utgått'))
+    .map((employee) => employee.name),
+)
 
-const completedControls = dailyControls.filter((item) => item.is_checked).length
-const pendingControls = dailyControls.length - completedControls
-const completionRate = dailyControls.length > 0 ? Math.round((completedControls / dailyControls.length) * 100) : 0
+const completedControls = computed(() => dailyControls.value.filter((item) => item.is_checked).length)
+const pendingControls = computed(() => dailyControls.value.length - completedControls.value)
+const completionRate = computed(() =>
+  dailyControls.value.length > 0 ? Math.round((completedControls.value / dailyControls.value.length) * 100) : 0,
+)
 
-export const useAlkoholData = () => ({
-  dailyControls,
-  certificationTypes,
-  employees,
-  laws,
-  demands,
-  totalCertificates,
-  certificateCounts,
-  staffWithExpired,
-  completedControls,
-  pendingControls,
-  completionRate,
-  sectionsForLaw,
-  certificateStatus,
-  formattedDate,
-})
+export const useAlkoholData = () => {
+  void loadRuns()
+
+  return {
+    dailyControls,
+    certificationTypes,
+    employees,
+    laws,
+    demands,
+    totalCertificates,
+    certificateCounts,
+    staffWithExpired,
+    completedControls,
+    pendingControls,
+    completionRate,
+    isLoading,
+    sectionsForLaw,
+    certificateStatus,
+    formattedDate,
+  }
+}

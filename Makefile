@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := dev
+
 .PHONY: help dev stop restart status logs logs-backend logs-frontend test clean clean-db clean-full install
 
 UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
