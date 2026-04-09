@@ -38,9 +38,8 @@ class RateLimitingFilterTest {
     private StringWriter responseWriter;
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp() {
         responseWriter = new StringWriter();
-        when(response.getWriter()).thenReturn(new PrintWriter(responseWriter));
     }
 
     @Test
@@ -60,6 +59,7 @@ class RateLimitingFilterTest {
     @Test
     void doFilterInternal_ExceedsRateLimit_Returns429() throws ServletException, IOException {
         // Given - auth endpoint with very low limit (5 requests)
+        when(response.getWriter()).thenReturn(new PrintWriter(responseWriter));
         when(request.getRequestURI()).thenReturn("/api/v1/auth/login");
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
 

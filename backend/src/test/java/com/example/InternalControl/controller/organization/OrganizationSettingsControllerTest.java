@@ -1,10 +1,8 @@
 package com.example.InternalControl.controller.organization;
 
 import com.example.InternalControl.AbstractIntegrationTest;
-import com.example.InternalControl.dto.organization.OrganizationSettingsRequest;
-import com.example.InternalControl.model.organization.Organization;
+import com.example.InternalControl.dto.settings.OrganizationSettingsRequest;
 import com.example.InternalControl.model.organization.OrganizationSettings;
-import com.example.InternalControl.repository.organization.OrganizationRepository;
 import com.example.InternalControl.repository.organization.OrganizationSettingsRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,26 +40,12 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
     @MockBean
     private OrganizationSettingsRepository settingsRepository;
 
-    @MockBean
-    private OrganizationRepository organizationRepository;
-
-    private Organization testOrganization;
     private OrganizationSettings testSettings;
 
     @BeforeEach
     void setUp() {
-        testOrganization = Organization.builder()
-                .orgNumber(937219997)
-                .legalName("Everest Sushi & Fusion AS")
-                .displayName("Everest Sushi")
-                .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
         testSettings = OrganizationSettings.builder()
                 .orgNumber(937219997)
-                .organization(testOrganization)
                 .timezoneName("Europe/Oslo")
                 .localeCode("nb-NO")
                 .enableFoodModule(true)
@@ -123,20 +107,15 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    void getSettings_NotFound_CreatesDefaultSettings() throws Exception {
+    void getSettings_NotFound_ReturnsNotFound() throws Exception {
         // Given
         when(settingsRepository.findById(937219997))
                 .thenReturn(Optional.empty());
-        when(organizationRepository.findById(937219997))
-                .thenReturn(Optional.of(testOrganization));
-        when(settingsRepository.save(any(OrganizationSettings.class)))
-                .thenReturn(testSettings);
 
         // When & Then
         mockMvc.perform(get("/api/admin/organizations/settings")
                         .param("orgNumber", "937219997"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.timezoneName").value("Europe/Oslo"));
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -158,7 +137,6 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
 
         OrganizationSettings updatedSettings = OrganizationSettings.builder()
                 .orgNumber(937219997)
-                .organization(testOrganization)
                 .timezoneName("Europe/London")
                 .localeCode("en-GB")
                 .enableFoodModule(false)
@@ -197,11 +175,14 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
         // Given
         OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
                 .timezoneName("America/New_York")
+                .localeCode("nb-NO")
+                .enableFoodModule(true)
+                .enableAlcoholModule(true)
+                .reminderEmailEnabled(true)
                 .build();
 
         OrganizationSettings updatedSettings = OrganizationSettings.builder()
                 .orgNumber(937219997)
-                .organization(testOrganization)
                 .timezoneName("America/New_York")
                 .localeCode("nb-NO")
                 .enableFoodModule(true)
@@ -232,6 +213,10 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
         // Given
         OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
                 .timezoneName("Europe/London")
+                .localeCode("en-GB")
+                .enableFoodModule(true)
+                .enableAlcoholModule(true)
+                .reminderEmailEnabled(true)
                 .build();
 
         // When & Then
@@ -258,39 +243,25 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    void updateSettings_NotFound_CreatesDefaultThenUpdates() throws Exception {
+    void updateSettings_NotFound_ReturnsNotFound() throws Exception {
         // Given
         OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
                 .timezoneName("Asia/Tokyo")
-                .build();
-
-        OrganizationSettings newSettings = OrganizationSettings.builder()
-                .orgNumber(937219997)
-                .organization(testOrganization)
-                .timezoneName("Asia/Tokyo")
-                .localeCode("nb-NO")
+                .localeCode("ja-JP")
                 .enableFoodModule(true)
                 .enableAlcoholModule(true)
                 .reminderEmailEnabled(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         when(settingsRepository.findById(937219997))
-                .thenReturn(Optional.empty())
-                .thenReturn(Optional.of(testSettings));
-        when(organizationRepository.findById(937219997))
-                .thenReturn(Optional.of(testOrganization));
-        when(settingsRepository.save(any(OrganizationSettings.class)))
-                .thenReturn(newSettings);
+                .thenReturn(Optional.empty());
 
         // When & Then
         mockMvc.perform(put("/api/admin/organizations/settings")
                         .param("orgNumber", "937219997")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.timezoneName").value("Asia/Tokyo"));
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -299,11 +270,13 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
         // Given
         OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
                 .timezoneName("Europe/London")
+                .localeCode("en-GB")
+                .enableFoodModule(true)
+                .enableAlcoholModule(true)
+                .reminderEmailEnabled(true)
                 .build();
 
         when(settingsRepository.findById(999999999))
-                .thenReturn(Optional.empty());
-        when(organizationRepository.findById(999999999))
                 .thenReturn(Optional.empty());
 
         // When & Then
