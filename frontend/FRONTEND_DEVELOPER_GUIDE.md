@@ -299,7 +299,14 @@ Responsibility:
 
 Data access:
 
-- useAdminData composable wraps admin.json and provides role/status/date helpers
+- `useUsers` handles user CRUD from backend API
+- `useAdminData` handles settings mapping/persistence (backend + local preferences)
+- `useAuditLog` handles audit-log retrieval from backend API
+
+Role policy:
+- `Users` route is ADMIN-only.
+- `Settings` route is ADMIN + MANAGER.
+- Unauthorized access is routed to the `Forbidden` page to provide explicit feedback instead of silent redirects.
 
 ---
 

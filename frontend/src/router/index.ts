@@ -111,13 +111,21 @@ const router = createRouter({
           path: 'admin/brukere',
           name: 'Users',
           component: () => import('@/features/admin/views/UsersView.vue'),
+          // Role policy: user administration is restricted to ADMIN.
           meta: { title: 'Brukere', allowedRoles: ['ADMIN'] },
         },
         {
           path: 'admin/innstillinger',
           name: 'Settings',
           component: () => import('@/features/admin/views/SettingsView.vue'),
+          // Role policy: ADMIN and MANAGER can inspect/configure organization settings.
           meta: { title: 'Innstillinger', allowedRoles: ['ADMIN', 'MANAGER'] },
+        },
+        {
+          path: 'forbidden',
+          name: 'Forbidden',
+          component: () => import('@/features/dashboard/views/ForbiddenView.vue'),
+          meta: { title: 'Ingen tilgang' },
         },
       ],
     },
@@ -149,7 +157,7 @@ router.beforeEach(async (to) => {
     if (to.meta.allowedRoles && to.meta.allowedRoles.length > 0) {
       const userRole = authStore.user?.role
       if (!userRole || !to.meta.allowedRoles.includes(userRole as 'ADMIN' | 'MANAGER' | 'EMPLOYEE')) {
-        return { name: 'Dashboard' }
+        return { name: 'Forbidden' }
       }
     }
   }

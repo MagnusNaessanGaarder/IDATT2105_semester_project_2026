@@ -1,4 +1,6 @@
 package com.example.InternalControl.config;
+import com.example.InternalControl.AbstractIntegrationTest;
+
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -16,16 +18,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Integration tests for OpenApiConfig.
  * Verifies Swagger/OpenAPI configuration is correctly set up.
  */
-@SpringBootTest
+
 @TestPropertySource(
         locations = "classpath:application-test.properties",
         properties = {
                 "spring.flyway.enabled=false",
-                "spring.jpa.hibernate.ddl-auto=create-drop"
+                "spring.jpa.hibernate.ddl-auto=create-drop",
         }
 )
 @DisplayName("OpenApiConfig Tests")
-class OpenApiConfigTest {
+class OpenApiConfigTest extends AbstractIntegrationTest {
 
     @Autowired
     private OpenAPI openAPI;

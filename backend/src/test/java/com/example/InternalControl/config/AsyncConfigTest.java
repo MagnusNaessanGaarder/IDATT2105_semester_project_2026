@@ -1,10 +1,11 @@
 package com.example.InternalControl.config;
+import com.example.InternalControl.AbstractIntegrationTest;
 
 import org.junit.jupiter.api.DisplayName;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.TestPropertySource;
@@ -20,16 +21,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author TriTacLe
  * @since 1.0
  */
-@SpringBootTest
 @TestPropertySource(
         locations = "classpath:application-test.properties",
         properties = {
                 "spring.flyway.enabled=false",
-                "spring.jpa.hibernate.ddl-auto=create-drop"
+                "spring.jpa.hibernate.ddl-auto=create-drop",
         }
 )
 @DisplayName("AsyncConfig Tests")
-class AsyncConfigTest {
+class AsyncConfigTest extends AbstractIntegrationTest {
 
     @Autowired
     @Qualifier("exportTaskExecutor")
