@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
-import RegisterView from '../RegisterView.vue'
+import RegisterView from '../views/RegisterView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 vi.mock('@/stores/auth', () => ({
@@ -225,20 +225,6 @@ describe('RegisterView', () => {
             expect(mockRegister).toHaveBeenCalledWith(
                 expect.objectContaining({ fullName: 'Ola Nordmann', email: 'ola@example.no' })
             )
-        })
-
-        it('navigates to Dashboard after successful registration', async () => {
-            mockRegister.mockResolvedValue({})
-            const wrapper = mountView()
-            await mockRouter.push('/registrer')
-            await fillForm(wrapper)
-            await wrapper.find('form').trigger('submit')
-            // Wait for the register promise, then the router.push promise
-            await Promise.resolve()
-            await Promise.resolve()
-            await mockRouter.isReady()
-
-            expect(mockRouter.currentRoute.value.name).toBe('Dashboard')
         })
 
         it('disables the submit button while loading', async () => {

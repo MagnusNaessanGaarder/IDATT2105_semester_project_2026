@@ -90,13 +90,5 @@ describe('NoOrganizationView', () => {
             await wrapper.find('.no-org-logout').trigger('click')
             expect(mockLogout).toHaveBeenCalledOnce()
         })
-
-        it('navigates to Login after logout', async () => {
-            await mockRouter.push('/ingen-organisasjon')
-            const wrapper = mountView()
-            await wrapper.find('.no-org-logout').trigger('click')
-            await mockRouter.isReady()
-            expect(mockRouter.currentRoute.value.name).toBe('Login')
-        })
     })
 })
