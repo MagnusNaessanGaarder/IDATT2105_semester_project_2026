@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
  * Controller for export operations.
  */
 @RestController
-@RequestMapping("/api/exports")
+@RequestMapping("/api/v1/exports")
 @RequiredArgsConstructor
 @Tag(name = "Export", description = "Export operations for compliance reports")
 @SecurityRequirement(name = "bearerAuth")

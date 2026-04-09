@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "User Management", description = "Manage users within organizations")

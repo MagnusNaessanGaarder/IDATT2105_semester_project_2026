@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/api/v1/files")
 @Tag(name = "File Management", description = "Endpoints for uploading and downloading organization documents")
 @SecurityRequirement(name = "bearerAuth")
 public class FileController {

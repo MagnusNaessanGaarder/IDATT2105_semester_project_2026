@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * Users perform checklists through these endpoints.
  */
 @RestController
-@RequestMapping("/api/checklists/runs")
+@RequestMapping("/api/v1/checklists/runs")
 @Tag(name = "Checklist Runs", description = "Perform and manage checklist runs")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor

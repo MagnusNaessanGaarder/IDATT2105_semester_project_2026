@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/temperature")
+@RequestMapping("/api/v1/temperature")
 @RequiredArgsConstructor
 @Tag(name = "Temperature Logging", description = "Temperature monitoring for food safety compliance")
 @SecurityRequirement(name = "bearerAuth")

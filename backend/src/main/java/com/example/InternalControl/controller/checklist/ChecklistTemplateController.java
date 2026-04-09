@@ -36,7 +36,7 @@ import java.util.List;
  * REST Controller for Checklist Template operations.
  */
 @RestController
-@RequestMapping("/api/checklists/templates")
+@RequestMapping("/api/v1/checklists/templates")
 @Tag(name = "Checklist Templates", description = "Manage checklist templates")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
