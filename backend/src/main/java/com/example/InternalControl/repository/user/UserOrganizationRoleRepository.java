@@ -16,28 +16,33 @@ import java.util.List;
 public interface UserOrganizationRoleRepository extends JpaRepository<UserOrganizationRole, UserOrganizationRoleId> {
 
     @Query("SELECT uor FROM UserOrganizationRole uor " +
-           "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber")
+            "JOIN FETCH uor.role " +
+            "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber")
     List<UserOrganizationRole> findByUserOrganization(
             @Param("userId") Long userId,
             @Param("orgNumber") Integer orgNumber
     );
 
-    @Query("SELECT uor FROM UserOrganizationRole uor WHERE uor.user.userId = :userId")
+    @Query("SELECT uor FROM UserOrganizationRole uor " +
+            "JOIN FETCH uor.role " +
+            "WHERE uor.user.userId = :userId")
     List<UserOrganizationRole> findByUserId(@Param("userId") Long userId);
 
     @Query("SELECT uor FROM UserOrganizationRole uor " +
-           "WHERE uor.user.userId = :userId AND uor.organization.isActive = true")
+            "JOIN FETCH uor.role " +
+            "WHERE uor.user.userId = :userId AND uor.organization.isActive = true")
     List<UserOrganizationRole> findRolesInActiveOrganizations(@Param("userId") Long userId);
 
     @Query("SELECT uor FROM UserOrganizationRole uor " +
-           "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber")
+            "JOIN FETCH uor.role " +
+            "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber")
     List<UserOrganizationRole> findByUserIdAndOrgNumber(
             @Param("userId") Long userId,
             @Param("orgNumber") Integer orgNumber
     );
 
     @Query("SELECT uor FROM UserOrganizationRole uor " +
-           "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber AND uor.role.roleId = :roleId")
+            "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber AND uor.role.roleId = :roleId")
     java.util.Optional<UserOrganizationRole> findByUserIdAndOrgNumberAndRoleId(
             @Param("userId") Long userId,
             @Param("orgNumber") Integer orgNumber,
@@ -45,7 +50,7 @@ public interface UserOrganizationRoleRepository extends JpaRepository<UserOrgani
     );
 
     @Query("SELECT CASE WHEN COUNT(uor) > 0 THEN true ELSE false END FROM UserOrganizationRole uor " +
-           "WHERE uor.id.userId = :userId AND uor.id.orgNumber = :orgNumber AND uor.id.roleId = :roleId")
+            "WHERE uor.id.userId = :userId AND uor.id.orgNumber = :orgNumber AND uor.id.roleId = :roleId")
     boolean existsByUserIdAndOrgNumberAndRoleId(
             @Param("userId") Long userId,
             @Param("orgNumber") Integer orgNumber,
