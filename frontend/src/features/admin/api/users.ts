@@ -44,9 +44,7 @@ export interface UserUpdateRequest {
  * @returns Promise with array of users
  */
 export async function getUsers(orgNumber: number): Promise<User[]> {
-  const base = (import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:8080/api/v1'
-  const origin = base.replace(/\/api\/v1\/?$/, '')
-  const response = await client.get(`${origin}/api/users`, {
+  const response = await client.get('/users', {
     params: { orgNumber },
   })
   return response.data
@@ -59,9 +57,7 @@ export async function getUsers(orgNumber: number): Promise<User[]> {
  * @returns Promise with user data
  */
 export async function getUser(userId: number, orgNumber: number): Promise<User> {
-  const base = (import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:8080/api/v1'
-  const origin = base.replace(/\/api\/v1\/?$/, '')
-  const response = await client.get(`${origin}/api/users/${userId}`, {
+  const response = await client.get(`/users/${userId}`, {
     params: { orgNumber },
   })
   return response.data
@@ -73,9 +69,7 @@ export async function getUser(userId: number, orgNumber: number): Promise<User> 
  * @returns Promise with created user
  */
 export async function createUser(userData: UserCreateRequest): Promise<User> {
-  const base = (import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:8080/api/v1'
-  const origin = base.replace(/\/api\/v1\/?$/, '')
-  const response = await client.post(`${origin}/api/users`, userData)
+  const response = await client.post('/users', userData)
   return response.data
 }
 
@@ -91,9 +85,7 @@ export async function updateUser(
     orgNumber: number,
     userData: UserUpdateRequest
 ): Promise<User> {
-  const base = (import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:8080/api/v1'
-  const origin = base.replace(/\/api\/v1\/?$/, '')
-  const response = await client.put(`${origin}/api/users/${userId}`, userData, {
+  const response = await client.put(`/users/${userId}`, userData, {
     params: { orgNumber },
   })
   return response.data
@@ -106,9 +98,7 @@ export async function updateUser(
  * @returns Promise that resolves when deleted
  */
 export async function deleteUser(userId: number, orgNumber: number): Promise<void> {
-  const base = (import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:8080/api/v1'
-  const origin = base.replace(/\/api\/v1\/?$/, '')
-  await client.delete(`${origin}/api/users/${userId}`, {
+  await client.delete(`/users/${userId}`, {
     params: { orgNumber },
   })
 }
