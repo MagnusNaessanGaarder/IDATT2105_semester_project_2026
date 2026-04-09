@@ -14,7 +14,7 @@ declare module 'axios' {
 }
 
 export const client = axios.create({
-  baseURL: import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:8080/api'),
+  baseURL: import.meta.env.DEV ? '/api/v1' : (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
