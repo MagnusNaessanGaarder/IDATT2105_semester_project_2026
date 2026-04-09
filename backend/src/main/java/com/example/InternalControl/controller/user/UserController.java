@@ -78,6 +78,13 @@ public class UserController {
         List<UserOrganization> userOrgs = userOrgRepository.findByOrgNumber(orgNumber);
 
         List<UserResponse> users = userOrgs.stream()
+                .filter(uo -> {
+                    if (uo.getUser() == null) {
+                        log.warn("Skipping orphaned user_organization row for orgNumber={} (user is null)", orgNumber);
+                        return false;
+                    }
+                    return true;
+                })
                 .map(uo -> mapToUserResponse(uo.getUser(), orgNumber))
                 .collect(Collectors.toList());
 
