@@ -5,6 +5,7 @@ import com.example.InternalControl.dto.training.TrainingRecordRequest;
 import com.example.InternalControl.model.training.TrainingRecord;
 import com.example.InternalControl.model.training.TrainingStatus;
 import com.example.InternalControl.model.training.TrainingType;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.training.TrainingRecordService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -49,6 +53,13 @@ class TrainingRecordControllerTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
+        if (existingAuth != null) {
+            CustomUserDetails userDetails = new CustomUserDetails(
+                    1L, existingAuth.getName(), "password", existingAuth.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+        }
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 
@@ -128,6 +139,8 @@ class TrainingRecordControllerTest extends AbstractIntegrationTest {
     void updateTrainingRecord_AsManager_ReturnsOk() throws Exception {
         // Given
         TrainingRecordRequest request = new TrainingRecordRequest();
+        request.setUserId(1L);
+        request.setTrainingType(TrainingType.FOOD_HYGIENE);
         request.setTitle("Updated Title");
 
         TrainingRecord record = new TrainingRecord();

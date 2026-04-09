@@ -24,6 +24,16 @@ interface JwtPayload {
   exp?: number
 }
 
+type ErrorShape = {
+  message?: string
+  response?: {
+    data?: {
+      error?: string
+      fieldErrors?: Record<string, string>
+    }
+  }
+}
+
 const getStoredOrganizations = (): OrganizationRole[] => {
   try {
     const stored = sessionStorage.getItem('organizations')
@@ -69,7 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.login(credentials)
       setAuthData(response)
       return response
-    } catch (err) {
+    } catch (err: unknown) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -90,7 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
       })
       setAuthData(response)
       return response
-    } catch (err) {
+    } catch (err: unknown) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -194,6 +204,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function parseError(err: unknown): AuthError {
+
     const error = err as ApiError
     if (error.response?.data?.error) {
       return { message: error.response.data.error }

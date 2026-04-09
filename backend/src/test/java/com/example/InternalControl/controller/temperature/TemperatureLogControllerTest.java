@@ -5,6 +5,7 @@ import com.example.InternalControl.dto.temperature.request.TemperatureLogEntryRe
 import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRequest;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.temperature.TemperatureLogService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -51,6 +55,13 @@ class TemperatureLogControllerTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
+        if (existingAuth != null) {
+            CustomUserDetails userDetails = new CustomUserDetails(
+                    1L, existingAuth.getName(), "password", existingAuth.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+        }
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 
@@ -85,6 +96,8 @@ class TemperatureLogControllerTest extends AbstractIntegrationTest {
     void createLogPoint_AsEmployee_ReturnsForbidden() throws Exception {
         // Given
         TemperatureLogPointRequest request = new TemperatureLogPointRequest();
+        request.setName("Unauthorized Point");
+        request.setLocationId(1L);
 
         // When & Then
         mockMvc.perform(post(BASE_URL + "/points")

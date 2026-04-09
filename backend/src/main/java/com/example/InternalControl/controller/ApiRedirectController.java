@@ -19,7 +19,7 @@ import java.io.IOException;
 @Hidden
 public class ApiRedirectController {
 
-    @Value("${api.version:v1}")
+    @Value("${app.api.version:v1}")
     private String apiVersion;
 
     @RequestMapping(value = "/api/**", method = {RequestMethod.GET, RequestMethod.POST,

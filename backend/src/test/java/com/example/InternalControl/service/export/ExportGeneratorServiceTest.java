@@ -10,6 +10,7 @@ import com.example.InternalControl.repository.deviation.DeviationReportRepositor
 import com.example.InternalControl.repository.temperature.TemperatureLogEntryRepository;
 import com.example.InternalControl.repository.training.TrainingRecordRepository;
 import com.example.InternalControl.service.export.generator.PdfGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,10 @@ class ExportGeneratorServiceTest {
     private DeviationReportRepository deviationReportRepository;
 
     @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+
     private TemperatureLogEntryRepository temperatureLogEntryRepository;
 
     @Mock

@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-/* eslint-disable jest/no-standalone-expect */
+/* eslint-disable @typescript-eslint/no-namespace */
 
 /**
  * Authentication Commands
@@ -37,14 +37,16 @@ declare global {
 
 Cypress.Commands.add('loginViaAPI', (email: string, password: string) => {
   cy.session([email, password], () => {
+    const forwardedIp = `10.0.0.${Math.floor(Math.random() * 200) + 10}`
     cy.request({
       method: 'POST',
       url: `${Cypress.env('apiUrl')}/auth/login`,
       body: { email, password },
+      headers: { 'X-Forwarded-For': forwardedIp },
       failOnStatusCode: false
     }).then((response) => {
-      expect(response.status).to.equal(200)
-      
+      cy.wrap(response.status).should('eq', 200)
+
       cy.window().then((win) => {
         win.sessionStorage.setItem('accessToken', response.body.accessToken)
         win.sessionStorage.setItem('refreshToken', response.body.refreshToken)

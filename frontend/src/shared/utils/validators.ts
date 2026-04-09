@@ -16,7 +16,7 @@
  */
 export const rules = {
   required: (msg: string = 'Dette feltet er påkrevd') =>
-    (v: any) => !!v || msg,
+    (v: unknown) => !!v || msg,
 
   minLength: (n: number, msg?: string) =>
     (v: string) => v?.length >= n || (msg ?? `Minimum ${n} tegn`),

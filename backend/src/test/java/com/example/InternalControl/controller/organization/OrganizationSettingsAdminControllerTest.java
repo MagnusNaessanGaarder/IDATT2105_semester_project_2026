@@ -1,10 +1,8 @@
 package com.example.InternalControl.controller.organization;
 
 import com.example.InternalControl.AbstractIntegrationTest;
-import com.example.InternalControl.dto.organization.OrganizationSettingsRequest;
-import com.example.InternalControl.model.organization.Organization;
+import com.example.InternalControl.dto.settings.OrganizationSettingsRequest;
 import com.example.InternalControl.model.organization.OrganizationSettings;
-import com.example.InternalControl.repository.organization.OrganizationRepository;
 import com.example.InternalControl.repository.organization.OrganizationSettingsRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,10 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -39,20 +33,20 @@ class OrganizationSettingsAdminControllerTest extends AbstractIntegrationTest {
     @Autowired
     private OrganizationSettingsRepository settingsRepository;
 
-    @Autowired
-    private OrganizationRepository organizationRepository;
-
     private static final Integer ORG_NUMBER = 937219997;
     private static final String BASE_URL = "/api/admin/organizations/settings";
 
     @BeforeEach
     void setUp() {
-        // Setup mocks for repositories if needed
-        Organization org = new Organization();
-        org.setOrgNumber(ORG_NUMBER);
-        org.setLegalName("Test Organization");
-        
-        when(organizationRepository.findById(ORG_NUMBER)).thenReturn(Optional.of(org));
+        settingsRepository.findById(ORG_NUMBER).orElseGet(() ->
+                settingsRepository.save(OrganizationSettings.builder()
+                        .orgNumber(ORG_NUMBER)
+                        .timezoneName("Europe/Oslo")
+                        .localeCode("nb-NO")
+                        .enableFoodModule(true)
+                        .enableAlcoholModule(true)
+                        .reminderEmailEnabled(true)
+                        .build()));
     }
 
     @Test
@@ -86,8 +80,13 @@ class OrganizationSettingsAdminControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = {"ADMIN"})
     void updateSettings_AsAdmin_ReturnsOk() throws Exception {
         // Given
-        OrganizationSettingsRequest request = new OrganizationSettingsRequest();
-        request.setTimezoneName("Europe/London");
+        OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
+                .timezoneName("Europe/London")
+                .localeCode("en-GB")
+                .enableFoodModule(true)
+                .enableAlcoholModule(true)
+                .reminderEmailEnabled(true)
+                .build();
 
         // When & Then
         mockMvc.perform(put(BASE_URL)
@@ -102,8 +101,13 @@ class OrganizationSettingsAdminControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = {"MANAGER"})
     void updateSettings_AsManager_ReturnsForbidden() throws Exception {
         // Given
-        OrganizationSettingsRequest request = new OrganizationSettingsRequest();
-        request.setTimezoneName("Europe/London");
+        OrganizationSettingsRequest request = OrganizationSettingsRequest.builder()
+                .timezoneName("Europe/London")
+                .localeCode("en-GB")
+                .enableFoodModule(true)
+                .enableAlcoholModule(true)
+                .reminderEmailEnabled(true)
+                .build();
 
         // When & Then - only ADMIN can update, MANAGER can only view
         mockMvc.perform(put(BASE_URL)

@@ -118,7 +118,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
       <article class="panel-card details-grid__span-2">
         <header class="panel-card__header">
-          <h2>Ãpne avvik</h2>
+          <h2>Åpne avvik</h2>
           <span class="status-chip" :class="openDeviations.length > 0 ? 'status-chip--warn' : 'status-chip--good'">
             {{ openDeviations.length }} aktive
           </span>

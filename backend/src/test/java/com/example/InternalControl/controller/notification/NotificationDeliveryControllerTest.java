@@ -34,7 +34,7 @@ class NotificationDeliveryControllerTest extends AbstractIntegrationTest {
     @MockBean
     private NotificationDeliveryService deliveryService;
 
-    private static final String BASE_URL = "/api/v1/notifications/deliveries";
+    private static final String BASE_URL = "/api/v1/notifications/delivery";
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
@@ -49,7 +49,7 @@ class NotificationDeliveryControllerTest extends AbstractIntegrationTest {
         when(deliveryService.getDeliveriesByNotificationId(1L)).thenReturn(List.of(delivery));
 
         // When & Then
-        mockMvc.perform(get(BASE_URL + "/by-notification/1"))
+        mockMvc.perform(get(BASE_URL + "/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].deliveryId").value(1));
     }
@@ -61,15 +61,15 @@ class NotificationDeliveryControllerTest extends AbstractIntegrationTest {
         doNothing().when(deliveryService).retryDeliveries(1L, null);
 
         // When & Then
-        mockMvc.perform(post(BASE_URL + "/retry/1"))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(post(BASE_URL + "/1/retry"))
+                .andExpect(status().isAccepted());
     }
 
     @Test
     @WithMockUser(roles = {"EMPLOYEE"})
     void getDeliveries_AsEmployee_ReturnsForbidden() throws Exception {
         // When & Then
-        mockMvc.perform(get(BASE_URL + "/by-notification/1"))
+        mockMvc.perform(get(BASE_URL + "/1"))
                 .andExpect(status().isForbidden());
     }
 }

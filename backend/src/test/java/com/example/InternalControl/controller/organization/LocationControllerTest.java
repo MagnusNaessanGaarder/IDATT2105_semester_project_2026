@@ -2,6 +2,7 @@ package com.example.InternalControl.controller.organization;
 
 import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.model.organization.Location;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.organization.LocationService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -46,6 +50,13 @@ class LocationControllerTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
+        if (existingAuth != null) {
+            CustomUserDetails userDetails = new CustomUserDetails(
+                    1L, existingAuth.getName(), "password", existingAuth.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+        }
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 

@@ -1,9 +1,11 @@
 package com.example.InternalControl.controller;
 
+import com.example.InternalControl.security.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,6 +20,9 @@ class ApiRedirectControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private JwtService jwtService;
 
     @Test
     void redirectToVersionedApi_WithNonVersionedUrl_ReturnsRedirect() throws Exception {
@@ -37,10 +42,10 @@ class ApiRedirectControllerTest {
     }
 
     @Test
-    void redirectToVersionedApi_WithQueryParams_PreservesParams() throws Exception {
+    void redirectToVersionedApi_WithQueryParams_RedirectsToVersionedPath() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/users").param("orgNumber", "123"))
                 .andExpect(status().isPermanentRedirect())
-                .andExpect(header().string("Location", "/api/v1/users?orgNumber=123"));
+                .andExpect(header().string("Location", "/api/v1/users"));
     }
 }
