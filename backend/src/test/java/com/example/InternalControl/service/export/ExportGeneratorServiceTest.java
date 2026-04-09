@@ -7,6 +7,8 @@ import com.example.InternalControl.model.export.ExportStatus;
 import com.example.InternalControl.model.export.ExportType;
 import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
 import com.example.InternalControl.repository.deviation.DeviationReportRepository;
+import com.example.InternalControl.repository.temperature.TemperatureLogEntryRepository;
+import com.example.InternalControl.repository.training.TrainingRecordRepository;
 import com.example.InternalControl.service.export.generator.PdfGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,12 @@ class ExportGeneratorServiceTest {
     @Mock
     private DeviationReportRepository deviationReportRepository;
 
+    @Mock
+    private TemperatureLogEntryRepository temperatureLogEntryRepository;
+
+    @Mock
+    private TrainingRecordRepository trainingRecordRepository;
+
     @InjectMocks
     private ExportGeneratorServiceImpl exportGeneratorService;
 
@@ -56,7 +64,7 @@ class ExportGeneratorServiceTest {
         ChecklistRun run = new ChecklistRun();
         run.setRunId(1L);
 
-        when(checklistRunRepository.findByOrgNumber(ORG_NUMBER)).thenReturn(List.of(run));
+        when(checklistRunRepository.findByOrgNumberWithTemplate(ORG_NUMBER)).thenReturn(List.of(run));
         when(pdfGenerator.generateChecklistReport(anyList(), any(ExportJob.class)))
                 .thenReturn("PDF content".getBytes());
 
@@ -73,8 +81,10 @@ class ExportGeneratorServiceTest {
     void shouldGenerateFullCompliancePdfExport() {
         // Given
         testJob.setExportType(ExportType.FULL_COMPLIANCE_REPORT);
-        when(checklistRunRepository.findByOrgNumber(ORG_NUMBER)).thenReturn(Collections.emptyList());
+        when(checklistRunRepository.findByOrgNumberWithTemplate(ORG_NUMBER)).thenReturn(Collections.emptyList());
         when(deviationReportRepository.findByOrgNumber(ORG_NUMBER)).thenReturn(Collections.emptyList());
+        when(temperatureLogEntryRepository.findByOrgNumberOrderByMeasuredAtDesc(ORG_NUMBER)).thenReturn(Collections.emptyList());
+        when(trainingRecordRepository.findByOrgNumber(ORG_NUMBER)).thenReturn(Collections.emptyList());
         when(pdfGenerator.generateFullComplianceReport(anyMap(), any(ExportJob.class)))
                 .thenReturn("PDF content".getBytes());
 
