@@ -41,7 +41,13 @@ const toggleControl = async (id: number) => {
   const selected = controls.value.find((item) => item.id === id)
   const orgNumber = authStore.currentOrg?.orgNumber
 
-  if (!selected?.run_id || !orgNumber || selected.is_checked || isSubmittingRunId.value === selected.run_id) {
+  if (
+    !selected?.run_id ||
+    !orgNumber ||
+    selected.is_checked ||
+    selected.run_status === 'COMPLETED' ||
+    isSubmittingRunId.value === selected.run_id
+  ) {
     return
   }
 
@@ -53,6 +59,7 @@ const toggleControl = async (id: number) => {
       item.run_id === selected.run_id
         ? {
             ...item,
+            run_status: 'COMPLETED',
             is_checked: true,
           }
         : item,
@@ -140,6 +147,7 @@ const saveControlItem = () => {
     controls.value.push({
       id: nextId,
       run_id: null,
+      run_status: null,
       name: formState.value.name.trim(),
       law_unit: formState.value.law_unit.trim(),
       employee: formState.value.employee.trim() || 'Ukjent',

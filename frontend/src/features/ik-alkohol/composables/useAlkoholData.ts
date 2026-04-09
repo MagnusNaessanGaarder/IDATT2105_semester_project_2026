@@ -4,6 +4,7 @@ import { getRuns, type ChecklistRun } from '../api/checklistsRun'
 export interface DailyControlItem {
   id: number
   run_id: number | null
+  run_status: string | null
   name: string
   law_unit: string
   employee: string
@@ -117,6 +118,7 @@ const mapRunItemToDailyControl = (
   return {
     id: Number(item.runItemId ?? `${run.runId ?? 0}${index + 1}`),
     run_id: run.runId ?? null,
+    run_status: asString(run.status) || null,
     name:
       asString(item.templateItemLabel) ||
       (item.templateItemId ? `Kontrollpunkt ${item.templateItemId}` : '') ||
@@ -127,7 +129,7 @@ const mapRunItemToDailyControl = (
     comment: asString(item.commentText),
     completion_date: completionDate,
     attachment: null,
-    is_checked: asBoolean(item.booleanValue),
+    is_checked: asString(run.status) === 'COMPLETED' || asBoolean(item.booleanValue),
   }
 }
 

@@ -80,7 +80,7 @@ public class ChecklistRun {
      * Checks if this run can be edited.
      */
     public boolean isEditable() {
-        return status == RunStatus.DRAFT || status == RunStatus.IN_PROGRESS;
+        return status == RunStatus.DRAFT || status == RunStatus.IN_PROGRESS || status == RunStatus.OVERDUE;
     }
 
     /**
