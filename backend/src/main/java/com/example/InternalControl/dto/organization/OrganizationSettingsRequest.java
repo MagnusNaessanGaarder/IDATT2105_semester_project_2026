@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Request DTO for updating organization settings.
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "OrganizationSettingsRequest", description = "DTO for OrganizationSettingsRequest")
 public class OrganizationSettingsRequest {
 
     private String timezoneName;

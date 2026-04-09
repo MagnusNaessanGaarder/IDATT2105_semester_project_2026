@@ -39,6 +39,8 @@ import java.util.List;
 public class FileController {
 
   private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+  private static final int  MAX_TITLE_LEN = 255;
+  private static final int  MAX_DESC_LEN  = 1000;
 
   private final DocumentService documentService;
   private final BlobStorageService blobStorageService;
@@ -58,14 +60,12 @@ public class FileController {
     this.userOrgServiceProvider = userOrgServiceProvider;
   }
 
-  @Operation(
-      summary = "List all documents",
-      description = "Returns a list of all documents for the specified organization."
-  )
+  @Operation(summary = "List all documents",
+      description = "Returns all active documents for the specified organization.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Documents retrieved successfully"),
       @ApiResponse(responseCode = "401", description = "Not authenticated"),
-      @ApiResponse(responseCode = "403", description = "Forbidden - not a member of organization")
+      @ApiResponse(responseCode = "403", description = "Forbidden")
   })
   @GetMapping
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
@@ -73,9 +73,8 @@ public class FileController {
       @Parameter(description = "Organization number identifying the tenant", required = true)
       @RequestParam(required = false) Integer orgNumber,
       @RequestHeader(value = "X-Org-Number", required = false) Integer orgNumberHeader,
-      @AuthenticationPrincipal CustomUserDetails userDetails,
 
-      @Parameter(description = "Optional document type filter")
+      @AuthenticationPrincipal CustomUserDetails userDetails,
       @RequestParam(required = false) String category) {
 
     requireAnyRole("ROLE_EMPLOYEE", "ROLE_MANAGER", "ROLE_ADMIN");
@@ -91,15 +90,14 @@ public class FileController {
     return ResponseEntity.ok(documents);
   }
 
-  @Operation(
-      summary = "Upload a document",
-      description = "Uploads a file to Azure Blob Storage and creates metadata records."
-  )
+
+  @Operation(summary = "Upload a document",
+      description = "Uploads a file to Azure Blob Storage and creates a new document record.")
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "File uploaded successfully"),
-      @ApiResponse(responseCode = "400", description = "Invalid file name, empty file, or invalid input"),
+      @ApiResponse(responseCode = "400", description = "Invalid input"),
       @ApiResponse(responseCode = "401", description = "Not authenticated"),
-      @ApiResponse(responseCode = "403", description = "Forbidden - not a member of organization"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
       @ApiResponse(responseCode = "500", description = "Storage or database error")
   })
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -108,37 +106,26 @@ public class FileController {
       @Parameter(description = "Organization number identifying the tenant", required = true)
       @RequestParam(required = false) Integer orgNumber,
       @RequestHeader(value = "X-Org-Number", required = false) Integer orgNumberHeader,
-      @AuthenticationPrincipal CustomUserDetails userDetails,
-
-      @Parameter(description = "The file to upload", required = true)
-      @RequestParam("file") MultipartFile file,
-
-      @Parameter(description = "Document type")
-      @RequestParam(defaultValue = "other") String documentType,
-
-      @Parameter(description = "Storage directory within the tenant's blob container")
-      @RequestParam(defaultValue = "documents") String directory) throws IOException {
-
     requireAnyRole("ROLE_EMPLOYEE", "ROLE_MANAGER", "ROLE_ADMIN");
     Integer resolvedOrgNumber = resolveOrgNumber(orgNumber, orgNumberHeader);
     validateUserOrganizationAccess(resolveUserId(userDetails), resolvedOrgNumber);
 
-    if (file.getSize() > MAX_FILE_SIZE) {
-      throw new IllegalArgumentException("File size exceeds maximum limit of 10MB");
-    }
+    OrganizationDocument doc = documentService.uploadNewVersion(
+        orgNumber, documentId, file,
+        sanitiseText(title, MAX_TITLE_LEN),
+        sanitiseText(description, MAX_DESC_LEN),
+        directory);
 
     OrganizationDocument doc = documentService.uploadDocument(resolvedOrgNumber, file, documentType, directory);
     return ResponseEntity.status(HttpStatus.CREATED).body(doc);
   }
 
-  @Operation(
-      summary = "Download a document",
-      description = "Downloads the current version of a document by its ID."
-  )
+  @Operation(summary = "Download a document",
+      description = "Downloads the current version of a document by its ID.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "File downloaded successfully"),
       @ApiResponse(responseCode = "401", description = "Not authenticated"),
-      @ApiResponse(responseCode = "403", description = "Forbidden - not a member of organization"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
       @ApiResponse(responseCode = "404", description = "Document not found")
   })
   @GetMapping("/download/{documentId}")
@@ -148,8 +135,6 @@ public class FileController {
       @RequestParam(required = false) Integer orgNumber,
       @RequestHeader(value = "X-Org-Number", required = false) Integer orgNumberHeader,
       @AuthenticationPrincipal CustomUserDetails userDetails,
-
-      @Parameter(description = "ID of the document to download", required = true)
       @PathVariable Long documentId) {
 
     requireAnyRole("ROLE_EMPLOYEE", "ROLE_MANAGER", "ROLE_ADMIN");
@@ -171,8 +156,7 @@ public class FileController {
 
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(version.getMimeType()))
-        .header(HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"" + safeFilename + "\"")
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + safeFilename + "\"")
         .body(stream.toByteArray());
   }
 
@@ -205,6 +189,23 @@ public class FileController {
     }
 
     throw new AccessDeniedException("Insufficient permissions");
+
+  private static void enforceFileSize(MultipartFile file) {
+    if (file.getSize() > MAX_FILE_SIZE) {
+      throw new IllegalArgumentException("File size exceeds maximum limit of 10MB");
+    }
+  }
+
+  /**
+   * Strips control characters (except \t \n \r), collapses whitespace runs,
+   * trims and caps to {@code maxLen}. Returns {@code null} for null/blank input.
+   */
+  private static String sanitiseText(String input, int maxLen) {
+    if (input == null) return null;
+    String cleaned = input.replaceAll("[\\p{Cntrl}&&[^\t\n\r]]", "");
+    cleaned = cleaned.replaceAll("[ \t]{2,}", " ").strip();
+    if (cleaned.isEmpty()) return null;
+    return cleaned.length() <= maxLen ? cleaned : cleaned.substring(0, maxLen);
   }
 
   private void validateUserOrganizationAccess(Long userId, Integer orgNumber) {

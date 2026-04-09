@@ -1,374 +1,317 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { type NotificationItem, useFellesData } from '../composables/useFellesData'
+import { useNotifications } from '../composables/useNotifications'
+import { notificationTypeLabels, relatedEntityRoute } from '../api/notifications'
 
-const router = useRouter()
-const data = useFellesData()
+const {
+  notifications,
+  isLoading,
+  error,
+  unreadCount,
+  notificationTone,
+  fetchNotifications,
+  markRead,
+  markAllRead,
+  dismiss,
+  handleAction,
+  formatDate,
+} = useNotifications()
 
-const notifications = ref<NotificationItem[]>([...data.sortedNotifications])
-const filter = ref<'all' | 'unread' | 'high-priority'>('all')
+// ── Filter ────────────────────────────────────────────────────────────────
 
-const filteredNotifications = computed(() => {
-  if (filter.value === 'unread') {
-    return notifications.value.filter((item) => !item.read)
-  }
+const filter = ref<'all' | 'unread'>('all')
 
-  if (filter.value === 'high-priority') {
-    return notifications.value.filter((item) => item.priority === 'high')
-  }
-
+const filtered = computed(() => {
+  if (filter.value === 'unread') return notifications.value.filter((n) => !n.isRead)
   return notifications.value
 })
 
-const actionableNotifications = computed(() => {
-  return filteredNotifications.value.filter((item) => item.action_url)
-})
-
-const informationalNotifications = computed(() => {
-  return filteredNotifications.value.filter((item) => !item.action_url)
-})
-
-const unreadCount = computed(() => notifications.value.filter((item) => !item.read).length)
-
-const markAsRead = (notificationId: number) => {
-  const notification = notifications.value.find((item) => item.id === notificationId)
-  if (notification) {
-    notification.read = true
-  }
-}
-
-const markAllAsRead = () => {
-  notifications.value = notifications.value.map((item) => ({
-    ...item,
-    read: true,
-  }))
-}
-
-const dismissNotification = (notificationId: number) => {
-  notifications.value = notifications.value.filter((item) => item.id !== notificationId)
-}
-
-const handleAction = (notification: NotificationItem) => {
-  if (!notification.action_url) {
-    return
-  }
-
-  if (notification.action_url.includes('ik-mat/deviations')) {
-    router.push({ name: 'Deviations' })
-    return
-  }
-
-  if (notification.action_url.includes('ik-mat/temperature')) {
-    router.push({ name: 'Temperature' })
-    return
-  }
-
-  if (notification.action_url.includes('felles/reports')) {
-    router.push({ name: 'Reports' })
-    return
-  }
-
-  if (notification.action_url.includes('admin/certifications')) {
-    router.push({ name: 'Certifications' })
-    return
-  }
-
-  router.push({ name: 'Notifications' })
-}
-
-const priorityLabel = (priority: NotificationItem['priority']): string => {
-  if (priority === 'high') return 'Høy'
-  if (priority === 'medium') return 'Middels'
-  return 'Lav'
-}
+const hasActionable = computed(() => filtered.value.some((n) => relatedEntityRoute(n.relatedEntityType)))
 </script>
 
 <template>
   <div class="view-page notifications-view">
+
+    <!-- ── Header ─────────────────────────────────────────────────────── -->
     <header class="page-header">
       <div>
         <h1>Varsler</h1>
-        <p class="subtitle">{{ unreadCount }} uleste varsler</p>
+        <p class="subtitle">
+          <template v-if="isLoading">Laster…</template>
+          <template v-else-if="unreadCount > 0">{{ unreadCount }} uleste varsler</template>
+          <template v-else>Alle varsler er lest</template>
+        </p>
       </div>
-      <button class="mark-all-btn" type="button" @click="markAllAsRead">Marker alle som lest</button>
+      <button
+          v-if="unreadCount > 0"
+          type="button"
+          class="mark-all-btn"
+          @click="markAllRead"
+      >
+        Marker alle som lest
+      </button>
     </header>
 
-    <section class="notifications-filters" aria-label="Varselfiltre">
-      <button class="filter-btn" :class="{ 'filter-btn--active': filter === 'all' }" @click="filter = 'all'">Alle</button>
-      <button class="filter-btn" :class="{ 'filter-btn--active': filter === 'unread' }" @click="filter = 'unread'">Uleste</button>
-      <button class="filter-btn" :class="{ 'filter-btn--active': filter === 'high-priority' }" @click="filter = 'high-priority'">Høy prioritet</button>
+    <!-- ── Error ──────────────────────────────────────────────────────── -->
+    <div v-if="error" class="error-banner" role="alert">
+      <span>{{ error }}</span>
+      <button type="button" class="retry-btn" @click="fetchNotifications">Prøv igjen</button>
+    </div>
+
+    <!-- ── Filter tabs ────────────────────────────────────────────────── -->
+    <section class="filter-bar" aria-label="Varselfiltre">
+      <button
+          type="button"
+          class="filter-btn"
+          :class="{ 'filter-btn--active': filter === 'all' }"
+          @click="filter = 'all'"
+      >
+        Alle
+        <span v-if="notifications.length" class="filter-count">{{ notifications.length }}</span>
+      </button>
+      <button
+          type="button"
+          class="filter-btn"
+          :class="{ 'filter-btn--active': filter === 'unread' }"
+          @click="filter = 'unread'"
+      >
+        Uleste
+        <span v-if="unreadCount" class="filter-count filter-count--unread">{{ unreadCount }}</span>
+      </button>
     </section>
 
-    <section class="notification-panel">
-      <h2>Krever handling</h2>
-      <ul class="notification-list">
-        <li v-for="notification in actionableNotifications" :key="notification.id" class="notification-item" :class="{ 'notification-item--unread': !notification.read }">
-          <button class="notification-item__main" @click="handleAction(notification)">
-            <span class="notification-item__dot" :class="`notification-item__dot--${data.notificationTone(notification.type)}`" />
-            <span>
-              <strong>{{ notification.title }}</strong>
-              <small>{{ notification.message }}</small>
-            </span>
-            <time>{{ notification.created_time }}</time>
-          </button>
+    <!-- ── Skeleton ───────────────────────────────────────────────────── -->
+    <div v-if="isLoading" class="skeleton-list">
+      <div v-for="i in 4" :key="i" class="skeleton-row" />
+    </div>
+
+    <!-- ── Notification list ──────────────────────────────────────────── -->
+    <template v-else-if="filtered.length">
+      <ul class="notification-list" aria-label="Varsler">
+        <li
+            v-for="n in filtered"
+            :key="n.notificationId"
+            class="notification-item"
+            :class="{ 'notification-item--unread': !n.isRead }"
+        >
+          <!-- Colour dot -->
+          <span
+              class="dot"
+              :class="`dot--${notificationTone(n.notificationType)}`"
+              aria-hidden="true"
+          />
+
+          <!-- Main content -->
+          <div class="notification-item__body">
+            <div class="notification-item__top">
+              <strong class="notification-item__title">{{ n.title }}</strong>
+              <span class="notification-item__type">{{ notificationTypeLabels[n.notificationType] }}</span>
+            </div>
+            <p class="notification-item__message">{{ n.bodyText }}</p>
+            <time class="notification-item__time" :datetime="n.createdAt">
+              {{ formatDate(n.createdAt) }}
+              <template v-if="n.isRead && n.readAt"> · Lest {{ formatDate(n.readAt) }}</template>
+            </time>
+          </div>
+
+          <!-- Actions -->
           <div class="notification-item__actions">
-            <span class="priority-pill" :class="`priority-pill--${notification.priority}`">{{ priorityLabel(notification.priority) }}</span>
-            <button type="button" class="mini-btn" @click="markAsRead(notification.id)" v-if="!notification.read">Lest</button>
-            <button type="button" class="mini-btn mini-btn--danger" @click="dismissNotification(notification.id)">Fjern</button>
+            <button
+                v-if="relatedEntityRoute(n.relatedEntityType)"
+                type="button"
+                class="action-btn action-btn--primary"
+                @click="handleAction(n)"
+            >
+              Gå til
+            </button>
+            <button
+                v-if="!n.isRead"
+                type="button"
+                class="action-btn action-btn--ghost"
+                @click="markRead(n.notificationId)"
+            >
+              Marker lest
+            </button>
+            <button
+                type="button"
+                class="action-btn action-btn--danger"
+                :aria-label="`Fjern varsel: ${n.title}`"
+                @click="dismiss(n.notificationId)"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
           </div>
         </li>
       </ul>
+    </template>
+
+    <!-- ── Empty state ────────────────────────────────────────────────── -->
+    <section v-else-if="!isLoading" class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <p>{{ filter === 'unread' ? 'Ingen uleste varsler.' : 'Ingen varsler.' }}</p>
+      <button
+          v-if="filter === 'unread'"
+          type="button"
+          class="action-btn action-btn--ghost"
+          @click="filter = 'all'"
+      >Vis alle</button>
     </section>
 
-    <section class="notification-panel">
-      <h2>Informasjon</h2>
-      <ul class="notification-list">
-        <li v-for="notification in informationalNotifications" :key="notification.id" class="notification-item" :class="{ 'notification-item--unread': !notification.read }">
-          <div class="notification-item__main notification-item__main--static">
-            <span class="notification-item__dot" :class="`notification-item__dot--${data.notificationTone(notification.type)}`" />
-            <span>
-              <strong>{{ notification.title }}</strong>
-              <small>{{ notification.message }}</small>
-            </span>
-            <time>{{ notification.created_time }}</time>
-          </div>
-          <div class="notification-item__actions">
-            <span class="priority-pill" :class="`priority-pill--${notification.priority}`">{{ priorityLabel(notification.priority) }}</span>
-            <button type="button" class="mini-btn" @click="markAsRead(notification.id)" v-if="!notification.read">Lest</button>
-            <button type="button" class="mini-btn mini-btn--danger" @click="dismissNotification(notification.id)">Fjern</button>
-          </div>
-        </li>
-      </ul>
-    </section>
-
-    <section v-if="filteredNotifications.length === 0" class="empty-state">
-      <p>Ingen varsler matcher filtreringen.</p>
-    </section>
   </div>
 </template>
 
 <style scoped>
-.notifications-view {
-  display: grid;
-  gap: 1rem;
-}
+.notifications-view { display: grid; gap: 1rem; }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1rem;
-}
-
-.page-header h1 {
-  margin: 0;
-  font-size: var(--font-size-3xl);
-  letter-spacing: -0.015em;
-}
-
-.subtitle {
-  margin-top: 0.4rem;
-  color: var(--color-gray-500);
-}
+/* Header */
+.page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; }
+.page-header h1 { margin: 0; font-size: var(--font-size-3xl); font-weight: 700; letter-spacing: -0.015em; }
+.subtitle { margin-top: 0.4rem; color: var(--color-gray-500); font-size: var(--font-size-sm); }
 
 .mark-all-btn {
-  min-height: 2.65rem;
-  padding: 0.45rem 0.85rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-card);
-  color: var(--color-gray-700);
-  font-size: var(--font-size-sm);
-  text-decoration: underline;
+  min-height: 2.65rem; padding: 0.45rem 0.85rem;
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  background: var(--color-card); color: var(--color-gray-700);
+  font-size: var(--font-size-sm); font-family: inherit; cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.mark-all-btn:hover { background: var(--color-gray-50); }
+
+/* Error */
+.error-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 0.75rem 1rem; border-radius: var(--radius-md);
+  background: var(--color-danger-bg); color: var(--color-danger);
+  border: 1px solid var(--color-danger-bg); font-size: var(--font-size-sm);
+}
+.retry-btn {
+  padding: 0.25rem 0.6rem; border-radius: var(--radius-sm);
+  border: 1px solid currentColor; background: transparent;
+  font-size: var(--font-size-xs); font-weight: 600; cursor: pointer;
 }
 
-.notifications-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
+/* Filter bar */
+.filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .filter-btn {
-  min-height: 2.25rem;
-  padding: 0.35rem 0.75rem;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-gray-600);
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  min-height: 2.25rem; padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  background: var(--color-card); font-size: var(--font-size-sm);
+  font-weight: 500; color: var(--color-gray-600); cursor: pointer;
+  transition: all var(--transition-fast);
 }
-
 .filter-btn--active {
-  background: var(--color-foreground);
-  color: var(--color-background);
+  background: var(--color-foreground); color: var(--color-card);
   border-color: var(--color-foreground);
 }
-
-.notification-panel {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-card);
-  padding: 0.9rem;
+.filter-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 1.25rem; height: 1.25rem; padding: 0 0.3rem;
+  border-radius: 999px; background: var(--color-gray-200);
+  color: var(--color-gray-700); font-size: 10px; font-weight: 700;
 }
+.filter-btn--active .filter-count { background: rgba(255,255,255,0.2); color: #fff; }
+.filter-count--unread { background: var(--color-danger); color: #fff; }
+.filter-btn--active .filter-count--unread { background: rgba(255,255,255,0.3); }
 
-.notification-panel h2 {
-  margin: 0 0 0.7rem;
-  font-size: var(--font-size-lg);
+/* Skeleton */
+.skeleton-list { display: grid; gap: 0.55rem; }
+.skeleton-row {
+  height: 4.5rem; border-radius: var(--radius-md);
+  background: linear-gradient(90deg, var(--color-gray-100) 25%, var(--color-gray-50) 50%, var(--color-gray-100) 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
 }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-.notification-list {
-  display: grid;
-  gap: 0.5rem;
-}
+/* Notification list */
+.notification-list { display: grid; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
 
 .notification-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.85rem;
-  border: 1px solid var(--color-border);
+  display: flex; align-items: flex-start; gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  background: var(--color-card); border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-card);
-  padding: 0.65rem;
+  transition: background var(--transition-fast);
 }
-
 .notification-item--unread {
   background: var(--color-gray-50);
+  border-left: 3px solid var(--color-foreground);
+  padding-left: calc(1rem - 2px); /* compensate for the thicker border */
 }
 
-.notification-item__main {
-  border: none;
-  width: 100%;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 0.6rem;
-  text-align: left;
+/* Dot */
+.dot {
+  flex-shrink: 0; width: 0.6rem; height: 0.6rem;
+  border-radius: 999px; margin-top: 0.3rem;
+}
+.dot--red   { background: var(--color-danger); }
+.dot--amber { background: var(--color-warning); }
+.dot--blue  { background: var(--color-info); }
+.dot--green { background: var(--color-success); }
+.dot--gray  { background: var(--color-gray-400); }
+
+/* Body */
+.notification-item__body { flex: 1; min-width: 0; }
+.notification-item__top {
+  display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;
+}
+.notification-item__title {
+  font-size: var(--font-size-sm); font-weight: 600; color: var(--color-gray-900);
+}
+.notification-item__type {
+  font-size: var(--font-size-xs); color: var(--color-gray-400);
+  font-weight: 400;
+}
+.notification-item__message {
+  margin: 0.25rem 0 0; font-size: var(--font-size-sm); color: var(--color-gray-600);
+}
+.notification-item__time {
+  display: block; margin-top: 0.35rem;
+  font-size: var(--font-size-xs); color: var(--color-gray-400);
 }
 
-.notification-item__main--static {
-  pointer-events: none;
-}
-
-.notification-item__dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 999px;
-}
-
-.notification-item__dot--red {
-  background: var(--color-danger);
-}
-
-.notification-item__dot--amber {
-  background: var(--color-warning);
-}
-
-.notification-item__dot--blue {
-  background: var(--color-info);
-}
-
-.notification-item__dot--green {
-  background: var(--color-success);
-}
-
-.notification-item strong {
-  display: block;
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-900);
-}
-
-.notification-item small {
-  display: block;
-  margin-top: 0.2rem;
-  color: var(--color-gray-600);
-  font-size: var(--font-size-xs);
-}
-
-.notification-item time {
-  color: var(--color-gray-500);
-  font-size: var(--font-size-xs);
-}
-
+/* Actions */
 .notification-item__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+  display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0;
 }
 
-.priority-pill {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 0.2rem 0.5rem;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
+/* Action buttons */
+.action-btn {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.3rem 0.65rem; border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs); font-weight: 600; font-family: inherit;
+  cursor: pointer; white-space: nowrap; transition: all var(--transition-fast);
 }
-
-.priority-pill--high {
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
+.action-btn--primary {
+  background: var(--color-foreground); color: var(--color-card); border: none;
 }
-
-.priority-pill--medium {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
-}
-
-.priority-pill--low {
-  background: var(--color-info-bg);
-  color: var(--color-info);
-}
-
-.mini-btn {
-  min-height: 1.95rem;
-  padding: 0.25rem 0.55rem;
+.action-btn--primary:hover { opacity: 0.85; }
+.action-btn--ghost {
+  background: transparent; color: var(--color-gray-600);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-card);
-  color: var(--color-gray-700);
-  font-size: var(--font-size-xs);
 }
-
-.mini-btn--danger {
-  border-color: var(--color-danger-border);
-  color: var(--color-danger);
+.action-btn--ghost:hover { background: var(--color-gray-100); }
+.action-btn--danger {
+  background: transparent; color: var(--color-danger);
+  border: 1px solid var(--color-danger-bg);
+  padding: 0.3rem 0.45rem;
 }
+.action-btn--danger:hover { background: var(--color-danger-bg); }
 
+/* Empty */
 .empty-state {
-  text-align: center;
-  padding: 2rem;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  color: var(--color-gray-600);
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+  padding: 3rem 2rem; background: var(--color-card);
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  color: var(--color-gray-500); text-align: center;
 }
+.empty-state svg { opacity: 0.35; }
 
+/* Responsive */
 @media (max-width: 48rem) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .notification-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .notification-item__main {
-    grid-template-columns: auto 1fr;
-  }
-
-  .notification-item time {
-    grid-column: 2;
-  }
-
-  .notification-item__actions {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .mark-all-btn { width: 100%; }
+  .notification-item { flex-wrap: wrap; }
+  .notification-item__actions { width: 100%; justify-content: flex-start; }
 }
 </style>

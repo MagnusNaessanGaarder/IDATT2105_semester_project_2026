@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * DTO for notification delivery response.
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "NotificationDeliveryResponse", description = "DTO for NotificationDeliveryResponse")
 public class NotificationDeliveryResponse {
 
     private Long deliveryId;

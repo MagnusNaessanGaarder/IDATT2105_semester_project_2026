@@ -6,6 +6,7 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.settings.OrganizationSettingsService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -42,6 +43,7 @@ public class OrganizationSettingsController {
     })
     @GetMapping
     public ResponseEntity<OrganizationSettingsResponse> getSettings(
+            @Parameter(description = "Identifier of the orgNumber")
             @PathVariable Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -60,6 +62,7 @@ public class OrganizationSettingsController {
     @PutMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<OrganizationSettingsResponse> updateSettings(
+            @Parameter(description = "Identifier of the orgNumber")
             @PathVariable Integer orgNumber,
             @Valid @RequestBody OrganizationSettingsRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

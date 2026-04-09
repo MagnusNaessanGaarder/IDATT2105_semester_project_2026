@@ -22,21 +22,24 @@ public abstract class AbstractIntegrationTest {
 
     static {
         if (useTestcontainers()) {
-            if (isLinux()) {
-                setPropertyIfAbsent("docker.host", "unix:///var/run/docker.sock");
-                setPropertyIfAbsent("testcontainers.docker.socket.override", "/var/run/docker.sock");
-            }
-            setPropertyIfAbsent("testcontainers.ryuk.disabled", "true");
-
+          if (isLinux()) {
+              setPropertyIfAbsent("docker.host", "unix:///var/run/docker.sock");
+              setPropertyIfAbsent("testcontainers.docker.socket.override", "/var/run/docker.sock");
+              setPropertyIfAbsent("api.version", "1.41");
+          }
+          setPropertyIfAbsent("testcontainers.ryuk.disabled", "true");
+        
+          if (System.getenv("SPRING_DATASOURCE_URL") != null) {
+            // Use external database if configured
+              mysql = null;
+          } else {
             mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
                     .withDatabaseName("testdb")
                     .withUsername("test")
                     .withPassword("test")
                     .withReuse(true);
             mysql.start();
-        } else {
-            mysql = null;
-        }
+        } 
     }
 
     @DynamicPropertySource

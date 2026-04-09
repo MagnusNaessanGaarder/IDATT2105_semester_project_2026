@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Request DTO for updating deviation report status.
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "DeviationStatusUpdateRequest", description = "DTO for DeviationStatusUpdateRequest")
 public class DeviationStatusUpdateRequest {
 
     @NotNull

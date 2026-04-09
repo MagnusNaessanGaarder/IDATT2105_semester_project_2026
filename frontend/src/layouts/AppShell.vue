@@ -4,8 +4,8 @@ import Sidebar from './Sidebar.vue'
 
 const isSidebarOpen = ref(false)
 
-const toggleSidebar = () => {
-  isSidebarOpen.value = !isSidebarOpen.value
+const openSidebar = () => {
+  isSidebarOpen.value = true
 }
 
 const closeSidebar = () => {
@@ -18,6 +18,15 @@ const closeSidebar = () => {
     <a href="#main-content" class="skip-link">
       Hopp til hovedinnhold
     </a>
+
+    <button
+      class="sidebar-toggle"
+      type="button"
+      aria-label="Åpne meny"
+      @click="openSidebar"
+    >
+      ☰
+    </button>
     
     <button
       class="menu-toggle"
@@ -86,34 +95,22 @@ const closeSidebar = () => {
   top: 8px;
 }
 
-.menu-toggle {
+.sidebar-toggle {
   position: fixed;
-  top: var(--spacing-md);
-  left: var(--spacing-md);
-  z-index: 45;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-md);
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  top: 12px;
+  left: 12px;
+  z-index: 60;
+  min-height: 44px;
+  min-width: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.menu-toggle:hover {
-  background: var(--color-card-muted);
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-md);
-}
-
-@media (min-width: 48rem) {
-  .menu-toggle {
-    display: none;
-  }
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--color-foreground);
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .sidebar-backdrop {
@@ -139,6 +136,10 @@ const closeSidebar = () => {
 }
 
 @media (min-width: 768px) {
+  .sidebar-toggle {
+    display: none;
+  }
+
   .main-content {
     padding: var(--spacing-xl) clamp(1.25rem, 2.2vw, 2.5rem);
   }

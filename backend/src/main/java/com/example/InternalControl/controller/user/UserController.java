@@ -13,6 +13,7 @@ import com.example.InternalControl.repository.user.UserOrganizationRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import com.example.InternalControl.security.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -36,8 +37,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * REST controller for user management operations.
- * Provides endpoints for CRUD operations on users within an organization.
+ * REST controller for user management operations. Provides endpoints for CRUD
+ * operations on users within an organization.
  *
  * @author TriTacLe
  * @since 1.0
@@ -65,8 +66,13 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get all users", description = "Retrieve all users in an organization")
-    @ApiResponse(responseCode = "200", description = "Successfully retrieved users")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved users"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public ResponseEntity<List<UserResponse>> getAllUsers(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber) {
         requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
         log.info("Getting all users for organization: {}", orgNumber);
@@ -92,10 +98,11 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @userSecurity.isCurrentUser(#userId)")
     @Operation(summary = "Get user by ID", description = "Retrieve a specific user by ID")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved user"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved user"),
+        @ApiResponse(responseCode = "404", description = "User not found")
     })
     public ResponseEntity<UserResponse> getUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
         requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
@@ -118,9 +125,9 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create user", description = "Create a new user in an organization (ADMIN only)")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "User successfully created"),
-            @ApiResponse(responseCode = "400", description = "Invalid input or email already exists"),
-            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+        @ApiResponse(responseCode = "201", description = "User successfully created"),
+        @ApiResponse(responseCode = "400", description = "Invalid input or email already exists"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<UserResponse> createUser(
             @Valid @RequestBody UserCreateRequest request,
@@ -192,11 +199,12 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or @userSecurity.isCurrentUser(#userId)")
     @Operation(summary = "Update user", description = "Update user details")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User successfully updated"),
-            @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+        @ApiResponse(responseCode = "200", description = "User successfully updated"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<UserResponse> updateUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequest request,
             @RequestParam Integer orgNumber) {
@@ -259,11 +267,12 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete user", description = "Soft delete (deactivate) a user (ADMIN only)")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "User successfully deactivated"),
-            @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+        @ApiResponse(responseCode = "204", description = "User successfully deactivated"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<Void> deleteUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
         requireAnyRole("ROLE_ADMIN");
@@ -301,11 +310,11 @@ public class UserController {
 
         List<com.example.InternalControl.dto.user.RoleResponse> roles = userRoles.stream()
                 .map(uor -> com.example.InternalControl.dto.user.RoleResponse.builder()
-                        .roleId(uor.getRoleId())
-                        .roleName(uor.getRole() != null ? uor.getRole().getRoleName() : "UNKNOWN")
-                        .description(uor.getRole() != null ? uor.getRole().getDescription() : null)
-                        .isSystemRole(uor.getRole() != null ? uor.getRole().getIsSystemRole() : false)
-                        .build())
+                .roleId(uor.getRoleId())
+                .roleName(uor.getRole() != null ? uor.getRole().getRoleName() : "UNKNOWN")
+                .description(uor.getRole() != null ? uor.getRole().getDescription() : null)
+                .isSystemRole(uor.getRole() != null ? uor.getRole().getIsSystemRole() : false)
+                .build())
                 .collect(Collectors.toList());
 
         return UserResponse.builder()

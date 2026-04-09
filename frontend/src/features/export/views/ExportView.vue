@@ -6,8 +6,8 @@ import {
   exportFormatLabels,
   exportStatusLabels,
   exportStatusTone,
-} from '../composables/useExport'
-import type { ExportType, ExportFormat } from '../api'
+} from '../composables/useExport.ts'
+import type { ExportType, ExportFormat } from '../api.ts'
 
 const {
   exports,

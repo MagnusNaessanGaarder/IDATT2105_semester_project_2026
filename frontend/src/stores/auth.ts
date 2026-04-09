@@ -10,8 +10,28 @@ interface AuthError {
   code?: string
 }
 
+interface ApiError {
+  response?: {
+    data?: {
+      error?: string
+      fieldErrors?: Record<string, string>
+    }
+  }
+  message?: string
+}
+
 interface JwtPayload {
   exp?: number
+}
+
+type ErrorShape = {
+  message?: string
+  response?: {
+    data?: {
+      error?: string
+      fieldErrors?: Record<string, string>
+    }
+  }
 }
 
 const getStoredOrganizations = (): OrganizationRole[] => {
@@ -59,7 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.login(credentials)
       setAuthData(response)
       return response
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -80,7 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
       })
       setAuthData(response)
       return response
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -183,15 +203,17 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem('organizations', JSON.stringify(response.organizations || []))
   }
 
-  function parseError(err: any): AuthError {
-    if (err.response?.data?.error) {
-      return { message: err.response.data.error }
+  function parseError(err: unknown): AuthError {
+
+    const error = err as ApiError
+    if (error.response?.data?.error) {
+      return { message: error.response.data.error }
     }
-    if (err.response?.data?.fieldErrors) {
-      return { message: Object.values(err.response.data.fieldErrors).join(', ') }
+    if (error.response?.data?.fieldErrors) {
+      return { message: Object.values(error.response.data.fieldErrors).join(', ') }
     }
-    if (err.message) {
-      return { message: err.message }
+    if (error.message) {
+      return { message: error.message }
     }
     return { message: 'Something went wrong. Please try again.' }
   }

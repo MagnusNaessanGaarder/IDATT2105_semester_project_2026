@@ -4,7 +4,9 @@ import com.example.InternalControl.dto.export.request.ExportRequest;
 import com.example.InternalControl.dto.export.response.ExportResponse;
 import com.example.InternalControl.model.export.ExportJob;
 import com.example.InternalControl.model.export.ExportStatus;
+import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.repository.export.ExportJobRepository;
+import com.example.InternalControl.repository.user.AppUserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,23 +32,24 @@ public class ExportServiceImpl implements ExportService {
   private final ExportJobRepository exportJobRepository;
   private final ExportJobProcessor exportJobProcessor;
   private final ObjectMapper objectMapper;
+  private final AppUserRepository appUserRepository;
 
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public ExportResponse createExportJob(ExportRequest request, Integer orgNumber, Long userId) {
     log.info("Creating export job for org {}: type={}, format={}",
-        orgNumber, request.getExportType(), request.getFormat());
+            orgNumber, request.getExportType(), request.getFormat());
 
     String parametersJson = serializeParameters(request);
 
     ExportJob job = ExportJob.builder()
-        .orgNumber(orgNumber)
-        .requestedByUserId(userId)
-        .exportType(request.getExportType())
-        .format(request.getFormat())
-        .status(ExportStatus.PENDING)
-        .parametersJson(parametersJson)
-        .build();
+            .orgNumber(orgNumber)
+            .requestedByUserId(userId)
+            .exportType(request.getExportType())
+            .format(request.getFormat())
+            .status(ExportStatus.PENDING)
+            .parametersJson(parametersJson)
+            .build();
 
     ExportJob saved = exportJobRepository.save(job);
 
@@ -59,7 +62,6 @@ public class ExportServiceImpl implements ExportService {
         }
       });
     } else {
-      // Fallback for tests or non-transactional contexts
       exportJobProcessor.processExportJobAsync(saved.getExportJobId());
     }
 
@@ -69,18 +71,10 @@ public class ExportServiceImpl implements ExportService {
   private String serializeParameters(ExportRequest request) {
     try {
       Map<String, Object> params = new HashMap<>();
-      if (request.getDateFrom() != null) {
-        params.put("dateFrom", request.getDateFrom().toString());
-      }
-      if (request.getDateTo() != null) {
-        params.put("dateTo", request.getDateTo().toString());
-      }
-      if (request.getLocationId() != null) {
-        params.put("locationId", request.getLocationId());
-      }
-      if (request.getChecklistType() != null) {
-        params.put("checklistType", request.getChecklistType());
-      }
+      if (request.getDateFrom() != null)     params.put("dateFrom", request.getDateFrom().toString());
+      if (request.getDateTo() != null)       params.put("dateTo", request.getDateTo().toString());
+      if (request.getLocationId() != null)   params.put("locationId", request.getLocationId());
+      if (request.getChecklistType() != null) params.put("checklistType", request.getChecklistType());
       return objectMapper.writeValueAsString(params);
     } catch (Exception e) {
       log.warn("Failed to serialize export parameters", e);
@@ -92,7 +86,7 @@ public class ExportServiceImpl implements ExportService {
   @Transactional(readOnly = true)
   public ExportResponse getExportStatus(Long exportJobId, Integer orgNumber) {
     ExportJob job = exportJobRepository.findById(exportJobId)
-        .orElseThrow(() -> new EntityNotFoundException("Export job not found: " + exportJobId));
+            .orElseThrow(() -> new EntityNotFoundException("Export job not found: " + exportJobId));
 
     if (!job.getOrgNumber().equals(orgNumber)) {
       throw new AccessDeniedException("Access denied to export job");
@@ -105,7 +99,7 @@ public class ExportServiceImpl implements ExportService {
   @Transactional(readOnly = true)
   public String getDownloadUrl(Long exportJobId, Integer orgNumber) {
     ExportJob job = exportJobRepository.findById(exportJobId)
-        .orElseThrow(() -> new EntityNotFoundException("Export job not found: " + exportJobId));
+            .orElseThrow(() -> new EntityNotFoundException("Export job not found: " + exportJobId));
 
     if (!job.getOrgNumber().equals(orgNumber)) {
       throw new AccessDeniedException("Access denied to export job");
@@ -126,20 +120,35 @@ public class ExportServiceImpl implements ExportService {
   @Transactional(readOnly = true)
   public Page<ExportResponse> listExports(Integer orgNumber, Pageable pageable) {
     return exportJobRepository.findByOrgNumber(orgNumber, pageable)
-        .map(this::mapToResponse);
+            .map(this::mapToResponse);
   }
 
   private ExportResponse mapToResponse(ExportJob job) {
+    String displayName = resolveDisplayName(job.getRequestedByUserId());
+
     return ExportResponse.builder()
-        .exportJobId(job.getExportJobId())
-        .exportType(job.getExportType())
-        .format(job.getFormat())
-        .status(job.getStatus())
-        .fileName(job.getResultDocument() != null ? job.getResultDocument().getTitle() : null)
-        .failureReason(job.getFailureReason())
-        .requestedAt(job.getRequestedAt())
-        .completedAt(job.getCompletedAt())
-        .build();
+            .exportJobId(job.getExportJobId())
+            .exportType(job.getExportType())
+            .format(job.getFormat())
+            .status(job.getStatus())
+            .fileName(job.getResultDocument() != null ? job.getResultDocument().getTitle() : null)
+            .failureReason(job.getFailureReason())
+            .requestedAt(job.getRequestedAt())
+            .completedAt(job.getCompletedAt())
+            .requestedByDisplayName(displayName)
+            .parametersJson(job.getParametersJson())
+            .build();
+  }
+
+  /**
+   * Resolves a user ID to a display name. Returns null gracefully if the user
+   * no longer exists (e.g. was deleted) so the rest of the response is unaffected.
+   */
+  private String resolveDisplayName(Long userId) {
+    if (userId == null) return null;
+    return appUserRepository.findById(userId)
+            .map(AppUser::getDisplayName)
+            .orElse(null);
   }
 
   private String generateDownloadUrl(ExportJob job) {

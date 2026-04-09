@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Request DTO for creating a checklist template.
@@ -20,6 +21,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "ChecklistTemplateCreateRequest", description = "DTO for ChecklistTemplateCreateRequest")
 public class ChecklistTemplateCreateRequest {
 
     @NotBlank(message = "Title is required")

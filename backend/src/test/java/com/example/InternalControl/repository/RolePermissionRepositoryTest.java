@@ -43,20 +43,22 @@ class RolePermissionRepositoryTest extends AbstractIntegrationTest {
     @BeforeEach
     void setUp() {
         adminRole = roleRepository.save(Role.builder()
-                .roleName("ADMIN")
+                .roleName("ADMIN_TEST_" + System.nanoTime())
                 .description("Administrator role")
-                .isSystemRole(true)
+                .isSystemRole(false)
                 .build());
 
-        readPermission = permissionRepository.save(Permission.builder()
-                .permissionKey("users:read")
-                .description("Read users permission")
-                .build());
+        readPermission = permissionRepository.findByPermissionKey("users:read")
+                .orElseGet(() -> permissionRepository.save(Permission.builder()
+                        .permissionKey("users:read")
+                        .description("Read users permission")
+                        .build()));
 
-        writePermission = permissionRepository.save(Permission.builder()
-                .permissionKey("users:write")
-                .description("Write users permission")
-                .build());
+        writePermission = permissionRepository.findByPermissionKey("users:write")
+                .orElseGet(() -> permissionRepository.save(Permission.builder()
+                        .permissionKey("users:write")
+                        .description("Write users permission")
+                        .build()));
     }
 
     @Test
@@ -149,15 +151,16 @@ class RolePermissionRepositoryTest extends AbstractIntegrationTest {
     void shouldHandleMultipleRolesWithDifferentPermissions() {
         // Given
         Role managerRole = roleRepository.save(Role.builder()
-                .roleName("MANAGER")
+                .roleName("MANAGER_TEST_" + System.nanoTime())
                 .description("Manager role")
-                .isSystemRole(true)
+                .isSystemRole(false)
                 .build());
 
-        Permission deletePermission = permissionRepository.save(Permission.builder()
-                .permissionKey("users:delete")
-                .description("Delete users permission")
-                .build());
+        Permission deletePermission = permissionRepository.findByPermissionKey("users:delete")
+                .orElseGet(() -> permissionRepository.save(Permission.builder()
+                        .permissionKey("users:delete")
+                        .description("Delete users permission")
+                        .build()));
 
         // Admin has read and write
         createRolePermission(adminRole.getRoleId(), readPermission.getPermissionId());

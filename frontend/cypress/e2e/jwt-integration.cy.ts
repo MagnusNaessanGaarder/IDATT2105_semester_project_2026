@@ -1,4 +1,5 @@
  
+ 
 /**
  * JWT Integration E2E Tests
  * Tester komplett JWT-autentisering mellom frontend og backend
@@ -6,7 +7,7 @@
 
 describe('JWT Authentication Integration', () => {
   const testUser = {
-    email: 'admin2@everest-sushi.no',
+    email: 'admin@everest-sushi.no',
     password: 'Test1234!',
     role: 'ADMIN'
   }
@@ -16,6 +17,11 @@ describe('JWT Authentication Integration', () => {
     cy.window().then((win) => {
       win.sessionStorage.clear()
     })
+
+    // Avoid auth-rate-limit collisions across many e2e login attempts.
+    cy.intercept('POST', '**/auth/login', (req) => {
+      req.headers['x-forwarded-for'] = `10.0.1.${Math.floor(Math.random() * 200) + 10}`
+    }).as('loginRequest')
   })
 
   describe('Login Flow', () => {
@@ -24,19 +30,22 @@ describe('JWT Authentication Integration', () => {
       cy.visit('/login')
       
       // Fyll inn skjema
-      cy.get('input[type="email"]').clear().type(testUser.email)
-      cy.get('input[type="password"]').clear().type(testUser.password)
+      cy.get('input[type="email"]').clear()
+      cy.get('input[type="email"]').type(testUser.email)
+      cy.get('input[type="password"]').clear()
+      cy.get('input[type="password"]').type(testUser.password)
       
       // Klikk login
       cy.get('button[type="submit"]').click()
+      cy.wait('@loginRequest').its('response.statusCode').should('eq', 200)
       
       // Vent på redirect til dashboard
       cy.url().should('not.include', '/login', { timeout: 10000 })
       
       // Verifiser at tokens lagres i sessionStorage
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.not.be.null
-        expect(win.sessionStorage.getItem('refreshToken')).to.not.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
+        expect(win.sessionStorage.getItem('refreshToken')).to.not.equal(null)
         expect(win.sessionStorage.getItem('email')).to.equal(testUser.email)
         expect(win.sessionStorage.getItem('role')).to.equal(testUser.role)
       })
@@ -46,8 +55,10 @@ describe('JWT Authentication Integration', () => {
       cy.visit('/login')
       
       // Fyll inn feil credentials
-      cy.get('input[type="email"]').clear().type('wrong@example.com')
-      cy.get('input[type="password"]').clear().type('wrongpassword')
+      cy.get('input[type="email"]').clear()
+      cy.get('input[type="email"]').type('wrong@example.com')
+      cy.get('input[type="password"]').clear()
+      cy.get('input[type="password"]').type('wrongpassword')
       
       // Klikk login
       cy.get('button[type="submit"]').click()
@@ -85,7 +96,7 @@ describe('JWT Authentication Integration', () => {
       
       // Verifiser at tokens fortsatt finnes
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.not.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
         expect(win.sessionStorage.getItem('email')).to.equal(testUser.email)
       })
     })
@@ -99,7 +110,7 @@ describe('JWT Authentication Integration', () => {
     it('should clear tokens and redirect to login after session clear', () => {
       // Verifiser at vi er innlogget
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.not.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
       })
       
       // Clear session (simulerer logout)
@@ -107,10 +118,10 @@ describe('JWT Authentication Integration', () => {
       
       // Verifiser at tokens er fjernet
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.be.null
-        expect(win.sessionStorage.getItem('refreshToken')).to.be.null
-        expect(win.sessionStorage.getItem('email')).to.be.null
-        expect(win.sessionStorage.getItem('role')).to.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.equal(null)
+        expect(win.sessionStorage.getItem('refreshToken')).to.equal(null)
+        expect(win.sessionStorage.getItem('email')).to.equal(null)
+        expect(win.sessionStorage.getItem('role')).to.equal(null)
       })
       
       // Prøv å besøke en beskyttet rute
@@ -138,8 +149,8 @@ describe('JWT Authentication Integration', () => {
       
       // Verifiser sessionStorage
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.not.be.null
-        expect(win.localStorage.getItem('accessToken')).to.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
+        expect(win.localStorage.getItem('accessToken')).to.equal(null)
       })
     })
   })
