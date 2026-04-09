@@ -64,6 +64,7 @@
 
     interface ControlItemProps {
         id: number,
+        run_id: number | null,
         name: string,
         comment: string,
         employee: string,

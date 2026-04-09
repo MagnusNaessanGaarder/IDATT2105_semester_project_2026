@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios'
 import { client } from '../../../api/client'
 
-type RunStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETED'
+type RunStatus = 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE' | 'CANCELLED'
 
 export interface ChecklistRun {
   id: string
@@ -29,12 +29,20 @@ export interface GetRunsError {
 
 export type GetRunsResult = GetRunsSuccess | GetRunsError
 
+export async function completeRun(runId: number, orgNumber: number): Promise<void> {
+  await client.put(`/checklists/runs/${runId}/complete`, null, {
+    params: { orgNumber },
+    headers: {
+      Accept: 'application/json',
+    },
+  })
+}
+
 export async function getRuns(): Promise<GetRunsResult> {
   try {
     const response = await client.get<ChecklistRun[]>('/checklists/runs', {
       params: {
         orgNumber: '937219997',
-        status: 'DRAFT',
       },
       headers: {
         Accept: 'application/json',

@@ -3,6 +3,7 @@ import { getRuns, type ChecklistRun } from '../api/checklistsRun'
 
 export interface DailyControlItem {
   id: number
+  run_id: number | null
   name: string
   law_unit: string
   employee: string
@@ -115,6 +116,7 @@ const mapRunItemToDailyControl = (
 
   return {
     id: Number(item.runItemId ?? `${run.runId ?? 0}${index + 1}`),
+    run_id: run.runId ?? null,
     name:
       asString(item.templateItemLabel) ||
       (item.templateItemId ? `Kontrollpunkt ${item.templateItemId}` : '') ||
