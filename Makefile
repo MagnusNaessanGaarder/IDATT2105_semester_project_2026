@@ -32,8 +32,10 @@ dev:
 	fi
 	@echo ""
 	@echo "[1/4] Starting MySQL..."
-	@if lsof -ti:3306 > /dev/null 2>&1 || (command -v docker > /dev/null 2>&1 && [ "$$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' backend-mysql-1 2>/dev/null)" = "healthy" ]); then \
-		echo "  MySQL already running on port 3306"; \
+	@if lsof -ti:3306 > /dev/null 2>&1; then \
+		echo "  MySQL already reachable on port 3306"; \
+	elif command -v docker > /dev/null 2>&1 && [ "$$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' backend-mysql-1 2>/dev/null)" = "healthy" ]; then \
+		echo "  MySQL container already healthy"; \
 	elif command -v docker > /dev/null 2>&1; then \
 		docker compose -f compose-dev.yaml up -d mysql 2>/dev/null || docker start backend-mysql-1 2>/dev/null || true; \
 		mysql_started=0; \
@@ -48,9 +50,11 @@ dev:
 			echo "  MySQL started"; \
 		else \
 			echo "  MySQL failed to start (check Docker and compose-dev.yaml)"; \
+			exit 1; \
 		fi; \
 	else \
 		echo "  Docker not found. Install Docker or start MySQL manually on port 3306."; \
+		exit 1; \
 	fi
 	@echo ""
 	@echo "[2/4] Starting backend..."
@@ -73,13 +77,21 @@ dev:
 		else \
 			echo "  Backend failed to start. Last backend log lines:"; \
 			tail -n 20 /tmp/backend.log 2>/dev/null || echo "  No backend log found"; \
+			exit 1; \
 		fi; \
 	fi
 	@echo ""
 	@echo "[3/4] Starting frontend..."
 	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
-	@sleep 3
-	@if lsof -ti:5173 > /dev/null 2>&1; then \
+	@frontend_started=0; \
+	for i in $$(seq 1 30); do \
+		if lsof -ti:5173 > /dev/null 2>&1; then \
+			frontend_started=1; \
+			break; \
+		fi; \
+		sleep 1; \
+	done; \
+	if [ $$frontend_started -eq 1 ]; then \
 		echo "  Frontend started"; \
 	else \
 		echo "  Frontend failed to start. Last frontend log lines:"; \
