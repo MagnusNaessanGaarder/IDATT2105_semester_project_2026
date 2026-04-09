@@ -72,7 +72,7 @@ dev:
 	else \
 		(cd backend && ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &); \
 		backend_started=0; \
-		for i in $$(seq 1 30); do \
+		for i in $$(seq 1 $${BACKEND_STARTUP_TIMEOUT}); do \
 			if lsof -ti:8080 > /dev/null 2>&1; then \
 				backend_started=1; \
 				break; \

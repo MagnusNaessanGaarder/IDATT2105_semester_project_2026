@@ -22,9 +22,14 @@ const handleLogin = async () => {
       password: password.value,
     })
 
-    // redirect to dashboard
-    const redirect = route.query.redirect as string
-    router.push(redirect || { name: 'Dashboard' })
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+    const isSafeInternalRedirect =
+      redirect.startsWith('/') &&
+      !redirect.startsWith('//') &&
+      !redirect.includes('://') &&
+      !redirect.startsWith('/login')
+
+    router.push(isSafeInternalRedirect ? redirect : { name: 'Dashboard' })
   } catch {
     error.value = 'Ugyldig e-post eller passord'
   } finally {
