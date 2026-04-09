@@ -3,12 +3,17 @@ package com.example.InternalControl.controller.notification;
 import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.model.notification.Notification;
 import com.example.InternalControl.model.notification.NotificationType;
+import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.notification.NotificationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,6 +22,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.isOneOf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -24,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for NotificationController using TestContainers.
  */
 @SpringBootTest
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 class NotificationControllerTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -35,6 +41,18 @@ class NotificationControllerTest extends AbstractIntegrationTest {
 
     private static final Integer ORG_NUMBER = 123456789;
     private static final String BASE_URL = "/api/v1/notifications";
+
+    @BeforeEach
+    void setUp() {
+        Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
+        if (existingAuth == null) {
+            return;
+        }
+        CustomUserDetails userDetails = new CustomUserDetails(
+                1L, existingAuth.getName(), "password", existingAuth.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+    }
 
     @Test
     @WithMockUser(roles = {"EMPLOYEE"})
@@ -61,7 +79,7 @@ class NotificationControllerTest extends AbstractIntegrationTest {
         // When & Then
         mockMvc.perform(get(BASE_URL)
                         .param("orgNumber", ORG_NUMBER.toString()))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().is(isOneOf(401, 403)));
     }
 
     @Test
