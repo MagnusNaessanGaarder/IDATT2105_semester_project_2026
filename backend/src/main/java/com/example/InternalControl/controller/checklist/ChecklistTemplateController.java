@@ -2,6 +2,7 @@ package com.example.InternalControl.controller.checklist;
 
 import com.example.InternalControl.dto.checklist.request.ChecklistTemplateCreateRequest;
 import com.example.InternalControl.model.checklist.ChecklistTemplate;
+import com.example.InternalControl.model.enums.Frequency;
 import com.example.InternalControl.model.enums.ModuleType;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistTemplateService;
@@ -13,7 +14,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +36,7 @@ import java.util.List;
  * REST Controller for Checklist Template operations.
  */
 @RestController
-@RequestMapping("/api/v1/checklists/templates")
+@RequestMapping({"/api/v1/checklists/templates", "/api/checklists/templates"})
 @Tag(name = "Checklist Templates", description = "Manage checklist templates")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
@@ -48,7 +51,8 @@ public class ChecklistTemplateController {
     public ResponseEntity<List<ChecklistTemplate>> getTemplates(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(templateService.getTemplatesByOrg(orgNumber));
     }
@@ -60,7 +64,8 @@ public class ChecklistTemplateController {
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(templateService.getTemplate(id, orgNumber));
     }
@@ -72,7 +77,8 @@ public class ChecklistTemplateController {
             @PathVariable ModuleType moduleType,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(templateService.getTemplatesByModule(orgNumber, moduleType));
     }
@@ -83,7 +89,8 @@ public class ChecklistTemplateController {
     public ResponseEntity<List<ChecklistTemplate>> getActiveTemplates(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(templateService.getActiveTemplates(orgNumber));
     }
@@ -95,15 +102,15 @@ public class ChecklistTemplateController {
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
         ChecklistTemplate template = ChecklistTemplate.builder()
                 .title(requestDto.getTitle())
                 .description(requestDto.getDescription())
-                .moduleType(requestDto.getModuleType())
-                .frequency(requestDto.getFrequency())
+                .moduleType(requestDto.getModuleType() != null ? requestDto.getModuleType() : ModuleType.FOOD)
+                .frequency(requestDto.getFrequency() != null ? requestDto.getFrequency() : Frequency.DAILY)
                 .build();
 
         ChecklistTemplate created = templateService.createTemplate(template, orgNumber, userId);
@@ -125,15 +132,15 @@ public class ChecklistTemplateController {
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
         ChecklistTemplate template = ChecklistTemplate.builder()
                 .title(requestDto.getTitle())
                 .description(requestDto.getDescription())
-                .moduleType(requestDto.getModuleType())
-                .frequency(requestDto.getFrequency())
+                .moduleType(requestDto.getModuleType() != null ? requestDto.getModuleType() : ModuleType.FOOD)
+                .frequency(requestDto.getFrequency() != null ? requestDto.getFrequency() : Frequency.DAILY)
                 .build();
 
         return ResponseEntity.ok(templateService.updateTemplate(id, template, orgNumber));
@@ -146,10 +153,34 @@ public class ChecklistTemplateController {
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         templateService.deleteTemplate(id, orgNumber);
         return ResponseEntity.noContent().build();
+    }
+
+    private Long resolveUserId(CustomUserDetails userDetails) {
+        return userDetails != null ? userDetails.getUserId() : 0L;
+    }
+
+    private void requireAnyRole(String... roles) {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            throw new AccessDeniedException("Missing authentication");
+        }
+
+        for (String role : roles) {
+            boolean hasRole = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> role.equals(authority.getAuthority()));
+            if (hasRole) {
+                return;
+            }
+        }
+
+        throw new AccessDeniedException("Insufficient permissions");
     }
 
     private void validateUserOrganizationAccess(Long userId, Integer orgNumber) {

@@ -16,7 +16,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -53,6 +55,7 @@ public class OrganizationSettingsAdminController {
     })
     public ResponseEntity<OrganizationSettingsResponse> getSettings(
             @RequestParam Integer orgNumber) {
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
         log.info("Getting settings for organization: {}", orgNumber);
 
         OrganizationSettings settings = settingsRepository.findById(orgNumber)
@@ -79,6 +82,7 @@ public class OrganizationSettingsAdminController {
     public ResponseEntity<OrganizationSettingsResponse> updateSettings(
             @RequestParam Integer orgNumber,
             @Valid @RequestBody OrganizationSettingsRequest request) {
+        requireAnyRole("ROLE_ADMIN");
         log.info("Updating settings for organization: {}", orgNumber);
 
         OrganizationSettings settings = settingsRepository.findById(orgNumber)
@@ -119,6 +123,25 @@ public class OrganizationSettingsAdminController {
         settings = settingsRepository.save(settings);
 
         return ResponseEntity.ok(mapToResponse(settings));
+    }
+
+    private void requireAnyRole(String... roles) {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            throw new AccessDeniedException("Missing authentication");
+        }
+
+        for (String role : roles) {
+            boolean hasRole = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> role.equals(authority.getAuthority()));
+            if (hasRole) {
+                return;
+            }
+        }
+
+        throw new AccessDeniedException("Insufficient permissions");
     }
 
     private OrganizationSettings createDefaultSettings(Integer orgNumber) {

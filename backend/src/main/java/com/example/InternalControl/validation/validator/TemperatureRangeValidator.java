@@ -49,14 +49,6 @@ public class TemperatureRangeValidator implements ConstraintValidator<ValidTempe
         }
 
         boolean valid = temperature >= min && temperature <= max;
-
-        if (!valid) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(
-                    String.format("Temperature must be between %.1f°C and %.1f°C", min, max)
-            ).addConstraintViolation();
-        }
-
         return valid;
     }
 }

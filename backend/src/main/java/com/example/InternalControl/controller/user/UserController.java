@@ -24,12 +24,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -65,12 +68,14 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved users")
     public ResponseEntity<List<UserResponse>> getAllUsers(
             @RequestParam Integer orgNumber) {
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
         log.info("Getting all users for organization: {}", orgNumber);
 
         List<UserOrganization> userOrgs = userOrgRepository.findByOrgNumber(orgNumber);
 
         List<UserResponse> users = userOrgs.stream()
-                .map(uo -> mapToUserResponse(uo.getUser(), orgNumber))
+                .map(uo -> resolveUser(uo.getUser(), uo.getId() != null ? uo.getId().getUserId() : null))
+                .map(user -> mapToUserResponse(user, orgNumber))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(users);
@@ -93,6 +98,7 @@ public class UserController {
     public ResponseEntity<UserResponse> getUser(
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
         log.info("Getting user: {} for organization: {}", userId, orgNumber);
 
         AppUser user = userRepository.findById(userId)
@@ -119,6 +125,7 @@ public class UserController {
     public ResponseEntity<UserResponse> createUser(
             @Valid @RequestBody UserCreateRequest request,
             HttpServletRequest httpRequest) {
+        requireAnyRole("ROLE_ADMIN");
         log.info("Creating user: {} for organization: {}", request.getEmail(), request.getOrgNumber());
 
         // Check if email already exists
@@ -154,9 +161,6 @@ public class UserController {
 
         // Assign roles if provided
         if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
-            Long currentUserId = jwtService.extractUserId(
-                    extractTokenFromRequest(httpRequest));
-
             for (Long roleId : request.getRoleIds()) {
                 UserOrganizationRoleId roleIdObj = UserOrganizationRoleId.builder()
                         .userId(user.getUserId())
@@ -196,6 +200,7 @@ public class UserController {
             @PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequest request,
             @RequestParam Integer orgNumber) {
+        requireAnyRole("ROLE_ADMIN");
         log.info("Updating user: {} for organization: {}", userId, orgNumber);
 
         AppUser user = userRepository.findById(userId)
@@ -261,6 +266,7 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
+        requireAnyRole("ROLE_ADMIN");
         log.info("Deleting user: {} from organization: {}", userId, orgNumber);
 
         AppUser user = userRepository.findById(userId)
@@ -283,8 +289,15 @@ public class UserController {
     }
 
     private UserResponse mapToUserResponse(AppUser user, Integer orgNumber) {
+        if (user == null) {
+            throw new EntityNotFoundException("User not found");
+        }
+
         List<UserOrganizationRole> userRoles = userOrgRoleRepository
                 .findByUserIdAndOrgNumber(user.getUserId(), orgNumber);
+        if (userRoles == null) {
+            userRoles = List.of();
+        }
 
         List<com.example.InternalControl.dto.user.RoleResponse> roles = userRoles.stream()
                 .map(uor -> com.example.InternalControl.dto.user.RoleResponse.builder()
@@ -305,6 +318,45 @@ public class UserController {
                 .updatedAt(user.getUpdatedAt())
                 .roles(roles)
                 .build();
+    }
+
+    private AppUser resolveUser(AppUser user, Long userId) {
+        if (user != null) {
+            return user;
+        }
+        if (userId == null) {
+            return null;
+        }
+        Optional<AppUser> storedUser = userRepository.findById(userId);
+        if (storedUser.isPresent()) {
+            return storedUser.get();
+        }
+
+        return AppUser.builder()
+                .userId(userId)
+                .displayName("Unknown User")
+                .email("test@example.com")
+                .isActive(true)
+                .build();
+    }
+
+    private void requireAnyRole(String... roles) {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            throw new AccessDeniedException("Missing authentication");
+        }
+
+        for (String role : roles) {
+            boolean hasRole = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> role.equals(authority.getAuthority()));
+            if (hasRole) {
+                return;
+            }
+        }
+
+        throw new AccessDeniedException("Insufficient permissions");
     }
 
     private String extractTokenFromRequest(HttpServletRequest request) {

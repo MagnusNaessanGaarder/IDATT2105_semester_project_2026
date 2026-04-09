@@ -6,6 +6,7 @@ import com.example.InternalControl.model.user.UserOrganizationRole;
 import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
+import com.example.InternalControl.security.UserSecurity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -14,9 +15,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -40,6 +44,7 @@ public class RoleController {
 
     private final RoleRepository roleRepository;
     private final UserOrganizationRoleRepository userOrgRoleRepository;
+    private final ObjectProvider<UserSecurity> userSecurityProvider;
 
     /**
      * Get all roles in the system.
@@ -51,6 +56,7 @@ public class RoleController {
     @Operation(summary = "Get all roles", description = "Retrieve all available roles in the system")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved roles")
     public ResponseEntity<List<RoleResponse>> getAllRoles() {
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
         log.info("Getting all roles");
 
         List<Role> roles = roleRepository.findAll();
@@ -76,6 +82,7 @@ public class RoleController {
             @ApiResponse(responseCode = "404", description = "Role not found")
     })
     public ResponseEntity<RoleResponse> getRole(@PathVariable Long roleId) {
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
         log.info("Getting role: {}", roleId);
 
         Role role = roleRepository.findById(roleId)
@@ -98,6 +105,7 @@ public class RoleController {
     public ResponseEntity<List<RoleResponse>> getUserRoles(
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
+        requireAdminManagerOrCurrentUser(userId);
         log.info("Getting roles for user: {} in organization: {}", userId, orgNumber);
 
         List<UserOrganizationRole> userRoles = userOrgRoleRepository
@@ -130,6 +138,7 @@ public class RoleController {
             @PathVariable Long userId,
             @RequestParam Integer orgNumber,
             @RequestParam Long roleId) {
+        requireAnyRole("ROLE_ADMIN");
         log.info("Assigning role: {} to user: {} in organization: {}", roleId, userId, orgNumber);
 
         // Check if role already assigned
@@ -174,6 +183,7 @@ public class RoleController {
             @PathVariable Long userId,
             @RequestParam Integer orgNumber,
             @RequestParam Long roleId) {
+        requireAnyRole("ROLE_ADMIN");
         log.info("Removing role: {} from user: {} in organization: {}", roleId, userId, orgNumber);
 
         UserOrganizationRole userRole = userOrgRoleRepository
@@ -183,6 +193,44 @@ public class RoleController {
         userOrgRoleRepository.delete(userRole);
 
         return ResponseEntity.noContent().build();
+    }
+
+    private void requireAdminManagerOrCurrentUser(Long userId) {
+        if (hasAnyRole("ROLE_ADMIN", "ROLE_MANAGER")) {
+            return;
+        }
+
+        UserSecurity userSecurity = userSecurityProvider.getIfAvailable();
+        if (userSecurity != null && userSecurity.isCurrentUser(userId)) {
+            return;
+        }
+
+        throw new AccessDeniedException("Insufficient permissions");
+    }
+
+    private void requireAnyRole(String... roles) {
+        if (hasAnyRole(roles)) {
+            return;
+        }
+        throw new AccessDeniedException("Insufficient permissions");
+    }
+
+    private boolean hasAnyRole(String... roles) {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+
+        for (String role : roles) {
+            boolean hasRole = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> role.equals(authority.getAuthority()));
+            if (hasRole) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private RoleResponse mapToRoleResponse(Role role) {

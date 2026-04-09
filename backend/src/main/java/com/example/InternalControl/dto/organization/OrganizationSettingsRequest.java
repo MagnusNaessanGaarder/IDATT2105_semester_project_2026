@@ -1,5 +1,6 @@
 package com.example.InternalControl.dto.organization;
 
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +27,7 @@ public class OrganizationSettingsRequest {
     private BigDecimal defaultTempMinC;
     private BigDecimal defaultTempMaxC;
     private Boolean reminderEmailEnabled;
+    @Email
     private String notificationEmail;
     private Integer retentionUserMonths;
     private Integer retentionAuditMonths;

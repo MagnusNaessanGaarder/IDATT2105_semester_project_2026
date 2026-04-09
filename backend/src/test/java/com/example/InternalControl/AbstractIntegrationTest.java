@@ -4,7 +4,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -16,30 +15,27 @@ import org.testcontainers.utility.DockerImageName;
  * @since 1.0
  */
 @SpringBootTest
-@Transactional
 @TestPropertySource(locations = "classpath:application-test.properties")
 public abstract class AbstractIntegrationTest {
 
     private static final MySQLContainer<?> mysql;
 
     static {
-        // Configure Testcontainers only on Linux and only if not already set
-        if (isLinux()) {
-            setPropertyIfAbsent("docker.host", "unix:///var/run/docker.sock");
-            setPropertyIfAbsent("testcontainers.docker.socket.override", "/var/run/docker.sock");
-        }
-        setPropertyIfAbsent("testcontainers.ryuk.disabled", "true");
-        
-        if (System.getenv("SPRING_DATASOURCE_URL") != null) {
-            // Use external database if configured
-            mysql = null;
-        } else {
+        if (useTestcontainers()) {
+            if (isLinux()) {
+                setPropertyIfAbsent("docker.host", "unix:///var/run/docker.sock");
+                setPropertyIfAbsent("testcontainers.docker.socket.override", "/var/run/docker.sock");
+            }
+            setPropertyIfAbsent("testcontainers.ryuk.disabled", "true");
+
             mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
                     .withDatabaseName("testdb")
                     .withUsername("test")
                     .withPassword("test")
                     .withReuse(true);
             mysql.start();
+        } else {
+            mysql = null;
         }
     }
 
@@ -56,6 +52,14 @@ public abstract class AbstractIntegrationTest {
     private static boolean isLinux() {
         String osName = System.getProperty("os.name");
         return osName != null && osName.toLowerCase().contains("linux");
+    }
+
+    private static boolean useTestcontainers() {
+        String enabled = System.getProperty("testcontainers.enabled");
+        if (enabled == null || enabled.isBlank()) {
+            enabled = System.getenv("TESTCONTAINERS_ENABLED");
+        }
+        return "true".equalsIgnoreCase(enabled);
     }
 
     private static void setPropertyIfAbsent(String propertyName, String value) {

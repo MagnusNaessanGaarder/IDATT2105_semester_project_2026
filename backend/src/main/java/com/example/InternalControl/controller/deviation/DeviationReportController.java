@@ -20,7 +20,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +43,7 @@ import java.util.List;
  * REST Controller for Deviation/Incident Report operations.
  */
 @RestController
-@RequestMapping("/api/v1/deviations")
+@RequestMapping({"/api/v1/deviations", "/api/deviations"})
 @Tag(name = "Deviation Reports", description = "Manage deviation and incident reports")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
@@ -61,7 +63,8 @@ public class DeviationReportController {
     public ResponseEntity<List<DeviationReport>> getReports(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.getReportsByOrg(orgNumber));
     }
@@ -79,7 +82,8 @@ public class DeviationReportController {
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.getReport(id, orgNumber));
     }
@@ -100,7 +104,8 @@ public class DeviationReportController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.searchReports(
                 orgNumber, status, severity, assignedToId, fromDate, toDate));
@@ -118,7 +123,8 @@ public class DeviationReportController {
             @PathVariable DeviationStatus status,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.getReportsByStatus(orgNumber, status));
     }
@@ -135,7 +141,8 @@ public class DeviationReportController {
             @PathVariable Severity severity,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.getReportsBySeverity(orgNumber, severity));
     }
@@ -152,7 +159,8 @@ public class DeviationReportController {
             @PathVariable Long assignedToId,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.getReportsAssignedTo(assignedToId, orgNumber));
     }
@@ -171,7 +179,8 @@ public class DeviationReportController {
             @Valid @RequestBody DeviationReportCreateRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
         DeviationReport created = deviationReportService.createReport(requestDto, orgNumber, userId);
@@ -200,7 +209,8 @@ public class DeviationReportController {
             @Valid @RequestBody DeviationReportUpdateRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.updateReport(id, requestDto, orgNumber));
     }
@@ -218,7 +228,8 @@ public class DeviationReportController {
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         deviationReportService.deleteReport(id, orgNumber);
         return ResponseEntity.noContent().build();
@@ -239,7 +250,8 @@ public class DeviationReportController {
             @Valid @RequestBody DeviationStatusUpdateRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.updateStatus(
                 id, requestDto.getStatus(), orgNumber, userId));
@@ -260,7 +272,8 @@ public class DeviationReportController {
             @RequestParam Long assignedToUserId,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.assignReport(
                 id, assignedToUserId, orgNumber, userId));
@@ -281,7 +294,8 @@ public class DeviationReportController {
             @Valid @RequestBody DeviationActionRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.addImmediateAction(
                 id, requestDto, orgNumber, userId));
@@ -302,7 +316,8 @@ public class DeviationReportController {
             @Valid @RequestBody DeviationActionRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.addCauseAnalysis(
                 id, requestDto, orgNumber, userId));
@@ -323,7 +338,8 @@ public class DeviationReportController {
             @Valid @RequestBody DeviationActionRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.addCorrectiveAction(
                 id, requestDto, orgNumber, userId));
@@ -344,7 +360,8 @@ public class DeviationReportController {
             @Valid @RequestBody DeviationActionRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.completeReport(
                 id, requestDto, orgNumber, userId));
@@ -364,7 +381,8 @@ public class DeviationReportController {
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.closeReport(id, orgNumber, userId));
     }
@@ -380,9 +398,33 @@ public class DeviationReportController {
     public ResponseEntity<Long> getOpenReportCount(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
         return ResponseEntity.ok(deviationReportService.getOpenReportCount(orgNumber));
+    }
+
+    private Long resolveUserId(CustomUserDetails userDetails) {
+        return userDetails != null ? userDetails.getUserId() : 0L;
+    }
+
+    private void requireAnyRole(String... roles) {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            throw new AccessDeniedException("Missing authentication");
+        }
+
+        for (String role : roles) {
+            boolean hasRole = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> role.equals(authority.getAuthority()));
+            if (hasRole) {
+                return;
+            }
+        }
+
+        throw new AccessDeniedException("Insufficient permissions");
     }
 
     private void validateUserOrganizationAccess(Long userId, Integer orgNumber) {

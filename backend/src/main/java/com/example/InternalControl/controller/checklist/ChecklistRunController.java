@@ -17,7 +17,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +40,7 @@ import java.util.stream.Collectors;
  * Users perform checklists through these endpoints.
  */
 @RestController
-@RequestMapping("/api/v1/checklists/runs")
+@RequestMapping({"/api/v1/checklists/runs", "/api/checklists/runs"})
 @Tag(name = "Checklist Runs", description = "Perform and manage checklist runs")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
@@ -54,7 +56,8 @@ public class ChecklistRunController {
             @RequestParam Integer orgNumber,
             @RequestParam(required = false) RunStatus status,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
         List<ChecklistRun> runs;
@@ -76,7 +79,8 @@ public class ChecklistRunController {
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
         ChecklistRun run = runService.getRun(id, orgNumber);
@@ -90,7 +94,8 @@ public class ChecklistRunController {
             @Valid @RequestBody ChecklistRunCreateRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
         ChecklistRun run = runService.createRun(
@@ -116,7 +121,8 @@ public class ChecklistRunController {
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
         ChecklistRun run = runService.completeRun(id, orgNumber);
@@ -132,7 +138,8 @@ public class ChecklistRunController {
             @Valid @RequestBody ChecklistRunItemUpdateRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
         ChecklistRunItem item = ChecklistRunItem.builder()
@@ -155,7 +162,8 @@ public class ChecklistRunController {
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
+        Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
         ChecklistRun run = runService.getRun(id, orgNumber);
@@ -202,6 +210,29 @@ public class ChecklistRunController {
                 .updatedAt(item.getUpdatedAt())
                 .hasAnswer(item.hasAnswer())
                 .build();
+    }
+
+    private Long resolveUserId(CustomUserDetails userDetails) {
+        return userDetails != null ? userDetails.getUserId() : 0L;
+    }
+
+    private void requireAnyRole(String... roles) {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            throw new AccessDeniedException("Missing authentication");
+        }
+
+        for (String role : roles) {
+            boolean hasRole = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> role.equals(authority.getAuthority()));
+            if (hasRole) {
+                return;
+            }
+        }
+
+        throw new AccessDeniedException("Insufficient permissions");
     }
 
     private void validateUserOrganizationAccess(Long userId, Integer orgNumber) {
