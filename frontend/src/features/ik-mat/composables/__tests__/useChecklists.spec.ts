@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref } from 'vue'
 import { useChecklists } from '../useChecklists'
 import * as checklistsApi from '../../api/checklists'
 
@@ -19,11 +18,10 @@ describe('useChecklists composable', () => {
     templateId: 1,
     orgNumber: 123456789,
     moduleType: 'IK_MAT' as const,
-    name: 'Daily Cleaning',
+    title: 'Daily Cleaning',
     description: 'Daily cleaning checklist',
     frequency: 'DAILY' as const,
     isActive: true,
-    version: 1,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
   }
@@ -33,7 +31,7 @@ describe('useChecklists composable', () => {
     templateId: 1,
     orgNumber: 123456789,
     status: 'PENDING' as const,
-    scheduledDate: '2024-01-01',
+    runDate: '2024-01-01',
   }
 
   beforeEach(() => {
@@ -124,10 +122,9 @@ describe('useChecklists composable', () => {
 
   describe('createTemplate', () => {
     const createRequest = {
-      orgNumber: 123456789,
-      moduleType: 'IK_MAT' as const,
-      name: 'New Template',
+      title: 'New Template',
       description: 'Test',
+      moduleType: 'IK_MAT' as const,
       frequency: 'DAILY' as const,
       items: [],
     }
@@ -136,25 +133,26 @@ describe('useChecklists composable', () => {
       vi.mocked(checklistsApi.createTemplate).mockResolvedValue(mockTemplate)
       const { templates, createTemplate } = useChecklists()
 
-      const result = await createTemplate(createRequest)
+      const result = await createTemplate(123456789, createRequest)
 
       expect(templates.value).toHaveLength(1)
       expect(templates.value[0]).toEqual(mockTemplate)
       expect(result).toEqual(mockTemplate)
+      expect(checklistsApi.createTemplate).toHaveBeenCalledWith(123456789, createRequest)
     })
 
     it('throws error when creation fails', async () => {
       vi.mocked(checklistsApi.createTemplate).mockResolvedValue(null as any)
       const { createTemplate } = useChecklists()
 
-      await expect(createTemplate(createRequest)).rejects.toThrow('Failed to create checklist template')
+      await expect(createTemplate(123456789, createRequest)).rejects.toThrow('Failed to create checklist template')
     })
 
     it('exposes isCreating state', async () => {
       vi.mocked(checklistsApi.createTemplate).mockReturnValue(new Promise(() => {}))
       const { isCreating, createTemplate } = useChecklists()
 
-      createTemplate(createRequest)
+      createTemplate(123456789, createRequest)
 
       expect(isCreating.value).toBe(true)
     })
@@ -162,8 +160,11 @@ describe('useChecklists composable', () => {
 
   describe('updateTemplate', () => {
     const updateData = {
-      name: 'Updated Name',
+      title: 'Updated Name',
       description: 'Updated description',
+      moduleType: 'IK_MAT' as const,
+      frequency: 'DAILY' as const,
+      items: [],
     }
 
     it('updates existing template in list', async () => {
@@ -178,8 +179,8 @@ describe('useChecklists composable', () => {
 
       const result = await updateTemplate(1, 123456789, updateData)
 
-      expect(templates.value[0].name).toBe('Updated Name')
-      expect(result.name).toBe('Updated Name')
+      expect(templates.value[0].title).toBe('Updated Name')
+      expect(result.title).toBe('Updated Name')
     })
 
     it('throws error when update fails', async () => {
@@ -223,22 +224,28 @@ describe('useChecklists composable', () => {
   })
 
   describe('createRun', () => {
+    const runData = {
+      templateId: 1,
+      runDate: '2024-01-01',
+    }
+
     it('adds new run to list', async () => {
       vi.mocked(checklistsApi.createRun).mockResolvedValue(mockRun)
       const { runs, createRun } = useChecklists()
 
-      const result = await createRun(1, 123456789, 5)
+      const result = await createRun(123456789, runData)
 
       expect(runs.value).toHaveLength(1)
       expect(runs.value[0]).toEqual(mockRun)
       expect(result).toEqual(mockRun)
+      expect(checklistsApi.createRun).toHaveBeenCalledWith(123456789, runData)
     })
 
     it('throws error when creation fails', async () => {
       vi.mocked(checklistsApi.createRun).mockResolvedValue(null as any)
       const { createRun } = useChecklists()
 
-      await expect(createRun(1, 123456789)).rejects.toThrow('Failed to create checklist run')
+      await expect(createRun(123456789, runData)).rejects.toThrow('Failed to create checklist run')
     })
   })
 

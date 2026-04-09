@@ -3,8 +3,6 @@ import { computed, ref } from 'vue'
 import { useIkMatData, type Checklist } from '../composables/useIkMatData'
 import { useAuthStore } from '@/stores/auth'
 import BaseModal from '@/shared/components/BaseModal.vue'
-import BaseSpinner from '@/shared/components/BaseSpinner.vue'
-import ErrorMessage from '@/shared/components/ErrorMessage.vue'
 
 const authStore = useAuthStore()
 const { checklists, completionForChecklist } = useIkMatData()
@@ -134,39 +132,48 @@ const toggleTask = (checklistId: number, itemId: number) => {
 
     <div class="checklist-list">
       <article v-for="checklist in sorted" :key="checklist.id" class="checklist-card">
-        <button class="checklist-head" :aria-expanded="expandedId === checklist.id" @click="toggleExpanded(checklist.id)">
-          <div class="checklist-head__content">
-            <p class="checklist-head__title">{{ checklist.name }}</p>
-            <p class="checklist-head__meta">{{ checklist.frequency }} · {{ checklist.law_unit }}</p>
-          </div>
+        <!-- Header: Split into expandable area and actions to avoid nested buttons -->
+        <div class="checklist-header">
+          <div
+            class="checklist-header__content"
+            role="button"
+            :aria-expanded="expandedId === checklist.id"
+            tabindex="0"
+            @click="toggleExpanded(checklist.id)"
+            @keydown.enter="toggleExpanded(checklist.id)"
+          >
+            <div>
+              <p class="checklist-header__title">{{ checklist.name }}</p>
+              <p class="checklist-header__meta">{{ checklist.frequency }} · {{ checklist.law_unit }}</p>
+            </div>
 
-          <div class="checklist-head__actions">
-            <div class="checklist-head__progress">
+            <div class="checklist-header__progress">
               <div class="progress-track" role="progressbar" :aria-valuenow="completionForChecklist(checklist)" aria-valuemin="0" aria-valuemax="100">
                 <div class="progress-track__fill" :style="{ width: `${completionForChecklist(checklist)}%` }" />
               </div>
               <span>{{ completionForChecklist(checklist) }}%</span>
             </div>
+          </div>
 
-            <div v-if="isAdmin" class="options-menu">
-              <button
-                class="options-menu__trigger"
-                type="button"
-                aria-label="Åpne handlinger"
-                :aria-expanded="optionsOpenId === checklist.id"
-                @click="toggleOptions(checklist.id, $event)"
-              >
-                <span class="dot" />
-                <span class="dot" />
-                <span class="dot" />
-              </button>
+          <!-- Admin options menu - separate from expandable header -->
+          <div v-if="isAdmin" class="options-menu">
+            <button
+              class="options-menu__trigger"
+              type="button"
+              aria-label="Åpne handlinger"
+              :aria-expanded="optionsOpenId === checklist.id"
+              @click="toggleOptions(checklist.id, $event)"
+            >
+              <span class="dot" />
+              <span class="dot" />
+              <span class="dot" />
+            </button>
 
-              <div v-if="optionsOpenId === checklist.id" class="options-menu__list" role="menu">
-                <button class="options-menu__item" type="button" role="menuitem" @click="openEditModal(checklist, $event)">Rediger</button>
-              </div>
+            <div v-if="optionsOpenId === checklist.id" class="options-menu__list" role="menu">
+              <button class="options-menu__item" type="button" role="menuitem" @click="openEditModal(checklist, $event)">Rediger</button>
             </div>
           </div>
-        </button>
+        </div>
 
         <div v-if="expandedId === checklist.id" class="checklist-body">
           <p class="checklist-body__description">{{ checklist.description }}</p>
@@ -274,50 +281,50 @@ const toggleTask = (checklistId: number, itemId: number) => {
   overflow: hidden;
 }
 
-.checklist-head {
-  border: 0;
-  background: transparent;
-  width: 100%;
+/* Split header into content (expandable) and actions (buttons) */
+.checklist-header {
+  display: flex;
+  align-items: center;
   padding: 0.9rem;
+  gap: 0.75rem;
+}
+
+.checklist-header__content {
+  flex: 1;
   display: flex;
   justify-content: space-between;
-  gap: 0.75rem;
   align-items: center;
-  text-align: left;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
 }
 
-.checklist-head__content {
-  flex: 1;
-  min-width: 0;
+.checklist-header__content:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
-.checklist-head__title {
+.checklist-header__title {
   margin: 0;
   color: var(--color-foreground);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
 }
 
-.checklist-head__meta {
+.checklist-header__meta {
   margin: 0.25rem 0 0;
   color: var(--color-gray-500);
   font-size: var(--font-size-xs);
 }
 
-.checklist-head__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.checklist-head__progress {
+.checklist-header__progress {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   min-width: 8rem;
 }
 
-.checklist-head__progress span {
+.checklist-header__progress span {
   font-size: var(--font-size-xs);
   color: var(--color-gray-600);
   font-weight: var(--font-weight-semibold);
@@ -339,8 +346,10 @@ const toggleTask = (checklistId: number, itemId: number) => {
   transition: width var(--transition-base);
 }
 
+/* Options menu - now outside the button */
 .options-menu {
   position: relative;
+  flex-shrink: 0;
 }
 
 .options-menu__trigger {
@@ -531,8 +540,20 @@ const toggleTask = (checklistId: number, itemId: number) => {
 }
 
 @media (max-width: 48rem) {
-  .checklist-head__progress {
+  .checklist-header {
+    flex-wrap: wrap;
+  }
+
+  .checklist-header__content {
+    width: 100%;
+  }
+
+  .checklist-header__progress {
     min-width: 5rem;
+  }
+
+  .options-menu {
+    margin-left: auto;
   }
 
   .options-menu__list {

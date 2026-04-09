@@ -1,69 +1,74 @@
 /**
  * Checklist API service for IK-MAT checklist management.
  * Provides CRUD operations for checklist templates and runs.
+ * Aligned with backend DTOs:
+ * - ChecklistTemplateResponse (title, not name)
+ * - ChecklistTemplateCreateRequest
+ * - ChecklistRunResponse
+ * - ChecklistRunCreateRequest (requires runDate)
  */
 import { client } from '@/api/client'
 
-export interface ChecklistItem {
+export interface ChecklistTemplateItem {
   itemId?: number
   templateId?: number
-  questionText: string
-  answerType: 'YES_NO' | 'TEXT' | 'NUMBER' | 'TEMPERATURE' | 'CHOICE'
-  isRequired: boolean
-  displayOrder: number
-  minValue?: number
-  maxValue?: number
-  unit?: string
-  alertOnDeviation?: boolean
+  sortOrder: number
+  label: string
+  description?: string
+  itemType: 'YES_NO' | 'TEXT' | 'NUMERIC' | 'TEMPERATURE' | 'CHOICE'
+  isRequired?: boolean
+  expectedText?: string
+  expectedNumericMin?: number
+  expectedNumericMax?: number
+  choiceOptionsJson?: string
 }
 
 export interface ChecklistTemplate {
   templateId: number
   orgNumber: number
   moduleType: 'IK_MAT' | 'IK_ALKOHOL'
-  name: string
+  title: string
   description?: string
   frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
   isActive: boolean
-  version: number
+  createdByUserId?: number
   createdAt?: string
   updatedAt?: string
-  items?: ChecklistItem[]
+  items?: ChecklistTemplateItem[]
 }
 
 export interface ChecklistTemplateCreateRequest {
-  orgNumber: number
-  moduleType: 'IK_MAT'
-  name: string
+  title: string
   description?: string
+  moduleType: 'IK_MAT'
   frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
-  items: Omit<ChecklistItem, 'itemId' | 'templateId'>[]
+  items: Omit<ChecklistTemplateItem, 'itemId' | 'templateId'>[]
 }
 
 export interface ChecklistTemplateUpdateRequest {
-  name?: string
+  title: string
   description?: string
-  frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+  moduleType: 'IK_MAT'
+  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
   isActive?: boolean
-  items?: Omit<ChecklistItem, 'itemId' | 'templateId'>[]
+  items: Omit<ChecklistTemplateItem, 'itemId' | 'templateId'>[]
 }
 
 export interface ChecklistRun {
   runId: number
   templateId: number
-  templateName?: string
+  templateTitle?: string
   orgNumber: number
   locationId?: number
-  locationName?: string
   performedByUserId?: number
-  performedByName?: string
   assignedToUserId?: number
-  assignedToName?: string
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE'
-  scheduledDate?: string
-  startedAt?: string
+  runDate: string
+  dueAt?: string
   completedAt?: string
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE'
   notes?: string
+  createdAt?: string
+  updatedAt?: string
   items?: ChecklistRunItem[]
 }
 
@@ -71,13 +76,26 @@ export interface ChecklistRunItem {
   runItemId: number
   runId: number
   templateItemId: number
-  questionText?: string
-  answerType?: string
+  label?: string
+  itemType?: string
   answerValue?: string
   isAnswered: boolean
   isDeviation: boolean
   notes?: string
   answeredAt?: string
+}
+
+export interface ChecklistRunCreateRequest {
+  templateId: number
+  runDate: string
+  assignedToUserId?: number
+  notes?: string
+}
+
+export interface ChecklistRunItemUpdateRequest {
+  answerValue?: string
+  notes?: string
+  isDeviation?: boolean
 }
 
 /**
@@ -107,19 +125,27 @@ export async function getTemplate(templateId: number, orgNumber: number): Promis
 
 /**
  * Create a new checklist template.
+ * Note: orgNumber is passed as query param, not in body.
+ * @param orgNumber - The organization number
  * @param templateData - The template creation data
  * @returns Promise with created template
  */
-export async function createTemplate(templateData: ChecklistTemplateCreateRequest): Promise<ChecklistTemplate> {
-  const response = await client.post('/api/v1/checklists/templates', templateData)
+export async function createTemplate(
+  orgNumber: number,
+  templateData: ChecklistTemplateCreateRequest
+): Promise<ChecklistTemplate> {
+  const response = await client.post('/api/v1/checklists/templates', templateData, {
+    params: { orgNumber },
+  })
   return response.data
 }
 
 /**
  * Update an existing checklist template.
+ * Note: Backend expects full DTO (title, moduleType, frequency required).
  * @param templateId - The template ID
  * @param orgNumber - The organization number
- * @param templateData - The template update data
+ * @param templateData - The template update data (full DTO required)
  * @returns Promise with updated template
  */
 export async function updateTemplate(
@@ -159,20 +185,17 @@ export async function getRuns(orgNumber: number): Promise<ChecklistRun[]> {
 
 /**
  * Create a new checklist run from a template.
- * @param templateId - The template ID
+ * Note: Requires runDate in body, orgNumber as query param.
  * @param orgNumber - The organization number
- * @param locationId - The location ID
+ * @param runData - The run creation data (includes templateId and runDate)
  * @returns Promise with created run
  */
 export async function createRun(
-  templateId: number,
   orgNumber: number,
-  locationId?: number
+  runData: ChecklistRunCreateRequest
 ): Promise<ChecklistRun> {
-  const response = await client.post('/api/v1/checklists/runs', {
-    templateId,
-    orgNumber,
-    locationId,
+  const response = await client.post('/api/v1/checklists/runs', runData, {
+    params: { orgNumber },
   })
   return response.data
 }
@@ -202,11 +225,7 @@ export async function updateRunItem(
   runId: number,
   itemId: number,
   orgNumber: number,
-  answerData: {
-    answerValue?: string
-    notes?: string
-    isDeviation?: boolean
-  }
+  answerData: ChecklistRunItemUpdateRequest
 ): Promise<ChecklistRunItem> {
   const response = await client.put(`/api/v1/checklists/runs/${runId}/items/${itemId}`, answerData, {
     params: { orgNumber },

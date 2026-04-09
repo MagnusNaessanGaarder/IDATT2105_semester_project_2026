@@ -1,6 +1,7 @@
 /**
  * Composable for checklist management operations.
  * Provides reactive state and CRUD operations for IK-MAT checklists.
+ * Aligned with backend ChecklistTemplate DTOs (uses 'title' not 'name').
  */
 import { ref, computed } from 'vue'
 import { useApi } from '@/shared/composables/useApi'
@@ -10,6 +11,7 @@ import type {
   ChecklistTemplateCreateRequest,
   ChecklistTemplateUpdateRequest,
   ChecklistRun,
+  ChecklistRunCreateRequest,
 } from '../api/checklists'
 
 export type {
@@ -17,7 +19,8 @@ export type {
   ChecklistTemplateCreateRequest,
   ChecklistTemplateUpdateRequest,
   ChecklistRun,
-  ChecklistItem,
+  ChecklistRunCreateRequest,
+  ChecklistTemplateItem,
   ChecklistRunItem,
 } from '../api/checklists'
 
@@ -74,12 +77,14 @@ export function useChecklists() {
 
   /**
    * Create a new checklist template.
+   * @param orgNumber - The organization number
    * @param templateData - The template creation data
    */
   async function createTemplate(
+    orgNumber: number,
     templateData: ChecklistTemplateCreateRequest
   ): Promise<ChecklistTemplate> {
-    const newTemplate = await createApi.execute(templateData)
+    const newTemplate = await createApi.execute(orgNumber, templateData)
     if (!newTemplate) {
       throw new Error('Failed to create checklist template')
     }
@@ -89,9 +94,10 @@ export function useChecklists() {
 
   /**
    * Update an existing checklist template.
+   * Note: Backend requires full DTO (title, moduleType, frequency required).
    * @param templateId - The template ID
    * @param orgNumber - The organization number
-   * @param templateData - The template update data
+   * @param templateData - The template update data (full DTO)
    */
   async function updateTemplate(
     templateId: number,
@@ -125,16 +131,14 @@ export function useChecklists() {
 
   /**
    * Create a new checklist run from a template.
-   * @param templateId - The template ID
    * @param orgNumber - The organization number
-   * @param locationId - Optional location ID
+   * @param runData - The run creation data
    */
   async function createRun(
-    templateId: number,
     orgNumber: number,
-    locationId?: number
+    runData: ChecklistRunCreateRequest
   ): Promise<ChecklistRun> {
-    const newRun = await createRunApi.execute(templateId, orgNumber, locationId)
+    const newRun = await createRunApi.execute(orgNumber, runData)
     if (!newRun) {
       throw new Error('Failed to create checklist run')
     }

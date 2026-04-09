@@ -29,11 +29,10 @@ describe('checklists API', () => {
     templateId: 1,
     orgNumber: 123456789,
     moduleType: 'IK_MAT',
-    name: 'Daily Cleaning',
+    title: 'Daily Cleaning',
     description: 'Daily cleaning checklist',
     frequency: 'DAILY',
     isActive: true,
-    version: 1,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
   }
@@ -91,45 +90,51 @@ describe('checklists API', () => {
 
   describe('createTemplate', () => {
     const createRequest: ChecklistTemplateCreateRequest = {
-      orgNumber: 123456789,
-      moduleType: 'IK_MAT',
-      name: 'New Checklist',
+      title: 'New Template',
       description: 'Test description',
+      moduleType: 'IK_MAT',
       frequency: 'DAILY',
       items: [
         {
-          questionText: 'Task 1',
-          answerType: 'YES_NO',
+          label: 'Task 1',
+          sortOrder: 1,
+          itemType: 'YES_NO',
           isRequired: true,
-          displayOrder: 1,
         },
       ],
     }
 
-    it('creates template with correct payload', async () => {
+    it('creates template with correct payload and query params', async () => {
       vi.mocked(client.post).mockResolvedValue({ data: mockTemplate })
 
-      const result = await createTemplate(createRequest)
+      const result = await createTemplate(123456789, createRequest)
 
-      expect(client.post).toHaveBeenCalledWith('/api/v1/checklists/templates', createRequest)
+      expect(client.post).toHaveBeenCalledWith(
+        '/api/v1/checklists/templates',
+        createRequest,
+        { params: { orgNumber: 123456789 } }
+      )
       expect(result).toEqual(mockTemplate)
     })
 
     it('throws error when creation fails', async () => {
       vi.mocked(client.post).mockRejectedValue(new Error('Validation error'))
 
-      await expect(createTemplate(createRequest)).rejects.toThrow('Validation error')
+      await expect(createTemplate(123456789, createRequest)).rejects.toThrow('Validation error')
     })
   })
 
   describe('updateTemplate', () => {
     const updateData = {
-      name: 'Updated Name',
+      title: 'Updated Name',
       description: 'Updated description',
+      moduleType: 'IK_MAT' as const,
+      frequency: 'DAILY' as const,
+      items: [],
     }
 
-    it('updates template with correct payload', async () => {
-      const updatedTemplate = { ...mockTemplate, ...updateData }
+    it('updates template with correct payload (full DTO)', async () => {
+      const updatedTemplate = { ...mockTemplate, title: 'Updated Name' }
       vi.mocked(client.put).mockResolvedValue({ data: updatedTemplate })
 
       const result = await updateTemplate(1, 123456789, updateData)
@@ -139,7 +144,7 @@ describe('checklists API', () => {
         updateData,
         { params: { orgNumber: 123456789 } }
       )
-      expect(result.name).toBe('Updated Name')
+      expect(result.title).toBe('Updated Name')
     })
 
     it('throws error when update fails', async () => {
@@ -175,6 +180,7 @@ describe('checklists API', () => {
           templateId: 1,
           orgNumber: 123456789,
           status: 'PENDING',
+          runDate: '2024-01-01',
         },
       ]
       vi.mocked(client.get).mockResolvedValue({ data: mockRuns })
@@ -189,41 +195,35 @@ describe('checklists API', () => {
   })
 
   describe('createRun', () => {
-    it('creates run with template id', async () => {
+    it('creates run with correct body and query params', async () => {
       const mockRun = {
         runId: 1,
         templateId: 1,
         orgNumber: 123456789,
         status: 'PENDING',
+        runDate: '2024-01-01',
+      }
+      const runData = {
+        templateId: 1,
+        runDate: '2024-01-01',
+        notes: 'Test run',
       }
       vi.mocked(client.post).mockResolvedValue({ data: mockRun })
 
-      const result = await createRun(1, 123456789, 5)
+      const result = await createRun(123456789, runData)
 
-      expect(client.post).toHaveBeenCalledWith('/api/v1/checklists/runs', {
-        templateId: 1,
-        orgNumber: 123456789,
-        locationId: 5,
-      })
+      expect(client.post).toHaveBeenCalledWith(
+        '/api/v1/checklists/runs',
+        runData,
+        { params: { orgNumber: 123456789 } }
+      )
       expect(result).toEqual(mockRun)
     })
 
-    it('creates run without location id', async () => {
-      const mockRun = {
-        runId: 1,
-        templateId: 1,
-        orgNumber: 123456789,
-        status: 'PENDING',
-      }
-      vi.mocked(client.post).mockResolvedValue({ data: mockRun })
+    it('throws error when creation fails', async () => {
+      vi.mocked(client.post).mockRejectedValue(new Error('Validation error'))
 
-      await createRun(1, 123456789)
-
-      expect(client.post).toHaveBeenCalledWith('/api/v1/checklists/runs', {
-        templateId: 1,
-        orgNumber: 123456789,
-        locationId: undefined,
-      })
+      await expect(createRun(123456789, { templateId: 1, runDate: '2024-01-01' })).rejects.toThrow('Validation error')
     })
   })
 
@@ -234,6 +234,7 @@ describe('checklists API', () => {
         templateId: 1,
         orgNumber: 123456789,
         status: 'COMPLETED',
+        runDate: '2024-01-01',
       }
       vi.mocked(client.put).mockResolvedValue({ data: mockRun })
 
