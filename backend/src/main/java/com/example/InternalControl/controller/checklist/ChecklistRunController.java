@@ -11,6 +11,8 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistRunService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
@@ -114,7 +116,22 @@ public class ChecklistRunController {
         return ResponseEntity.created(location).body(mapToResponse(run));
     }
 
+    /**
+     * Marks a checklist run as completed.
+     *
+     * @param id run identifier
+     * @param orgNumber organization number for access validation
+     * @param userDetails authenticated user details
+     * @return the updated checklist run in completed state
+     */
     @Operation(summary = "Complete a run")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Run marked as completed"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Run not found"),
+        @ApiResponse(responseCode = "409", description = "Run cannot be completed in its current state")
+    })
     @PutMapping("/{id}/complete")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
     public ResponseEntity<ChecklistRunResponse> completeRun(
@@ -126,6 +143,36 @@ public class ChecklistRunController {
         validateUserOrganizationAccess(userId, orgNumber);
 
         ChecklistRun run = runService.completeRun(id, orgNumber);
+        return ResponseEntity.ok(mapToResponse(run));
+    }
+
+    /**
+     * Reopens a completed checklist run so it becomes editable again.
+     *
+     * @param id run identifier
+     * @param orgNumber organization number for access validation
+     * @param userDetails authenticated user details
+     * @return the updated checklist run in a non-completed state
+     */
+    @Operation(summary = "Uncomplete a run")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Run reopened successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Run not found"),
+        @ApiResponse(responseCode = "409", description = "Run cannot be uncompleted in its current state")
+    })
+    @PutMapping("/{id}/uncomplete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
+    public ResponseEntity<ChecklistRunResponse> uncompleteRun(
+            @PathVariable Long id,
+            @RequestParam Integer orgNumber,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
+        Long userId = resolveUserId(userDetails);
+        validateUserOrganizationAccess(userId, orgNumber);
+
+        ChecklistRun run = runService.uncompleteRun(id, orgNumber);
         return ResponseEntity.ok(mapToResponse(run));
     }
 

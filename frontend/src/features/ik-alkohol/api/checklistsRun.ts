@@ -6,11 +6,12 @@ export async function updateRunItem(
   runId: number,
   itemId: number,
   orgNumber: number,
+  booleanValue: boolean,
 ): Promise<void> {
   await client.put(
     `/checklists/runs/${runId}/items/${itemId}`,
     {
-      booleanValue: true,
+      booleanValue,
     },
     {
       params: { orgNumber },
@@ -23,6 +24,15 @@ export async function updateRunItem(
 
 export async function completeRun(runId: number, orgNumber: number): Promise<void> {
   await client.put(`/checklists/runs/${runId}/complete`, null, {
+    params: { orgNumber },
+    headers: {
+      Accept: 'application/json',
+    },
+  })
+}
+
+export async function uncompleteRun(runId: number, orgNumber: number): Promise<void> {
+  await client.put(`/checklists/runs/${runId}/uncomplete`, null, {
     params: { orgNumber },
     headers: {
       Accept: 'application/json',

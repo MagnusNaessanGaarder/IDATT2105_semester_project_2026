@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useAlkoholData } from '../composables/useAlkoholData'
 import { useAuthStore } from '@/stores/auth'
-import { updateRunItem } from '../api/checklistsRun'
+import { uncompleteRun, updateRunItem } from '../api/checklistsRun'
 import ControllItem from '../components/ControllItem.vue'
 import ControlProgressCard from '../components/ControlProgressCard.vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
@@ -41,26 +41,42 @@ const toggleControl = async (id: number) => {
   const selected = controls.value.find((item) => item.id === id)
   const orgNumber = authStore.currentOrg?.orgNumber
 
-  if (
-    !selected?.run_id ||
-    !selected.template_item_id ||
-    !orgNumber ||
-    selected.is_checked ||
-    selected.run_status === 'COMPLETED' ||
-    isSubmittingItemId.value === selected.id
-  ) {
+  if (!selected || !orgNumber || isSubmittingItemId.value === selected.id) {
     return
   }
 
   isSubmittingItemId.value = selected.id
 
   try {
-    await updateRunItem(selected.run_id, selected.template_item_id, orgNumber)
+    if (selected.is_checked && selected.run_id && selected.run_status === 'COMPLETED') {
+      await uncompleteRun(selected.run_id, orgNumber)
+      controls.value = controls.value.map((item) =>
+        item.id === selected.id
+          ? {
+              ...item,
+              is_checked: false,
+              run_status: 'DRAFT',
+            }
+          : item,
+      )
+      return
+    }
+
+    if (!selected.run_id || !selected.template_item_id) {
+      return
+    }
+
+    await updateRunItem(
+      selected.run_id,
+      selected.template_item_id,
+      orgNumber,
+      !selected.is_checked,
+    )
     controls.value = controls.value.map((item) =>
       item.id === selected.id
         ? {
             ...item,
-            is_checked: true,
+            is_checked: !selected.is_checked,
           }
         : item,
     )

@@ -106,6 +106,18 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
     }
 
     @Override
+    public ChecklistRun uncompleteRun(Long runId, Integer orgNumber) {
+        ChecklistRun run = getRun(runId, orgNumber);
+
+        if (run.getStatus() != RunStatus.COMPLETED) {
+            throw new IllegalStateException("Run cannot be uncompleted: " + run.getStatus());
+        }
+
+        run.markAsIncomplete();
+        return runRepository.save(run);
+    }
+
+    @Override
     public ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber) {
         ChecklistRun run = getRun(runId, orgNumber);
 

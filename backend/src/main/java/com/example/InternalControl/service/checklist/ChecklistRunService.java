@@ -22,6 +22,8 @@ public interface ChecklistRunService {
 
     ChecklistRun completeRun(Long runId, Integer orgNumber);
 
+    ChecklistRun uncompleteRun(Long runId, Integer orgNumber);
+
     ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber);
 
     void checkOverdueRuns(Integer orgNumber);

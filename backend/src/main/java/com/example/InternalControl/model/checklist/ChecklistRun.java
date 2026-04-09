@@ -100,4 +100,13 @@ public class ChecklistRun {
         this.status = RunStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
     }
+
+    /**
+     * Reopens a completed run so its items can be edited again.
+     * Restores overdue status when the due time has already passed.
+     */
+    public void markAsIncomplete() {
+        this.completedAt = null;
+        this.status = isOverdue() ? RunStatus.OVERDUE : RunStatus.DRAFT;
+    }
 }
