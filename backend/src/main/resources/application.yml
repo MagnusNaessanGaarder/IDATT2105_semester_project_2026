@@ -1,4 +1,3 @@
-# Load root .env first, then backend .env so backend-local values can override
 spring:
   config:
     import: optional:file:.env[.properties],optional:file:../.env[.properties]

@@ -88,7 +88,7 @@ public class ChecklistRunController {
       @ApiResponse(responseCode = "404", description = "Run not found")
   })
   @GetMapping("/{id}")
-  @PreAuthorize("hasAnyRole('ADMIN','MANGER','EMPLOYEE')")
+  @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
   public ResponseEntity<ChecklistRunResponse> getRun(
       @Parameter(description = "Identifier of the id") @PathVariable Long id,
       @RequestParam Integer orgNumber,
@@ -140,6 +140,7 @@ public class ChecklistRunController {
       @ApiResponse(responseCode = "404", description = "Run not found")
   })
   @PutMapping("/{id}/complete")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<ChecklistRunResponse> completeRun(
       @Parameter(description = "Identifier of the id") @PathVariable Long id,
       @RequestParam Integer orgNumber,
@@ -160,6 +161,7 @@ public class ChecklistRunController {
       @ApiResponse(responseCode = "404", description = "Run or item not found")
   })
   @PutMapping("/{runId}/items/{itemId}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<ChecklistRunItemResponse> updateRunItem(
       @Parameter(description = "Identifier of the runId") @PathVariable Long runId,
       @PathVariable Long itemId,
@@ -192,6 +194,7 @@ public class ChecklistRunController {
       @ApiResponse(responseCode = "404", description = "Run not found")
   })
   @GetMapping("/{id}/items")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
   public ResponseEntity<List<ChecklistRunItemResponse>> getRunItems(
       @Parameter(description = "Identifier of the id") @PathVariable Long id,
       @RequestParam Integer orgNumber,
