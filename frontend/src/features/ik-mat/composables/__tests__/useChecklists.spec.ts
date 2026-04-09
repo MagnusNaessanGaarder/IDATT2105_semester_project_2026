@@ -40,33 +40,33 @@ describe('useChecklists composable', () => {
 
   describe('initial state', () => {
     it('has empty arrays and false loading state', () => {
-      const { templates, runs, isLoading, error } = useChecklists()
+      const composable = useChecklists()
 
-      expect(templates.value).toEqual([])
-      expect(runs.value).toEqual([])
-      expect(isLoading.value).toBe(false)
-      expect(error.value).toBeNull()
+      expect(composable.templates.value).toEqual([])
+      expect(composable.runs.value).toEqual([])
+      expect(composable.isLoading.value).toBe(false)
+      expect(composable.error.value).toBeNull()
     })
   })
 
   describe('fetchTemplates', () => {
     it('sets loading to true while fetching', async () => {
       vi.mocked(checklistsApi.getTemplates).mockReturnValue(new Promise(() => {}))
-      const { isLoading, fetchTemplates } = useChecklists()
+      const composable = useChecklists()
 
-      fetchTemplates(123456789)
+      composable.fetchTemplates(123456789)
 
-      expect(isLoading.value).toBe(true)
+      expect(composable.isLoading.value).toBe(true)
     })
 
     it('populates templates on success', async () => {
       vi.mocked(checklistsApi.getTemplates).mockResolvedValue([mockTemplate])
-      const { templates, isLoading, fetchTemplates } = useChecklists()
+      const composable = useChecklists()
 
-      await fetchTemplates(123456789)
+      await composable.fetchTemplates(123456789)
 
-      expect(templates.value).toEqual([mockTemplate])
-      expect(isLoading.value).toBe(false)
+      expect(composable.templates.value).toEqual([mockTemplate])
+      expect(composable.isLoading.value).toBe(false)
       expect(checklistsApi.getTemplates).toHaveBeenCalledWith(123456789)
     })
 
@@ -79,44 +79,44 @@ describe('useChecklists composable', () => {
         },
       }
       vi.mocked(checklistsApi.getTemplates).mockRejectedValue(apiError)
-      const { error, isLoading, fetchTemplates } = useChecklists()
+      const composable = useChecklists()
 
-      await expect(fetchTemplates(123456789)).rejects.toThrow()
+      await expect(composable.fetchTemplates(123456789)).rejects.toThrow()
 
-      expect(error.value).toBe('Failed to fetch templates')
-      expect(isLoading.value).toBe(false)
+      expect(composable.error.value).toBe('Failed to fetch templates')
+      expect(composable.isLoading.value).toBe(false)
     })
 
     it('sets generic error message when no response message', async () => {
       vi.mocked(checklistsApi.getTemplates).mockRejectedValue(new Error('Network error'))
-      const { error, fetchTemplates } = useChecklists()
+      const composable = useChecklists()
 
-      await expect(fetchTemplates(123456789)).rejects.toThrow()
+      await expect(composable.fetchTemplates(123456789)).rejects.toThrow()
 
-      expect(error.value).toBe('Kunne ikke hente sjekklister')
+      expect(composable.error.value).toBe('Kunne ikke hente sjekklister')
     })
   })
 
   describe('fetchRuns', () => {
     it('populates runs on success', async () => {
       vi.mocked(checklistsApi.getRuns).mockResolvedValue([mockRun])
-      const { runs, isLoading, fetchRuns } = useChecklists()
+      const composable = useChecklists()
 
-      await fetchRuns(123456789)
+      await composable.fetchRuns(123456789)
 
-      expect(runs.value).toEqual([mockRun])
-      expect(isLoading.value).toBe(false)
+      expect(composable.runs.value).toEqual([mockRun])
+      expect(composable.isLoading.value).toBe(false)
     })
 
     it('sets error on failure', async () => {
       vi.mocked(checklistsApi.getRuns).mockRejectedValue({
         response: { data: { message: 'Failed' } },
       })
-      const { error, fetchRuns } = useChecklists()
+      const composable = useChecklists()
 
-      await expect(fetchRuns(123456789)).rejects.toThrow()
+      await expect(composable.fetchRuns(123456789)).rejects.toThrow()
 
-      expect(error.value).toBe('Failed')
+      expect(composable.error.value).toBe('Failed')
     })
   })
 
@@ -131,30 +131,30 @@ describe('useChecklists composable', () => {
 
     it('adds new template to list on success', async () => {
       vi.mocked(checklistsApi.createTemplate).mockResolvedValue(mockTemplate)
-      const { templates, createTemplate } = useChecklists()
+      const composable = useChecklists()
 
-      const result = await createTemplate(123456789, createRequest)
+      const result = await composable.createTemplate(123456789, createRequest)
 
-      expect(templates.value).toHaveLength(1)
-      expect(templates.value[0]).toEqual(mockTemplate)
+      expect(composable.templates.value).toHaveLength(1)
+      expect(composable.templates.value[0]).toEqual(mockTemplate)
       expect(result).toEqual(mockTemplate)
       expect(checklistsApi.createTemplate).toHaveBeenCalledWith(123456789, createRequest)
     })
 
     it('throws error when creation fails', async () => {
       vi.mocked(checklistsApi.createTemplate).mockResolvedValue(null as any)
-      const { createTemplate } = useChecklists()
+      const composable = useChecklists()
 
-      await expect(createTemplate(123456789, createRequest)).rejects.toThrow('Failed to create checklist template')
+      await expect(composable.createTemplate(123456789, createRequest)).rejects.toThrow('Failed to create checklist template')
     })
 
     it('exposes isCreating state', async () => {
       vi.mocked(checklistsApi.createTemplate).mockReturnValue(new Promise(() => {}))
-      const { isCreating, createTemplate } = useChecklists()
+      const composable = useChecklists()
 
-      createTemplate(123456789, createRequest)
+      composable.createTemplate(123456789, createRequest)
 
-      expect(isCreating.value).toBe(true)
+      expect(composable.isCreating.value).toBe(true)
     })
   })
 
@@ -174,29 +174,29 @@ describe('useChecklists composable', () => {
         ...updateData,
       })
 
-      const { templates, fetchTemplates, updateTemplate } = useChecklists()
-      await fetchTemplates(123456789)
+      const composable = useChecklists()
+      await composable.fetchTemplates(123456789)
 
-      const result = await updateTemplate(1, 123456789, updateData)
+      const result = await composable.updateTemplate(1, 123456789, updateData)
 
-      expect(templates.value[0].title).toBe('Updated Name')
+      expect(composable.templates.value[0].title).toBe('Updated Name')
       expect(result.title).toBe('Updated Name')
     })
 
     it('throws error when update fails', async () => {
       vi.mocked(checklistsApi.updateTemplate).mockResolvedValue(null as any)
-      const { updateTemplate } = useChecklists()
+      const composable = useChecklists()
 
-      await expect(updateTemplate(1, 123456789, updateData)).rejects.toThrow('Failed to update checklist template')
+      await expect(composable.updateTemplate(1, 123456789, updateData)).rejects.toThrow('Failed to update checklist template')
     })
 
     it('exposes isUpdating state', async () => {
       vi.mocked(checklistsApi.updateTemplate).mockReturnValue(new Promise(() => {}))
-      const { isUpdating, updateTemplate } = useChecklists()
+      const composable = useChecklists()
 
-      updateTemplate(1, 123456789, updateData)
+      composable.updateTemplate(1, 123456789, updateData)
 
-      expect(isUpdating.value).toBe(true)
+      expect(composable.isUpdating.value).toBe(true)
     })
   })
 
@@ -205,21 +205,21 @@ describe('useChecklists composable', () => {
       vi.mocked(checklistsApi.getTemplates).mockResolvedValue([mockTemplate])
       vi.mocked(checklistsApi.deleteTemplate).mockResolvedValue()
 
-      const { templates, fetchTemplates, deleteTemplate } = useChecklists()
-      await fetchTemplates(123456789)
+      const composable = useChecklists()
+      await composable.fetchTemplates(123456789)
 
-      await deleteTemplate(1, 123456789)
+      await composable.deleteTemplate(1, 123456789)
 
-      expect(templates.value[0].isActive).toBe(false)
+      expect(composable.templates.value[0].isActive).toBe(false)
     })
 
     it('exposes isDeleting state', async () => {
       vi.mocked(checklistsApi.deleteTemplate).mockReturnValue(new Promise(() => {}))
-      const { isDeleting, deleteTemplate } = useChecklists()
+      const composable = useChecklists()
 
-      deleteTemplate(1, 123456789)
+      composable.deleteTemplate(1, 123456789)
 
-      expect(isDeleting.value).toBe(true)
+      expect(composable.isDeleting.value).toBe(true)
     })
   })
 
@@ -231,21 +231,21 @@ describe('useChecklists composable', () => {
 
     it('adds new run to list', async () => {
       vi.mocked(checklistsApi.createRun).mockResolvedValue(mockRun)
-      const { runs, createRun } = useChecklists()
+      const composable = useChecklists()
 
-      const result = await createRun(123456789, runData)
+      const result = await composable.createRun(123456789, runData)
 
-      expect(runs.value).toHaveLength(1)
-      expect(runs.value[0]).toEqual(mockRun)
+      expect(composable.runs.value).toHaveLength(1)
+      expect(composable.runs.value[0]).toEqual(mockRun)
       expect(result).toEqual(mockRun)
       expect(checklistsApi.createRun).toHaveBeenCalledWith(123456789, runData)
     })
 
     it('throws error when creation fails', async () => {
       vi.mocked(checklistsApi.createRun).mockResolvedValue(null as any)
-      const { createRun } = useChecklists()
+      const composable = useChecklists()
 
-      await expect(createRun(123456789, runData)).rejects.toThrow('Failed to create checklist run')
+      await expect(composable.createRun(123456789, runData)).rejects.toThrow('Failed to create checklist run')
     })
   })
 
@@ -257,12 +257,12 @@ describe('useChecklists composable', () => {
         status: 'COMPLETED',
       })
 
-      const { runs, fetchRuns, completeRun } = useChecklists()
-      await fetchRuns(123456789)
+      const composable = useChecklists()
+      await composable.fetchRuns(123456789)
 
-      await completeRun(1, 123456789)
+      await composable.completeRun(1, 123456789)
 
-      expect(runs.value[0].status).toBe('COMPLETED')
+      expect(composable.runs.value[0].status).toBe('COMPLETED')
     })
   })
 
@@ -275,11 +275,11 @@ describe('useChecklists composable', () => {
       ]
       vi.mocked(checklistsApi.getTemplates).mockResolvedValue(templates)
 
-      const { activeTemplates, fetchTemplates } = useChecklists()
-      await fetchTemplates(123456789)
+      const composable = useChecklists()
+      await composable.fetchTemplates(123456789)
 
-      expect(activeTemplates.value).toHaveLength(2)
-      expect(activeTemplates.value.every((t) => t.isActive)).toBe(true)
+      expect(composable.activeTemplates.value).toHaveLength(2)
+      expect(composable.activeTemplates.value.every((t) => t.isActive)).toBe(true)
     })
 
     it('dailyTemplates filters by DAILY frequency', async () => {
@@ -290,11 +290,11 @@ describe('useChecklists composable', () => {
       ]
       vi.mocked(checklistsApi.getTemplates).mockResolvedValue(templates)
 
-      const { dailyTemplates, fetchTemplates } = useChecklists()
-      await fetchTemplates(123456789)
+      const composable = useChecklists()
+      await composable.fetchTemplates(123456789)
 
-      expect(dailyTemplates.value).toHaveLength(2)
-      expect(dailyTemplates.value.every((t) => t.frequency === 'DAILY')).toBe(true)
+      expect(composable.dailyTemplates.value).toHaveLength(2)
+      expect(composable.dailyTemplates.value.every((t) => t.frequency === 'DAILY')).toBe(true)
     })
 
     it('pendingRuns filters by pending status', async () => {
@@ -305,10 +305,10 @@ describe('useChecklists composable', () => {
       ]
       vi.mocked(checklistsApi.getRuns).mockResolvedValue(runs)
 
-      const { pendingRuns, fetchRuns } = useChecklists()
-      await fetchRuns(123456789)
+      const composable = useChecklists()
+      await composable.fetchRuns(123456789)
 
-      expect(pendingRuns.value).toHaveLength(2)
+      expect(composable.pendingRuns.value).toHaveLength(2)
     })
 
     it('completedRuns filters by completed status', async () => {
@@ -318,19 +318,19 @@ describe('useChecklists composable', () => {
       ]
       vi.mocked(checklistsApi.getRuns).mockResolvedValue(runs)
 
-      const { completedRuns, fetchRuns } = useChecklists()
-      await fetchRuns(123456789)
+      const composable = useChecklists()
+      await composable.fetchRuns(123456789)
 
-      expect(completedRuns.value).toHaveLength(1)
-      expect(completedRuns.value[0].status).toBe('COMPLETED')
+      expect(composable.completedRuns.value).toHaveLength(1)
+      expect(composable.completedRuns.value[0].status).toBe('COMPLETED')
     })
   })
 
   describe('helper functions', () => {
     it('getTemplateCompletion returns 0 when no runs', () => {
-      const { getTemplateCompletion } = useChecklists()
+      const composable = useChecklists()
 
-      expect(getTemplateCompletion(1)).toBe(0)
+      expect(composable.getTemplateCompletion(1)).toBe(0)
     })
 
     it('getTemplateCompletion calculates correct percentage', async () => {
@@ -341,40 +341,40 @@ describe('useChecklists composable', () => {
       ]
       vi.mocked(checklistsApi.getRuns).mockResolvedValue(runs)
 
-      const { getTemplateCompletion, fetchRuns } = useChecklists()
-      await fetchRuns(123456789)
+      const composable = useChecklists()
+      await composable.fetchRuns(123456789)
 
-      expect(getTemplateCompletion(1)).toBe(67) // 2/3 = 66.67% rounded
+      expect(composable.getTemplateCompletion(1)).toBe(67) // 2/3 = 66.67% rounded
     })
 
     it('formatFrequency returns Norwegian translation', () => {
-      const { formatFrequency } = useChecklists()
+      const composable = useChecklists()
 
-      expect(formatFrequency('DAILY')).toBe('Daglig')
-      expect(formatFrequency('WEEKLY')).toBe('Ukentlig')
-      expect(formatFrequency('MONTHLY')).toBe('Månedlig')
-      expect(formatFrequency('QUARTERLY')).toBe('Kvartalsvis')
-      expect(formatFrequency('YEARLY')).toBe('Årlig')
-      expect(formatFrequency('UNKNOWN')).toBe('UNKNOWN')
+      expect(composable.formatFrequency('DAILY')).toBe('Daglig')
+      expect(composable.formatFrequency('WEEKLY')).toBe('Ukentlig')
+      expect(composable.formatFrequency('MONTHLY')).toBe('Månedlig')
+      expect(composable.formatFrequency('QUARTERLY')).toBe('Kvartalsvis')
+      expect(composable.formatFrequency('YEARLY')).toBe('Årlig')
+      expect(composable.formatFrequency('UNKNOWN')).toBe('UNKNOWN')
     })
 
     it('formatDate formats ISO date correctly', () => {
-      const { formatDate } = useChecklists()
+      const composable = useChecklists()
 
-      expect(formatDate('2024-03-15')).toBe('15. mars 2024')
+      expect(composable.formatDate('2024-03-15')).toBe('15. mars 2024')
     })
 
     it('formatDate returns dash for null/undefined', () => {
-      const { formatDate } = useChecklists()
+      const composable = useChecklists()
 
-      expect(formatDate()).toBe('-')
-      expect(formatDate(null as any)).toBe('-')
+      expect(composable.formatDate()).toBe('-')
+      expect(composable.formatDate(null as any)).toBe('-')
     })
 
     it('formatDate returns original string for invalid date', () => {
-      const { formatDate } = useChecklists()
+      const composable = useChecklists()
 
-      expect(formatDate('invalid')).toBe('invalid')
+      expect(composable.formatDate('invalid')).toBe('invalid')
     })
   })
 })
