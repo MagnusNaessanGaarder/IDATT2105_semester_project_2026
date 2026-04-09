@@ -4,7 +4,6 @@
 JAVA_HOME := $(shell dirname $$(dirname $$(readlink -f $$(command -v javac))))
 PATH := $(JAVA_HOME)/bin:$(PATH)
 export JAVA_HOME PATH
-endif
 
 help:
 	@echo ""

@@ -150,52 +150,6 @@ const updateSetting = (id: string, patch: Partial<SettingItem>) => {
   }
 }
 
-const loadData = async (): Promise<void> => {
-  if (hasLoaded) {
-    return
-  }
-
-  if (loadInFlight) {
-    return loadInFlight
-  }
-
-  loadInFlight = (async () => {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const [deviationsResponse, exportsResponse, filesResponse, alertsResponse] = await Promise.allSettled([
-        deviationsEndpointUnavailable
-          ? Promise.resolve({ data: [] as DeviationApi[] })
-          : client.get<DeviationApi[]>('/deviations', {
-            params: withOrgNumber({}),
-            skipGlobalErrorLog: true,
-          }).catch((err: unknown) => {
-            if (typeof err === 'object' && err !== null && 'response' in err) {
-              const response = (err as { response?: { status?: number } }).response
-              if (response?.status === 500) {
-                deviationsEndpointUnavailable = true
-                return { data: [] as DeviationApi[] }
-              }
-            }
-            throw err
-          }),
-        client.get<ExportPageApi>('/exports', {
-          params: withOrgNumber({ page: 0, size: 50 }),
-        }),
-        client.get<FileApi[]>('/files', {
-          params: withOrgNumber({}),
-        }),
-        client.get<TemperatureAlertApi[]>('/temperature/alerts', {
-          params: withOrgNumber({}),
-        }),
-      ])
-
-      const fallbackEmail = sessionStorage.getItem('email') || 'ukjent@example.com'
-      const fallbackRole = sessionStorage.getItem('role') || 'STAFF'
-      const fallbackName = fallbackEmail.split('@')[0] || 'Bruker'
-      const fallbackLastLogin = sessionStorage.getItem('lastLogin') || new Date().toISOString()
-
 /**
  * Persistence strategy:
  * - Backend settings: Stored in database, shared across organization, requires Admin/Manager role

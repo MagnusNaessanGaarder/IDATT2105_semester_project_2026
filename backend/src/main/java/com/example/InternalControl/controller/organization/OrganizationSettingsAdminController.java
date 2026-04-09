@@ -89,53 +89,5 @@ public class OrganizationSettingsAdminController {
         } catch (NumberFormatException e) {
             return null;
         }
-        if (request.getRetentionUserMonths() != null) {
-            settings.setRetentionUserMonths(request.getRetentionUserMonths());
-        }
-        if (request.getRetentionAuditMonths() != null) {
-            settings.setRetentionAuditMonths(request.getRetentionAuditMonths());
-        }
-
-        settings.setUpdatedAt(LocalDateTime.now());
-        settings = settingsRepository.save(settings);
-
-        return ResponseEntity.ok(mapToResponse(settings));
-    }
-
-    private OrganizationSettings createDefaultSettings(Integer orgNumber) {
-        Organization organization = organizationRepository.findById(orgNumber)
-                .orElseThrow(() -> new EntityNotFoundException("Organization not found: " + orgNumber));
-
-        OrganizationSettings settings = OrganizationSettings.builder()
-                .orgNumber(orgNumber)
-                .organization(organization)
-                .timezoneName("Europe/Oslo")
-                .localeCode("nb-NO")
-                .enableFoodModule(true)
-                .enableAlcoholModule(true)
-                .reminderEmailEnabled(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        return settingsRepository.save(settings);
-    }
-
-    private OrganizationSettingsResponse mapToResponse(OrganizationSettings settings) {
-        return OrganizationSettingsResponse.builder()
-                .orgNumber(Math.toIntExact(settings.getOrgNumber()))
-                .timezoneName(settings.getTimezoneName())
-                .localeCode(settings.getLocaleCode())
-                .enableFoodModule(settings.isEnableFoodModule())
-                .enableAlcoholModule(settings.isEnableAlcoholModule())
-                .defaultTempMinC(settings.getDefaultTempMinC())
-                .defaultTempMaxC(settings.getDefaultTempMaxC())
-                .reminderEmailEnabled(settings.isReminderEmailEnabled())
-                .notificationEmail(settings.getNotificationEmail())
-                .retentionUserMonths(Math.toIntExact(settings.getRetentionUserMonths()))
-                .retentionAuditMonths(Math.toIntExact(settings.getRetentionAuditMonths()))
-                .createdAt(settings.getCreatedAt())
-                .updatedAt(settings.getUpdatedAt())
-                .build();
     }
 }

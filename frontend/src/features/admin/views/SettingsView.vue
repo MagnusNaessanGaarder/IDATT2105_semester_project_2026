@@ -47,7 +47,7 @@ const persistenceLabel = (item: SettingItem): string => {
 
 const filteredAuditLog = computed(() => {
   const search = query.value.trim().toLowerCase()
-  return data.sortedAuditLog.filter((entry) => {
+  return data.sortedAuditLog().filter((entry) => {
     if (search.length === 0) {
       return true
     }

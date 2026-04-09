@@ -4,6 +4,8 @@ import com.example.InternalControl.model.document.OrganizationDocument;
 import com.example.InternalControl.model.document.OrganizationDocumentVersion;
 import com.example.InternalControl.repository.document.OrganizationDocumentRepository;
 import com.example.InternalControl.repository.document.OrganizationDocumentVersionRepository;
+import com.example.InternalControl.security.CustomUserDetails;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import com.example.InternalControl.service.storage.BlobStorageService;
 import com.example.InternalControl.service.document.DocumentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +14,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,15 +44,18 @@ public class FileController {
   private final BlobStorageService blobStorageService;
   private final OrganizationDocumentRepository documentRepo;
   private final OrganizationDocumentVersionRepository versionRepo;
+  private final UserOrganizationService userOrgService;
 
   public FileController(DocumentService documentService,
                         BlobStorageService blobStorageService,
                         OrganizationDocumentRepository documentRepo,
-                        OrganizationDocumentVersionRepository versionRepo) {
+                        OrganizationDocumentVersionRepository versionRepo,
+                        UserOrganizationService userOrgService) {
     this.documentService = documentService;
     this.blobStorageService = blobStorageService;
     this.documentRepo = documentRepo;
     this.versionRepo = versionRepo;
+    this.userOrgService = userOrgService;
   }
 
   @Operation(summary = "List all documents",
@@ -90,6 +97,7 @@ public class FileController {
   public ResponseEntity<?> upload(
       @Parameter(description = "Organization number identifying the tenant", required = true)
       @RequestHeader("X-Org-Number") Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
 
       @Parameter(description = "The file to upload", required = true)
       @RequestParam("file") MultipartFile file,
@@ -209,12 +217,6 @@ public class FileController {
     if (!userOrgService.isUserInOrganization(userId, orgNumber)) {
       throw new EntityNotFoundException("Organization not found or user does not have access");
     }
-    if (description != null) {
-      doc.setDescription(description.trim().isEmpty() ? null : description.trim());
-    }
-
-    OrganizationDocument saved = documentRepo.save(doc);
-    return ResponseEntity.ok(saved);
   }
 
   @DeleteMapping("/{documentId}")

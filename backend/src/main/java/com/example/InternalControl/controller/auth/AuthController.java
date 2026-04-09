@@ -52,7 +52,7 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        Bucket bucket = loginBuckets.computeIfAbsent(request.getEmail(), k -> createLoginBucket());
+        Bucket bucket = loginBuckets.computeIfAbsent(request.email(), k -> createLoginBucket());
         if (!bucket.tryConsume(1)) {
             throw new IllegalStateException("Too many login attempts. Please try again later.");
         }

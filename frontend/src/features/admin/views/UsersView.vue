@@ -20,6 +20,16 @@ const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const selectedUser = ref<User | null>(null)
 
+const usersList = computed(() => usersComposable.users.value)
+const usersError = computed(() => usersComposable.error.value)
+const createErrorMessage = computed(() => usersComposable.createError.value ?? '')
+const updateErrorMessage = computed(() => usersComposable.updateError.value ?? '')
+const deleteErrorMessage = computed(() => usersComposable.deleteError.value ?? '')
+const isCreating = computed(() => usersComposable.isCreating.value)
+const isUpdating = computed(() => usersComposable.isUpdating.value)
+const isDeleting = computed(() => usersComposable.isDeleting.value)
+const isUsersLoading = computed(() => usersComposable.isLoading.value)
+
 // Form state for create/edit
 const formData = ref({
   displayName: '',
@@ -56,7 +66,7 @@ async function loadUsers() {
 
 // Filter users based on search and role
 const filteredUsers = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   return users.filter((user) => {
     const matchesRole = roleFilter.value === 'all' || usersComposable.getUserRole(user) === roleFilter.value
     const search = query.value.trim().toLowerCase()
@@ -71,24 +81,24 @@ const filteredUsers = computed(() => {
 
 // Statistics
 const activeUsersCount = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   return users.filter((u) => u.isActive).length
 })
 
 const inactiveUsersCount = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   return users.filter((u) => !u.isActive).length
 })
 
 const uniqueRolesCount = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   const allRoleNames = users.flatMap((u) => u.roles?.map((r) => r.roleName) || [])
   const uniqueRoles = new Set(allRoleNames.filter(Boolean))
   return uniqueRoles.size
 })
 
 const roleSummaries = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   const roles: Array<'ADMIN' | 'MANAGER' | 'EMPLOYEE'> = ['ADMIN', 'MANAGER', 'EMPLOYEE']
   return roles.map((role) => ({
     role,
@@ -217,15 +227,15 @@ async function handleDeleteUser(user: User) {
     </header>
 
     <!-- Loading state -->
-    <div v-if="usersComposable.isLoading" class="loading-state">
+    <div v-if="isUsersLoading" class="loading-state">
       <BaseSpinner />
       <p>Laster brukere...</p>
     </div>
 
     <!-- Error state -->
     <ErrorMessage 
-      v-else-if="usersComposable.error" 
-      :message="usersComposable.error"
+      v-else-if="usersError" 
+      :message="usersError"
       show-retry
       @retry="loadUsers"
     />
@@ -234,7 +244,7 @@ async function handleDeleteUser(user: User) {
     <template v-else>
       <section class="stats-row" aria-label="Brukerstatistikk">
         <article class="stats-card">
-          <strong>{{ usersComposable.users.length }}</strong>
+          <strong>{{ usersList.length }}</strong>
           <span>Brukere totalt</span>
         </article>
         <article class="stats-card">
@@ -349,12 +359,12 @@ async function handleDeleteUser(user: User) {
             </option>
           </select>
         </div>
-        <ErrorMessage v-if="usersComposable.createError" :message="usersComposable.createError" />
+        <ErrorMessage v-if="createErrorMessage" :message="createErrorMessage" />
       </form>
       <template #footer>
         <button type="button" class="action-btn action-btn--ghost" @click="closeModals">Avbryt</button>
-        <button type="submit" form="createUserForm" class="action-btn" :disabled="usersComposable.isCreating">
-          <BaseSpinner v-if="usersComposable.isCreating" size="small" />
+        <button type="submit" form="createUserForm" class="action-btn" :disabled="isCreating">
+          <BaseSpinner v-if="isCreating" size="sm" />
           <span v-else>Opprett bruker</span>
         </button>
       </template>
@@ -383,8 +393,8 @@ async function handleDeleteUser(user: User) {
             </option>
           </select>
         </div>
-        <ErrorMessage v-if="usersComposable.updateError" :message="usersComposable.updateError" />
-        <ErrorMessage v-if="usersComposable.deleteError" :message="usersComposable.deleteError" />
+        <ErrorMessage v-if="updateErrorMessage" :message="updateErrorMessage" />
+        <ErrorMessage v-if="deleteErrorMessage" :message="deleteErrorMessage" />
       </form>
       <template #footer>
         <button type="button" class="action-btn action-btn--ghost" @click="closeModals">Avbryt</button>
@@ -392,14 +402,14 @@ async function handleDeleteUser(user: User) {
           v-if="selectedUser?.isActive" 
           type="button" 
           class="action-btn action-btn--danger" 
-          :disabled="usersComposable.isDeleting"
+          :disabled="isDeleting"
           @click="handleDeleteUser(selectedUser)"
         >
-          <BaseSpinner v-if="usersComposable.isDeleting" size="small" />
+          <BaseSpinner v-if="isDeleting" size="sm" />
           <span v-else>Deaktiver</span>
         </button>
-        <button type="submit" form="editUserForm" class="action-btn" :disabled="usersComposable.isUpdating">
-          <BaseSpinner v-if="usersComposable.isUpdating" size="small" />
+        <button type="submit" form="editUserForm" class="action-btn" :disabled="isUpdating">
+          <BaseSpinner v-if="isUpdating" size="sm" />
           <span v-else>Lagre endringer</span>
         </button>
       </template>
