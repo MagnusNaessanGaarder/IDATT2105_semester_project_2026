@@ -15,7 +15,7 @@ import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
 public class JacksonConfig {
 
   /**
-   * Creates the primary ObjectMapper bean with Java 8 date/time support.
+   * Creates the primary ObjectMapper bean with date/time support.
    */
   @Bean
   @Primary

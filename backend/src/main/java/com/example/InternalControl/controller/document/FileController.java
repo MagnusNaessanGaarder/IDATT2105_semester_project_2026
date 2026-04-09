@@ -37,8 +37,8 @@ import java.util.Map;
 public class FileController {
 
   private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
-  private static final int  MAX_TITLE_LEN = 255;
-  private static final int  MAX_DESC_LEN  = 1000;
+  private static final int MAX_TITLE_LEN = 255;
+  private static final int MAX_DESC_LEN = 1000;
 
   private final DocumentService documentService;
   private final BlobStorageService blobStorageService;
@@ -47,10 +47,10 @@ public class FileController {
   private final UserOrganizationService userOrgService;
 
   public FileController(DocumentService documentService,
-                        BlobStorageService blobStorageService,
-                        OrganizationDocumentRepository documentRepo,
-                        OrganizationDocumentVersionRepository versionRepo,
-                        UserOrganizationService userOrgService) {
+      BlobStorageService blobStorageService,
+      OrganizationDocumentRepository documentRepo,
+      OrganizationDocumentVersionRepository versionRepo,
+      UserOrganizationService userOrgService) {
     this.documentService = documentService;
     this.blobStorageService = blobStorageService;
     this.documentRepo = documentRepo;
@@ -58,20 +58,18 @@ public class FileController {
     this.userOrgService = userOrgService;
   }
 
-  @Operation(summary = "List all documents",
-      description = "Returns all active documents for the specified organization.")
+  @Operation(summary = "List all documents", description = "Returns all active documents for the specified organization.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Documents retrieved successfully"),
       @ApiResponse(responseCode = "401", description = "Not authenticated"),
       @ApiResponse(responseCode = "403", description = "Forbidden")
   })
   @GetMapping
+  @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','ADMIN')")
   public ResponseEntity<List<OrganizationDocument>> listDocuments(
-      @Parameter(description = "Organization number identifying the tenant", required = true)
-      @RequestHeader("X-Org-Number") Integer orgNumber,
+      @Parameter(description = "Organization number identifying the tenant", required = true) @RequestHeader("X-Org-Number") Integer orgNumber,
 
-      @Parameter(description = "Optional document type filter")
-      @RequestParam(required = false) String category) {
+      @Parameter(description = "Optional document type filter") @RequestParam(required = false) String category) {
 
     List<OrganizationDocument> documents;
     if (category != null && !category.isEmpty()) {
@@ -82,10 +80,7 @@ public class FileController {
     return ResponseEntity.ok(documents);
   }
 
-  // ── Upload (new document) ─────────────────────────────────────────────────
-
-  @Operation(summary = "Upload a document",
-      description = "Uploads a file to Azure Blob Storage and creates a new document record.")
+  @Operation(summary = "Upload a document", description = "Uploads a file to Azure Blob Storage and creates a new document record.")
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "File uploaded successfully"),
       @ApiResponse(responseCode = "400", description = "Invalid input"),
@@ -94,18 +89,15 @@ public class FileController {
       @ApiResponse(responseCode = "500", description = "Storage or database error")
   })
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','ADMIN')")
   public ResponseEntity<?> upload(
-      @Parameter(description = "Organization number identifying the tenant", required = true)
-      @RequestHeader("X-Org-Number") Integer orgNumber,
+      @Parameter(description = "Organization number identifying the tenant", required = true) @RequestHeader("X-Org-Number") Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails,
 
-      @Parameter(description = "The file to upload", required = true)
-      @RequestParam("file") MultipartFile file,
+      @Parameter(description = "The file to upload", required = true) @RequestParam("file") MultipartFile file,
       @RequestParam(defaultValue = "OTHER") String documentType,
-      @Parameter(description = "Optional title — defaults to the filename (max 255 chars)")
-      @RequestParam(required = false) String title,
-      @Parameter(description = "Optional description (max 1000 chars)")
-      @RequestParam(required = false) String description,
+      @Parameter(description = "Optional title — defaults to the filename (max 255 chars)") @RequestParam(required = false) String title,
+      @Parameter(description = "Optional description (max 1000 chars)") @RequestParam(required = false) String description,
       @RequestParam(defaultValue = "documents") String directory) throws IOException {
 
     validateUserOrganizationAccess(userDetails.getUserId(), orgNumber);
@@ -120,9 +112,9 @@ public class FileController {
     return ResponseEntity.status(HttpStatus.CREATED).body(doc);
   }
 
-  @Operation(summary = "Upload a new version of an existing document",
-      description = "Adds a new version to an existing document record, incrementing " +
-                    "current_version. Title and description are updated only when provided.")
+  @Operation(summary = "Upload a new version of an existing document", description = "Adds a new version to an existing document record, incrementing "
+      +
+      "current_version. Title and description are updated only when provided.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "New version uploaded successfully"),
       @ApiResponse(responseCode = "400", description = "Invalid input"),
@@ -137,14 +129,10 @@ public class FileController {
   public ResponseEntity<OrganizationDocument> uploadNewVersion(
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @Parameter(description = "ID of the document to add a version to", required = true)
-      @PathVariable Long documentId,
-      @Parameter(description = "The replacement file", required = true)
-      @RequestParam("file") MultipartFile file,
-      @Parameter(description = "Optional updated title (null/blank = keep existing)")
-      @RequestParam(required = false) String title,
-      @Parameter(description = "Optional updated description (null = keep existing)")
-      @RequestParam(required = false) String description,
+      @Parameter(description = "ID of the document to add a version to", required = true) @PathVariable Long documentId,
+      @Parameter(description = "The replacement file", required = true) @RequestParam("file") MultipartFile file,
+      @Parameter(description = "Optional updated title (null/blank = keep existing)") @RequestParam(required = false) String title,
+      @Parameter(description = "Optional updated description (null = keep existing)") @RequestParam(required = false) String description,
       @RequestParam(defaultValue = "documents") String directory) throws IOException {
 
     validateUserOrganizationAccess(userDetails.getUserId(), orgNumber);
@@ -159,8 +147,7 @@ public class FileController {
     return ResponseEntity.ok(doc);
   }
 
-  @Operation(summary = "Download a document",
-      description = "Downloads the current version of a document by its ID.")
+  @Operation(summary = "Download a document", description = "Downloads the current version of a document by its ID.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "File downloaded successfully"),
       @ApiResponse(responseCode = "401", description = "Not authenticated"),
@@ -168,12 +155,11 @@ public class FileController {
       @ApiResponse(responseCode = "404", description = "Document not found")
   })
   @GetMapping("/download/{documentId}")
+  @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<byte[]> download(
-      @Parameter(description = "Organization number identifying the tenant", required = true)
-      @RequestHeader("X-Org-Number") Integer orgNumber,
+      @Parameter(description = "Organization number identifying the tenant", required = true) @RequestHeader("X-Org-Number") Integer orgNumber,
 
-      @Parameter(description = "ID of the document to download", required = true)
-      @PathVariable Long documentId) {
+      @Parameter(description = "ID of the document to download", required = true) @PathVariable Long documentId) {
 
     OrganizationDocument doc = documentRepo.findByDocumentIdAndOrgNumber(documentId, orgNumber)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -194,7 +180,6 @@ public class FileController {
         .body(stream.toByteArray());
   }
 
-
   private static void enforceFileSize(MultipartFile file) {
     if (file.getSize() > MAX_FILE_SIZE) {
       throw new IllegalArgumentException("File size exceeds maximum limit of 10MB");
@@ -206,10 +191,12 @@ public class FileController {
    * trims and caps to {@code maxLen}. Returns {@code null} for null/blank input.
    */
   private static String sanitiseText(String input, int maxLen) {
-    if (input == null) return null;
+    if (input == null)
+      return null;
     String cleaned = input.replaceAll("[\\p{Cntrl}&&[^\t\n\r]]", "");
     cleaned = cleaned.replaceAll("[ \t]{2,}", " ").strip();
-    if (cleaned.isEmpty()) return null;
+    if (cleaned.isEmpty())
+      return null;
     return cleaned.length() <= maxLen ? cleaned : cleaned.substring(0, maxLen);
   }
 

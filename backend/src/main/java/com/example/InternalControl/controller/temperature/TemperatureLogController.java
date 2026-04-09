@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,12 +47,11 @@ public class TemperatureLogController {
   @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   public ResponseEntity<TemperatureLogPointResponse> createLogPoint(
       @Valid @RequestBody TemperatureLogPointRequest request,
-      @Parameter(description = "The orgNumber parameter")
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
-    return ResponseEntity.status(201).body(temperatureLogService.createLogPoint(request, orgNumber));
+    return ResponseEntity.status(HttpStatus.CREATED).body(temperatureLogService.createLogPoint(request, orgNumber));
   }
 
   @GetMapping("/points")
@@ -63,8 +63,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogPointResponse>> listLogPoints(
-      @Parameter(description = "The orgNumber parameter")
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
@@ -80,8 +79,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogPointResponse>> listActiveLogPoints(
-      @Parameter(description = "The orgNumber parameter")
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
@@ -168,8 +166,7 @@ public class TemperatureLogController {
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<TemperatureLogEntryResponse> recordEntry(
       @Valid @RequestBody TemperatureLogEntryRequest request,
-      @Parameter(description = "The orgNumber parameter")
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
@@ -198,8 +195,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listEntries(
-      @Parameter(description = "The orgNumber parameter")
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
@@ -215,8 +211,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<Page<TemperatureLogEntryResponse>> listEntriesPaginated(
-      @Parameter(description = "The orgNumber parameter")
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       Pageable pageable,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
@@ -252,8 +247,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listEntriesByDateRange(
-      @Parameter(description = "The orgNumber parameter")
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @RequestParam LocalDateTime from,
       @RequestParam LocalDateTime to,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -289,8 +283,7 @@ public class TemperatureLogController {
   })
   @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listAlerts(
-      @Parameter(description = "The orgNumber parameter")
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
