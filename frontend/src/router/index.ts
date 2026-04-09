@@ -168,7 +168,7 @@ router.beforeEach(async (to) => {
 
     // Redirect to no-org page if user has no organisations yet,
     // but allow them to stay on the no-org page itself
-    if (to.name !== 'NoOrganization' && authStore.organizations.length === 0) {
+    if (to.name !== 'NoOrganization' && (authStore.organizations?.length ?? 0) === 0) {
       return { name: 'NoOrganization' }
     }
 
