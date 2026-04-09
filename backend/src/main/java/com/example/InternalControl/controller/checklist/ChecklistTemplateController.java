@@ -154,6 +154,7 @@ public class ChecklistTemplateController {
                 .moduleType(requestDto.getModuleType() != null ? requestDto.getModuleType() : ModuleType.FOOD)
                 .frequency(requestDto.getFrequency() != null ? requestDto.getFrequency() : Frequency.DAILY)
                 .build();
+        applyTemplateItems(template, requestDto.getItems());
 
         return ResponseEntity.ok(mapToResponse(templateService.updateTemplate(id, template, orgNumber)));
     }

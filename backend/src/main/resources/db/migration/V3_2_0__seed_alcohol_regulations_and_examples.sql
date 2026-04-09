@@ -39,21 +39,6 @@ FROM (
            'Serveringsloven - bevilling og ansvar',
            'Internt styringsdokument for krav til serveringsbevilling, styrer og stedfortreder.',
            'admin@everest-sushi.no'
-    UNION ALL
-    SELECT 'PROCEDURE',
-           'Eksempel: daglig alderskontroll ved servering',
-           'Eksempeldokument som viser hvordan ansatte skal gjennomfore og dokumentere alderskontroll i praksis.',
-           'admin@everest-sushi.no'
-    UNION ALL
-    SELECT 'PROCEDURE',
-           'Eksempel: handtering av berusede gjester',
-           'Scenario-basert eksempel pa trygg handtering, avvisning og avviksregistrering ved tegn pa beruselse.',
-           'manager@everest-sushi.no'
-    UNION ALL
-    SELECT 'TRAINING_MATERIAL',
-           'Eksempelhefte for ansvarlig alkoholservering',
-           'Kort opplaeringshefte med eksempler pa legitimasjonskontroll, skjenkestopp og intern rapportering.',
-           'admin@everest-sushi.no'
 ) AS seed
 WHERE NOT EXISTS (
     SELECT 1
@@ -99,10 +84,7 @@ WHERE d.org_number = 937219997
   AND d.title IN (
       'Alkoholloven - sentrale krav og aldersgrenser',
       'Alkoholforskriften - lokale rutiner og internkontroll',
-      'Serveringsloven - bevilling og ansvar',
-      'Eksempel: daglig alderskontroll ved servering',
-      'Eksempel: handtering av berusede gjester',
-      'Eksempelhefte for ansvarlig alkoholservering'
+      'Serveringsloven - bevilling og ansvar'
   )
   AND NOT EXISTS (
       SELECT 1

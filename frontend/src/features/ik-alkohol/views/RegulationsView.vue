@@ -1,15 +1,77 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { useAlkoholData } from '@/features/ik-alkohol/composables/useAlkoholData'
+import UploadDocumentModal from '@/features/dashboard/components/UploadDocumentModal.vue'
+import { documentsApi, type UploadNewDocumentPayload } from '@/features/dashboard/api/documents'
+import { useAuthStore } from '@/stores/auth'
 
-const { laws, demands, sectionsForLaw } = useAlkoholData()
+const authStore = useAuthStore()
+const { laws, demands, sectionsForLaw, reload } = useAlkoholData()
+const isAdmin = computed(() => authStore.isAdmin)
+const showUploadModal = ref(false)
+
+const openUploadModal = () => {
+  showUploadModal.value = true
+}
+
+const closeUploadModal = () => {
+  showUploadModal.value = false
+}
+
+const openLawDocument = async (law: (typeof laws.value)[number]) => {
+  if (law.link) {
+    window.open(law.link, '_blank', 'noopener,noreferrer')
+    return
+  }
+
+  const orgNumber = authStore.currentOrg?.orgNumber
+  if (!orgNumber || law.documentId <= 0) {
+    return
+  }
+
+  try {
+    const response = await documentsApi.getDocumentLink(orgNumber, law.documentId)
+    window.open(response.url, '_blank', 'noopener,noreferrer')
+  } catch (error) {
+    console.error('Failed to open regulation document', error)
+  }
+}
+
+const uploadRegulation = async (payload: UploadNewDocumentPayload) => {
+  const orgNumber = authStore.currentOrg?.orgNumber
+  if (!orgNumber) {
+    return
+  }
+
+  await documentsApi.uploadDocument(orgNumber, {
+    ...payload,
+    documentType: 'POLICY',
+    directory: 'regulations',
+  })
+
+  closeUploadModal()
+  await reload()
+}
 </script>
 
 <template>
   <div class="regulations-page">
     <header class="page-header">
-      <h1>Regelverk</h1>
-      <p class="subtitle">Lover, forskrifter og praktiske krav for ansvarlig alkoholservering</p>
+      <div>
+        <h1>Regelverk</h1>
+        <p class="subtitle">Lover, forskrifter og praktiske krav for ansvarlig alkoholservering</p>
+      </div>
+      <button v-if="isAdmin" type="button" class="upload-btn" @click="openUploadModal">
+        Opprett nytt regelverk
+      </button>
     </header>
+
+    <UploadDocumentModal
+      :open="showUploadModal"
+      fixed-document-type="POLICY"
+      @close="closeUploadModal"
+      @upload-document="uploadRegulation"
+    />
 
     <section class="laws-grid" aria-label="Lover og forskrifter">
       <article v-for="law in laws" :key="law.name" class="law-card">
@@ -19,7 +81,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
             <h2 class="law-card__name">{{ law.name }}</h2>
             <p class="law-card__short">{{ law.short }}</p>
           </div>
-          <a class="law-card__link" :href="law.link" target="_blank" rel="noopener noreferrer">Åpne dokument</a>
+          <button type="button" class="law-card__link" @click="openLawDocument(law)">Åpne dokument</button>
         </header>
 
         <p class="law-card__description">{{ law.description }}</p>
@@ -65,6 +127,10 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 }
 
 .page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 32px;
 }
 
@@ -78,6 +144,22 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 .subtitle {
   font-size: var(--font-size-sm);
   color: var(--color-gray-500);
+}
+
+.upload-btn {
+  border: 1px solid var(--ik-alkohol-primary);
+  background: var(--ik-alkohol-primary);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 0.7rem 1rem;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.upload-btn:hover {
+  filter: brightness(1.05);
 }
 
 .laws-grid {
@@ -206,6 +288,10 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 }
 
 @media (max-width: 48rem) {
+  .page-header {
+    flex-direction: column;
+  }
+
   .law-card__header {
     flex-direction: column;
   }

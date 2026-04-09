@@ -416,18 +416,9 @@ watch(
             </option>
           </select>
         </label>
-        <label>
-          Ansatt
-          <input v-model="formState.employee" type="text" />
-        </label>
-        <label>
-          Dato
-          <input v-model="formState.completion_date.date" type="date" required />
-        </label>
-        <label>
-          Tid
-          <input v-model="formState.completion_date.time" type="time" required />
-        </label>
+        <p class="control-form__hint">
+          Bruker og tidspunkt settes automatisk når kontrollpunktet blir utført.
+        </p>
         <label>
           Kommentar
           <textarea v-model="formState.comment" rows="3" />
@@ -547,6 +538,12 @@ watch(
   color: var(--ik-alkohol-primary);
   font-weight: var(--font-weight-semibold);
   border-radius: var(--radius-md);
+}
+
+.control-form__hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
 }
 
 .add-item-btn:hover {

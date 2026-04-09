@@ -6,7 +6,9 @@ import com.example.InternalControl.dto.checklist.response.ChecklistRunItemRespon
 import com.example.InternalControl.dto.checklist.response.ChecklistRunResponse;
 import com.example.InternalControl.model.checklist.ChecklistRun;
 import com.example.InternalControl.model.checklist.ChecklistRunItem;
+import com.example.InternalControl.model.checklist.ChecklistTemplateItem;
 import com.example.InternalControl.model.enums.RunStatus;
+import com.example.InternalControl.repository.checklist.ChecklistTemplateItemRepository;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistRunService;
 import com.example.InternalControl.service.user.UserOrganizationService;
@@ -34,7 +36,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +53,7 @@ import java.util.stream.Collectors;
 public class ChecklistRunController {
 
     private final ChecklistRunService runService;
+    private final ChecklistTemplateItemRepository templateItemRepository;
     private final UserOrganizationService userOrgService;
 
     @Operation(summary = "Get all runs for organization")
@@ -220,6 +225,19 @@ public class ChecklistRunController {
     }
 
     private ChecklistRunResponse mapToResponse(ChecklistRun run) {
+        Map<Long, String> itemLabelsById;
+        if (run.getTemplate() != null && run.getTemplate().getTemplateId() != null) {
+            itemLabelsById = templateItemRepository
+                    .findByTemplateTemplateIdOrderBySortOrderAsc(run.getTemplate().getTemplateId())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            ChecklistTemplateItem::getItemId,
+                            ChecklistTemplateItem::getLabel,
+                            (existing, replacement) -> existing));
+        } else {
+            itemLabelsById = Collections.emptyMap();
+        }
+
         return ChecklistRunResponse.builder()
                 .runId(run.getRunId())
                 .templateId(run.getTemplate() != null ? run.getTemplate().getTemplateId() : null)
@@ -237,17 +255,21 @@ public class ChecklistRunController {
                 .createdAt(run.getCreatedAt())
                 .updatedAt(run.getUpdatedAt())
                 .items(run.getItems() != null ? run.getItems().stream()
-                        .map(this::mapToItemResponse)
+                        .map(item -> mapToItemResponse(item, itemLabelsById))
                         .collect(Collectors.toList()) : null)
                 .build();
     }
 
     private ChecklistRunItemResponse mapToItemResponse(ChecklistRunItem item) {
+        return mapToItemResponse(item, Collections.emptyMap());
+    }
+
+    private ChecklistRunItemResponse mapToItemResponse(ChecklistRunItem item, Map<Long, String> itemLabelsById) {
         return ChecklistRunItemResponse.builder()
                 .runItemId(item.getRunItemId())
                 .runId(item.getRun() != null ? item.getRun().getRunId() : null)
                 .templateItemId(item.getTemplateItemId())
-                .templateItemLabel(null)
+                .templateItemLabel(itemLabelsById.get(item.getTemplateItemId()))
                 .booleanValue(item.getBooleanValue())
                 .textValue(item.getTextValue())
                 .numericValue(item.getNumericValue())

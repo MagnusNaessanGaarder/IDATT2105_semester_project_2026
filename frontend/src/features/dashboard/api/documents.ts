@@ -41,6 +41,10 @@ export interface UploadNewVersionPayload {
   directory?: string
 }
 
+export interface DocumentLinkResponse {
+  url: string
+}
+
 export const documentsApi = {
 
   listDocuments(orgNumber: number, category?: string): Promise<OrganizationDocument[]> {
@@ -107,5 +111,13 @@ export const documentsApi = {
       responseType: 'blob',
     })
     return URL.createObjectURL(response.data)
+  },
+
+  getDocumentLink(orgNumber: number, documentId: number): Promise<DocumentLinkResponse> {
+    return client
+      .get<DocumentLinkResponse>(`/files/${documentId}/link`, {
+        params: { orgNumber },
+      })
+      .then((r) => r.data)
   },
 }

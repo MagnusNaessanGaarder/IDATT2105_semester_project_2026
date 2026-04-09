@@ -6,8 +6,6 @@ import type {
   CertificateStatus,
   ChecklistRunApi,
   ChecklistRunItemApi,
-  ChecklistTemplateApi,
-  ChecklistTemplateItemApi,
   DailyControlItem,
   DemandItem,
   EmployeeCertification,
@@ -15,6 +13,7 @@ import type {
   LawSection,
   OrganizationDocumentApi,
 } from '../types'
+import { getKnownLegalSourceUrl } from '../utils/legalLinks'
 import { parseLawReference } from '../utils/lawReference'
 
 const SOON_DAYS = 120
@@ -83,16 +82,13 @@ const toCompletionDateParts = (value: unknown) => {
   }
 }
 
-const documentUrl = (documentId: number, orgNumber: number): string =>
-  `/api/v1/files/download/${documentId}?orgNumber=${orgNumber}`
-
-const mapDocumentToLaw = (document: OrganizationDocumentApi, orgNumber: number): LawItem => ({
+const mapDocumentToLaw = (document: OrganizationDocumentApi): LawItem => ({
   documentId: document.documentId,
   name: document.title,
   type: document.documentType === 'POLICY' ? 'Regelverk' : document.documentType,
   short: document.title,
   description: asString(document.description) || 'Dokumentert regelverk for alkoholservering.',
-  link: documentUrl(document.documentId, orgNumber),
+  link: getKnownLegalSourceUrl(document.title, document.description) ?? '',
   last_updated_code: `DOC-${document.documentId}`,
   sub_sections: [],
 })
@@ -101,6 +97,68 @@ const mapDocumentToDemand = (document: OrganizationDocumentApi): DemandItem => (
   title: document.title,
   bullet_points: [asString(document.description) || 'Eksempeldokument tilgjengelig i dokumentarkivet.'],
 })
+
+const mergeLawItems = (
+  documents: OrganizationDocumentApi[],
+  runs: ChecklistRunApi[],
+): LawItem[] => {
+  const lawsByKey = new Map<string, LawItem>()
+
+  documents
+    .filter((document) => document.documentType === 'POLICY')
+    .map(mapDocumentToLaw)
+    .forEach((law) => {
+      lawsByKey.set(`doc:${law.documentId}`, law)
+    })
+
+  runs.forEach((run) => {
+    const parsedLaw = parseLawReference(run.templateDescription)
+    const normalizedTitle = parsedLaw.lawTitle?.trim()
+
+    if (parsedLaw.lawDocumentId != null) {
+      const existing = lawsByKey.get(`doc:${parsedLaw.lawDocumentId}`)
+      if (!existing) {
+        const link = getKnownLegalSourceUrl(normalizedTitle || `Lovverk ${parsedLaw.lawDocumentId}`)
+
+        if (!link) {
+          return
+        }
+
+        lawsByKey.set(`doc:${parsedLaw.lawDocumentId}`, {
+          documentId: parsedLaw.lawDocumentId,
+          name: normalizedTitle || `Lovverk ${parsedLaw.lawDocumentId}`,
+          type: 'Regelverk',
+          short: normalizedTitle || `Lovverk ${parsedLaw.lawDocumentId}`,
+          description: 'Lovverk lagret pa sjekkpunktet.',
+          link,
+          last_updated_code: `DOC-${parsedLaw.lawDocumentId}`,
+          sub_sections: [],
+        })
+      }
+      return
+    }
+
+    if (normalizedTitle) {
+      const link = getKnownLegalSourceUrl(normalizedTitle)
+      if (!link) {
+        return
+      }
+
+      lawsByKey.set(`title:${normalizedTitle.toLowerCase()}`, {
+        documentId: -(lawsByKey.size + 1),
+        name: normalizedTitle,
+        type: 'Regelverk',
+        short: normalizedTitle,
+        description: 'Lovverk lagret pa sjekkpunktet.',
+        link,
+        last_updated_code: 'SAVED-RULE',
+        sub_sections: [],
+      })
+    }
+  })
+
+  return Array.from(lawsByKey.values()).sort((left, right) => left.name.localeCompare(right.name, 'nb'))
+}
 
 const todayDateString = () => {
   const today = new Date()
@@ -111,12 +169,11 @@ const todayDateString = () => {
   return `${year}-${month}-${day}`
 }
 
-const todayRunByTemplateId = (runs: ChecklistRunApi[]): Map<number, ChecklistRunApi> => {
+const latestRunByTemplateId = (runs: ChecklistRunApi[]): Map<number, ChecklistRunApi> => {
   const runsByTemplateId = new Map<number, ChecklistRunApi>()
-  const today = todayDateString()
 
   runs.forEach((run) => {
-    if (typeof run.templateId !== 'number' || toDateOnlyString(run.runDate) !== today) {
+    if (typeof run.templateId !== 'number') {
       return
     }
 
@@ -137,44 +194,41 @@ const todayRunByTemplateId = (runs: ChecklistRunApi[]): Map<number, ChecklistRun
   return runsByTemplateId
 }
 
-const mapTemplateItemToDailyControl = (
-  template: ChecklistTemplateApi,
-  templateItem: ChecklistTemplateItemApi | null,
-  run: ChecklistRunApi | null,
+const mapRunItemToDailyControl = (
+  run: ChecklistRunApi,
+  item: ChecklistRunItemApi | null,
   index: number,
   lawsById: Map<number, LawItem>,
 ): DailyControlItem => {
-  const matchedRunItem = run?.items?.find((item) => item.templateItemId === templateItem?.itemId) ?? null
   const completionDate = toCompletionDateParts(
-    matchedRunItem?.updatedAt ?? matchedRunItem?.createdAt ?? run?.runDate,
+    item?.updatedAt ?? item?.createdAt ?? run.runDate,
   )
-  const parsedLaw = parseLawReference(template.description)
+  const parsedLaw = parseLawReference(run.templateDescription)
   const selectedLaw = parsedLaw.lawDocumentId !== null ? lawsById.get(parsedLaw.lawDocumentId) : null
-  const templateDescription = asString(template.description)
+  const templateDescription = asString(run.templateDescription)
   const lawUnit = selectedLaw?.name
     ?? parsedLaw.lawTitle
     ?? (templateDescription || null)
     ?? 'Daglig alkoholkontroll'
 
   return {
-    id: Number(matchedRunItem?.runItemId ?? templateItem?.itemId ?? `${template.templateId ?? 0}${index + 1}`),
-    run_id: run?.runId ?? null,
-    template_id: template.templateId ?? null,
-    template_item_id: templateItem?.itemId ?? matchedRunItem?.templateItemId ?? null,
+    id: Number(item?.runItemId ?? `${run.runId ?? 0}${index + 1}`),
+    run_id: run.runId ?? null,
+    template_id: run.templateId ?? null,
+    template_item_id: item?.templateItemId ?? null,
     law_document_id: selectedLaw?.documentId ?? parsedLaw.lawDocumentId,
-    run_status: asString(run?.status) || null,
+    run_status: asString(run.status) || null,
     name:
-      asString(templateItem?.label) ||
-      asString(matchedRunItem?.templateItemLabel) ||
-      asString(template.title) ||
-      (templateItem?.itemId ? `Punkt ${templateItem.itemId}` : '') ||
+      asString(item?.templateItemLabel) ||
+      asString(run.templateTitle) ||
+      (item?.templateItemId ? `Punkt ${item.templateItemId}` : '') ||
       `Punkt ${index + 1}`,
     law_unit: lawUnit,
-    employee: asString(run?.performedByUserId ?? run?.assignedToUserId) || 'Ukjent',
-    comment: asString(matchedRunItem?.commentText),
+    employee: asString(run.performedByUserId ?? run.assignedToUserId) || 'Ukjent',
+    comment: asString(item?.commentText),
     completion_date: completionDate,
     attachment: null,
-    is_checked: asString(run?.status) === 'COMPLETED' || asBoolean(matchedRunItem?.booleanValue),
+    is_checked: asString(run.status) === 'COMPLETED' || asBoolean(item?.booleanValue),
   }
 }
 
@@ -195,12 +249,9 @@ const loadData = async () => {
     error.value = null
 
     try {
-      const [runsResult, documentsResult, templatesResult] = await Promise.allSettled([
+      const [runsResult, documentsResult] = await Promise.allSettled([
         getRuns(orgNumber),
         client.get<OrganizationDocumentApi[]>('/files', {
-          params: { orgNumber },
-        }),
-        client.get<ChecklistTemplateApi[]>('/checklists/templates/module/ALCOHOL', {
           params: { orgNumber },
         }),
       ])
@@ -208,37 +259,23 @@ const loadData = async () => {
       const documents =
         documentsResult.status === 'fulfilled' ? documentsResult.value.data.filter((doc) => doc.active) : []
 
-      laws.value = documents
-        .filter((document) => document.documentType === 'POLICY')
-        .map((document) => mapDocumentToLaw(document, orgNumber))
+      const runs =
+        runsResult.status === 'fulfilled' && runsResult.value.ok
+          ? (runsResult.value.data as ChecklistRunApi[])
+          : []
+
+      laws.value = mergeLawItems(documents, runs)
 
       const lawsById = new Map(laws.value.map((law) => [law.documentId, law]))
 
-      const alcoholTemplates =
-        templatesResult.status === 'fulfilled'
-          ? templatesResult.value.data.filter(
-              (template) => template.isActive !== false && asString(template.frequency) === 'DAILY',
-            )
-          : []
+      const todaysRuns = runs.filter((run) => toDateOnlyString(run.runDate) === todayDateString())
+      const runsToDisplay = todaysRuns.length > 0 ? todaysRuns : Array.from(latestRunByTemplateId(runs).values())
 
-      if (templatesResult.status === 'fulfilled') {
-        const runs =
-          runsResult.status === 'fulfilled' && runsResult.value.ok
-            ? (runsResult.value.data as ChecklistRunApi[])
-            : []
-        const todayRuns = todayRunByTemplateId(runs)
-
-        dailyControls.value = alcoholTemplates.flatMap((template) => {
-          const templateItems = template.items && template.items.length > 0 ? template.items : [null]
-          const latestRun = typeof template.templateId === 'number' ? todayRuns.get(template.templateId) ?? null : null
-
-          return templateItems.map((templateItem, index) =>
-            mapTemplateItemToDailyControl(template, templateItem, latestRun, index, lawsById),
-          )
+      dailyControls.value = runsToDisplay
+        .flatMap((run) => {
+          const runItems = run.items && run.items.length > 0 ? run.items : [null]
+          return runItems.map((item, index) => mapRunItemToDailyControl(run, item, index, lawsById))
         })
-      } else {
-        dailyControls.value = []
-      }
 
       demands.value = documents
         .filter((document) => document.documentType === 'PROCEDURE' || document.documentType === 'TRAINING_MATERIAL')
