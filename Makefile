@@ -1,4 +1,4 @@
-.PHONY: help dev stop restart status logs test clean clean-db clean-full install
+.PHONY: help dev stop restart status logs logs-backend logs-frontend test clean clean-db clean-full install wait-mysql
 
 # Java configuration (only force JAVA_HOME when this path exists)
 ifneq ("$(wildcard /usr/lib/jvm/java-21-openjdk)","")
@@ -13,7 +13,10 @@ help:
 	@echo "  make stop        - Stop all services"
 	@echo "  make restart     - Restart all services"
 	@echo "  make status      - Check service status"
+	@echo "  make wait-mysql  - Wait for MySQL to be ready (useful for VPN)"
 	@echo "  make logs        - Show all logs"
+	@echo "  make logs-backend - Show backend logs only"
+	@echo "  make logs-frontend - Show frontend logs only"
 	@echo "  make install     - Install dependencies"
 	@echo "  make test        - Run tests"
 	@echo "  make clean       - Clean build files"
@@ -204,3 +207,16 @@ clean-full: clean clean-db
 	@find . -type d -name ".idea" -exec rm -rf {} + 2>/dev/null || true
 	@find . -type d -name ".vscode" -exec rm -rf {} + 2>/dev/null || true
 	@echo "Full cleanup completed"
+
+wait-mysql:
+	@echo "Waiting for MySQL to be ready..."
+	@for i in 1 2 3 4 5 6 7 8 9 10; do \
+		if nc -z localhost 3306 2>/dev/null; then \
+			echo "MySQL is ready!"; \
+			exit 0; \
+		fi; \
+		echo "Attempt $$i: MySQL not ready yet..."; \
+		sleep 5; \
+	done; \
+	echo "MySQL failed to start within 50 seconds"; \
+	exit 1
