@@ -50,9 +50,30 @@ public class DeviationReportServiceImpl implements DeviationReportService {
         validateOrganizationExists(orgNumber);
 
         AppUser reportedBy = findUserById(userId);
-        Location location = request.getLocationId() != null 
-            ? findLocationById(request.getLocationId(), orgNumber) 
-            : null;
+        Location location = request.getLocationId() != null
+                ? findLocationById(request.getLocationId(), orgNumber)
+                : null;
+
+        AppUser discoveredBy = request.getDiscoveredByUserId() != null
+                ? findUserById(request.getDiscoveredByUserId())
+                : null;
+
+        AppUser reportedTo = request.getReportedToUserId() != null
+                ? findUserById(request.getReportedToUserId())
+                : null;
+
+        // Populate text columns from resolved entities when plain-text names are not provided
+        String resolvedLocationText = request.getLocationText() != null
+                ? request.getLocationText()
+                : (location != null ? location.getName() : null);
+
+        String resolvedDiscoveredByName = request.getDiscoveredByName() != null
+                ? request.getDiscoveredByName()
+                : (discoveredBy != null ? discoveredBy.getDisplayName() : null);
+
+        String resolvedReportedToName = request.getReportedToName() != null
+                ? request.getReportedToName()
+                : (reportedTo != null ? reportedTo.getDisplayName() : null);
 
         DeviationReport report = DeviationReport.builder()
                 .orgNumber(orgNumber)
@@ -61,41 +82,50 @@ public class DeviationReportServiceImpl implements DeviationReportService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .location(location)
-                .locationText(request.getLocationText())
+                .locationText(resolvedLocationText)
                 .sourceTemperatureEntryId(request.getSourceTemperatureEntryId())
                 .occurredDate(request.getOccurredDate())
                 .occurredTime(request.getOccurredTime())
                 .reportDate(LocalDate.now())
                 .reportedBy(reportedBy)
-                .discoveredBy(request.getDiscoveredByUserId() != null 
-                    ? findUserById(request.getDiscoveredByUserId()) 
-                    : null)
-                .discoveredByName(request.getDiscoveredByName())
-                .reportedTo(request.getReportedToUserId() != null 
-                    ? findUserById(request.getReportedToUserId()) 
-                    : null)
-                .reportedToName(request.getReportedToName())
-                .assignedTo(request.getAssignedToUserId() != null 
-                    ? findUserById(request.getAssignedToUserId()) 
-                    : null)
+                .discoveredBy(discoveredBy)
+                .discoveredByName(resolvedDiscoveredByName)
+                .reportedTo(reportedTo)
+                .reportedToName(resolvedReportedToName)
+                .assignedTo(request.getAssignedToUserId() != null
+                        ? findUserById(request.getAssignedToUserId())
+                        : null)
                 .status(DeviationStatus.REPORTED)
                 .build();
 
         DeviationReport saved = deviationReportRepository.save(report);
 
-        try {
+        // Create notification for assigned user if present
+        if (saved.getAssignedTo() != null) {
             notificationService.createNotificationWithEntity(
+                    orgNumber,
+                    saved.getAssignedTo().getUserId(),
+                    NotificationType.DEVIATION_ASSIGNED,
+                    "Nytt avvik tildelt deg: " + saved.getTitle(),
+                    "Et avvik har blitt opprettet og tildelt deg. Vennligst se nærmere på det.",
+                    RelatedEntityType.DEVIATION_REPORT,
+                    saved.getReportId()
+            );
+        }
+
+        // Create audit log entry
+        auditLogService.logAction(
                 orgNumber,
                 userId,
-                NotificationType.DEVIATION_STATUS_CHANGED,
-                "Nytt avvik registrert",
-                String.format("Avvik '%s' er opprettet med alvorlighet %s.", saved.getTitle(), saved.getSeverity()),
-                RelatedEntityType.DEVIATION_REPORT,
-                saved.getReportId());
-        } catch (Exception ex) {
-            log.error("Failed to create deviation notification for report {}", saved.getReportId(), ex);
-        }
-        
+                ActionType.CREATE,
+                "DEVIATION_REPORT",
+                saved.getReportId(),
+                null,
+                String.format("{\"title\": \"%s\", \"severity\": \"%s\", \"status\": \"%s\"}",
+                        saved.getTitle(), saved.getSeverity(), saved.getStatus()),
+                null,
+                null
+        );
         return saved;
     }
 
@@ -126,7 +156,11 @@ public class DeviationReportServiceImpl implements DeviationReportService {
             report.setDescription(request.getDescription());
         }
         if (request.getLocationId() != null) {
-            report.setLocation(findLocationById(request.getLocationId(), orgNumber));
+            Location loc = findLocationById(request.getLocationId(), orgNumber);
+            report.setLocation(loc);
+            if (request.getLocationText() == null) {
+                report.setLocationText(loc.getName());
+            }
         }
         if (request.getLocationText() != null) {
             report.setLocationText(request.getLocationText());
@@ -138,13 +172,21 @@ public class DeviationReportServiceImpl implements DeviationReportService {
             report.setOccurredTime(request.getOccurredTime());
         }
         if (request.getDiscoveredByUserId() != null) {
-            report.setDiscoveredBy(findUserById(request.getDiscoveredByUserId()));
+            AppUser db = findUserById(request.getDiscoveredByUserId());
+            report.setDiscoveredBy(db);
+            if (request.getDiscoveredByName() == null) {
+                report.setDiscoveredByName(db.getDisplayName());
+            }
         }
         if (request.getDiscoveredByName() != null) {
             report.setDiscoveredByName(request.getDiscoveredByName());
         }
         if (request.getReportedToUserId() != null) {
-            report.setReportedTo(findUserById(request.getReportedToUserId()));
+            AppUser rt = findUserById(request.getReportedToUserId());
+            report.setReportedTo(rt);
+            if (request.getReportedToName() == null) {
+                report.setReportedToName(rt.getDisplayName());
+            }
         }
         if (request.getReportedToName() != null) {
             report.setReportedToName(request.getReportedToName());
@@ -208,34 +250,34 @@ public class DeviationReportServiceImpl implements DeviationReportService {
         }
 
         DeviationReport saved = deviationReportRepository.save(report);
-        
+
         // Notify reporter and assigned user about status change
         String statusText = String.format("Status endret fra %s til %s", oldStatus, newStatus);
-        
+
         // Notify assigned user
         if (saved.getAssignedTo() != null) {
             notificationService.createNotificationWithEntity(
-                orgNumber,
-                saved.getAssignedTo().getUserId(),
-                NotificationType.DEVIATION_STATUS_CHANGED,
-                "Avvik status oppdatert: " + saved.getTitle(),
-                statusText + ". Se detaljer for mer informasjon.",
-                RelatedEntityType.DEVIATION_REPORT,
-                saved.getReportId()
+                    orgNumber,
+                    saved.getAssignedTo().getUserId(),
+                    NotificationType.DEVIATION_STATUS_CHANGED,
+                    "Avvik status oppdatert: " + saved.getTitle(),
+                    statusText + ". Se detaljer for mer informasjon.",
+                    RelatedEntityType.DEVIATION_REPORT,
+                    saved.getReportId()
             );
         }
-        
+
         // Audit log
         auditLogService.logAction(
-            orgNumber,
-            userId,
-            ActionType.UPDATE,
-            "DEVIATION_REPORT",
-            saved.getReportId(),
-            String.format("{\"status\": \"%s\"}", oldStatus),
-            String.format("{\"status\": \"%s\"}", newStatus),
-            null,
-            null
+                orgNumber,
+                userId,
+                ActionType.UPDATE,
+                "DEVIATION_REPORT",
+                saved.getReportId(),
+                String.format("{\"status\": \"%s\"}", oldStatus),
+                String.format("{\"status\": \"%s\"}", newStatus),
+                null,
+                null
         );
 
         return saved;
@@ -255,36 +297,36 @@ public class DeviationReportServiceImpl implements DeviationReportService {
         report.setAssignedTo(assignedTo);
 
         DeviationReport saved = deviationReportRepository.save(report);
-        
+
         // Notify assigned user
         notificationService.createNotificationWithEntity(
-            orgNumber,
-            assignedToUserId,
-            NotificationType.DEVIATION_ASSIGNED,
-            "Avvik tildelt deg: " + saved.getTitle(),
-            "Et avvik har blitt tildelt deg. Vennligst se nærmere på det.",
-            RelatedEntityType.DEVIATION_REPORT,
-            saved.getReportId()
+                orgNumber,
+                assignedToUserId,
+                NotificationType.DEVIATION_ASSIGNED,
+                "Avvik tildelt deg: " + saved.getTitle(),
+                "Et avvik har blitt tildelt deg. Vennligst se nærmere på det.",
+                RelatedEntityType.DEVIATION_REPORT,
+                saved.getReportId()
         );
-        
+
         // Audit log
         auditLogService.logAction(
-            orgNumber,
-            currentUserId,
-            ActionType.UPDATE,
-            "DEVIATION_REPORT",
-            saved.getReportId(),
-            null,
-            String.format("{\"action\": \"assigned\", \"assignedTo\": %d}", assignedToUserId),
-            null,
-            null
+                orgNumber,
+                currentUserId,
+                ActionType.UPDATE,
+                "DEVIATION_REPORT",
+                saved.getReportId(),
+                null,
+                String.format("{\"action\": \"assigned\", \"assignedTo\": %d}", assignedToUserId),
+                null,
+                null
         );
 
         return saved;
     }
 
     @Override
-    public DeviationReport addImmediateAction(Long reportId, DeviationActionRequest request, 
+    public DeviationReport addImmediateAction(Long reportId, DeviationActionRequest request,
                                               Integer orgNumber, Long userId) {
         DeviationReport report = findReportByIdAndOrg(reportId, orgNumber);
 
@@ -302,7 +344,7 @@ public class DeviationReportServiceImpl implements DeviationReportService {
     }
 
     @Override
-    public DeviationReport addCauseAnalysis(Long reportId, DeviationActionRequest request, 
+    public DeviationReport addCauseAnalysis(Long reportId, DeviationActionRequest request,
                                             Integer orgNumber, Long userId) {
         DeviationReport report = findReportByIdAndOrg(reportId, orgNumber);
 
@@ -320,12 +362,12 @@ public class DeviationReportServiceImpl implements DeviationReportService {
     }
 
     @Override
-    public DeviationReport addCorrectiveAction(Long reportId, DeviationActionRequest request, 
+    public DeviationReport addCorrectiveAction(Long reportId, DeviationActionRequest request,
                                                Integer orgNumber, Long userId) {
         DeviationReport report = findReportByIdAndOrg(reportId, orgNumber);
 
-        if (report.getStatus() != DeviationStatus.UNDER_INVESTIGATION && 
-            report.getStatus() != DeviationStatus.CORRECTIVE_ACTION_PLANNED) {
+        if (report.getStatus() != DeviationStatus.UNDER_INVESTIGATION &&
+                report.getStatus() != DeviationStatus.CORRECTIVE_ACTION_PLANNED) {
             throw new IllegalStateException("Corrective action can only be added during investigation or planning");
         }
 
@@ -338,7 +380,7 @@ public class DeviationReportServiceImpl implements DeviationReportService {
     }
 
     @Override
-    public DeviationReport completeReport(Long reportId, DeviationActionRequest request, 
+    public DeviationReport completeReport(Long reportId, DeviationActionRequest request,
                                           Integer orgNumber, Long userId) {
         DeviationReport report = findReportByIdAndOrg(reportId, orgNumber);
 
@@ -412,15 +454,15 @@ public class DeviationReportServiceImpl implements DeviationReportService {
                 || newStatus == DeviationStatus.REPORTED
                 || newStatus == DeviationStatus.CLOSED;
             case CORRECTIVE_ACTION_PLANNED -> newStatus == DeviationStatus.CORRECTIVE_ACTION_COMPLETED
-                || newStatus == DeviationStatus.UNDER_INVESTIGATION;
+                    || newStatus == DeviationStatus.UNDER_INVESTIGATION;
             case CORRECTIVE_ACTION_COMPLETED -> newStatus == DeviationStatus.CLOSED
-                || newStatus == DeviationStatus.CORRECTIVE_ACTION_PLANNED;
+                    || newStatus == DeviationStatus.CORRECTIVE_ACTION_PLANNED;
             case CLOSED -> false; // Cannot transition from closed
         };
 
         if (!valid) {
             throw new IllegalStateException(
-                String.format("Invalid status transition from %s to %s", currentStatus, newStatus));
+                    String.format("Invalid status transition from %s to %s", currentStatus, newStatus));
         }
     }
 

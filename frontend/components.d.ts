@@ -12,7 +12,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    BulkUploadChecklist: typeof import('./src/components/BulkUploadChecklist.vue')['default']
+    BulkUploadChecklist: typeof import('./src/shared/components/BulkUploadChecklist.vue')['default']
     NavMenuItem: typeof import('./src/components/NavMenuItem.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
@@ -21,7 +21,7 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
-  const BulkUploadChecklist: typeof import('./src/components/BulkUploadChecklist.vue')['default']
+  const BulkUploadChecklist: typeof import('./src/shared/components/BulkUploadChecklist.vue')['default']
   const NavMenuItem: typeof import('./src/components/NavMenuItem.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']

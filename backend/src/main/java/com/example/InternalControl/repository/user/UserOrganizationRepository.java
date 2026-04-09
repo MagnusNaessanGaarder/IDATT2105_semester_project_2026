@@ -17,24 +17,24 @@ import java.util.Optional;
 public interface UserOrganizationRepository extends JpaRepository<UserOrganization, UserOrganizationId> {
 
   @Query("SELECT uo FROM UserOrganization uo " +
-      "WHERE uo.user.userId = :userId AND uo.isActive = true")
+          "WHERE uo.user.userId = :userId AND uo.isActive = true")
   List<UserOrganization> findActiveOrganizationsByUserId(@Param("userId") Long userId);
 
   @Query("SELECT uo FROM UserOrganization uo WHERE uo.user.userId = :userId")
   List<UserOrganization> findByUserId(@Param("userId") Long userId);
 
   @Query("SELECT uo FROM UserOrganization uo " +
-      "WHERE uo.user.userId = :userId AND uo.organization.orgNumber = :orgNumber")
+          "WHERE uo.user.userId = :userId AND uo.organization.orgNumber = :orgNumber")
   Optional<UserOrganization> findByUserIdAndOrgNumber(
-      @Param("userId") Long userId,
-      @Param("orgNumber") Integer orgNumber);
+          @Param("userId") Long userId,
+          @Param("orgNumber") Integer orgNumber);
 
   @Query("SELECT COUNT(uo) > 0 FROM UserOrganization uo " +
-      "WHERE uo.user.userId = :userId AND uo.organization.orgNumber = :orgNumber")
+          "WHERE uo.user.userId = :userId AND uo.organization.orgNumber = :orgNumber")
   boolean existsByUserIdAndOrgNumber(
-      @Param("userId") Long userId,
-      @Param("orgNumber") Integer orgNumber);
+          @Param("userId") Long userId,
+          @Param("orgNumber") Integer orgNumber);
 
-    @Query("SELECT uo FROM UserOrganization uo JOIN FETCH uo.user WHERE uo.organization.orgNumber = :orgNumber")
-    List<UserOrganization> findByOrgNumber(@Param("orgNumber") Integer orgNumber);
+  @Query("SELECT uo FROM UserOrganization uo JOIN FETCH uo.user WHERE uo.organization.orgNumber = :orgNumber")
+  List<UserOrganization> findByOrgNumber(@Param("orgNumber") Integer orgNumber);
 }
