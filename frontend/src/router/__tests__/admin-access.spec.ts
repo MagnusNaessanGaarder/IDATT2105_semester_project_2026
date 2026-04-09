@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const authState = {
   isAuthenticated: true,
   hasCheckedAuth: true,
+  organizations: [{ orgNumber: 937219997, orgName: 'Test Org', role: 'ADMIN' }],
   user: { role: 'ADMIN' as 'ADMIN' | 'MANAGER' | 'EMPLOYEE' },
   checkAuth: vi.fn().mockResolvedValue(true),
 }
@@ -17,6 +18,7 @@ describe('router admin access guard', () => {
   beforeEach(async () => {
     authState.isAuthenticated = true
     authState.hasCheckedAuth = true
+    authState.organizations = [{ orgNumber: 937219997, orgName: 'Test Org', role: 'ADMIN' }]
     authState.user = { role: 'ADMIN' }
     authState.checkAuth.mockReset().mockResolvedValue(true)
     await router.push('/')
