@@ -13,17 +13,17 @@ declare global {
        * Stores tokens in sessionStorage
        */
       loginViaAPI(email: string, password: string): Chainable<void>
-
+      
       /**
        * Alias for loginViaAPI - simpler API
        */
       login(email: string, password: string): Chainable<void>
-
+      
       /**
        * Clear all session data
        */
       clearSession(): Chainable<void>
-
+      
       /**
        * Get session storage values
        */
