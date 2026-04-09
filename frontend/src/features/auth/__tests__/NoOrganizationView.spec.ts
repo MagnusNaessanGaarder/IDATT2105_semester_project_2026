@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, nextTick } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
-import NoOrganizationView from '../views/NoOrganizationView.vue'
+import NoOrganizationView from '../NoOrganizationView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 vi.mock('@/stores/auth', () => ({
@@ -29,6 +29,10 @@ const mountView = (email: string | null = 'ansatt@example.no') => {
     return mount(NoOrganizationView, {
         global: {
             plugins: [mockRouter],
+            directives: {
+                // Stub v-motion so it doesn't warn in the test environment
+                motion: {},
+            },
         },
     })
 }
@@ -91,7 +95,7 @@ describe('NoOrganizationView', () => {
             await mockRouter.push('/ingen-organisasjon')
             const wrapper = mountView()
             await wrapper.find('.no-org-logout').trigger('click')
-            await Promise.resolve()
+            await mockRouter.isReady()
             expect(mockRouter.currentRoute.value.name).toBe('Login')
         })
     })
