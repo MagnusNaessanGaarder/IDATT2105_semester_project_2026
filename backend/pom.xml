@@ -14,10 +14,10 @@
     <description>InternalControl</description>
 
     <properties>
-        <java.version>21</java.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <lombok.version>1.18.34</lombok.version>
+        <java.version>25</java.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <lombok.version>1.18.44</lombok.version>
         <testcontainers.version>1.19.3</testcontainers.version>
     </properties>
 
@@ -95,7 +95,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        
+
         <!-- Explicit docker-java dependencies for newer Docker API -->
         <dependency>
             <groupId>com.github.docker-java</groupId>
