@@ -6,7 +6,7 @@ import com.example.InternalControl.model.export.ExportJob;
 import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.model.export.ExportStatus;
 import com.example.InternalControl.repository.export.ExportJobRepository;
-import com.example.InternalControl.shared.enums.ExportType;
+import com.example.InternalControl.model.export.ExportType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

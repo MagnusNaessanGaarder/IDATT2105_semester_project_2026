@@ -72,6 +72,17 @@ public interface TemperatureLogService {
     void deleteLogPoint(Long pointId, Integer orgNumber);
 
     /**
+     * Clears all recorded entries for a specific log point.
+     * <p>
+     * Also removes linked deviation reports that originated from the deleted
+     * temperature entries to preserve referential integrity.
+     *
+     * @param pointId   the ID of the log point
+     * @param orgNumber the organization number for access validation
+     */
+    void clearEntriesForPoint(Long pointId, Integer orgNumber);
+
+    /**
      * Retrieves a specific temperature log point by ID.
      *
      * @param pointId   the ID of the log point
@@ -117,6 +128,17 @@ public interface TemperatureLogService {
      * @throws IllegalArgumentException                    if temperature value is invalid
      */
     TemperatureLogEntryResponse recordEntry(TemperatureLogEntryRequest request, Integer orgNumber, Long userId);
+
+    /**
+     * Updates an existing temperature entry.
+     *
+     * @param entryId   the ID of the entry to update
+     * @param request   updated temperature payload
+     * @param orgNumber the organization number for access validation
+     * @param userId    the authenticated user performing the update
+     * @return updated entry response
+     */
+    TemperatureLogEntryResponse updateEntry(Long entryId, TemperatureLogEntryRequest request, Integer orgNumber, Long userId);
 
     /**
      * Retrieves a specific temperature entry by ID.

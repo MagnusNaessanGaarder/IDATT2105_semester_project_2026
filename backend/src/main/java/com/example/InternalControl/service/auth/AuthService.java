@@ -1,9 +1,9 @@
 package com.example.InternalControl.service.auth;
 
 import com.example.InternalControl.dto.auth.request.LoginRequest;
-import com.example.InternalControl.dto.auth.response.OrganizationRoleResponse;
 import com.example.InternalControl.dto.auth.request.RegisterRequest;
 import com.example.InternalControl.dto.auth.response.AuthResponse;
+import com.example.InternalControl.dto.auth.response.OrganizationRoleResponse;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.model.user.AppUserLocalCredential;
 import com.example.InternalControl.model.user.UserOrganization;
@@ -94,23 +94,6 @@ public class AuthService {
                 .build();
     }
 
-            @Transactional
-            public com.example.InternalControl.dto.AuthResponse register(com.example.InternalControl.dto.RegisterRequest request) {
-            AuthResponse response = register(new RegisterRequest(
-                        request.fullName(),
-                        request.email(),
-                        request.phone(),
-                        request.password()
-            ));
-            return new com.example.InternalControl.dto.AuthResponse(
-                response.accessToken(),
-                response.refreshToken(),
-                response.email(),
-                response.role(),
-                convertLegacyOrganizations(response.organizations())
-            );
-            }
-
     @Transactional
     public AuthResponse login(LoginRequest request) {
         LOGGER.info("Login attempt: {}", request.getEmail());
@@ -161,20 +144,28 @@ public class AuthService {
         }
     }
 
-    @Transactional
-    public com.example.InternalControl.dto.AuthResponse login(com.example.InternalControl.dto.LoginRequest request) {
-        AuthResponse response = login(new LoginRequest(request.email(), request.password()));
-        return new com.example.InternalControl.dto.AuthResponse(
-                response.accessToken(),
-                response.refreshToken(),
-                response.email(),
-                response.role(),
-                convertLegacyOrganizations(response.organizations())
-        );
-    }
-
+    @Transactional(readOnly = true)
     public AuthResponse refreshToken(String refreshToken) {
-        String email = jwtService.extractUsername(refreshToken);
+        // Validate token format first
+        if (refreshToken == null || refreshToken.isBlank()) {
+            LOGGER.warn("Refresh token is null or empty");
+            throw new IllegalArgumentException("Refresh token is required");
+        }
+        
+        // Check if token has valid JWT format (should have 2 periods)
+        if (refreshToken.chars().filter(ch -> ch == '.').count() != 2) {
+            LOGGER.warn("Invalid refresh token format");
+            throw new IllegalArgumentException("Invalid refresh token format");
+        }
+        
+        String email;
+        try {
+            email = jwtService.extractUsername(refreshToken);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to extract username from refresh token: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+        
         LOGGER.info("Token refresh for {}", email);
 
         AppUser user = userRepository.findByEmail(email)
@@ -246,16 +237,4 @@ public class AuthService {
                 .map(auth -> auth.getAuthority().replace("ROLE_", ""))
                 .orElse("EMPLOYEE");
     }
-
-        private List<com.example.InternalControl.dto.OrganizationRoleResponse> convertLegacyOrganizations(
-            List<OrganizationRoleResponse> organizations) {
-        return organizations.stream()
-            .map(organization -> com.example.InternalControl.dto.OrganizationRoleResponse.builder()
-                .orgNumber(organization.orgNumber())
-                .orgName(organization.orgName())
-                .role(organization.role())
-                .joinedAt(organization.joinedAt())
-                .build())
-            .toList();
-        }
 }
