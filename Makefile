@@ -1,11 +1,9 @@
 .PHONY: help dev stop restart status logs logs-backend logs-frontend test clean clean-db clean-full install wait-mysql
 
-# Java configuration (only force JAVA_HOME when this path exists)
-ifneq ("$(wildcard /usr/lib/jvm/java-21-openjdk)","")
-JAVA_HOME := /usr/lib/jvm/java-21-openjdk
+# Java 21 Configuration (auto-detect from javac symlink)
+JAVA_HOME := $(shell dirname $$(dirname $$(readlink -f $$(command -v javac))))
 PATH := $(JAVA_HOME)/bin:$(PATH)
 export JAVA_HOME PATH
-endif
 
 help:
 	@echo ""
@@ -34,80 +32,41 @@ dev:
 		cd frontend && npm install; \
 	fi
 	@echo ""
-	@echo "[1/4] Starting MySQL..."
-	@if lsof -ti:3306 > /dev/null 2>&1; then \
-		echo "  MySQL already reachable on port 3306"; \
-	elif command -v docker > /dev/null 2>&1 && [ "$$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' backend-mysql-1 2>/dev/null)" = "healthy" ]; then \
-		echo "  MySQL container already healthy"; \
-	elif command -v docker > /dev/null 2>&1; then \
-		docker compose -f compose-dev.yaml up -d mysql 2>/dev/null || docker start backend-mysql-1 2>/dev/null || true; \
-		mysql_started=0; \
-		for i in $$(seq 1 60); do \
-			if lsof -ti:3306 > /dev/null 2>&1 || (command -v docker > /dev/null 2>&1 && [ "$$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' backend-mysql-1 2>/dev/null)" = "healthy" ]); then \
-				mysql_started=1; \
-				break; \
-			fi; \
-			sleep 1; \
-		done; \
-		if [ $$mysql_started -eq 1 ]; then \
-			echo "  MySQL started"; \
-		else \
-			echo "  MySQL failed to start (check Docker and compose-dev.yaml)"; \
+	@echo "[1/3] Starting MySQL (Docker)..."
+	@docker compose -f compose-dev.yaml up -d mysql 2>/dev/null || docker start backend-mysql-1 2>/dev/null || true
+	@for i in $$(seq 1 30); do \
+		docker exec backend-mysql-1 mysqladmin ping -h 127.0.0.1 -uik_root -pik_pwd >/dev/null 2>&1 && break; \
+		if [ $$i -eq 30 ]; then \
+			echo "  ERROR: MySQL did not become ready"; \
 			exit 1; \
 		fi; \
-	else \
-		echo "  Docker not found. Install Docker or start MySQL manually on port 3306."; \
-		exit 1; \
-	fi
+		sleep 1; \
+	done
+	@echo "  MySQL started"
 	@echo ""
-	@echo "[2/4] Starting backend..."
-	@if ! (lsof -ti:3306 > /dev/null 2>&1 || (command -v docker > /dev/null 2>&1 && [ "$$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' backend-mysql-1 2>/dev/null)" = "healthy" ])); then \
-		echo "  Skipping backend (MySQL is not running on port 3306)"; \
-	elif ! command -v java > /dev/null 2>&1; then \
-		echo "  Skipping backend (Java not found in PATH)"; \
-	else \
-		(cd backend && ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &); \
-		backend_started=0; \
-		for i in $$(seq 1 30); do \
-			if lsof -ti:8080 > /dev/null 2>&1; then \
-				backend_started=1; \
-				break; \
-			fi; \
-			sleep 1; \
-		done; \
-		if [ $$backend_started -eq 1 ]; then \
-			echo "  Backend started"; \
-		else \
-			echo "  Backend failed to start. Last backend log lines:"; \
-			tail -n 20 /tmp/backend.log 2>/dev/null || echo "  No backend log found"; \
+	@echo "[2/3] Starting backend..."
+	@(cd backend && nohup ./mvnw -Plocal-run spring-boot:run -Dmaven.test.skip=true -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
+	@for i in $$(seq 1 60); do \
+		ss -ltnp 2>/dev/null | grep -q ':8080' && break; \
+		if [ $$i -eq 60 ]; then \
+			echo "  ERROR: Backend failed to start (see /tmp/backend.log)"; \
 			exit 1; \
 		fi; \
-	fi
+		sleep 1; \
+	done
+	@echo "  Backend started"
 	@echo ""
 	@echo "[3/4] Starting frontend..."
 	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
-	@frontend_started=0; \
-	for i in $$(seq 1 30); do \
-		if lsof -ti:5173 > /dev/null 2>&1; then \
-			frontend_started=1; \
-			break; \
+	@for i in $$(seq 1 30); do \
+		ss -ltnp 2>/dev/null | grep -q ':5173' && break; \
+		if [ $$i -eq 30 ]; then \
+			echo "  ERROR: Frontend failed to start (see /tmp/frontend.log)"; \
+			exit 1; \
 		fi; \
 		sleep 1; \
-	done; \
-	if [ $$frontend_started -eq 1 ]; then \
-		echo "  Frontend started"; \
-	else \
-		echo "  Frontend failed to start. Last frontend log lines:"; \
-		tail -n 20 /tmp/frontend.log 2>/dev/null || echo "  No frontend log found"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "[4/4] Seeding example document..."
-	@if lsof -ti:8080 > /dev/null 2>&1; then \
-		bash seed-document.sh 2>&1 | sed 's/^/  /' || echo "  Seed skipped (check seed-document.sh or Azure config)"; \
-	else \
-		echo "  Seed skipped (backend is not running)"; \
-	fi
+	done
+	@echo "  Frontend started"
 	@echo ""
 	@echo "========================================"
 	@echo "  Started!"

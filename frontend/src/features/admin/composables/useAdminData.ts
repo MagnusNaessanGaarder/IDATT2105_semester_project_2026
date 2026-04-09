@@ -25,6 +25,7 @@ export interface SettingItem {
   type: 'select' | 'toggle' | 'number' | 'info'
   persistence: 'backend' | 'local' | 'readonly'
   current_value: unknown
+  active?: boolean
   options?: string[]
   min?: number
   max?: number
@@ -122,9 +123,32 @@ const formatDateTime = (value: string): string => {
   })
 }
 
-const sortedAuditLog = [...auditLog].sort((a, b) => {
-  return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-})
+const sortedAuditLog = () => [...auditLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+
+const roleForUser = (role: string | undefined): UserRole => {
+  if (role === 'ADMIN') return 'ADMIN'
+  if (role === 'MANAGER') return 'MANAGER'
+  return 'STAFF'
+}
+
+const updateSetting = (id: string, patch: Partial<SettingItem>) => {
+  const sections = [
+    settings.system.items,
+    settings.notification_preferences.items,
+    settings.security.items,
+    settings.backup.items,
+  ]
+
+  for (const sectionItems of sections) {
+    const target = sectionItems.find((item) => item.id === id)
+    if (!target) {
+      continue
+    }
+
+    Object.assign(target, patch)
+    break
+  }
+}
 
 /**
  * Persistence strategy:

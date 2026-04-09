@@ -1,9 +1,9 @@
 package com.example.InternalControl.service.temperature;
 
-import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRequest;
 import com.example.InternalControl.dto.temperature.request.TemperatureLogEntryRequest;
-import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
+import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRequest;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
+import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -31,9 +31,6 @@ import java.util.List;
  * @since 1.0
  */
 public interface TemperatureLogService {
-
-    // ==================== LOG POINTS ====================
-
     /**
      * Creates a new temperature log point (monitoring location).
      * <p>
@@ -73,6 +70,17 @@ public interface TemperatureLogService {
      * @throws jakarta.persistence.EntityNotFoundException if log point not found
      */
     void deleteLogPoint(Long pointId, Integer orgNumber);
+
+    /**
+     * Clears all recorded entries for a specific log point.
+     * <p>
+     * Also removes linked deviation reports that originated from the deleted
+     * temperature entries to preserve referential integrity.
+     *
+     * @param pointId   the ID of the log point
+     * @param orgNumber the organization number for access validation
+     */
+    void clearEntriesForPoint(Long pointId, Integer orgNumber);
 
     /**
      * Retrieves a specific temperature log point by ID.
@@ -120,6 +128,17 @@ public interface TemperatureLogService {
      * @throws IllegalArgumentException                    if temperature value is invalid
      */
     TemperatureLogEntryResponse recordEntry(TemperatureLogEntryRequest request, Integer orgNumber, Long userId);
+
+    /**
+     * Updates an existing temperature entry.
+     *
+     * @param entryId   the ID of the entry to update
+     * @param request   updated temperature payload
+     * @param orgNumber the organization number for access validation
+     * @param userId    the authenticated user performing the update
+     * @return updated entry response
+     */
+    TemperatureLogEntryResponse updateEntry(Long entryId, TemperatureLogEntryRequest request, Integer orgNumber, Long userId);
 
     /**
      * Retrieves a specific temperature entry by ID.

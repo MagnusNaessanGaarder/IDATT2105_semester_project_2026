@@ -57,4 +57,6 @@ public class DeviationReportCreateRequest {
     private String reportedToName;
 
     private Long assignedToUserId;
+
+    private Long sourceTemperatureEntryId;
 }

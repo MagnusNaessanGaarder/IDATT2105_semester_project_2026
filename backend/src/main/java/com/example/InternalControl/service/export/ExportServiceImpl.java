@@ -45,7 +45,7 @@ public class ExportServiceImpl implements ExportService {
     ExportJob job = ExportJob.builder()
             .orgNumber(orgNumber)
             .requestedByUserId(userId)
-            .exportType(request.getExportType())
+          .exportType(request.getExportType())
             .format(request.getFormat())
             .status(ExportStatus.PENDING)
             .parametersJson(parametersJson)
@@ -128,7 +128,7 @@ public class ExportServiceImpl implements ExportService {
 
     return ExportResponse.builder()
             .exportJobId(job.getExportJobId())
-            .exportType(job.getExportType())
+          .exportType(job.getExportType())
             .format(job.getFormat())
             .status(job.getStatus())
             .fileName(job.getResultDocument() != null ? job.getResultDocument().getTitle() : null)

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
 
 /**
  * Base - Globale base-styles og CSS reset
@@ -21,49 +21,64 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  background: var(--color-background);
 }
 
 body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
-  line-height: 1.5;
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-normal);
   color: var(--color-foreground);
   background-color: var(--color-background);
+  background-image:
+    radial-gradient(circle at top left, var(--color-surface-tint) 0%, transparent 34%),
+    radial-gradient(circle at bottom right, var(--color-surface-tint-strong) 0%, transparent 32%),
+    linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
+  background-attachment: fixed;
   min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: var(--font-weight-bold);
-  line-height: 1.2;
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-heading);
   color: var(--color-foreground);
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: var(--font-size-3xl);
-  letter-spacing: -0.015em;
+  font-size: clamp(1.85rem, 2.4vw, var(--font-size-3xl));
+  letter-spacing: -0.006em;
 }
 
 h2 {
-  font-size: var(--font-size-2xl);
-  letter-spacing: -0.01em;
+  font-size: clamp(1.4rem, 1.9vw, var(--font-size-2xl));
+  letter-spacing: -0.004em;
 }
 
 h3 {
   font-size: var(--font-size-xl);
+  letter-spacing: -0.004em;
 }
 
 p {
   color: var(--color-gray-600);
+  text-wrap: pretty;
+  line-height: var(--line-height-relaxed);
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--color-link);
   text-decoration: none;
-  transition: color var(--transition-fast);
+  transition: color var(--transition-fast), text-underline-offset var(--transition-fast);
 }
 
 a:hover {
-  text-decoration: none;
+  color: var(--color-link-hover);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
 }
 
 a:focus-visible {
@@ -72,14 +87,16 @@ a:focus-visible {
 }
 
 button {
-  font-family: inherit;
+  font-family: var(--font-family-ui);
   cursor: pointer;
   border: none;
   background: transparent;
+  text-rendering: optimizeLegibility;
 }
 
 #app {
   min-height: 100vh;
+  isolation: isolate;
 }
 
 button:focus-visible {
@@ -88,8 +105,11 @@ button:focus-visible {
 }
 
 input, textarea, select {
-  font-family: inherit;
+  font-family: var(--font-family-ui);
   font-size: inherit;
+  color: var(--color-foreground);
+  line-height: inherit;
+  background: var(--color-card);
 }
 
 ul, ol {
@@ -114,7 +134,7 @@ img {
   border: 0;
 }
 
-*:focus {
+*:focus:not(:focus-visible) {
   outline: none;
 }
 
@@ -125,7 +145,7 @@ img {
 
 ::selection {
   background-color: var(--color-focus);
-  color: white;
+  color: var(--color-primary-foreground);
 }
 
 ::-webkit-scrollbar {
@@ -148,6 +168,24 @@ img {
 
 button, a, input, textarea, select {
   min-height: var(--touch-target);
+}
+
+::placeholder {
+  color: var(--color-gray-400);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media print {

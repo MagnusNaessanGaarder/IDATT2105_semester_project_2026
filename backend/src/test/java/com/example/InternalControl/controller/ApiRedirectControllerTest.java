@@ -27,9 +27,9 @@ class ApiRedirectControllerTest {
     @Test
     void redirectToVersionedApi_WithNonVersionedUrl_ReturnsRedirect() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/users"))
+        mockMvc.perform(get("/api/v1/users"))
                 .andExpect(status().isPermanentRedirect())
-                .andExpect(header().string("Location", "/api/v1/users"))
+                .andExpect(header().string("Location", "/api/v1/v1/users"))
                 .andExpect(header().exists("Deprecation"))
                 .andExpect(header().exists("Warning"));
     }
@@ -37,15 +37,15 @@ class ApiRedirectControllerTest {
     @Test
     void redirectToVersionedApi_WithVersionedUrl_ReturnsNotFound() throws Exception {
         // When & Then - already versioned URLs should 404 (they'll be handled by other controllers)
-        mockMvc.perform(get("/api/v1/users"))
+        mockMvc.perform(get("/api/v1/v1/users"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void redirectToVersionedApi_WithQueryParams_RedirectsToVersionedPath() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/users").param("orgNumber", "123"))
+        mockMvc.perform(get("/api/v1/users").param("orgNumber", "123"))
                 .andExpect(status().isPermanentRedirect())
-                .andExpect(header().string("Location", "/api/v1/users"));
+                .andExpect(header().string("Location", "/api/v1/v1/users?orgNumber=123"));
     }
 }

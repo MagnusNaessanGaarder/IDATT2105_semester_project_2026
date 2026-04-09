@@ -1,19 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-
-interface Deviation {
-  id: number
-  title: string
-  description: string
-  severity: 'low' | 'medium' | 'high'
-  reported_by: string
-  reported_date: string
-  reported_time: string
-  location: string
-  immediate_action: string
-  corrective_action: string
-  status: 'open' | 'in-progress' | 'resolved'
-}
+import type { Deviation } from '../types'
 
 const props = defineProps<{
   deviation: Deviation
@@ -104,15 +91,15 @@ const statusIcon = computed(() => {
 }
 
 .deviation-card--low {
-  border-left: 0.25rem solid #3b82f6;
+  border-left: 0.25rem solid var(--color-info);
 }
 
 .deviation-card--medium {
-  border-left: 0.25rem solid #f59e0b;
+  border-left: 0.25rem solid var(--color-warning);
 }
 
 .deviation-card--high {
-  border-left: 0.25rem solid #ef4444;
+  border-left: 0.25rem solid var(--color-danger);
 }
 
 .deviation-card__header {
@@ -165,18 +152,18 @@ const statusIcon = computed(() => {
 }
 
 .deviation-card__badge--low {
-  background: rgba(59, 130, 246, 0.1);
-  color: #1e40af;
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .deviation-card__badge--medium {
-  background: rgba(245, 158, 11, 0.1);
-  color: #b45309;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .deviation-card__badge--high {
-  background: rgba(239, 68, 68, 0.1);
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
 }
 
 .deviation-card__badge--status {
@@ -184,18 +171,18 @@ const statusIcon = computed(() => {
 }
 
 .deviation-card__badge--open {
-  background: rgba(239, 68, 68, 0.1);
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
 }
 
 .deviation-card__badge--in-progress {
-  background: rgba(59, 130, 246, 0.1);
-  color: #1e40af;
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .deviation-card__badge--resolved {
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .deviation-card__badge-icon {

@@ -130,10 +130,16 @@ export function useExport() {
 
     try {
       const path = await exportApi.getDownloadUrl(orgNumber.value, exportJobId)
-      const pathWithOrg = `${path}?orgNumber=${orgNumber.value}`
+      const hasOrgNumber = /(?:\?|&)orgNumber=/.test(path)
+      const separator = path.includes('?') ? '&' : '?'
+      const pathWithOrg = hasOrgNumber ? path : `${path}${separator}orgNumber=${orgNumber.value}`
 
       const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace('/api/v1', '')
-      const response = await axios.get(baseUrl + pathWithOrg, {
+      const downloadUrl = pathWithOrg.startsWith('http://') || pathWithOrg.startsWith('https://')
+        ? pathWithOrg
+        : `${baseUrl}${pathWithOrg}`
+
+      const response = await axios.get(downloadUrl, {
         responseType: 'blob',
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,

@@ -40,7 +40,8 @@ const latestUpload = computed(() => {
   const sorted = [...documents.value].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
   )
-  return formatDate(sorted[0].updatedAt)
+  const latest = sorted[0]
+  return latest ? formatDate(latest.updatedAt) : '–'
 })
 
 const canEmbed = computed(() => {
@@ -53,7 +54,7 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') closePreview()
 }
 
-let closeMenuTimeout = null
+let closeMenuTimeout: ReturnType<typeof setTimeout> | null = null
 
 function scheduleCloseMenu() {
   clearCloseMenuTimeout()
