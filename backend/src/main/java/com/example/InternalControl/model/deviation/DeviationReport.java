@@ -170,4 +170,244 @@ public class DeviationReport {
   public boolean isClosed() {
     return status == DeviationStatus.CLOSED;
   }
+
+  public Long getReportId() {
+    return reportId;
+  }
+
+  public void setReportId(Long reportId) {
+    this.reportId = reportId;
+  }
+
+  public Integer getOrgNumber() {
+    return orgNumber;
+  }
+
+  public void setOrgNumber(Integer orgNumber) {
+    this.orgNumber = orgNumber;
+  }
+
+  public ReportType getReportType() {
+    return reportType;
+  }
+
+  public void setReportType(ReportType reportType) {
+    this.reportType = reportType;
+  }
+
+  public Severity getSeverity() {
+    return severity;
+  }
+
+  public void setSeverity(Severity severity) {
+    this.severity = severity;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public Location getLocation() {
+    return location;
+  }
+
+  public void setLocation(Location location) {
+    this.location = location;
+  }
+
+  public String getLocationText() {
+    return locationText;
+  }
+
+  public void setLocationText(String locationText) {
+    this.locationText = locationText;
+  }
+
+  public LocalDate getOccurredDate() {
+    return occurredDate;
+  }
+
+  public void setOccurredDate(LocalDate occurredDate) {
+    this.occurredDate = occurredDate;
+  }
+
+  public LocalTime getOccurredTime() {
+    return occurredTime;
+  }
+
+  public void setOccurredTime(LocalTime occurredTime) {
+    this.occurredTime = occurredTime;
+  }
+
+  public LocalDate getReportDate() {
+    return reportDate;
+  }
+
+  public void setReportDate(LocalDate reportDate) {
+    this.reportDate = reportDate;
+  }
+
+  public AppUser getReportedBy() {
+    return reportedBy;
+  }
+
+  public void setReportedBy(AppUser reportedBy) {
+    this.reportedBy = reportedBy;
+  }
+
+  public AppUser getDiscoveredBy() {
+    return discoveredBy;
+  }
+
+  public void setDiscoveredBy(AppUser discoveredBy) {
+    this.discoveredBy = discoveredBy;
+  }
+
+  public String getDiscoveredByName() {
+    return discoveredByName;
+  }
+
+  public void setDiscoveredByName(String discoveredByName) {
+    this.discoveredByName = discoveredByName;
+  }
+
+  public AppUser getReportedTo() {
+    return reportedTo;
+  }
+
+  public void setReportedTo(AppUser reportedTo) {
+    this.reportedTo = reportedTo;
+  }
+
+  public String getReportedToName() {
+    return reportedToName;
+  }
+
+  public void setReportedToName(String reportedToName) {
+    this.reportedToName = reportedToName;
+  }
+
+  public AppUser getAssignedTo() {
+    return assignedTo;
+  }
+
+  public void setAssignedTo(AppUser assignedTo) {
+    this.assignedTo = assignedTo;
+  }
+
+  public String getImmediateActionText() {
+    return immediateActionText;
+  }
+
+  public void setImmediateActionText(String immediateActionText) {
+    this.immediateActionText = immediateActionText;
+  }
+
+  public AppUser getImmediateActionSignedBy() {
+    return immediateActionSignedBy;
+  }
+
+  public void setImmediateActionSignedBy(AppUser immediateActionSignedBy) {
+    this.immediateActionSignedBy = immediateActionSignedBy;
+  }
+
+  public String getCauseAnalysisText() {
+    return causeAnalysisText;
+  }
+
+  public void setCauseAnalysisText(String causeAnalysisText) {
+    this.causeAnalysisText = causeAnalysisText;
+  }
+
+  public AppUser getCauseAnalysisSignedBy() {
+    return causeAnalysisSignedBy;
+  }
+
+  public void setCauseAnalysisSignedBy(AppUser causeAnalysisSignedBy) {
+    this.causeAnalysisSignedBy = causeAnalysisSignedBy;
+  }
+
+  public String getCorrectiveActionText() {
+    return correctiveActionText;
+  }
+
+  public void setCorrectiveActionText(String correctiveActionText) {
+    this.correctiveActionText = correctiveActionText;
+  }
+
+  public AppUser getCorrectiveActionSignedBy() {
+    return correctiveActionSignedBy;
+  }
+
+  public void setCorrectiveActionSignedBy(AppUser correctiveActionSignedBy) {
+    this.correctiveActionSignedBy = correctiveActionSignedBy;
+  }
+
+  public String getCompletionText() {
+    return completionText;
+  }
+
+  public void setCompletionText(String completionText) {
+    this.completionText = completionText;
+  }
+
+  public AppUser getCompletionSignedBy() {
+    return completionSignedBy;
+  }
+
+  public void setCompletionSignedBy(AppUser completionSignedBy) {
+    this.completionSignedBy = completionSignedBy;
+  }
+
+  public DeviationStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(DeviationStatus status) {
+    this.status = status;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
+  }
+
+  public LocalDateTime getClosedAt() {
+    return closedAt;
+  }
+
+  public void setClosedAt(LocalDateTime closedAt) {
+    this.closedAt = closedAt;
+  }
+
+  public Set<OrganizationDocument> getDocuments() {
+    return documents;
+  }
+
+  public void setDocuments(Set<OrganizationDocument> documents) {
+    this.documents = documents;
+  }
 }

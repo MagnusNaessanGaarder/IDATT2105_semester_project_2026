@@ -23,7 +23,7 @@ import type {
   TemperatureLogPointApi,
   TemperatureLogPointUpsertRequest,
   OrganizationUserApi,
-} from '../types'
+} from '../types/index'
 
 const queryFromObject = (params: Record<string, unknown>) => withOrgNumber(params)
 
@@ -87,7 +87,6 @@ export const ikMatApi = {
     try {
       const response = await client.get<LocationApi[]>('/locations', {
         params: queryFromObject({}),
-        skipGlobalErrorLog: true,
       })
       const locations = toArrayPayload<LocationApi>(response.data, 'getLocations')
       return locations
@@ -184,7 +183,6 @@ export const ikMatApi = {
     try {
       const response = await client.get<ChecklistRunApi[]>('/checklists/runs', {
         params: queryFromObject(status ? { status } : {}),
-        skipGlobalErrorLog: true,
       })
       const runs = toArrayPayload<ChecklistRunApi>(response.data, 'getChecklistRuns')
       return runs
@@ -337,7 +335,6 @@ export const ikMatApi = {
     try {
       const response = await client.get<DeviationApi[]>('/deviations', {
         params: queryFromObject({}),
-        skipGlobalErrorLog: true,
       })
       const deviations = toArrayPayload<DeviationApi>(response.data, 'getDeviations')
       return deviations
@@ -485,7 +482,6 @@ export const ikMatApi = {
   async getOrganizationUsers(): Promise<OrganizationUserApi[]> {
     const response = await client.get<OrganizationUserApi[]>('/users', {
       params: queryFromObject({}),
-      skipGlobalErrorLog: true,
     })
     return toArrayPayload<OrganizationUserApi>(response.data, 'getOrganizationUsers')
   },

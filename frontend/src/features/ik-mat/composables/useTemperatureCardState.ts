@@ -1,5 +1,5 @@
 import { computed, type Ref } from 'vue'
-import type { TemperatureRecord } from '../types'
+import type { TemperatureRecord } from '../types/index'
 
 export const useTemperatureCardState = (record: Ref<TemperatureRecord>) => {
   const statusLabel = computed(() => {

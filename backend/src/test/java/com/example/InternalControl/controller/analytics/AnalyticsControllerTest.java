@@ -59,11 +59,10 @@ class AnalyticsControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = {"EMPLOYEE"})
     void getDashboardSummary_AsEmployee_ReturnsOk() throws Exception {
         // Given
-        DashboardSummaryResponse response = DashboardSummaryResponse.builder()
-                .checklistsCompletedToday(5)
-                .openDeviations(2)
-                .complianceScore(85.5)
-                .build();
+                DashboardSummaryResponse response = new DashboardSummaryResponse();
+                response.setChecklistsCompletedToday(5);
+                response.setOpenDeviations(2);
+                response.setComplianceScore(85.5);
 
         when(dashboardService.getDashboardSummary(ORG_NUMBER)).thenReturn(response);
 
@@ -79,10 +78,9 @@ class AnalyticsControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = {"EMPLOYEE"})
     void getComplianceScore_AsEmployee_ReturnsOk() throws Exception {
         // Given
-        ComplianceScoreResponse response = ComplianceScoreResponse.builder()
-                .currentScore(85)
-                .status("GOOD")
-                .build();
+                ComplianceScoreResponse response = new ComplianceScoreResponse();
+                response.setCurrentScore(85);
+                response.setStatus("GOOD");
 
         when(dashboardService.getComplianceScore(ORG_NUMBER)).thenReturn(response);
 

@@ -165,7 +165,7 @@ export function useExport() {
     if (!orgNumber.value) return
 
     try {
-      const path = await exportApi.getDownloadUrl(orgNumber.value, exportJobId)
+      const path = await exportsApi.getDownloadUrl(orgNumber.value, exportJobId)
       const pathWithOrg = `${path}?orgNumber=${orgNumber.value}`
 
       const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace('/api/v1', '')

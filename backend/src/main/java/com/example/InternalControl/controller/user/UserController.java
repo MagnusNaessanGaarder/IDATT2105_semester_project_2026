@@ -136,14 +136,13 @@ public class UserController {
         }
 
         // Create user
-        AppUser user = AppUser.builder()
-                .displayName(request.getDisplayName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        AppUser user = new AppUser();
+        user.setDisplayName(request.getDisplayName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        user.setIsActive(true);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
 
         user = userRepository.save(user);
 
@@ -153,11 +152,10 @@ public class UserController {
                 .orgNumber(request.getOrgNumber())
                 .build();
 
-        UserOrganization userOrg = UserOrganization.builder()
-                .id(userOrgId)
-                .isActive(true)
-                .joinedAt(LocalDateTime.now())
-                .build();
+        UserOrganization userOrg = new UserOrganization();
+        userOrg.setId(userOrgId);
+        userOrg.setIsActive(true);
+        userOrg.setJoinedAt(LocalDateTime.now());
 
         userOrgRepository.save(userOrg);
 

@@ -67,4 +67,76 @@ public class AppUserLocalCredential {
     this.failedAttempts = 0;
     this.lockedUntil = null;
   }
+
+  public Long getCredentialId() {
+    return credentialId;
+  }
+
+  public void setCredentialId(Long credentialId) {
+    this.credentialId = credentialId;
+  }
+
+  public AppUser getUser() {
+    return user;
+  }
+
+  public void setUser(AppUser user) {
+    this.user = user;
+  }
+
+  public String getPasswordHash() {
+    return passwordHash;
+  }
+
+  public void setPasswordHash(String passwordHash) {
+    this.passwordHash = passwordHash;
+  }
+
+  public Boolean getMustChangePw() {
+    return mustChangePw;
+  }
+
+  public void setMustChangePw(Boolean mustChangePw) {
+    this.mustChangePw = mustChangePw;
+  }
+
+  public LocalDateTime getLastChangedAt() {
+    return lastChangedAt;
+  }
+
+  public void setLastChangedAt(LocalDateTime lastChangedAt) {
+    this.lastChangedAt = lastChangedAt;
+  }
+
+  public Integer getFailedAttempts() {
+    return failedAttempts;
+  }
+
+  public void setFailedAttempts(Integer failedAttempts) {
+    this.failedAttempts = failedAttempts;
+  }
+
+  public LocalDateTime getLockedUntil() {
+    return lockedUntil;
+  }
+
+  public void setLockedUntil(LocalDateTime lockedUntil) {
+    this.lockedUntil = lockedUntil;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
+  }
 }

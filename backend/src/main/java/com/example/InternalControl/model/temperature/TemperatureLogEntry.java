@@ -59,4 +59,92 @@ public class TemperatureLogEntry {
   @JoinColumn(name = "recorded_by_user_id", insertable = false, updatable = false)
   @JsonIgnore
   private AppUser recordedBy;
+
+  public Long getEntryId() {
+    return entryId;
+  }
+
+  public void setEntryId(Long entryId) {
+    this.entryId = entryId;
+  }
+
+  public Integer getOrgNumber() {
+    return orgNumber;
+  }
+
+  public void setOrgNumber(Integer orgNumber) {
+    this.orgNumber = orgNumber;
+  }
+
+  public Long getLogPointId() {
+    return logPointId;
+  }
+
+  public void setLogPointId(Long logPointId) {
+    this.logPointId = logPointId;
+  }
+
+  public Long getRecordedByUserId() {
+    return recordedByUserId;
+  }
+
+  public void setRecordedByUserId(Long recordedByUserId) {
+    this.recordedByUserId = recordedByUserId;
+  }
+
+  public LocalDateTime getMeasuredAt() {
+    return measuredAt;
+  }
+
+  public void setMeasuredAt(LocalDateTime measuredAt) {
+    this.measuredAt = measuredAt;
+  }
+
+  public BigDecimal getTemperatureC() {
+    return temperatureC;
+  }
+
+  public void setTemperatureC(BigDecimal temperatureC) {
+    this.temperatureC = temperatureC;
+  }
+
+  public Boolean getIsAlert() {
+    return isAlert;
+  }
+
+  public void setIsAlert(Boolean alert) {
+    isAlert = alert;
+  }
+
+  public String getNoteText() {
+    return noteText;
+  }
+
+  public void setNoteText(String noteText) {
+    this.noteText = noteText;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public TemperatureLogPoint getLogPoint() {
+    return logPoint;
+  }
+
+  public void setLogPoint(TemperatureLogPoint logPoint) {
+    this.logPoint = logPoint;
+  }
+
+  public AppUser getRecordedBy() {
+    return recordedBy;
+  }
+
+  public void setRecordedBy(AppUser recordedBy) {
+    this.recordedBy = recordedBy;
+  }
 }

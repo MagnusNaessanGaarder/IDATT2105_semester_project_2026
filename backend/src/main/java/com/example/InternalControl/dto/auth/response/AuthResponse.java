@@ -30,4 +30,45 @@ public record AuthResponse(
     public AuthResponse(String accessToken, String refreshToken, String email, String role) {
         this(accessToken, refreshToken, email, role, List.of());
     }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private String accessToken;
+        private String refreshToken;
+        private String email;
+        private String role;
+        private List<OrganizationRoleResponse> organizations = List.of();
+
+        public Builder accessToken(String accessToken) {
+            this.accessToken = accessToken;
+            return this;
+        }
+
+        public Builder refreshToken(String refreshToken) {
+            this.refreshToken = refreshToken;
+            return this;
+        }
+
+        public Builder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public Builder role(String role) {
+            this.role = role;
+            return this;
+        }
+
+        public Builder organizations(List<OrganizationRoleResponse> organizations) {
+            this.organizations = organizations;
+            return this;
+        }
+
+        public AuthResponse build() {
+            return new AuthResponse(accessToken, refreshToken, email, role, organizations);
+        }
+    }
 }

@@ -62,4 +62,60 @@ public class UserOrganization {
   // it should @Anine
   // @Column(name = "updated_at", nullable = false)
   // private LocalDateTime updatedAt;
+
+  public UserOrganizationId getId() {
+    return id;
+  }
+
+  public void setId(UserOrganizationId id) {
+    this.id = id;
+  }
+
+  public AppUser getUser() {
+    return user;
+  }
+
+  public void setUser(AppUser user) {
+    this.user = user;
+  }
+
+  public Organization getOrganization() {
+    return organization;
+  }
+
+  public void setOrganization(Organization organization) {
+    this.organization = organization;
+  }
+
+  public Boolean getIsActive() {
+    return isActive;
+  }
+
+  public void setIsActive(Boolean active) {
+    isActive = active;
+  }
+
+  public LocalDateTime getJoinedAt() {
+    return joinedAt;
+  }
+
+  public void setJoinedAt(LocalDateTime joinedAt) {
+    this.joinedAt = joinedAt;
+  }
+
+  public LocalDateTime getLeftAt() {
+    return leftAt;
+  }
+
+  public void setLeftAt(LocalDateTime leftAt) {
+    this.leftAt = leftAt;
+  }
+
+  public LocalDateTime getLastSeenAt() {
+    return lastSeenAt;
+  }
+
+  public void setLastSeenAt(LocalDateTime lastSeenAt) {
+    this.lastSeenAt = lastSeenAt;
+  }
 }

@@ -69,4 +69,52 @@ public class ChecklistTemplateItem {
     public boolean isChoiceType() {
         return itemType == ItemType.CHOICE;
     }
+
+    public ChecklistTemplate getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(ChecklistTemplate template) {
+        this.template = template;
+    }
+
+    public Long getItemId() {
+        return itemId;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public ItemType getItemType() {
+        return itemType;
+    }
+
+    public Boolean getIsRequired() {
+        return isRequired;
+    }
+
+    public String getExpectedText() {
+        return expectedText;
+    }
+
+    public BigDecimal getExpectedNumericMin() {
+        return expectedNumericMin;
+    }
+
+    public BigDecimal getExpectedNumericMax() {
+        return expectedNumericMax;
+    }
+
+    public String getChoiceOptionsJson() {
+        return choiceOptionsJson;
+    }
 }

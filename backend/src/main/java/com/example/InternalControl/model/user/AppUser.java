@@ -60,4 +60,76 @@ public class AppUser {
   public boolean isActive() {
     return isActive != null && isActive;
   }
+
+  public Long getUserId() {
+    return userId;
+  }
+
+  public void setUserId(Long userId) {
+    this.userId = userId;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public Boolean getIsActive() {
+    return isActive;
+  }
+
+  public void setIsActive(Boolean active) {
+    isActive = active;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+
+  public LocalDateTime getGlobalLastSeenAt() {
+    return globalLastSeenAt;
+  }
+
+  public void setGlobalLastSeenAt(LocalDateTime globalLastSeenAt) {
+    this.globalLastSeenAt = globalLastSeenAt;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
+  }
+
+  public AppUserLocalCredential getLocalCredential() {
+    return localCredential;
+  }
+
+  public void setLocalCredential(AppUserLocalCredential localCredential) {
+    this.localCredential = localCredential;
+  }
 }

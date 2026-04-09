@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue'
-import type { Deviation } from '../types'
+import type { Deviation } from '../types/index'
 import { useDeviationCardState } from '../composables/useDeviationCardState'
 
 const props = defineProps<{

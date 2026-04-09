@@ -1,5 +1,5 @@
 import { computed, type Ref } from 'vue'
-import type { Checklist } from '../types'
+import type { Checklist } from '../types/index'
 
 export const useChecklistCardState = (checklist: Ref<Checklist>) => {
   const completedCount = computed(() => {

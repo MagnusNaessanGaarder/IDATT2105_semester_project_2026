@@ -70,10 +70,9 @@ class ExportControllerTest extends AbstractIntegrationTest {
         request.setExportType(ExportType.CHECKLIST_REPORT);
         request.setFormat(ExportFormat.PDF);
 
-        ExportResponse response = ExportResponse.builder()
-                .exportJobId(1L)
-                .status(ExportStatus.PENDING)
-                .build();
+                ExportResponse response = new ExportResponse();
+                response.setExportJobId(1L);
+                response.setStatus(ExportStatus.PENDING);
 
         when(exportService.createExportJob(any(), eq(ORG_NUMBER), anyLong())).thenReturn(response);
 
@@ -90,10 +89,9 @@ class ExportControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = {"EMPLOYEE"})
     void getExportStatus_AsEmployee_ReturnsOk() throws Exception {
         // Given
-        ExportResponse response = ExportResponse.builder()
-                .exportJobId(1L)
-                .status(ExportStatus.COMPLETED)
-                .build();
+                ExportResponse response = new ExportResponse();
+                response.setExportJobId(1L);
+                response.setStatus(ExportStatus.COMPLETED);
 
         when(exportService.getExportStatus(1L, ORG_NUMBER)).thenReturn(response);
 

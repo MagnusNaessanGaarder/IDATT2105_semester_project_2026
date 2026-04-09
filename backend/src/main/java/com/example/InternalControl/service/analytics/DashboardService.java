@@ -88,60 +88,57 @@ public class DashboardService {
 
         String complianceStatus = getComplianceStatus(complianceScore);
 
-        return DashboardSummaryResponse.builder()
-                .checklistsCompletedToday(checklistsCompletedToday)
-                .checklistsCompletedThisWeek(checklistsCompletedThisWeek)
-                .checklistsOverdue(checklistsOverdue)
-                .checklistCompletionRate(checklistCompletionRate)
-                .openDeviations(openDeviations)
-                .criticalDeviations(criticalDeviations)
-                .deviationsClosedThisWeek(deviationsClosedThisWeek)
-                .temperatureAlerts(temperatureAlerts)
-                .avgTemperatureToday(avgTemperatureToday)
-                .expiringTrainingCount(expiringTrainingCount)
-                .complianceScore(complianceScore)
-                .complianceStatus(complianceStatus)
-                .period("today")
-                .build();
+        DashboardSummaryResponse response = new DashboardSummaryResponse();
+        response.setChecklistsCompletedToday(checklistsCompletedToday);
+        response.setChecklistsCompletedThisWeek(checklistsCompletedThisWeek);
+        response.setChecklistsOverdue(checklistsOverdue);
+        response.setChecklistCompletionRate(checklistCompletionRate);
+        response.setOpenDeviations(openDeviations);
+        response.setCriticalDeviations(criticalDeviations);
+        response.setDeviationsClosedThisWeek(deviationsClosedThisWeek);
+        response.setTemperatureAlerts(temperatureAlerts);
+        response.setAvgTemperatureToday(avgTemperatureToday);
+        response.setExpiringTrainingCount(expiringTrainingCount);
+        response.setComplianceScore(complianceScore);
+        response.setComplianceStatus(complianceStatus);
+        response.setPeriod("today");
+        return response;
     }
 
     @Transactional(readOnly = true)
     public ComplianceScoreResponse getComplianceScore(Integer orgNumber) {
         DashboardSummaryResponse summary = getDashboardSummary(orgNumber);
 
-        List<ComplianceScoreResponse.ScoreComponent> components = List.of(
-            ComplianceScoreResponse.ScoreComponent.builder()
-                    .name("Checklist Completion")
-                    .weight(30)
-                    .score(summary.getChecklistCompletionRate())
-                    .description("Percentage of checklists completed on time")
-                    .build(),
-            ComplianceScoreResponse.ScoreComponent.builder()
-                    .name("Deviation Management")
-                    .weight(25)
-                    .score(calculateDeviationScore(summary.getOpenDeviations(), summary.getCriticalDeviations()))
-                    .description("Based on open and critical deviations")
-                    .build(),
-            ComplianceScoreResponse.ScoreComponent.builder()
-                    .name("Temperature Compliance")
-                    .weight(20)
-                    .score(summary.getTemperatureAlerts() == 0 ? 100 : Math.max(0, 100 - summary.getTemperatureAlerts() * 10))
-                    .description("Based on temperature alert count")
-                    .build(),
-            ComplianceScoreResponse.ScoreComponent.builder()
-                    .name("Training Compliance")
-                    .weight(25)
-                    .score(summary.getExpiringTrainingCount() == 0 ? 100 : Math.max(0, 100 - summary.getExpiringTrainingCount() * 5))
-                    .description("Based on expiring training records")
-                    .build()
-        );
+        ComplianceScoreResponse.ScoreComponent checklistComponent = new ComplianceScoreResponse.ScoreComponent();
+        checklistComponent.setName("Checklist Completion");
+        checklistComponent.setWeight(30);
+        checklistComponent.setScore(summary.getChecklistCompletionRate());
+        checklistComponent.setDescription("Percentage of checklists completed on time");
 
-        return ComplianceScoreResponse.builder()
-                .currentScore(summary.getComplianceScore())
-                .status(summary.getComplianceStatus())
-                .calculatedAt(LocalDate.now())
-                .components(components)
-                .build();
+        ComplianceScoreResponse.ScoreComponent deviationComponent = new ComplianceScoreResponse.ScoreComponent();
+        deviationComponent.setName("Deviation Management");
+        deviationComponent.setWeight(25);
+        deviationComponent.setScore(calculateDeviationScore(summary.getOpenDeviations(), summary.getCriticalDeviations()));
+        deviationComponent.setDescription("Based on open and critical deviations");
+
+        ComplianceScoreResponse.ScoreComponent temperatureComponent = new ComplianceScoreResponse.ScoreComponent();
+        temperatureComponent.setName("Temperature Compliance");
+        temperatureComponent.setWeight(20);
+        temperatureComponent.setScore(summary.getTemperatureAlerts() == 0 ? 100 : Math.max(0, 100 - summary.getTemperatureAlerts() * 10));
+        temperatureComponent.setDescription("Based on temperature alert count");
+
+        ComplianceScoreResponse.ScoreComponent trainingComponent = new ComplianceScoreResponse.ScoreComponent();
+        trainingComponent.setName("Training Compliance");
+        trainingComponent.setWeight(25);
+        trainingComponent.setScore(summary.getExpiringTrainingCount() == 0 ? 100 : Math.max(0, 100 - summary.getExpiringTrainingCount() * 5));
+        trainingComponent.setDescription("Based on expiring training records");
+
+        ComplianceScoreResponse response = new ComplianceScoreResponse();
+        response.setCurrentScore(summary.getComplianceScore());
+        response.setStatus(summary.getComplianceStatus());
+        response.setCalculatedAt(LocalDate.now());
+        response.setComponents(List.of(checklistComponent, deviationComponent, temperatureComponent, trainingComponent));
+        return response;
     }
 
     private double calculateComplianceScore(double checklistRate, long openDeviations,

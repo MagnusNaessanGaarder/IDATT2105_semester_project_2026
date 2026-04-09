@@ -1,7 +1,7 @@
 package com.example.InternalControl.dto.export.request;
 
 import com.example.InternalControl.model.export.ExportFormat;
-import com.example.InternalControl.shared.enums.ExportType;
+import com.example.InternalControl.model.export.ExportType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -41,11 +41,5 @@ public class ExportRequest {
 
     public void setExportType(ExportType exportType) {
         this.exportType = exportType;
-    }
-
-    public void setExportType(com.example.InternalControl.model.export.ExportType exportType) {
-        this.exportType = exportType != null
-                ? ExportType.valueOf(exportType.name())
-                : null;
     }
 }

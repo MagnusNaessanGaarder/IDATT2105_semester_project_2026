@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue'
-import type { Checklist } from '../types'
+import type { Checklist } from '../types/index'
 import { useChecklistCardState } from '../composables/useChecklistCardState'
 
 const props = defineProps<{

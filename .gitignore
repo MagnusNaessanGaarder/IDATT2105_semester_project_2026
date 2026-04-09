@@ -83,3 +83,5 @@ test-results/
 # Vite
 *.timestamp-*-*.mjs
 BACKEND_MASTER_GUIDE.md
+
+*.txt

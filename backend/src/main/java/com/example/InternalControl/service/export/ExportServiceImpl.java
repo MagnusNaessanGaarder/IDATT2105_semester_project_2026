@@ -42,14 +42,13 @@ public class ExportServiceImpl implements ExportService {
 
     String parametersJson = serializeParameters(request);
 
-    ExportJob job = ExportJob.builder()
-            .orgNumber(orgNumber)
-            .requestedByUserId(userId)
-            .exportType(request.getExportType())
-            .format(request.getFormat())
-            .status(ExportStatus.PENDING)
-            .parametersJson(parametersJson)
-            .build();
+    ExportJob job = new ExportJob();
+    job.setOrgNumber(orgNumber);
+    job.setRequestedByUserId(userId);
+    job.setExportType(request.getExportType());
+    job.setFormat(request.getFormat());
+    job.setStatus(ExportStatus.PENDING);
+    job.setParametersJson(parametersJson);
 
     ExportJob saved = exportJobRepository.save(job);
 
@@ -126,18 +125,18 @@ public class ExportServiceImpl implements ExportService {
   private ExportResponse mapToResponse(ExportJob job) {
     String displayName = resolveDisplayName(job.getRequestedByUserId());
 
-    return ExportResponse.builder()
-            .exportJobId(job.getExportJobId())
-            .exportType(job.getExportType())
-            .format(job.getFormat())
-            .status(job.getStatus())
-            .fileName(job.getResultDocument() != null ? job.getResultDocument().getTitle() : null)
-            .failureReason(job.getFailureReason())
-            .requestedAt(job.getRequestedAt())
-            .completedAt(job.getCompletedAt())
-            .requestedByDisplayName(displayName)
-            .parametersJson(job.getParametersJson())
-            .build();
+    ExportResponse response = new ExportResponse();
+    response.setExportJobId(job.getExportJobId());
+    response.setExportType(job.getExportType());
+    response.setFormat(job.getFormat());
+    response.setStatus(job.getStatus());
+    response.setFileName(job.getResultDocument() != null ? job.getResultDocument().getTitle() : null);
+    response.setFailureReason(job.getFailureReason());
+    response.setRequestedAt(job.getRequestedAt());
+    response.setCompletedAt(job.getCompletedAt());
+    response.setRequestedByDisplayName(displayName);
+    response.setParametersJson(job.getParametersJson());
+    return response;
   }
 
   /**

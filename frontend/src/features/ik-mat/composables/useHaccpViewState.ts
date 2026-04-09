@@ -1,7 +1,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useIkMatData } from './useIkMatData'
-import type { HaccpPoint, SupportingDocument } from '../types'
+import type { HaccpPoint, SupportingDocument } from '../types/index'
 
 export const useHaccpViewState = () => {
   const authStore = useAuthStore()

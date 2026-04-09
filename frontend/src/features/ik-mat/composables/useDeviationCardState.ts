@@ -1,5 +1,5 @@
 import { computed, type Ref } from 'vue'
-import type { Deviation } from '../types'
+import type { Deviation } from '../types/index'
 
 export const useDeviationCardState = (deviation: Ref<Deviation>) => {
   const severityLabel = computed(() => {

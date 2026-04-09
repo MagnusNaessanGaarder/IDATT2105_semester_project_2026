@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef } from 'vue'
-import type { TemperatureRecord } from '../types'
+import type { TemperatureRecord } from '../types/index'
 import { useTemperatureCardState } from '../composables/useTemperatureCardState'
 
 const props = defineProps<{

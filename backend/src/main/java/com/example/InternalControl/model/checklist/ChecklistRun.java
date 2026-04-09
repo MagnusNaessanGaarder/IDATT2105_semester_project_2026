@@ -100,4 +100,116 @@ public class ChecklistRun {
         this.status = RunStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
     }
+
+    public Long getRunId() {
+        return runId;
+    }
+
+    public void setRunId(Long runId) {
+        this.runId = runId;
+    }
+
+    public ChecklistTemplate getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(ChecklistTemplate template) {
+        this.template = template;
+    }
+
+    public Integer getOrgNumber() {
+        return orgNumber;
+    }
+
+    public void setOrgNumber(Integer orgNumber) {
+        this.orgNumber = orgNumber;
+    }
+
+    public Long getLocationId() {
+        return locationId;
+    }
+
+    public void setLocationId(Long locationId) {
+        this.locationId = locationId;
+    }
+
+    public Long getPerformedByUserId() {
+        return performedByUserId;
+    }
+
+    public void setPerformedByUserId(Long performedByUserId) {
+        this.performedByUserId = performedByUserId;
+    }
+
+    public Long getAssignedToUserId() {
+        return assignedToUserId;
+    }
+
+    public void setAssignedToUserId(Long assignedToUserId) {
+        this.assignedToUserId = assignedToUserId;
+    }
+
+    public LocalDate getRunDate() {
+        return runDate;
+    }
+
+    public void setRunDate(LocalDate runDate) {
+        this.runDate = runDate;
+    }
+
+    public LocalDateTime getDueAt() {
+        return dueAt;
+    }
+
+    public void setDueAt(LocalDateTime dueAt) {
+        this.dueAt = dueAt;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public RunStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RunStatus status) {
+        this.status = status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public List<ChecklistRunItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<ChecklistRunItem> items) {
+        this.items = items;
+    }
 }

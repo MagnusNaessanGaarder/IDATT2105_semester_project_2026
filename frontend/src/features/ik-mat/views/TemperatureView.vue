@@ -56,7 +56,7 @@ const {
     <section class="summary-grid" aria-label="Temperaturstatus">
       <article class="summary-card">
         <p>Registrerte målinger</p>
-        <strong>{{ temperatureRecords.length }}</strong>
+        <strong>{{ instances.length }}</strong>
       </article>
       <article class="summary-card summary-card--good">
         <p>Innenfor grense</p>

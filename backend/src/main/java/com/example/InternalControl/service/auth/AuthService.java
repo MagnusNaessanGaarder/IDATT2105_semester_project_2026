@@ -54,23 +54,21 @@ public class AuthService {
             throw new IllegalArgumentException("Email is already in use");
         }
 
-        AppUser user = AppUser.builder()
-                .displayName(request.getFullName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .isActive(true)
-                .build();
+        AppUser user = new AppUser();
+        user.setDisplayName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        user.setIsActive(true);
 
         user = userRepository.save(user);
         LOGGER.debug("AppUser created with ID: {}", user.getUserId());
 
-        AppUserLocalCredential credential = AppUserLocalCredential.builder()
-                .user(user)
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .mustChangePw(false)
-                .lastChangedAt(LocalDateTime.now())
-                .failedAttempts(0)
-                .build();
+        AppUserLocalCredential credential = new AppUserLocalCredential();
+        credential.setUser(user);
+        credential.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        credential.setMustChangePw(false);
+        credential.setLastChangedAt(LocalDateTime.now());
+        credential.setFailedAttempts(0);
 
         user.setLocalCredential(credential);
         userRepository.save(user);
@@ -85,31 +83,8 @@ public class AuthService {
         List<OrganizationRoleResponse> organizations = fetchUserOrganizationsAndRoles(user.getUserId());
         String primaryRole = extractPrimaryRole(userDetails);
 
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .email(user.getEmail())
-                .role(primaryRole)
-                .organizations(organizations)
-                .build();
+        return new AuthResponse(accessToken, refreshToken, user.getEmail(), primaryRole, organizations);
     }
-
-            @Transactional
-            public com.example.InternalControl.dto.AuthResponse register(com.example.InternalControl.dto.RegisterRequest request) {
-            AuthResponse response = register(new RegisterRequest(
-                        request.fullName(),
-                        request.email(),
-                        request.phone(),
-                        request.password()
-            ));
-            return new com.example.InternalControl.dto.AuthResponse(
-                response.accessToken(),
-                response.refreshToken(),
-                response.email(),
-                response.role(),
-                convertLegacyOrganizations(response.organizations())
-            );
-            }
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
@@ -136,13 +111,7 @@ public class AuthService {
 
             LOGGER.info("User {} logged in", request.getEmail());
 
-            return AuthResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .email(user.getEmail())
-                    .role(primaryRole)
-                    .organizations(organizations)
-                    .build();
+                return new AuthResponse(accessToken, refreshToken, user.getEmail(), primaryRole, organizations);
 
         } catch (BadCredentialsException e) {
             AppUser user = userRepository.findByEmailWithCredentials(request.getEmail()).orElse(null);
@@ -159,18 +128,6 @@ public class AuthService {
             
             throw new BadCredentialsException("Invalid email or password");
         }
-    }
-
-    @Transactional
-    public com.example.InternalControl.dto.AuthResponse login(com.example.InternalControl.dto.LoginRequest request) {
-        AuthResponse response = login(new LoginRequest(request.email(), request.password()));
-        return new com.example.InternalControl.dto.AuthResponse(
-                response.accessToken(),
-                response.refreshToken(),
-                response.email(),
-                response.role(),
-                convertLegacyOrganizations(response.organizations())
-        );
     }
 
     public AuthResponse refreshToken(String refreshToken) {
@@ -196,13 +153,7 @@ public class AuthService {
         List<OrganizationRoleResponse> organizations = fetchUserOrganizationsAndRoles(user.getUserId());
         String primaryRole = extractPrimaryRole(userDetails);
 
-        return AuthResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
-                .email(email)
-                .role(primaryRole)
-                .organizations(organizations)
-                .build();
+        return new AuthResponse(newAccessToken, newRefreshToken, email, primaryRole, organizations);
     }
 
     @Transactional(readOnly = true)
@@ -227,12 +178,11 @@ public class AuthService {
                     String roleName = roles.isEmpty() ? "EMPLOYEE" 
                             : roles.get(0).getRole().getRoleName();
                     
-                    return OrganizationRoleResponse.builder()
-                            .orgNumber(userOrg.getOrganization().getOrgNumber())
-                            .orgName(userOrg.getOrganization().getDisplayName())
-                            .role(roleName)
-                            .joinedAt(userOrg.getJoinedAt())
-                            .build();
+                        return new OrganizationRoleResponse(
+                            userOrg.getOrganization().getOrgNumber(),
+                            userOrg.getOrganization().getDisplayName(),
+                            roleName,
+                            userOrg.getJoinedAt());
                 })
                 .toList();
     }
@@ -246,16 +196,4 @@ public class AuthService {
                 .map(auth -> auth.getAuthority().replace("ROLE_", ""))
                 .orElse("EMPLOYEE");
     }
-
-        private List<com.example.InternalControl.dto.OrganizationRoleResponse> convertLegacyOrganizations(
-            List<OrganizationRoleResponse> organizations) {
-        return organizations.stream()
-            .map(organization -> com.example.InternalControl.dto.OrganizationRoleResponse.builder()
-                .orgNumber(organization.orgNumber())
-                .orgName(organization.orgName())
-                .role(organization.role())
-                .joinedAt(organization.joinedAt())
-                .build())
-            .toList();
-        }
 }

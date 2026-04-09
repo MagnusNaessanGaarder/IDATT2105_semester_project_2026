@@ -2,6 +2,8 @@ package com.example.InternalControl.config;
 
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +14,8 @@ import org.springframework.context.annotation.Profile;
 @Profile("!test")
 @Slf4j
 public class AzureBlobConfig {
+
+  private static final Logger log = LoggerFactory.getLogger(AzureBlobConfig.class);
 
   @Value("${AZURE_STORAGE_CONNECTION_STRING:}")
   private String connectionString;

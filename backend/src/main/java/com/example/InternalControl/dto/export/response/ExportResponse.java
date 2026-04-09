@@ -2,9 +2,8 @@ package com.example.InternalControl.dto.export.response;
 
 import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.model.export.ExportStatus;
-import com.example.InternalControl.shared.enums.ExportType;
+import com.example.InternalControl.model.export.ExportType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -13,9 +12,11 @@ import java.time.LocalDateTime;
  * Response DTO for export job status and result.
  */
 @Data
-@Builder
 @Schema(name = "ExportResponse", description = "Response containing export job details and status")
 public class ExportResponse {
+
+    public ExportResponse() {
+    }
 
     @Schema(description = "Unique identifier for the export job")
     private Long exportJobId;

@@ -13,4 +13,39 @@ public record OrganizationRoleResponse(
     String orgName,
     String role,
     LocalDateTime joinedAt) {
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private Integer orgNumber;
+        private String orgName;
+        private String role;
+        private LocalDateTime joinedAt;
+
+        public Builder orgNumber(Integer orgNumber) {
+            this.orgNumber = orgNumber;
+            return this;
+        }
+
+        public Builder orgName(String orgName) {
+            this.orgName = orgName;
+            return this;
+        }
+
+        public Builder role(String role) {
+            this.role = role;
+            return this;
+        }
+
+        public Builder joinedAt(LocalDateTime joinedAt) {
+            this.joinedAt = joinedAt;
+            return this;
+        }
+
+        public OrganizationRoleResponse build() {
+            return new OrganizationRoleResponse(orgNumber, orgName, role, joinedAt);
+        }
+    }
 }
