@@ -46,10 +46,6 @@ class ApiRedirectControllerTest {
         // When & Then
         mockMvc.perform(get("/api/v1/users").param("orgNumber", "123"))
                 .andExpect(status().isPermanentRedirect())
-<<<<<<< Updated upstream
-                .andExpect(header().string("Location", "/api/v1/users"));
-=======
                 .andExpect(header().string("Location", "/api/v1/v1/users?orgNumber=123"));
->>>>>>> Stashed changes
     }
 }
