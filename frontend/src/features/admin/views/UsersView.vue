@@ -18,7 +18,13 @@ const query = ref('')
 const roleFilter = ref<'all' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE'>('all')
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
+const showConfirmModal = ref(false)
 const selectedUser = ref<User | null>(null)
+const pendingConfirmUser = ref<User | null>(null)
+const pendingConfirmAction = ref<'toggle' | 'deactivate' | null>(null)
+const confirmTitle = ref('')
+const confirmMessage = ref('')
+const actionFeedback = ref<{ type: 'success' | 'error'; message: string } | null>(null)
 
 const usersList = computed(() => usersComposable.users.value)
 const usersError = computed(() => usersComposable.error.value)
@@ -29,6 +35,8 @@ const isCreating = computed(() => usersComposable.isCreating.value)
 const isUpdating = computed(() => usersComposable.isUpdating.value)
 const isDeleting = computed(() => usersComposable.isDeleting.value)
 const isUsersLoading = computed(() => usersComposable.isLoading.value)
+const isActionPending = computed(() => isCreating.value || isUpdating.value || isDeleting.value)
+const currentUserEmail = computed(() => authStore.email?.toLowerCase() ?? '')
 
 // Form state for create/edit
 const formData = ref({
@@ -62,6 +70,10 @@ async function loadUsers() {
       // Error is handled by composable
     }
   }
+}
+
+const isSelf = (user: User): boolean => {
+  return user.email.toLowerCase() === currentUserEmail.value
 }
 
 // Filter users based on search and role
@@ -156,9 +168,33 @@ function closeModals() {
   selectedUser.value = null
 }
 
+function openConfirmation(action: 'toggle' | 'deactivate', user: User) {
+  pendingConfirmAction.value = action
+  pendingConfirmUser.value = user
+  showConfirmModal.value = true
+  actionFeedback.value = null
+
+  if (action === 'toggle') {
+    const actionLabel = user.isActive ? 'deaktivere' : 'aktivere'
+    confirmTitle.value = user.isActive ? 'Bekreft deaktivering' : 'Bekreft aktivering'
+    confirmMessage.value = `Er du sikker på at du vil ${actionLabel} ${user.displayName}?`
+    return
+  }
+
+  confirmTitle.value = 'Bekreft deaktivering'
+  confirmMessage.value = `Dette vil deaktivere ${user.displayName}. Brukeren mister tilgang til systemet inntil kontoen aktiveres igjen.`
+}
+
+function closeConfirmation() {
+  showConfirmModal.value = false
+  pendingConfirmAction.value = null
+  pendingConfirmUser.value = null
+}
+
 // CRUD operations
 async function handleCreateUser() {
   if (!currentOrg.value?.orgNumber) return
+  actionFeedback.value = null
 
   try {
     await usersComposable.createUser({
@@ -166,6 +202,7 @@ async function handleCreateUser() {
       orgNumber: currentOrg.value.orgNumber,
     })
     closeModals()
+    actionFeedback.value = { type: 'success', message: 'Bruker opprettet.' }
   } catch (e) {
     // Error handled by composable
   }
@@ -173,6 +210,15 @@ async function handleCreateUser() {
 
 async function handleUpdateUser() {
   if (!selectedUser.value || !currentOrg.value?.orgNumber) return
+  actionFeedback.value = null
+
+  if (isSelf(selectedUser.value) && !formData.value.roleIds.includes(1)) {
+    actionFeedback.value = {
+      type: 'error',
+      message: 'Du kan ikke fjerne din egen admin-tilgang.',
+    }
+    return
+  }
 
   try {
     await usersComposable.updateUser(selectedUser.value.userId, currentOrg.value.orgNumber, {
@@ -182,6 +228,7 @@ async function handleUpdateUser() {
       roleIds: formData.value.roleIds,
     })
     closeModals()
+    actionFeedback.value = { type: 'success', message: 'Bruker oppdatert.' }
   } catch (e) {
     // Error handled by composable
   }
@@ -189,9 +236,20 @@ async function handleUpdateUser() {
 
 async function handleToggleUser(user: User) {
   if (!currentOrg.value?.orgNumber) return
+  if (isSelf(user) && user.isActive) {
+    actionFeedback.value = {
+      type: 'error',
+      message: 'Du kan ikke deaktivere din egen bruker.',
+    }
+    return
+  }
 
   try {
     await usersComposable.toggleUserStatus(user.userId, currentOrg.value.orgNumber, user.isActive)
+    actionFeedback.value = {
+      type: 'success',
+      message: user.isActive ? 'Bruker deaktivert.' : 'Bruker aktivert.',
+    }
   } catch (e) {
     // Error handled by composable
   }
@@ -199,12 +257,31 @@ async function handleToggleUser(user: User) {
 
 async function handleDeleteUser(user: User) {
   if (!currentOrg.value?.orgNumber) return
-  if (!confirm(`Er du sikker på at du vil deaktivere ${user.displayName}?`)) return
+  if (isSelf(user)) {
+    actionFeedback.value = {
+      type: 'error',
+      message: 'Du kan ikke deaktivere din egen bruker.',
+    }
+    return
+  }
 
   try {
     await usersComposable.deleteUser(user.userId, currentOrg.value.orgNumber)
+    actionFeedback.value = { type: 'success', message: 'Bruker deaktivert.' }
   } catch (e) {
     // Error handled by composable
+  }
+}
+
+async function confirmPendingAction() {
+  if (!pendingConfirmAction.value || !pendingConfirmUser.value) return
+  const user = pendingConfirmUser.value
+  const action = pendingConfirmAction.value
+  closeConfirmation()
+  if (action === 'toggle') {
+    await handleToggleUser(user)
+  } else {
+    await handleDeleteUser(user)
   }
 }
 </script>
@@ -225,6 +302,14 @@ async function handleDeleteUser(user: User) {
         + Ny bruker
       </button>
     </header>
+
+    <div
+      v-if="actionFeedback"
+      :class="['action-feedback', `action-feedback--${actionFeedback.type}`]"
+      role="status"
+    >
+      {{ actionFeedback.message }}
+    </div>
 
     <!-- Loading state -->
     <div v-if="isUsersLoading" class="loading-state">
@@ -321,13 +406,13 @@ async function handleDeleteUser(user: User) {
                 <td>{{ usersComposable.formatDate(user.createdAt) }}</td>
                 <td v-if="isAdmin">
                   <div class="actions">
-                    <button type="button" class="action-btn action-btn--ghost" @click="openEditModal(user)">
-                      Rediger
-                    </button>
-                    <button type="button" class="action-btn" @click="handleToggleUser(user)">
-                      {{ user.isActive ? 'Deaktiver' : 'Aktiver' }}
-                    </button>
-                  </div>
+                     <button type="button" class="action-btn action-btn--ghost" :disabled="isActionPending" @click="openEditModal(user)">
+                       Rediger
+                     </button>
+                     <button type="button" class="action-btn" :disabled="isActionPending" @click="openConfirmation('toggle', user)">
+                       {{ user.isActive ? 'Deaktiver' : 'Aktiver' }}
+                     </button>
+                   </div>
                 </td>
               </tr>
             </tbody>
@@ -362,11 +447,11 @@ async function handleDeleteUser(user: User) {
         <ErrorMessage v-if="createErrorMessage" :message="createErrorMessage" />
       </form>
       <template #footer>
-        <button type="button" class="action-btn action-btn--ghost" @click="closeModals">Avbryt</button>
-        <button type="submit" form="createUserForm" class="action-btn" :disabled="isCreating">
-          <BaseSpinner v-if="isCreating" size="sm" />
-          <span v-else>Opprett bruker</span>
-        </button>
+         <button type="button" class="action-btn action-btn--ghost" :disabled="isActionPending" @click="closeModals">Avbryt</button>
+         <button type="submit" form="createUserForm" class="action-btn" :disabled="isActionPending">
+           <BaseSpinner v-if="isCreating" size="sm" />
+           <span v-else>Opprett bruker</span>
+         </button>
       </template>
     </BaseModal>
 
@@ -397,20 +482,32 @@ async function handleDeleteUser(user: User) {
         <ErrorMessage v-if="deleteErrorMessage" :message="deleteErrorMessage" />
       </form>
       <template #footer>
-        <button type="button" class="action-btn action-btn--ghost" @click="closeModals">Avbryt</button>
-        <button 
-          v-if="selectedUser?.isActive" 
-          type="button" 
-          class="action-btn action-btn--danger" 
-          :disabled="isDeleting"
-          @click="handleDeleteUser(selectedUser)"
-        >
-          <BaseSpinner v-if="isDeleting" size="sm" />
-          <span v-else>Deaktiver</span>
+         <button type="button" class="action-btn action-btn--ghost" :disabled="isActionPending" @click="closeModals">Avbryt</button>
+         <button 
+           v-if="selectedUser?.isActive" 
+           type="button" 
+           class="action-btn action-btn--danger" 
+           :disabled="isActionPending"
+           @click="openConfirmation('deactivate', selectedUser)"
+         >
+           <BaseSpinner v-if="isDeleting" size="sm" />
+           <span v-else>Deaktiver</span>
+         </button>
+         <button type="submit" form="editUserForm" class="action-btn" :disabled="isActionPending">
+           <BaseSpinner v-if="isUpdating" size="sm" />
+           <span v-else>Lagre endringer</span>
+         </button>
+      </template>
+    </BaseModal>
+
+    <BaseModal :open="showConfirmModal" :title="confirmTitle" @close="closeConfirmation">
+      <p>{{ confirmMessage }}</p>
+      <template #footer>
+        <button type="button" class="action-btn action-btn--ghost" :disabled="isActionPending" @click="closeConfirmation">
+          Avbryt
         </button>
-        <button type="submit" form="editUserForm" class="action-btn" :disabled="isUpdating">
-          <BaseSpinner v-if="isUpdating" size="sm" />
-          <span v-else>Lagre endringer</span>
+        <button type="button" class="action-btn action-btn--danger" :disabled="isActionPending" @click="confirmPendingAction">
+          Bekreft
         </button>
       </template>
     </BaseModal>
@@ -698,6 +795,25 @@ th {
   padding: 2rem;
   color: var(--color-gray-600);
   box-shadow: var(--shadow-sm);
+}
+
+.action-feedback {
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.action-feedback--success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.action-feedback--error {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
 }
 
 /* User Form Styles */

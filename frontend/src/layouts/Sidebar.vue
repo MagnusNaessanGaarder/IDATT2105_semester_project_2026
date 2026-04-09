@@ -90,13 +90,15 @@ const sections = computed(() => [
           : [])
     ]
   },
-  ...(user.value?.role === 'ADMIN' ? [{
+  ...((user.value?.role === 'ADMIN' || user.value?.role === 'MANAGER') ? [{
     key: 'admin',
     label: 'ADMIN',
     icon: 'Settings',
-    dashboardRoute: 'Users',
+    dashboardRoute: user.value?.role === 'ADMIN' ? 'Users' : 'Settings',
     items: [
-      { id: 'users', label: 'Brukere', route: 'Users' },
+      ...(user.value?.role === 'ADMIN'
+          ? [{ id: 'users', label: 'Brukere', route: 'Users' }]
+          : []),
       { id: 'settings', label: 'Innstillinger', route: 'Settings' }
     ]
   }] : [])

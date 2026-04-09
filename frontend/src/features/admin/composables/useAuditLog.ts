@@ -1,5 +1,9 @@
 import { computed, ref } from 'vue'
-import { auditLogApi, type AuditLogResponse } from '../api/auditLogApi'
+import {
+  auditLogApi,
+  type AuditActionType,
+  type AuditLogResponse,
+} from '../api/auditLogApi'
 
 export interface AuditLogEntry {
   id: number
@@ -11,9 +15,24 @@ export interface AuditLogEntry {
   result: 'SUCCESS' | 'FAILED'
 }
 
+export interface AuditLogFilters {
+  actionType: 'ALL' | AuditActionType
+  fromDate: string
+  toDate: string
+  entityType: string
+  entityId: string
+}
+
 const entries = ref<AuditLogEntry[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const filters = ref<AuditLogFilters>({
+  actionType: 'ALL',
+  fromDate: '',
+  toDate: '',
+  entityType: '',
+  entityId: '',
+})
 
 const normalizeUser = (item: AuditLogResponse): string => {
   const displayName = item.actedByUser?.displayName?.trim()
@@ -65,11 +84,45 @@ const fetchAuditLog = async (orgNumber: number): Promise<void> => {
   error.value = null
 
   try {
-    const response = await auditLogApi.getAuditLogs(orgNumber)
+    const hasDateRange = filters.value.fromDate.length > 0 && filters.value.toDate.length > 0
+    const hasEntityFilter = filters.value.entityType.trim().length > 0 && filters.value.entityId.trim().length > 0
+    let response: AuditLogResponse[]
+
+    if (hasEntityFilter) {
+      const entityId = Number(filters.value.entityId)
+      if (!Number.isFinite(entityId)) {
+        error.value = 'Entity ID må være et tall.'
+        entries.value = []
+        return
+      }
+      response = await auditLogApi.getEntityAuditLogs(
+        orgNumber,
+        filters.value.entityType.trim(),
+        entityId
+      )
+    } else if (hasDateRange) {
+      response = await auditLogApi.getAuditLogsByDateRange(
+        orgNumber,
+        new Date(filters.value.fromDate).toISOString(),
+        new Date(filters.value.toDate).toISOString()
+      )
+    } else if (filters.value.actionType !== 'ALL') {
+      response = await auditLogApi.getAuditLogsByActionType(orgNumber, filters.value.actionType)
+    } else {
+      response = await auditLogApi.getAuditLogs(orgNumber)
+    }
+
     entries.value = response.map(mapAuditLogResponse)
-  } catch (err) {
+  } catch (err: unknown) {
     entries.value = []
-    error.value = err instanceof Error ? err.message : 'Kunne ikke hente revisjonslogg'
+    const status = (err as { response?: { status?: number } })?.response?.status
+    if (status === 401) {
+      error.value = 'Du må logge inn på nytt for å se revisjonslogg.'
+    } else if (status === 403) {
+      error.value = 'Du har ikke tilgang til revisjonslogg.'
+    } else {
+      error.value = err instanceof Error ? err.message : 'Kunne ikke hente revisjonslogg'
+    }
   } finally {
     isLoading.value = false
   }
@@ -82,6 +135,7 @@ const sortedAuditLog = computed(() => {
 export const useAuditLog = () => ({
   auditLog: entries,
   sortedAuditLog,
+  filters,
   isLoading,
   error,
   fetchAuditLog,

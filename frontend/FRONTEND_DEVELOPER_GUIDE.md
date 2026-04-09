@@ -303,6 +303,11 @@ Data access:
 - `useAdminData` handles settings mapping/persistence (backend + local preferences)
 - `useAuditLog` handles audit-log retrieval from backend API
 
+Role policy:
+- `Users` route is ADMIN-only.
+- `Settings` route is ADMIN + MANAGER.
+- Unauthorized access is routed to the `Forbidden` page to provide explicit feedback instead of silent redirects.
+
 ---
 
 ## 10. Shared Layer
