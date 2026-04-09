@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/api/v1/admin/organizations/settings")
+@RequestMapping("/api/admin/organizations/settings")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Organization Settings Admin", description = "Administrative endpoints for managing organization settings")

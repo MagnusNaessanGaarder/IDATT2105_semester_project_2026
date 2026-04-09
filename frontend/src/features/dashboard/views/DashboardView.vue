@@ -94,7 +94,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 </script>
 
 <template>
-  <div class="view-page dashboard">
+  <div class="dashboard">
     <header class="dashboard__header">
       <div>
         <h1 class="dashboard__title">{{ getWelcomeMessage() }}, {{ user?.name?.split(' ')[0] || 'Bruker' }}</h1>
@@ -121,20 +121,6 @@ const goToNotificationAction = (actionUrl: string | null) => {
         <p class="alert-banner__text">{{ highPriorityNotifications[0]?.title }}: {{ highPriorityNotifications[0]?.message }}</p>
       </div>
       <router-link class="alert-banner__link" :to="{ name: 'Notifications' }">Se varsler</router-link>
-    </section>
-
-    <section v-if="data.error" class="alert-banner" aria-label="API-feil">
-      <div>
-        <p class="alert-banner__title">Kunne ikke hente dashboard-data</p>
-        <p class="alert-banner__text">{{ data.error }}</p>
-      </div>
-      <button class="alert-banner__link" type="button" @click="data.reload">Prøv igjen</button>
-    </section>
-
-    <section v-else-if="data.isLoading" class="alert-banner" aria-label="Laster dashboard-data">
-      <div>
-        <p class="alert-banner__title">Laster dashboard-data...</p>
-      </div>
     </section>
 
     <template v-if="viewMode === 'oversikt'">
@@ -235,20 +221,22 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 <style scoped>
 .dashboard {
+  max-width: 76rem;
+  margin: 0 auto;
   display: grid;
-  gap: var(--spacing-lg);
+  gap: 1.25rem;
 }
 
 .dashboard__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: var(--spacing-md);
+  gap: 1rem;
 }
 
 .dashboard__title {
   margin: 0;
-  font-size: clamp(1.8rem, 2.4vw, var(--font-size-3xl));
+  font-size: var(--font-size-3xl);
   font-weight: 700;
   letter-spacing: -0.015em;
 }
@@ -266,7 +254,6 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   padding: 0.25rem;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
 }
 
 .dashboard__tab {
@@ -276,7 +263,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: none;
   font-size: var(--font-size-sm);
   color: var(--color-gray-600);
-  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  transition: all var(--transition-base);
 }
 
 .dashboard__tab--active {
@@ -288,29 +275,28 @@ const goToNotificationAction = (actionUrl: string | null) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-md);
-  border: 1px solid var(--color-danger-border);
-  background: var(--color-danger-bg);
+  gap: 1rem;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
-  box-shadow: var(--shadow-sm);
 }
 
 .alert-banner__title {
   margin: 0;
-  color: var(--color-danger-fg);
+  color: #991b1b;
   font-weight: 600;
 }
 
 .alert-banner__text {
   margin-top: 0.25rem;
-  color: var(--color-danger);
+  color: #b91c1c;
   font-size: var(--font-size-sm);
 }
 
 .alert-banner__link {
-  background: var(--color-danger-fg);
-  color: var(--color-primary-foreground);
+  background: #991b1b;
+  color: #fff;
   border-radius: var(--radius-md);
   padding: 0.5rem 0.75rem;
   font-size: var(--font-size-sm);
@@ -320,25 +306,24 @@ const goToNotificationAction = (actionUrl: string | null) => {
 .dashboard__stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--spacing-md);
+  gap: 0.75rem;
 }
 
 .stat-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: var(--color-card);
+  background: #fff;
   padding: 1rem;
-  box-shadow: var(--shadow-sm);
 }
 
 .stat-card--warning {
-  border-color: var(--color-warning);
-  background: var(--color-warning-bg);
+  border-color: #fcd34d;
+  background: #fffbeb;
 }
 
 .stat-card--success {
-  border-color: var(--color-success);
-  background: var(--color-success-bg);
+  border-color: #bbf7d0;
+  background: #f0fdf4;
 }
 
 .stat-card__label {
@@ -384,7 +369,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 .dashboard__content-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-md);
+  gap: 1rem;
 }
 
 .panel {
@@ -392,7 +377,6 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  box-shadow: var(--shadow-sm);
 }
 
 .panel__header {
@@ -422,7 +406,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   background: var(--color-gray-50);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 0.8rem;
+  padding: 0.75rem;
 }
 
 .panel__item-button {
@@ -447,23 +431,23 @@ const goToNotificationAction = (actionUrl: string | null) => {
 }
 
 .panel__badge--red {
-  background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .panel__badge--amber {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .panel__badge--blue {
-  background: var(--color-info-bg);
-  color: var(--color-info);
+  background: #e0f2fe;
+  color: #075985;
 }
 
 .panel__badge--green {
-  background: var(--color-success-bg);
-  color: var(--color-success);
+  background: #d1fae5;
+  color: #065f46;
 }
 
 .panel__item-title {
@@ -486,7 +470,6 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  box-shadow: var(--shadow-sm);
 }
 
 .quick-actions__title {
@@ -496,7 +479,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 .quick-actions__grid {
   display: grid;
-  gap: var(--spacing-md);
+  gap: 0.75rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -504,14 +487,14 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-gray-50);
-  padding: 0.95rem 1rem;
+  padding: 0.85rem 1rem;
   text-decoration: none;
   transition: all var(--transition-fast);
 }
 
 .quick-action-card:hover {
   border-color: var(--color-gray-400);
-  background: var(--color-card);
+  background: #fff;
 }
 
 .quick-action-card__title {
@@ -530,15 +513,14 @@ const goToNotificationAction = (actionUrl: string | null) => {
 .analysis-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-md);
+  gap: 0.75rem;
 }
 
 .analysis-card {
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  box-shadow: var(--shadow-sm);
 }
 
 .analysis-card p {
@@ -560,11 +542,10 @@ const goToNotificationAction = (actionUrl: string | null) => {
 }
 
 .analysis-panel {
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  box-shadow: var(--shadow-sm);
 }
 
 .analysis-panel h2 {

@@ -14,7 +14,6 @@ AI_*.md
 *.ai.md
 docs/
 memory/
-*.txt
 
 # Dependencies
 node_modules/

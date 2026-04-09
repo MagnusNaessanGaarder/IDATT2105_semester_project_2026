@@ -6,6 +6,7 @@ import com.example.InternalControl.model.enums.Severity;
 import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.model.document.OrganizationDocument;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -59,9 +60,6 @@ public class DeviationReport {
 
   @Column(name = "location_text", length = 100)
   private String locationText;
-
-  @Column(name = "source_temperature_entry_id")
-  private Long sourceTemperatureEntryId;
 
   @Column(name = "occurred_date")
   private LocalDate occurredDate;
@@ -148,8 +146,8 @@ public class DeviationReport {
 
   @ManyToMany
   @JoinTable(name = "deviation_report_document", joinColumns = @JoinColumn(name = "report_id"), inverseJoinColumns = @JoinColumn(name = "document_id"))
-  @JsonIgnore
   @Builder.Default
+  @JsonIgnore
   private Set<OrganizationDocument> documents = new HashSet<>();
 
   public void addDocument(OrganizationDocument document) {

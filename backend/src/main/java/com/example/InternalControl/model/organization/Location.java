@@ -1,7 +1,6 @@
 package com.example.InternalControl.model.organization;
 
 import com.example.InternalControl.model.enums.LocationType;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -58,6 +57,5 @@ public class Location {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "org_number", insertable = false, updatable = false)
-  @JsonIgnore
   private Organization organization;
 }

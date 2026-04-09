@@ -35,16 +35,9 @@ const handleLogin = async () => {
 
 <template>
   <div class="login-page">
-    <div
-      class="login-container"
-      v-motion
-      :initial="{ opacity: 0, y: 10 }"
-      :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
-    >
+    <div class="login-container">
       <form class="login-form" @submit.prevent="handleLogin">
-        <p class="login-kicker">Internkontroll</p>
         <h2>Logg inn</h2>
-        <p class="login-subtitle">Få oversikt over rutiner, avvik og dokumentasjon.</p>
 
         <div v-if="error" class="error-message" role="alert">
           <svg
@@ -103,70 +96,48 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background:
-    radial-gradient(circle at 8% 14%, var(--color-surface-tint), transparent 32%),
-    radial-gradient(circle at 90% 88%, var(--color-surface-tint-strong), transparent 35%),
-    linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
-  padding: var(--content-padding);
+  background: #f0f0f0;
+  padding: 24px;
 }
 
 .login-container {
   width: 100%;
-  max-width: 28rem;
+  max-width: 400px;
 }
 
 /* Form */
 .login-form {
-  background: linear-gradient(180deg, var(--color-card) 0%, var(--color-card-muted) 100%);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: clamp(1.75rem, 4vw, 2.25rem);
+  border-radius: var(--radius-md);
+  padding: 32px;
   box-shadow: var(--shadow-md);
 }
 
-.login-kicker {
-  margin-bottom: 0.375rem;
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-gray-600);
-  font-weight: var(--font-weight-semibold);
-}
-
 .login-form h2 {
-  font-family: var(--font-family-display);
-  font-size: clamp(1.6rem, 2vw, var(--font-size-2xl));
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: var(--line-height-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
   color: var(--color-foreground);
-  margin-bottom: 0.5rem;
-}
-
-.login-subtitle {
-  margin-bottom: 1.5rem;
-  color: var(--color-gray-600);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-relaxed);
+  margin-bottom: 24px;
+  text-align: center;
 }
 
 /* Error Message */
 .error-message {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: 0.75rem 1rem;
-  margin-bottom: var(--spacing-md);
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
   background-color: var(--color-danger-bg);
   color: var(--color-danger-fg);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-danger-border);
   font-size: var(--font-size-sm);
 }
 
 /* Form Group */
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
 }
 
 .form-group label {
@@ -179,19 +150,19 @@ const handleLogin = async () => {
 
 .form-group input {
   width: 100%;
-  padding: var(--input-padding);
+  padding: 10px 12px;
   font-size: var(--font-size-base);
   color: var(--color-foreground);
-  background: var(--color-card);
+  background: var(--color-gray-50);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  min-height: var(--touch-target);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .form-group input:focus {
+  outline: none;
   border-color: var(--color-focus);
-  box-shadow: var(--shadow-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   background: var(--color-card);
 }
 
@@ -202,21 +173,20 @@ const handleLogin = async () => {
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: var(--button-padding-md);
-  margin-top: var(--spacing-xs);
+  padding: 12px 20px;
+  margin-top: 8px;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary-foreground);
-  background: var(--color-primary);
+  background: var(--color-foreground);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .login-btn:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+  background: var(--color-gray-800);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -226,14 +196,18 @@ const handleLogin = async () => {
 }
 
 .login-btn:disabled {
-  opacity: 0.65;
+  opacity: 0.7;
   cursor: not-allowed;
 }
 
 /* Responsive */
 @media (max-width: 480px) {
   .login-form {
-    padding: 1.5rem;
+    padding: 24px;
+  }
+
+  .mock-users-info {
+    padding: 16px;
   }
 }
 </style>

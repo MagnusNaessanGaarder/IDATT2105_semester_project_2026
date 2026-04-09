@@ -52,6 +52,9 @@ public class UserOrganization {
   @Column(name = "joined_at", nullable = false, updatable = false)
   private LocalDateTime joinedAt;
 
+  @Column(name = "left_at")
+  private LocalDateTime leftAt;
+
   @Column(name = "last_seen_at")
   private LocalDateTime lastSeenAt;
 
@@ -59,6 +62,4 @@ public class UserOrganization {
   // it should @Anine
   // @Column(name = "updated_at", nullable = false)
   // private LocalDateTime updatedAt;
-    @Column(name = "left_at")
-    private LocalDateTime leftAt;
-  }
+}

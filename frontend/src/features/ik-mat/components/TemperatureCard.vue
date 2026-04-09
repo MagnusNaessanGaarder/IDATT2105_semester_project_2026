@@ -63,9 +63,6 @@ const { statusLabel, statusIcon, isWithinRange } = useTemperatureCardState(toRef
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
   transition: box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
@@ -74,17 +71,17 @@ const { statusLabel, statusIcon, isWithinRange } = useTemperatureCardState(toRef
 }
 
 .temperature-card--ok {
-  border-left: 0.25rem solid var(--color-success);
+  border-left: 0.25rem solid #10b981;
 }
 
 .temperature-card--warning {
-  border-left: 0.25rem solid var(--color-warning);
-  background: var(--color-warning-bg);
+  border-left: 0.25rem solid #f59e0b;
+  background: rgba(245, 158, 11, 0.02);
 }
 
 .temperature-card--critical {
-  border-left: 0.25rem solid var(--color-danger);
-  background: var(--color-danger-bg);
+  border-left: 0.25rem solid #ef4444;
+  background: rgba(239, 68, 68, 0.02);
 }
 
 .temperature-card__header {
@@ -125,18 +122,18 @@ const { statusLabel, statusIcon, isWithinRange } = useTemperatureCardState(toRef
 }
 
 .temperature-card__status--ok {
-  background: var(--color-success-bg);
-  color: var(--color-success);
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
 }
 
 .temperature-card__status--warning {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
 }
 
 .temperature-card__status--critical {
-  background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
+  background: rgba(239, 68, 68, 0.1);
+  color: #991b1b;
 }
 
 .temperature-card__status-icon {
@@ -150,15 +147,12 @@ const { statusLabel, statusIcon, isWithinRange } = useTemperatureCardState(toRef
 
 .temperature-card__body {
   padding: 1.5rem;
-  flex: 1;
-  display: flex;
 }
 
 .temperature-card__temperature-display {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  width: 100%;
 }
 
 .temperature-card__current {
@@ -183,7 +177,6 @@ const { statusLabel, statusIcon, isWithinRange } = useTemperatureCardState(toRef
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  grid-column: 1 / -1;
 }
 
 .temperature-card__range-label {
@@ -202,15 +195,11 @@ const { statusLabel, statusIcon, isWithinRange } = useTemperatureCardState(toRef
 
 .temperature-card__range-indicator {
   margin-top: 0.5rem;
-  width: 100%;
-  padding: 0 0.5rem;
-  box-sizing: border-box;
 }
 
 .temperature-card__range-bar {
   position: relative;
   height: 0.5rem;
-  width: 100%;
   background: var(--color-gray-200);
   border-radius: var(--radius-full);
   overflow: visible;
@@ -222,15 +211,15 @@ const { statusLabel, statusIcon, isWithinRange } = useTemperatureCardState(toRef
   transform: translate(-50%, -50%);
   width: 1rem;
   height: 1rem;
-  background: var(--color-success);
-  border: 0.125rem solid var(--color-card);
+  background: #10b981;
+  border: 0.125rem solid white;
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-sm);
   transition: background-color var(--transition-fast);
 }
 
 .temperature-card__range-marker--outside {
-  background: var(--color-danger);
+  background: #ef4444;
 }
 
 .temperature-card__footer {

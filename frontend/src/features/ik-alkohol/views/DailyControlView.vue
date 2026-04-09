@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useAlkoholData } from '../composables/useAlkoholData'
 import { useAuthStore } from '@/stores/auth'
 import ControllItem from '../components/ControllItem.vue'
@@ -11,14 +11,6 @@ const { dailyControls } = useAlkoholData()
 const authStore = useAuthStore()
 
 const controls = ref(dailyControls.map((item) => ({ ...item })))
-
-watch(
-  () => dailyControls,
-  (nextControls) => {
-    controls.value = nextControls.map((item) => ({ ...item }))
-  },
-  { immediate: true, deep: true },
-)
 const filter = ref<'all' | 'checked' | 'pending'>('all')
 const isAdmin = computed(() => authStore.isAdmin)
 
@@ -205,8 +197,8 @@ const filteredControls = computed(() => {
 <template>
   <div class="daily-control-page">
     <header class="page-header">
-      <h1>Sjekkliste</h1>
-      <p class="subtitle">Daglig kontroll med sjekkliste for ansvarlig alkoholservering</p>
+      <h1>Daglig kontroll</h1>
+      <p class="subtitle">Daglige kontrollpunkter for ansvarlig alkoholservering</p>
     </header>
 
     <ControlProgressCard :completed="completed" :total="total" />
@@ -268,7 +260,7 @@ const filteredControls = computed(() => {
           Vedlegg (url eller filnavn)
           <input v-model="formState.attachment" type="text" />
         </label>
-        <label v-if="formMode === 'edit'" class="control-form__checkbox">
+        <label class="control-form__checkbox">
           <input v-model="formState.is_checked" type="checkbox" />
           Fullført
         </label>

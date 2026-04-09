@@ -73,15 +73,15 @@ const { severityLabel, statusLabel, statusIcon } = useDeviationCardState(toRef(p
 }
 
 .deviation-card--low {
-  border-left: 0.25rem solid var(--color-info);
+  border-left: 0.25rem solid #3b82f6;
 }
 
 .deviation-card--medium {
-  border-left: 0.25rem solid var(--color-warning);
+  border-left: 0.25rem solid #f59e0b;
 }
 
 .deviation-card--high {
-  border-left: 0.25rem solid var(--color-danger);
+  border-left: 0.25rem solid #ef4444;
 }
 
 .deviation-card__header {
@@ -134,18 +134,18 @@ const { severityLabel, statusLabel, statusIcon } = useDeviationCardState(toRef(p
 }
 
 .deviation-card__badge--low {
-  background: var(--color-info-bg);
-  color: var(--color-info);
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
 }
 
 .deviation-card__badge--medium {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
 }
 
 .deviation-card__badge--high {
-  background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
+  background: rgba(239, 68, 68, 0.1);
+  color: #991b1b;
 }
 
 .deviation-card__badge--status {
@@ -153,18 +153,18 @@ const { severityLabel, statusLabel, statusIcon } = useDeviationCardState(toRef(p
 }
 
 .deviation-card__badge--open {
-  background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
+  background: rgba(239, 68, 68, 0.1);
+  color: #991b1b;
 }
 
 .deviation-card__badge--in-progress {
-  background: var(--color-info-bg);
-  color: var(--color-info);
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
 }
 
 .deviation-card__badge--resolved {
-  background: var(--color-success-bg);
-  color: var(--color-success);
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
 }
 
 .deviation-card__badge-icon {

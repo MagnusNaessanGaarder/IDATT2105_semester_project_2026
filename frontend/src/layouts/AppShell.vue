@@ -33,19 +33,6 @@ const toggleSidebar = () => {
       ☰
     </button>
     
-    <button
-      class="menu-toggle"
-      type="button"
-      aria-label="Aapne meny"
-      @click="toggleSidebar"
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6" x2="21" y2="6" />
-        <line x1="3" y1="12" x2="21" y2="12" />
-        <line x1="3" y1="18" x2="21" y2="18" />
-      </svg>
-    </button>
-
     <div 
       v-if="isSidebarOpen" 
       class="sidebar-backdrop"
@@ -78,61 +65,26 @@ const toggleSidebar = () => {
   display: flex;
   min-height: 100vh;
   width: 100%;
-  position: relative;
-  isolation: isolate;
   background:
-    radial-gradient(circle at top left, var(--color-surface-tint) 0%, transparent 30%),
-    linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
+    radial-gradient(circle at 8% 8%, rgba(203, 213, 225, 0.25), transparent 36%),
+    linear-gradient(180deg, #fbfdff 0%, var(--color-background) 100%);
 }
 
 .skip-link {
   position: absolute;
   top: -100px;
-  left: var(--spacing-md);
+  left: 16px;
   z-index: 100;
-  padding: 0.75rem 1rem;
+  padding: 8px 16px;
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
 }
 
 .skip-link:focus {
-  top: var(--spacing-md);
-}
-
-.menu-toggle {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 45;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: var(--radius-md);
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
-}
-
-.menu-toggle:hover {
-  background: var(--color-card-muted);
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-@media (min-width: 48rem) {
-  .menu-toggle {
-    display: none;
-  }
+  top: 8px;
 }
 
 .sidebar-toggle {
@@ -156,7 +108,7 @@ const toggleSidebar = () => {
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
-  background: var(--color-overlay-soft);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 40;
 }
 
@@ -170,9 +122,7 @@ const toggleSidebar = () => {
 .main-content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--content-padding);
-  content-visibility: auto;
-  contain-intrinsic-size: 900px;
+  padding: var(--spacing-lg);
 }
 
 @media (min-width: 768px) {
@@ -181,7 +131,7 @@ const toggleSidebar = () => {
   }
 
   .main-content {
-    padding: clamp(1.25rem, 2vw, 2rem) clamp(1.25rem, 2.2vw, 2.5rem);
+    padding: var(--spacing-xl);
   }
 }
 

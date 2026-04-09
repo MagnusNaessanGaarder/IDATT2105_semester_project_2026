@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Repository for UserOrganizationRole entities.
@@ -43,8 +42,8 @@ public interface UserOrganizationRoleRepository extends JpaRepository<UserOrgani
     );
 
     @Query("SELECT uor FROM UserOrganizationRole uor " +
-             "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber AND uor.role.roleId = :roleId")
-    Optional<UserOrganizationRole> findByUserIdAndOrgNumberAndRoleId(
+            "WHERE uor.user.userId = :userId AND uor.organization.orgNumber = :orgNumber AND uor.role.roleId = :roleId")
+    java.util.Optional<UserOrganizationRole> findByUserIdAndOrgNumberAndRoleId(
             @Param("userId") Long userId,
             @Param("orgNumber") Integer orgNumber,
             @Param("roleId") Long roleId

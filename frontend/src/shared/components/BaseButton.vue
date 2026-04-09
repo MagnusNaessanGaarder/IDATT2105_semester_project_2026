@@ -60,90 +60,68 @@ const handleClick = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  font-family: var(--font-family-ui);
-  font-weight: var(--font-weight-semibold);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  min-height: var(--touch-target);
+  gap: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  border: none;
   cursor: pointer;
-  transform: translateY(0);
-  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  transition: background-color 0.15s;
 }
 
 .base-button--primary {
   background: var(--color-primary);
   color: var(--color-primary-foreground);
-  box-shadow: var(--shadow-sm);
-  border-color: color-mix(in srgb, var(--color-primary) 40%, black);
 }
 
 .base-button--primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
-.base-button--primary:active:not(:disabled) {
-  background: var(--color-primary-active);
+  background: #333;
 }
 
 .base-button--secondary {
-  background: var(--color-accent);
-  border-color: var(--color-border);
+  background: var(--color-gray-200);
   color: var(--color-foreground);
 }
 
 .base-button--secondary:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-gray-300);
 }
 
 .base-button--danger {
   background: var(--color-danger);
-  color: var(--color-primary-foreground);
+  color: white;
 }
 
 .base-button--danger:hover:not(:disabled) {
-  background: var(--color-danger-hover);
+  background: #b30000;
 }
 
 .base-button--ghost {
   background: transparent;
-  color: var(--color-gray-700);
+  color: var(--color-foreground);
 }
 
 .base-button--ghost:hover:not(:disabled) {
-  color: var(--color-foreground);
-  background: var(--color-accent);
+  background: var(--color-gray-100);
 }
 
 .base-button--sm {
-  padding: var(--button-padding-sm);
-  font-size: var(--font-size-sm);
+  padding: 6px 12px;
+  font-size: 14px;
 }
 
 .base-button--md {
-  padding: var(--button-padding-md);
-  font-size: var(--font-size-base);
+  padding: 10px 16px;
+  font-size: 16px;
 }
 
 .base-button--lg {
-  padding: var(--button-padding-lg);
-  font-size: var(--font-size-lg);
+  padding: 14px 24px;
+  font-size: 18px;
 }
 
 .base-button--disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
-  box-shadow: none;
-}
-
-.base-button:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-  box-shadow: var(--shadow-focus);
-}
-
-.base-button:active:not(:disabled) {
-  transform: scale(0.98);
 }
 
 .base-button__spinner {

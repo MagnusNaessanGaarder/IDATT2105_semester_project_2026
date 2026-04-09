@@ -33,10 +33,10 @@ const successTimeoutId = ref<number | null>(null)
 const query = ref('')
 
 const sections = computed(() => [
-  data.settings.system,
-  data.settings.notification_preferences,
-  data.settings.security,
-  data.settings.backup,
+  settingsState.value.system,
+  settingsState.value.notification_preferences,
+  settingsState.value.security,
+  settingsState.value.backup,
 ])
 
 const persistenceLabel = (item: SettingItem): string => {
@@ -47,7 +47,7 @@ const persistenceLabel = (item: SettingItem): string => {
 
 const filteredAuditLog = computed(() => {
   const search = query.value.trim().toLowerCase()
-  return data.sortedAuditLog().filter((entry) => {
+  return data.sortedAuditLog.filter((entry) => {
     if (search.length === 0) {
       return true
     }
@@ -75,8 +75,6 @@ const updateSetting = (sectionIndex: number, itemId: string, nextValue: unknown)
   item.current_value = nextValue
   hasChanges.value = true
 }
-
-const isSettingActive = (item: SettingItem) => item.active !== false
 
 const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.timestamp)
 
@@ -340,18 +338,6 @@ onUnmounted(() => {
   color: var(--color-gray-500);
 }
 
-.warning-state {
-  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
-  background: var(--color-warning-bg);
-  border-radius: var(--radius-md);
-  color: var(--color-warning);
-  padding: 0.8rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.7rem;
-}
-
 .header-actions {
   display: flex;
   gap: 0.5rem;
@@ -366,7 +352,7 @@ onUnmounted(() => {
 .summary-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-card);
+  background: #fff;
   text-align: center;
   padding: 0.85rem;
 }
@@ -390,7 +376,7 @@ onUnmounted(() => {
 }
 
 .settings-section {
-  background: var(--color-card);
+  background: #fff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.9rem;
@@ -418,10 +404,6 @@ onUnmounted(() => {
 
 .setting-item:last-child {
   border-bottom: none;
-}
-
-.setting-item--inactive {
-  opacity: 0.6;
 }
 
 .setting-header {
@@ -493,7 +475,7 @@ onUnmounted(() => {
 .audit-section {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-card);
+  background: #fff;
   padding: 0.75rem;
 }
 
@@ -581,7 +563,7 @@ td {
 }
 
 .btn--secondary {
-  background: var(--color-card);
+  background: #fff;
   color: var(--color-gray-700);
   border: 1px solid var(--color-border);
 }

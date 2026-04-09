@@ -13,9 +13,6 @@ const {
   staffWithExpired,
   certificateStatus,
   formattedDate,
-  isLoading,
-  error,
-  reload,
 } = useAlkoholData()
 
 const latestControls = computed(() => dailyControls.slice(0, 5))
@@ -48,7 +45,7 @@ const staffRows = computed(() => {
 </script>
 
 <template>
-  <div class="view-page alkohol-dashboard">
+  <div class="alkohol-dashboard">
     <header class="page-header">
       <h1>IK-Alkohol</h1>
       <p class="subtitle">Internkontroll etter alkoholloven og skjenkeforskriften</p>
@@ -82,15 +79,6 @@ const staffRows = computed(() => {
         <p class="stat-card__value">{{ laws.length }}</p>
         <p class="stat-card__meta">Lover og forskrifter i oversikten</p>
       </article>
-    </section>
-
-    <section v-if="error" class="alert-strip" aria-live="polite">
-      <p>{{ error }}</p>
-      <button type="button" class="action-card__eyebrow" @click="reload">Prøv igjen</button>
-    </section>
-
-    <section v-else-if="isLoading" class="alert-strip" aria-live="polite">
-      <p>Laster IK-Alkohol data...</p>
     </section>
 
     <section class="dashboard-grid" aria-label="Hovedseksjoner for IK-Alkohol">
@@ -145,19 +133,19 @@ const staffRows = computed(() => {
 
 <style scoped>
 .alkohol-dashboard {
-  display: grid;
-  gap: var(--spacing-lg);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 0;
+  margin-bottom: 24px;
 }
 
 .page-header h1 {
-  font-size: clamp(1.7rem, 2.2vw, var(--font-size-2xl));
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--ik-alkohol-primary);
-  margin-bottom: 0.4rem;
+  margin-bottom: 8px;
 }
 
 .subtitle {
@@ -166,13 +154,12 @@ const staffRows = computed(() => {
 }
 
 .alert-strip {
-  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
-  background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
-  padding: 0.9rem 1rem;
-  border-radius: var(--radius-lg);
-  margin-bottom: 0;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid #fecaca;
+  background: #fee2e2;
+  color: #7f1d1d;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
 }
 
 .alert-strip p {
@@ -182,16 +169,15 @@ const staffRows = computed(() => {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: 0;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .stat-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 1rem;
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+  padding: 14px;
 }
 
 .stat-card__label {
@@ -218,18 +204,18 @@ const staffRows = computed(() => {
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: 0;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .action-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 1rem;
+  border-radius: var(--radius-md);
+  padding: 16px;
   box-shadow: var(--shadow-sm);
   text-decoration: none;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
 .action-card:hover {
@@ -263,15 +249,14 @@ const staffRows = computed(() => {
 .details-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--spacing-md);
+  gap: 12px;
 }
 
 .detail-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 1rem;
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+  padding: 14px;
 }
 
 .detail-card h2 {
@@ -288,19 +273,19 @@ const staffRows = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.8rem;
+  gap: 8px;
+  padding: 10px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-gray-50);
+  border-radius: var(--radius-sm);
+  background: #f8fafc;
 }
 
 .detail-row--ok {
-  background: var(--color-success-bg);
+  background: #f0fdf4;
 }
 
 .detail-row--danger {
-  background: var(--color-danger-bg);
+  background: #fef2f2;
 }
 
 .detail-row__title {
@@ -317,7 +302,7 @@ const staffRows = computed(() => {
 }
 
 .tag {
-  padding: 0.25rem 0.5rem;
+  padding: 4px 8px;
   border-radius: var(--radius-sm);
   background: var(--color-success-bg);
   color: var(--color-success);

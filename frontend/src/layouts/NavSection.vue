@@ -52,7 +52,7 @@ const isItemActive = (routeName: string) => {
 }
 
 const handleHeaderClick = () => {
-  if (props.currentScreen !== props.section.dashboardRoute) {
+  if (isAnyChildActive.value) {
     emit('navigateDashboard', props.section.dashboardRoute)
     return
   }
@@ -179,7 +179,7 @@ const navigateToScreen = (routeName: string) => {
   overflow: hidden;
   border-left: none;
   margin-left: 0;
-  margin-top: 0.15rem;
+  margin-top: 0;
   background: none;
 }
 
@@ -209,7 +209,7 @@ const navigateToScreen = (routeName: string) => {
 
 .collapse-enter-to,
 .collapse-leave-from {
-  max-height: 34rem;
+  max-height: 31.25rem;
   opacity: 1;
 }
 

@@ -255,15 +255,6 @@ watch(currentScreen, (routeName) => {
   .sidebar {
     position: sticky;
     top: 0;
-    left: 0;
-    width: var(--sidebar-width);
-    height: 100vh;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(251, 250, 247, 0.98) 100%);
-    border-right: 0.0625rem solid var(--color-border);
-    display: flex;
-    flex-direction: column;
-    z-index: 50;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), var(--shadow-sm);
   }
 }
 

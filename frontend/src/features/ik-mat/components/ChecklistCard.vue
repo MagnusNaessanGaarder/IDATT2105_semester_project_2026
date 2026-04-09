@@ -88,19 +88,19 @@ const { completedCount, totalCount, completionPercentage, statusColor } = useChe
 
 .checklist-card:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--color-border-strong);
+  border-color: var(--color-border-focus);
 }
 
 .checklist-card--success {
-  border-left: 0.25rem solid var(--color-success);
+  border-left: 0.25rem solid #10b981;
 }
 
 .checklist-card--warning {
-  border-left: 0.25rem solid var(--color-warning);
+  border-left: 0.25rem solid #f59e0b;
 }
 
 .checklist-card--danger {
-  border-left: 0.25rem solid var(--color-danger);
+  border-left: 0.25rem solid #ef4444;
 }
 
 .checklist-card__header {
@@ -159,7 +159,7 @@ const { completedCount, totalCount, completionPercentage, statusColor } = useChe
 
 .checklist-card__progress-fill {
   height: 100%;
-  background: var(--color-success);
+  background: #10b981;
   transition: width var(--transition-base);
 }
 

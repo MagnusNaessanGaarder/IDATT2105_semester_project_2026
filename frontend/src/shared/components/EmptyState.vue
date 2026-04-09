@@ -12,14 +12,14 @@
   />
 -->
 <script setup lang="ts">
-  interface Props {
-    title: string
-    description?: string
-  }
+interface Props {
+  title: string
+  description?: string
+}
 
-  withDefaults(defineProps<Props>(), {
-    description: '',
-  })
+withDefaults(defineProps<Props>(), {
+  description: '',
+})
 </script>
 
 <template>
@@ -39,30 +39,30 @@
 </template>
 
 <style scoped>
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
-    text-align: center;
-  }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
 
-  .empty-state__icon {
-    color: var(--color-gray-400);
-    margin-bottom: 16px;
-  }
+.empty-state__icon {
+  color: var(--color-gray-400);
+  margin-bottom: 16px;
+}
 
-  .empty-state__title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--color-foreground);
-    margin: 0 0 8px 0;
-  }
+.empty-state__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-foreground);
+  margin: 0 0 8px 0;
+}
 
-  .empty-state__description {
-    font-size: 14px;
-    color: var(--color-gray-500);
-    margin: 0;
-  }
+.empty-state__description {
+  font-size: 14px;
+  color: var(--color-gray-500);
+  margin: 0;
+}
 </style>

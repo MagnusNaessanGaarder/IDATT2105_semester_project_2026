@@ -133,7 +133,7 @@ const {
               <p class="item-row__meta">{{ deviation.location }} · meldt {{ formatDate(deviation.reported_date) }} kl. {{ deviation.reported_time }}</p>
             </div>
             <span class="status-chip" :class="deviation.severity === 'high' ? 'status-chip--danger' : 'status-chip--warn'">
-              {{ deviation.severity === 'high' ? 'Høy' : 'Medium' }}
+              {{ deviation.severity === 'high' ? 'Hoy' : 'Medium' }}
             </span>
           </li>
         </ul>
@@ -144,17 +144,17 @@ const {
 
 <style scoped>
 .ik-mat-dashboard {
-  display: grid;
-  gap: var(--spacing-lg);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 0;
+  margin-bottom: 1.75rem;
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: clamp(1.7rem, 2.2vw, var(--font-size-2xl));
+  font-size: var(--font-size-2xl);
   color: var(--ik-mat-primary);
 }
 
@@ -167,16 +167,15 @@ const {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: 0;
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
 }
 
 .stat-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 1rem;
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+  padding: 0.95rem;
 }
 
 .stat-card--success {
@@ -213,26 +212,23 @@ const {
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: 0;
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
 }
 
 .action-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: 1rem;
   color: inherit;
   text-decoration: none;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
-  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .action-card:hover {
   border-color: color-mix(in srgb, var(--ik-mat-primary) 35%, var(--color-border));
   background: color-mix(in srgb, var(--ik-mat-bg) 45%, var(--color-card));
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
 }
 
 .action-card h2 {
@@ -250,7 +246,7 @@ const {
 .details-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-md);
+  gap: 0.9rem;
 }
 
 .details-grid__span-2 {
@@ -259,10 +255,9 @@ const {
 
 .panel-card {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background: var(--color-card);
-  padding: 1rem;
-  box-shadow: var(--shadow-sm);
+  padding: 0.9rem;
 }
 
 .panel-card__header {
@@ -293,9 +288,9 @@ const {
   gap: 0.75rem;
   align-items: center;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 0.8rem;
-  background: color-mix(in srgb, var(--color-accent) 40%, var(--color-card));
+  border-radius: var(--radius-sm);
+  padding: 0.7rem;
+  background: color-mix(in srgb, var(--color-accent) 50%, var(--color-card));
 }
 
 .item-row__title {
@@ -314,7 +309,7 @@ const {
 .status-chip {
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.45rem;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;
