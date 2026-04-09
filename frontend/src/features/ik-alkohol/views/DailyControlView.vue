@@ -7,8 +7,9 @@ import ControllItem from '../components/ControllItem.vue'
 import ControlProgressCard from '../components/ControlProgressCard.vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
 import type { DailyControlItem } from '../types'
+import { serializeLawReference } from '../utils/lawReference'
 
-const { dailyControls, reload } = useAlkoholData()
+const { dailyControls, laws, reload } = useAlkoholData()
 const authStore = useAuthStore()
 
 const controls = ref<DailyControlItem[]>([])
@@ -22,7 +23,7 @@ const editingItemId = ref<number | null>(null)
 
 const formState = ref({
   name: '',
-  law_unit: '',
+  law_document_id: '',
   employee: '',
   comment: '',
   completion_date: {
@@ -94,12 +95,32 @@ const toggleControl = async (id: number) => {
       return
     }
 
-    if (!selected.run_id || !selected.template_item_id) {
+    if (!selected.template_item_id) {
       return
     }
 
+    let runId = selected.run_id
+
+    if (!runId) {
+      if (!selected.template_id) {
+        return
+      }
+
+      const createdRun = await createRun(
+        selected.template_id,
+        todayDateString(),
+        orgNumber,
+      )
+
+      runId = createdRun.runId ?? null
+
+      if (!runId) {
+        return
+      }
+    }
+
     const updatedItem = await updateRunItem(
-      selected.run_id,
+      runId,
       selected.template_item_id,
       orgNumber,
       !selected.is_checked,
@@ -108,7 +129,9 @@ const toggleControl = async (id: number) => {
       item.id === selected.id
         ? {
             ...item,
+            run_id: runId,
             is_checked: !selected.is_checked,
+            run_status: !selected.is_checked ? 'DRAFT' : item.run_status,
             employee: !selected.is_checked ? authStore.userDisplayName : item.employee,
             completion_date: !selected.is_checked
               ? toCompletionDateParts(updatedItem.updatedAt ?? updatedItem.createdAt ?? null)
@@ -139,7 +162,7 @@ const closeDetails = () => {
 const resetForm = () => {
   formState.value = {
     name: '',
-    law_unit: '',
+    law_document_id: '',
     employee: '',
     comment: '',
     completion_date: {
@@ -150,6 +173,24 @@ const resetForm = () => {
     is_checked: false,
   }
 }
+
+const lawOptions = computed(() =>
+  laws.value
+    .map((law) => ({
+      value: String(law.documentId),
+      label: law.name,
+    }))
+    .sort((left, right) => left.label.localeCompare(right.label, 'nb')),
+)
+
+const selectedLaw = computed(() => {
+  const documentId = Number(formState.value.law_document_id)
+  if (!Number.isFinite(documentId)) {
+    return null
+  }
+
+  return laws.value.find((law) => law.documentId === documentId) ?? null
+})
 
 const openAddModal = () => {
   formMode.value = 'add'
@@ -168,7 +209,10 @@ const openEditModal = (id: number) => {
   editingItemId.value = id
   formState.value = {
     name: selected.name,
-    law_unit: selected.law_unit,
+    law_document_id:
+      selected.law_document_id != null
+        ? String(selected.law_document_id)
+        : String(laws.value.find((law) => law.name === selected.law_unit)?.documentId ?? ''),
     employee: selected.employee,
     comment: selected.comment,
     completion_date: {
@@ -186,7 +230,7 @@ const closeFormModal = () => {
 }
 
 const saveControlItem = async () => {
-  if (!formState.value.name.trim() || !formState.value.law_unit.trim()) {
+  if (!formState.value.name.trim() || !selectedLaw.value) {
     return
   }
 
@@ -202,14 +246,14 @@ const saveControlItem = async () => {
       const createdTemplate = await createChecklistTemplate(
         {
           title: formState.value.name.trim(),
-          description: formState.value.law_unit.trim(),
+          description: serializeLawReference(selectedLaw.value),
           moduleType: 'ALCOHOL',
           frequency: 'DAILY',
           items: [
             {
               sortOrder: 1,
               label: formState.value.name.trim(),
-              description: formState.value.comment.trim() || formState.value.law_unit.trim(),
+              description: formState.value.comment.trim() || selectedLaw.value.name,
               itemType: 'BOOLEAN',
               isRequired: true,
             },
@@ -248,10 +292,18 @@ const saveControlItem = async () => {
         selected.template_id,
         {
           title: formState.value.name.trim(),
-          description: formState.value.law_unit.trim(),
+          description: serializeLawReference(selectedLaw.value),
           moduleType: 'ALCOHOL',
           frequency: 'DAILY',
-          items: [],
+          items: [
+            {
+              sortOrder: 1,
+              label: formState.value.name.trim(),
+              description: formState.value.comment.trim() || selectedLaw.value.name,
+              itemType: 'BOOLEAN',
+              isRequired: true,
+            },
+          ],
         },
         orgNumber,
       )
@@ -353,7 +405,16 @@ watch(
         </label>
         <label>
           Lovgrunnlag
-          <input v-model="formState.law_unit" type="text" required />
+          <select v-model="formState.law_document_id" required>
+            <option disabled value="">Velg lovverk</option>
+            <option
+              v-for="law in lawOptions"
+              :key="law.value"
+              :value="law.value"
+            >
+              {{ law.label }}
+            </option>
+          </select>
         </label>
         <label>
           Ansatt

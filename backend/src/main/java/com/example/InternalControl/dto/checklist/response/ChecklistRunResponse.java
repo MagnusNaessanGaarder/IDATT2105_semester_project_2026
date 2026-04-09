@@ -28,6 +28,8 @@ public class ChecklistRunResponse {
 
     private String templateTitle;
 
+    private String templateDescription;
+
     private Integer orgNumber;
 
     private Long locationId;

@@ -2,6 +2,8 @@ package com.example.InternalControl.controller.checklist;
 
 import com.example.InternalControl.dto.checklist.request.ChecklistTemplateCreateRequest;
 import com.example.InternalControl.dto.checklist.request.ChecklistTemplateItemCreateRequest;
+import com.example.InternalControl.dto.checklist.response.ChecklistTemplateItemResponse;
+import com.example.InternalControl.dto.checklist.response.ChecklistTemplateResponse;
 import com.example.InternalControl.model.checklist.ChecklistTemplate;
 import com.example.InternalControl.model.checklist.ChecklistTemplateItem;
 import com.example.InternalControl.model.enums.Frequency;
@@ -33,6 +35,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * REST Controller for Checklist Template operations.
@@ -49,58 +52,64 @@ public class ChecklistTemplateController {
 
     @Operation(summary = "Get all templates for organization")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<List<ChecklistTemplate>> getTemplates(
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
+    public ResponseEntity<List<ChecklistTemplateResponse>> getTemplates(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
         Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
-        return ResponseEntity.ok(templateService.getTemplatesByOrg(orgNumber));
+        return ResponseEntity.ok(templateService.getTemplatesByOrg(orgNumber).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList()));
     }
 
     @Operation(summary = "Get template by ID")
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<ChecklistTemplate> getTemplate(
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
+    public ResponseEntity<ChecklistTemplateResponse> getTemplate(
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
         Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
-        return ResponseEntity.ok(templateService.getTemplate(id, orgNumber));
+        return ResponseEntity.ok(mapToResponse(templateService.getTemplate(id, orgNumber)));
     }
 
     @Operation(summary = "Get templates by module type")
     @GetMapping("/module/{moduleType}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<List<ChecklistTemplate>> getTemplatesByModule(
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
+    public ResponseEntity<List<ChecklistTemplateResponse>> getTemplatesByModule(
             @PathVariable ModuleType moduleType,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
         Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
-        return ResponseEntity.ok(templateService.getTemplatesByModule(orgNumber, moduleType));
+        return ResponseEntity.ok(templateService.getTemplatesByModule(orgNumber, moduleType).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList()));
     }
 
     @Operation(summary = "Get active templates")
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<List<ChecklistTemplate>> getActiveTemplates(
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
+    public ResponseEntity<List<ChecklistTemplateResponse>> getActiveTemplates(
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE");
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
         Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
-        return ResponseEntity.ok(templateService.getActiveTemplates(orgNumber));
+        return ResponseEntity.ok(templateService.getActiveTemplates(orgNumber).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList()));
     }
 
     @Operation(summary = "Create new template")
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ChecklistTemplate> createTemplate(
+    public ResponseEntity<ChecklistTemplateResponse> createTemplate(
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -124,13 +133,13 @@ public class ChecklistTemplateController {
                 .buildAndExpand(created.getTemplateId())
                 .toUri();
 
-        return ResponseEntity.created(location).body(created);
+        return ResponseEntity.created(location).body(mapToResponse(created));
     }
 
     @Operation(summary = "Update template")
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ChecklistTemplate> updateTemplate(
+    public ResponseEntity<ChecklistTemplateResponse> updateTemplate(
             @PathVariable Long id,
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -146,7 +155,41 @@ public class ChecklistTemplateController {
                 .frequency(requestDto.getFrequency() != null ? requestDto.getFrequency() : Frequency.DAILY)
                 .build();
 
-        return ResponseEntity.ok(templateService.updateTemplate(id, template, orgNumber));
+        return ResponseEntity.ok(mapToResponse(templateService.updateTemplate(id, template, orgNumber)));
+    }
+
+    private ChecklistTemplateResponse mapToResponse(ChecklistTemplate template) {
+        return ChecklistTemplateResponse.builder()
+                .templateId(template.getTemplateId())
+                .orgNumber(template.getOrgNumber())
+                .moduleType(template.getModuleType())
+                .title(template.getTitle())
+                .description(template.getDescription())
+                .frequency(template.getFrequency())
+                .isActive(template.getIsActive())
+                .createdByUserId(template.getCreatedByUserId())
+                .createdAt(template.getCreatedAt())
+                .updatedAt(template.getUpdatedAt())
+                .items(template.getItems() != null ? template.getItems().stream()
+                        .map(this::mapItemToResponse)
+                        .collect(Collectors.toList()) : List.of())
+                .build();
+    }
+
+    private ChecklistTemplateItemResponse mapItemToResponse(ChecklistTemplateItem item) {
+        return ChecklistTemplateItemResponse.builder()
+                .itemId(item.getItemId())
+                .templateId(item.getTemplate() != null ? item.getTemplate().getTemplateId() : null)
+                .sortOrder(item.getSortOrder())
+                .label(item.getLabel())
+                .description(item.getDescription())
+                .itemType(item.getItemType())
+                .isRequired(item.getIsRequired())
+                .expectedText(item.getExpectedText())
+                .expectedNumericMin(item.getExpectedNumericMin())
+                .expectedNumericMax(item.getExpectedNumericMax())
+                .choiceOptionsJson(item.getChoiceOptionsJson())
+                .build();
     }
 
     @Operation(summary = "Delete template (soft delete)")

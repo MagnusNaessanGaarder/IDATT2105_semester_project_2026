@@ -35,7 +35,7 @@ dev:
 	@echo "[1/3] Starting MySQL (Docker)..."
 	@docker compose -f compose-dev.yaml up -d mysql 2>/dev/null || docker start backend-mysql-1 2>/dev/null || true
 	@for i in $$(seq 1 30); do \
-		docker exec backend-mysql-1 mysqladmin ping -h 127.0.0.1 -uik_root -pik_pwd >/dev/null 2>&1 && break; \
+		lsof -ti:3306 >/dev/null 2>&1 && break; \
 		if [ $$i -eq 30 ]; then \
 			echo "  ERROR: MySQL did not become ready"; \
 			exit 1; \
@@ -47,7 +47,7 @@ dev:
 	@echo "[2/3] Starting backend..."
 	@(cd backend && nohup ./mvnw -Plocal-run spring-boot:run -Dmaven.test.skip=true -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
 	@for i in $$(seq 1 60); do \
-		ss -ltnp 2>/dev/null | grep -q ':8080' && break; \
+		lsof -ti:8080 >/dev/null 2>&1 && break; \
 		if [ $$i -eq 60 ]; then \
 			echo "  ERROR: Backend failed to start (see /tmp/backend.log)"; \
 			exit 1; \
@@ -56,10 +56,10 @@ dev:
 	done
 	@echo "  Backend started"
 	@echo ""
-	@echo "[3/4] Starting frontend..."
-	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
+	@echo "[3/3] Starting frontend..."
+	@(cd frontend && nohup npm run dev -- --host 127.0.0.1 > /tmp/frontend.log 2>&1 &)
 	@for i in $$(seq 1 30); do \
-		ss -ltnp 2>/dev/null | grep -q ':5173' && break; \
+		lsof -ti:5173 >/dev/null 2>&1 && break; \
 		if [ $$i -eq 30 ]; then \
 			echo "  ERROR: Frontend failed to start (see /tmp/frontend.log)"; \
 			exit 1; \

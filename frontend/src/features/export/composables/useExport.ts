@@ -1,5 +1,4 @@
 import { ref, computed } from 'vue'
-import axios from 'axios'
 
 type ApiErrorShape = {
   response?: {
@@ -10,13 +9,17 @@ type ApiErrorShape = {
 }
 import { useAuthStore } from '@/stores/auth.ts'
 import { exportApi, type ExportRequest, type ExportResponse } from '../api.ts'
-import {client} from "@/api/client.ts";
+import { client } from '@/api/client.ts'
 
 
 const POLL_INTERVAL_RUNNING_MS = 3000
 const POLL_INTERVAL_PENDING_MS = 8000
 const PENDING_STALL_THRESHOLD = 5
 const MAX_POLL_ATTEMPTS = 30
+const API_PREFIX = '/api/v1'
+
+const toClientRelativePath = (path: string): string =>
+  path.startsWith(API_PREFIX) ? path.slice(API_PREFIX.length) || '/' : path
 
 export function useExport() {
   const authStore = useAuthStore()
@@ -130,20 +133,9 @@ export function useExport() {
 
     try {
       const path = await exportApi.getDownloadUrl(orgNumber.value, exportJobId)
-      const hasOrgNumber = /(?:\?|&)orgNumber=/.test(path)
-      const separator = path.includes('?') ? '&' : '?'
-      const pathWithOrg = hasOrgNumber ? path : `${path}${separator}orgNumber=${orgNumber.value}`
-
-      const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace('/api/v1', '')
-      const downloadUrl = pathWithOrg.startsWith('http://') || pathWithOrg.startsWith('https://')
-        ? pathWithOrg
-        : `${baseUrl}${pathWithOrg}`
-
-      const response = await axios.get(downloadUrl, {
+      const response = await client.get(toClientRelativePath(path), {
+        params: { orgNumber: orgNumber.value },
         responseType: 'blob',
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
-        },
       })
 
       const job = exports.value.find((e) => e.exportJobId === exportJobId) ?? activeJob.value

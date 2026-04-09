@@ -224,6 +224,7 @@ public class ChecklistRunController {
                 .runId(run.getRunId())
                 .templateId(run.getTemplate() != null ? run.getTemplate().getTemplateId() : null)
                 .templateTitle(run.getTemplate() != null ? run.getTemplate().getTitle() : null)
+                .templateDescription(run.getTemplate() != null ? run.getTemplate().getDescription() : null)
                 .orgNumber(run.getOrgNumber())
                 .locationId(run.getLocationId())
                 .performedByUserId(run.getPerformedByUserId())

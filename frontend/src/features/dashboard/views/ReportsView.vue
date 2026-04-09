@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { client } from '@/api/client'
 import {
   useExport,
   exportTypeLabels,
@@ -31,6 +31,10 @@ const previewUrl        = ref<string | null>(null)
 const previewJsonText   = ref<string | null>(null)
 const isLoadingPreview  = ref(false)
 const previewError      = ref<string | null>(null)
+const API_PREFIX = '/api/v1'
+
+const toClientRelativePath = (path: string): string =>
+  path.startsWith(API_PREFIX) ? path.slice(API_PREFIX.length) || '/' : path
 
 async function openPreview(job: ExportResponse) {
   if (!orgNumber.value) return
@@ -42,13 +46,10 @@ async function openPreview(job: ExportResponse) {
 
   try {
     const path = await exportApi.getDownloadUrl(orgNumber.value, job.exportJobId)
-    const pathWithOrg = `${path}?orgNumber=${orgNumber.value}`
-    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace('/api/v1', '')
-
     const mimeType = job.format === 'JSON' ? 'application/json' : 'application/pdf'
-    const response = await axios.get(baseUrl + pathWithOrg, {
+    const response = await client.get(toClientRelativePath(path), {
+      params: { orgNumber: orgNumber.value },
       responseType: 'blob',
-      headers: { Authorization: `Bearer ${sessionStorage.getItem('accessToken')}` },
     })
 
     const blob = new Blob([response.data], { type: mimeType })

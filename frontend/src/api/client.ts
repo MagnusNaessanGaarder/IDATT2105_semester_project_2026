@@ -1,4 +1,5 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
+import { getOrgNumber } from '@/shared/utils/orgContext'
 
 // Extend Axios config type to allow _retry property
 declare module 'axios' {
@@ -116,6 +117,15 @@ client.interceptors.request.use(
 
     config.headers.Authorization = `Bearer ${token}`
 
+    if (!config.headers['X-Org-Number']) {
+      const orgNumberFromParams =
+        typeof config.params?.orgNumber === 'number' || typeof config.params?.orgNumber === 'string'
+          ? config.params.orgNumber
+          : null
+
+      config.headers['X-Org-Number'] = String(orgNumberFromParams ?? getOrgNumber())
+    }
+
     return config
   },
   (error) => Promise.reject(error)
@@ -171,15 +181,6 @@ client.interceptors.response.use(
       }
 
       try {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'}/auth/refresh`,
-          { refreshToken }
-        )
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data
-
-        sessionStorage.setItem('accessToken', accessToken)
-        sessionStorage.setItem('refreshToken', newRefreshToken)
         originalRequest.headers.Authorization = `Bearer ${accessToken}`
         processQueue(null, accessToken)
 

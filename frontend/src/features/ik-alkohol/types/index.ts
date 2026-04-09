@@ -14,7 +14,7 @@ export interface ChecklistRun {
 
 export interface GetRunsSuccess {
   ok: true
-  data: ChecklistRun[]
+  data: ChecklistRunApi[]
 }
 
 export interface GetRunsError {
@@ -36,6 +36,7 @@ export interface DailyControlItem {
   run_id: number | null
   template_id: number | null
   template_item_id: number | null
+  law_document_id: number | null
   run_status: string | null
   name: string
   law_unit: string
@@ -65,6 +66,7 @@ export interface LawSection {
 }
 
 export interface LawItem {
+  documentId: number
   name: string
   type: string
   short: string
@@ -109,13 +111,37 @@ export interface ChecklistRunApi {
   runId?: number
   templateId?: number
   templateTitle?: string | null
+  templateDescription?: string | null
   performedByUserId?: number | null
   assignedToUserId?: number | null
   runDate?: string | null
   completedAt?: string | null
   status?: string | null
   notes?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
   items?: ChecklistRunItemApi[]
+}
+
+export interface ChecklistTemplateItemApi {
+  itemId?: number
+  templateId?: number
+  sortOrder?: number | null
+  label?: string | null
+  description?: string | null
+  itemType?: string | null
+  isRequired?: boolean | null
+}
+
+export interface ChecklistTemplateApi {
+  templateId?: number
+  orgNumber?: number
+  moduleType?: string | null
+  title?: string | null
+  description?: string | null
+  frequency?: string | null
+  isActive?: boolean | null
+  items?: ChecklistTemplateItemApi[]
 }
 
 export interface ChecklistTemplateItemCreatePayload {

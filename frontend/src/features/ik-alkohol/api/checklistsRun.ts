@@ -1,7 +1,6 @@
 import axios, { AxiosError } from 'axios'
 import { client } from '../../../api/client'
 import type {
-  ChecklistRun,
   ChecklistRunApi,
   ChecklistRunItemApi,
   ChecklistTemplateCreatePayload,
@@ -108,11 +107,11 @@ export async function createRun(
   return response.data
 }
 
-export async function getRuns(): Promise<GetRunsResult> {
+export async function getRuns(orgNumber: number): Promise<GetRunsResult> {
   try {
-    const response = await client.get<ChecklistRun[]>('/checklists/runs', {
+    const response = await client.get<ChecklistRunApi[]>('/checklists/runs', {
       params: {
-        orgNumber: '937219997',
+        orgNumber,
       },
       headers: {
         Accept: 'application/json',
