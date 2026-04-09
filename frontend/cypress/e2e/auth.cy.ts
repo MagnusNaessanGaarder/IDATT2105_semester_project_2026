@@ -1,5 +1,3 @@
- 
- 
 describe('Authentication Flow', () => {
   beforeEach(() => {
     // Clear sessionStorage before each test
@@ -18,18 +16,18 @@ describe('Authentication Flow', () => {
 
     it('should show validation errors for empty fields', () => {
       cy.visit('/login')
-      
+
       // Clear any default values
       cy.get('input[type="email"]').clear()
       cy.get('input[type="password"]').clear()
-      
+
       // Try to submit with empty fields - HTML5 validation should prevent it
       cy.get('button[type="submit"]').click()
-      
+
       // Check that we're still on the login page (validation prevented submission)
       // HTML5 required attribute blocks submission
       cy.url().should('include', '/login')
-      
+
       // The form should still be visible with empty inputs
       cy.get('input[type="email"]').should('be.visible').and('have.value', '')
       cy.get('input[type="password"]').should('be.visible').and('have.value', '')
@@ -38,21 +36,21 @@ describe('Authentication Flow', () => {
 
     it('should successfully login with valid credentials', () => {
       cy.visit('/login')
-      
+
       // Clear the default values first
       cy.get('input#email').clear()
       cy.get('input#password').clear()
-      
+
       // Type credentials
       cy.get('input#email').type('admin@everest-sushi.no')
       cy.get('input#password').type('Test1234!')
-      
+
       // Submit form
       cy.get('button[type="submit"]').click()
 
       // Should redirect to dashboard (wait for API call)
       cy.url().should('not.include', '/login', { timeout: 10000 })
-      
+
       // Should store tokens in sessionStorage
       cy.window().then((win) => {
         expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
@@ -64,15 +62,15 @@ describe('Authentication Flow', () => {
 
     it('should show error message on invalid credentials', () => {
       cy.visit('/login')
-      
+
       // Clear fields
       cy.get('input#email').clear()
       cy.get('input#password').clear()
-      
+
       // Type wrong credentials
       cy.get('input#email').type('wrong@example.com')
       cy.get('input#password').type('wrongpassword')
-      
+
       // Submit form
       cy.get('button[type="submit"]').click()
 
@@ -94,6 +92,7 @@ describe('Authentication Flow', () => {
         win.sessionStorage.setItem('accessToken', 'fake-token')
         win.sessionStorage.setItem('email', 'admin@everest-sushi.no')
         win.sessionStorage.setItem('role', 'ADMIN')
+        win.sessionStorage.setItem('organizations', JSON.stringify([{ orgNumber: 937219997, orgName: 'Test Org', role: 'ADMIN' }]))
       })
 
       cy.visit('/')
@@ -106,6 +105,7 @@ describe('Authentication Flow', () => {
         win.sessionStorage.setItem('accessToken', 'fake-token')
         win.sessionStorage.setItem('email', 'admin@everest-sushi.no')
         win.sessionStorage.setItem('role', 'ADMIN')
+        win.sessionStorage.setItem('organizations', JSON.stringify([{ orgNumber: 937219997, orgName: 'Test Org', role: 'ADMIN' }]))
       })
 
       cy.visit('/login')
@@ -119,6 +119,7 @@ describe('Authentication Flow', () => {
         win.sessionStorage.setItem('accessToken', 'fake-token')
         win.sessionStorage.setItem('email', 'admin@everest-sushi.no')
         win.sessionStorage.setItem('role', 'ADMIN')
+        win.sessionStorage.setItem('organizations', JSON.stringify([{ orgNumber: 937219997, orgName: 'Test Org', role: 'ADMIN' }]))
       })
 
       cy.visit('/admin/brukere')
@@ -130,12 +131,12 @@ describe('Authentication Flow', () => {
         win.sessionStorage.setItem('accessToken', 'fake-token')
         win.sessionStorage.setItem('email', 'employee@example.com')
         win.sessionStorage.setItem('role', 'EMPLOYEE')
+        win.sessionStorage.setItem('organizations', JSON.stringify([{ orgNumber: 937219997, orgName: 'Test Org', role: 'EMPLOYEE' }]))
       })
 
       cy.visit('/admin/brukere')
       cy.url().should('not.include', '/admin/brukere')
-      // Should redirect to dashboard
-      cy.url().should('eq', Cypress.config().baseUrl + '/')
+      cy.url().should('include', '/forbidden')
     })
   })
 
@@ -148,23 +149,23 @@ describe('Authentication Flow', () => {
       cy.get('input#password').clear()
       cy.get('input#password').type('Test1234!')
       cy.get('button[type="submit"]').click()
-      
+
       // Wait for login to complete
       cy.url().should('not.include', '/login', { timeout: 10000 })
-      
+
       // Verify we're logged in
       cy.window().then((win) => {
         expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
       })
-      
+
       // Clear session to simulate logout
       cy.window().then((win) => {
         win.sessionStorage.clear()
       })
-      
+
       // Visit login page
       cy.visit('/login')
-      
+
       // Verify session is cleared
       cy.window().then((win) => {
         expect(win.sessionStorage.getItem('accessToken')).to.equal(null)
