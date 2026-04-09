@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
-  type AuditLogEntry,
   type SettingItem,
   type SettingsState,
   useAdminData,
 } from '../composables/useAdminData'
+import { type AuditLogEntry, useAuditLog } from '../composables/useAuditLog'
 import { useAuthStore } from '@/stores/auth'
 import type { BackendSettings } from '../api/settingsApi'
 
 const authStore = useAuthStore()
 const data = useAdminData()
+const auditData = useAuditLog()
 
 // Get current organization from auth store
 const currentOrgNumber = computed(() => {
@@ -47,7 +48,7 @@ const persistenceLabel = (item: SettingItem): string => {
 
 const filteredAuditLog = computed(() => {
   const search = query.value.trim().toLowerCase()
-  return data.sortedAuditLog().filter((entry) => {
+  return auditData.sortedAuditLog.value.filter((entry) => {
     if (search.length === 0) {
       return true
     }
@@ -79,6 +80,13 @@ const updateSetting = (sectionIndex: number, itemId: string, nextValue: unknown)
 const isSettingActive = (item: SettingItem) => item.active !== false
 
 const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.timestamp)
+
+const loadAuditLog = async () => {
+  if (!currentOrgNumber.value) {
+    return
+  }
+  await auditData.fetchAuditLog(currentOrgNumber.value)
+}
 
 /**
  * Load settings from backend on mount
@@ -151,6 +159,12 @@ const handleExport = () => {
 
 onMounted(() => {
   loadBackendSettings()
+  loadAuditLog()
+})
+
+watch(currentOrgNumber, () => {
+  loadBackendSettings()
+  loadAuditLog()
 })
 
 onUnmounted(() => {
@@ -218,7 +232,7 @@ onUnmounted(() => {
           <span>Numeriske felt</span>
         </article>
         <article class="summary-card">
-          <strong>{{ data.auditLog.length }}</strong>
+          <strong>{{ auditData.auditLog.value.length }}</strong>
           <span>Revisjonshendelser</span>
         </article>
       </section>
@@ -282,7 +296,17 @@ onUnmounted(() => {
           <input v-model="query" class="audit-search" type="search" placeholder="Søk i hendelser" />
         </header>
 
-        <div class="audit-table-wrap">
+        <div v-if="auditData.isLoading.value" class="audit-empty-state">
+          <p>Laster revisjonslogg...</p>
+        </div>
+        <div v-else-if="auditData.error.value" class="error-message">
+          ⚠ {{ auditData.error.value }}
+        </div>
+        <div v-else-if="filteredAuditLog.length === 0" class="audit-empty-state">
+          <p>Ingen revisjonshendelser funnet</p>
+        </div>
+
+        <div v-else class="audit-table-wrap">
           <table>
             <thead>
               <tr>
@@ -520,6 +544,11 @@ onUnmounted(() => {
 
 .audit-table-wrap {
   overflow-x: auto;
+}
+
+.audit-empty-state {
+  padding: 1rem;
+  color: var(--color-gray-600);
 }
 
 table {
