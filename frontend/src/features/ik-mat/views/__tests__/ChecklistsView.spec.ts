@@ -90,43 +90,57 @@ describe('ChecklistsView', () => {
 
   it('expands checklist when clicked', async () => {
     const wrapper = mount(ChecklistsView)
-    const firstHeader = wrapper.findAll('.checklist-header__content')[0]
+
+    // Find the Daily Cleaning checklist card (has 50% completion, so comes second after sorting)
+    const cards = wrapper.findAll('.checklist-card')
+    const dailyCleaningCard = cards.find((card) => card.text().includes('Daily Cleaning'))
+    expect(dailyCleaningCard).toBeDefined()
+
+    const header = dailyCleaningCard!.find('.checklist-header__content')
 
     // Initially collapsed
     expect(wrapper.find('.checklist-body').exists()).toBe(false)
 
     // Click to expand
-    await firstHeader.trigger('click')
+    await header.trigger('click')
 
-    // Now expanded
-    expect(wrapper.find('.checklist-body').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Daily cleaning tasks')
-    expect(wrapper.text()).toContain('Clean floor')
-    expect(wrapper.text()).toContain('Clean tables')
+    // Now expanded - check within the specific card
+    expect(dailyCleaningCard!.find('.checklist-body').exists()).toBe(true)
+    expect(dailyCleaningCard!.text()).toContain('Daily cleaning tasks')
+    expect(dailyCleaningCard!.text()).toContain('Clean floor')
+    expect(dailyCleaningCard!.text()).toContain('Clean tables')
   })
 
   it('collapses expanded checklist when clicked again', async () => {
     const wrapper = mount(ChecklistsView)
-    const firstHeader = wrapper.findAll('.checklist-header__content')[0]
+
+    // Find the first checklist card (Weekly Inspection - 0% completion)
+    const cards = wrapper.findAll('.checklist-card')
+    const firstCard = cards[0]
+    const header = firstCard.find('.checklist-header__content')
 
     // Expand
-    await firstHeader.trigger('click')
-    expect(wrapper.find('.checklist-body').exists()).toBe(true)
+    await header.trigger('click')
+    expect(firstCard.find('.checklist-body').exists()).toBe(true)
 
     // Collapse
-    await firstHeader.trigger('click')
-    expect(wrapper.find('.checklist-body').exists()).toBe(false)
+    await header.trigger('click')
+    expect(firstCard.find('.checklist-body').exists()).toBe(false)
   })
 
   it('toggles task completion', async () => {
     const wrapper = mount(ChecklistsView)
-    const firstHeader = wrapper.findAll('.checklist-header__content')[0]
+
+    // Find the first checklist card (Weekly Inspection - 0% completion, comes first)
+    const cards = wrapper.findAll('.checklist-card')
+    const firstCard = cards[0]
+    const header = firstCard.find('.checklist-header__content')
 
     // Expand first checklist
-    await firstHeader.trigger('click')
+    await header.trigger('click')
 
-    // Find first checkbox and toggle it
-    const checkbox = wrapper.find('input[type="checkbox"]')
+    // Find first checkbox within the expanded card and toggle it
+    const checkbox = firstCard.find('input[type="checkbox"]')
     expect(checkbox.element.checked).toBe(false)
 
     await checkbox.trigger('change')
@@ -174,23 +188,26 @@ describe('ChecklistsView', () => {
 
   it('applies strikethrough to completed tasks', async () => {
     const wrapper = mount(ChecklistsView)
-    const firstHeader = wrapper.findAll('.checklist-header__content')[0]
 
-    await firstHeader.trigger('click')
+    // Find Daily Cleaning card (has both completed and not-completed tasks)
+    const cards = wrapper.findAll('.checklist-card')
+    const dailyCleaningCard = cards.find((card) => card.text().includes('Daily Cleaning'))
+    expect(dailyCleaningCard).toBeDefined()
 
-    // Find all task rows and check their classes
-    const taskRows = wrapper.findAll('.task-row')
-    expect(taskRows.length).toBeGreaterThan(0)
+    const header = dailyCleaningCard!.find('.checklist-header__content')
+    await header.trigger('click')
+
+    // Find all task rows within the Daily Cleaning card
+    const taskRows = dailyCleaningCard!.findAll('.task-row')
+    expect(taskRows.length).toBe(2)
 
     // Check first task (not completed)
     const firstTaskSpan = taskRows[0].find('span')
     expect(firstTaskSpan.classes()).not.toContain('task-done')
 
     // Check second task (completed)
-    if (taskRows.length > 1) {
-      const secondTaskSpan = taskRows[1].find('span')
-      expect(secondTaskSpan.classes()).toContain('task-done')
-    }
+    const secondTaskSpan = taskRows[1].find('span')
+    expect(secondTaskSpan.classes()).toContain('task-done')
   })
 
   it('has correct aria attributes on progress bar', () => {

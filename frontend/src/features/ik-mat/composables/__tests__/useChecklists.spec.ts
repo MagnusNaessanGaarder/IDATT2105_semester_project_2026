@@ -284,15 +284,17 @@ describe('useChecklists composable', () => {
 
     it('dailyTemplates filters by DAILY frequency', async () => {
       const templates = [
-        { ...mockTemplate, templateId: 1, frequency: 'DAILY' as const },
-        { ...mockTemplate, templateId: 2, frequency: 'WEEKLY' as const },
-        { ...mockTemplate, templateId: 3, frequency: 'DAILY' as const },
+        { ...mockTemplate, templateId: 1, frequency: 'DAILY' as const, isActive: true },
+        { ...mockTemplate, templateId: 2, frequency: 'WEEKLY' as const, isActive: true },
+        { ...mockTemplate, templateId: 3, frequency: 'DAILY' as const, isActive: true },
       ]
       vi.mocked(checklistsApi.getTemplates).mockResolvedValue(templates)
 
       const composable = useChecklists()
       await composable.fetchTemplates(123456789)
 
+      // Access templates first to ensure reactivity is triggered
+      expect(composable.templates.value).toHaveLength(3)
       expect(composable.dailyTemplates.value).toHaveLength(2)
       expect(composable.dailyTemplates.value.every((t) => t.frequency === 'DAILY')).toBe(true)
     })
