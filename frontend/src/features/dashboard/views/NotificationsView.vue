@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { type NotificationItem, useFellesData } from '../composables/useFellesData'
 
 const router = useRouter()
 const data = useFellesData()
 
-const notifications = ref<NotificationItem[]>([...data.sortedNotifications])
+onMounted(() => {
+  void data.reload()
+})
+
 const filter = ref<'all' | 'unread' | 'high-priority'>('all')
+
+const notifications = computed(() => data.sortedNotifications)
 
 const filteredNotifications = computed(() => {
   if (filter.value === 'unread') {
@@ -31,22 +36,16 @@ const informationalNotifications = computed(() => {
 
 const unreadCount = computed(() => notifications.value.filter((item) => !item.read).length)
 
-const markAsRead = (notificationId: number) => {
-  const notification = notifications.value.find((item) => item.id === notificationId)
-  if (notification) {
-    notification.read = true
-  }
+const markAsRead = async (notificationId: number) => {
+  await data.markNotificationAsRead(notificationId)
 }
 
-const markAllAsRead = () => {
-  notifications.value = notifications.value.map((item) => ({
-    ...item,
-    read: true,
-  }))
+const markAllAsRead = async () => {
+  await data.markAllNotificationsAsRead()
 }
 
-const dismissNotification = (notificationId: number) => {
-  notifications.value = notifications.value.filter((item) => item.id !== notificationId)
+const dismissNotification = async (notificationId: number) => {
+  await data.dismissNotification(notificationId)
 }
 
 const handleAction = (notification: NotificationItem) => {

@@ -19,8 +19,10 @@ import type {
   PageResponse,
   TemperatureEntryApi,
   TemperatureEntryCreateRequest,
+  TemperatureEntryUpdateRequest,
   TemperatureLogPointApi,
   TemperatureLogPointUpsertRequest,
+  OrganizationUserApi,
 } from '../types'
 
 const queryFromObject = (params: Record<string, unknown>) => withOrgNumber(params)
@@ -263,6 +265,13 @@ export const ikMatApi = {
     return response.data
   },
 
+  async updateTemperatureEntry(entryId: number, payload: TemperatureEntryUpdateRequest): Promise<TemperatureEntryApi> {
+    const response = await client.put<TemperatureEntryApi>(`/temperature/entries/${entryId}`, payload, {
+      params: queryFromObject({}),
+    })
+    return response.data
+  },
+
   async getTemperatureAlerts(): Promise<TemperatureEntryApi[]> {
     const response = await client.get<TemperatureEntryApi[]>('/temperature/alerts', {
       params: queryFromObject({}),
@@ -288,14 +297,14 @@ export const ikMatApi = {
     const response = await client.get<TemperatureLogPointApi[]>('/temperature/points', {
       params: queryFromObject({}),
     })
-    return response.data
+    return toArrayPayload<TemperatureLogPointApi>(response.data, 'getTemperaturePoints')
   },
 
   async getActiveTemperaturePoints(): Promise<TemperatureLogPointApi[]> {
     const response = await client.get<TemperatureLogPointApi[]>('/temperature/points/active', {
       params: queryFromObject({}),
     })
-    return response.data
+    return toArrayPayload<TemperatureLogPointApi>(response.data, 'getActiveTemperaturePoints')
   },
 
   async getTemperaturePointById(pointId: number): Promise<TemperatureLogPointApi> {
@@ -321,6 +330,12 @@ export const ikMatApi = {
 
   async deleteTemperaturePoint(pointId: number): Promise<void> {
     await client.delete(`/temperature/points/${pointId}`, {
+      params: queryFromObject({}),
+    })
+  },
+
+  async clearTemperatureEntriesForPoint(pointId: number): Promise<void> {
+    await client.delete(`/temperature/points/${pointId}/entries`, {
       params: queryFromObject({}),
     })
   },
@@ -373,6 +388,13 @@ export const ikMatApi = {
   async updateDeviationStatus(id: number, payload: DeviationStatusUpdateRequest): Promise<DeviationApi> {
     const response = await client.put<DeviationApi>(`/deviations/${id}/status`, payload, {
       params: queryFromObject({}),
+    })
+    return response.data
+  },
+
+  async assignDeviation(id: number, assignedToUserId: number): Promise<DeviationApi> {
+    const response = await client.post<DeviationApi>(`/deviations/${id}/assign`, undefined, {
+      params: queryFromObject({ assignedToUserId }),
     })
     return response.data
   },
@@ -434,6 +456,19 @@ export const ikMatApi = {
     return response.data
   },
 
+  async updateDocument(documentId: number, payload: { title?: string; description?: string }): Promise<FileDocumentApi> {
+    const response = await client.put<FileDocumentApi>(`/files/${documentId}`, payload, {
+      headers: orgHeaders(),
+    })
+    return response.data
+  },
+
+  async deleteDocument(documentId: number): Promise<void> {
+    await client.delete(`/files/${documentId}`, {
+      headers: orgHeaders(),
+    })
+  },
+
   async listExports(page = 0, size = 20, sort?: string[]): Promise<PageResponse<ExportJobApi>> {
     const response = await client.get<PageResponse<ExportJobApi>>('/exports', {
       params: queryFromObject({ page, size, sort }),
@@ -460,6 +495,14 @@ export const ikMatApi = {
       params: queryFromObject({}),
     })
     return response.data
+  },
+
+  async getOrganizationUsers(): Promise<OrganizationUserApi[]> {
+    const response = await client.get<OrganizationUserApi[]>('/users', {
+      params: queryFromObject({}),
+      skipGlobalErrorLog: true,
+    })
+    return toArrayPayload<OrganizationUserApi>(response.data, 'getOrganizationUsers')
   },
 
   isAxiosError(error: unknown): boolean {

@@ -40,11 +40,15 @@ export interface Checklist {
 
 export interface TemperatureRecord {
   id: number
+  log_point_id: number
+  log_point_name: string
+  location_id: number | null
   location: string
   temperature_c: number
   min_temp: number
   max_temp: number
   recorded_by: string
+  note_text: string | null
   recorded_date: string
   recorded_time: string
   status: 'ok' | 'warning' | 'critical'
@@ -62,6 +66,7 @@ export interface Deviation {
   immediate_action: string
   corrective_action: string
   status: 'open' | 'resolved' | 'in-progress'
+  assigned_to_user_id: number | null
 }
 
 export interface HaccpPoint {

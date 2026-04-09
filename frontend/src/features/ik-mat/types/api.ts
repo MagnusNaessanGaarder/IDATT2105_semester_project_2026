@@ -71,11 +71,13 @@ export interface ChecklistRunItemApi {
 
 export interface TemperatureEntryApi {
   entryId: number
+  logPointId: number
   locationId: number | null
   locationName: string | null
   logPointName: string | null
   temperatureC: number
   isAlert: boolean
+  noteText?: string | null
   recordedByName: string | null
   measuredAt: string
 }
@@ -85,6 +87,15 @@ export interface TemperatureEntryCreateRequest {
   temperatureC: number
   measuredAt: string
   noteText?: string
+  recordedByUserId?: number
+}
+
+export interface TemperatureEntryUpdateRequest {
+  logPointId: number
+  temperatureC: number
+  measuredAt: string
+  noteText?: string
+  recordedByUserId?: number
 }
 
 export interface TemperatureLogPointApi {
@@ -135,6 +146,7 @@ export interface DeviationApi {
   occurredDate: string | null
   occurredTime: string | null
   reportDate: string | null
+  assignedToUserId?: number | null
   reportedBy?: { fullName?: string; email?: string } | null
   immediateActionText?: string | null
   correctiveActionText?: string | null
@@ -154,6 +166,20 @@ export interface DeviationUpsertRequest {
   reportedToUserId?: number
   reportedToName?: string
   assignedToUserId?: number
+  sourceTemperatureEntryId?: number
+}
+
+export interface OrganizationUserApi {
+  userId: number
+  displayName: string
+  email: string
+  isActive: boolean
+  roles?: Array<{
+    roleId: number
+    roleName: string
+    description?: string | null
+    isSystemRole?: boolean
+  }>
 }
 
 export interface DeviationStatusUpdateRequest {
