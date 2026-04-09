@@ -3,6 +3,7 @@ import { client } from '../../../api/client'
 import type {
   ChecklistRun,
   ChecklistRunApi,
+  ChecklistRunItemApi,
   ChecklistTemplateCreatePayload,
   ChecklistTemplateResponse,
   GetRunsResult,
@@ -13,8 +14,8 @@ export async function updateRunItem(
   itemId: number,
   orgNumber: number,
   booleanValue: boolean,
-): Promise<void> {
-  await client.put(
+): Promise<ChecklistRunItemApi> {
+  const response = await client.put<ChecklistRunItemApi>(
     `/checklists/runs/${runId}/items/${itemId}`,
     {
       booleanValue,
@@ -26,6 +27,8 @@ export async function updateRunItem(
       },
     },
   )
+
+  return response.data
 }
 
 export async function completeRun(runId: number, orgNumber: number): Promise<void> {

@@ -94,13 +94,14 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
     }
 
     @Override
-    public ChecklistRun completeRun(Long runId, Integer orgNumber) {
+    public ChecklistRun completeRun(Long runId, Integer orgNumber, Long userId) {
         ChecklistRun run = getRun(runId, orgNumber);
 
         if (!run.isEditable()) {
             throw new IllegalStateException("Run cannot be completed: " + run.getStatus());
         }
 
+        run.setPerformedByUserId(userId);
         run.markAsCompleted();
         return runRepository.save(run);
     }
@@ -118,12 +119,14 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
     }
 
     @Override
-    public ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber) {
+    public ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber, Long userId) {
         ChecklistRun run = getRun(runId, orgNumber);
 
         if (!run.isEditable()) {
             throw new IllegalStateException("Cannot update items for completed run");
         }
+
+        run.setPerformedByUserId(userId);
 
         ChecklistRunItem existing = runItemRepository
                 .findByRunRunIdAndTemplateItemId(runId, itemId)

@@ -20,11 +20,11 @@ public interface ChecklistRunService {
 
     List<ChecklistRun> getRunsByStatus(Integer orgNumber, RunStatus status);
 
-    ChecklistRun completeRun(Long runId, Integer orgNumber);
+    ChecklistRun completeRun(Long runId, Integer orgNumber, Long userId);
 
     ChecklistRun uncompleteRun(Long runId, Integer orgNumber);
 
-    ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber);
+    ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber, Long userId);
 
     void checkOverdueRuns(Integer orgNumber);
 }

@@ -142,7 +142,7 @@ public class ChecklistRunController {
         Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
-        ChecklistRun run = runService.completeRun(id, orgNumber);
+        ChecklistRun run = runService.completeRun(id, orgNumber, userId);
         return ResponseEntity.ok(mapToResponse(run));
     }
 
@@ -198,7 +198,7 @@ public class ChecklistRunController {
                 .commentText(requestDto.getCommentText())
                 .build();
 
-        ChecklistRunItem updated = runService.updateRunItem(runId, itemId, item, orgNumber);
+        ChecklistRunItem updated = runService.updateRunItem(runId, itemId, item, orgNumber, userId);
         return ResponseEntity.ok(mapToItemResponse(updated));
     }
 

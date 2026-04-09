@@ -44,6 +44,28 @@ const todayDateString = () => {
   return `${year}-${month}-${day}`
 }
 
+const toCompletionDateParts = (value?: string | null) => {
+  if (!value) {
+    return {
+      date: '',
+      time: '',
+    }
+  }
+
+  if (value.includes('T')) {
+    const [date = '', time = ''] = value.split('T')
+    return {
+      date,
+      time: time.replace('Z', '').slice(0, 8),
+    }
+  }
+
+  return {
+    date: value.slice(0, 10),
+    time: '',
+  }
+}
+
 const completed = computed(() => controls.value.filter((item) => item.is_checked).length)
 const total = computed(() => controls.value.length)
 
@@ -76,7 +98,7 @@ const toggleControl = async (id: number) => {
       return
     }
 
-    await updateRunItem(
+    const updatedItem = await updateRunItem(
       selected.run_id,
       selected.template_item_id,
       orgNumber,
@@ -87,6 +109,10 @@ const toggleControl = async (id: number) => {
         ? {
             ...item,
             is_checked: !selected.is_checked,
+            employee: !selected.is_checked ? authStore.userDisplayName : item.employee,
+            completion_date: !selected.is_checked
+              ? toCompletionDateParts(updatedItem.updatedAt ?? updatedItem.createdAt ?? null)
+              : item.completion_date,
           }
         : item,
     )
