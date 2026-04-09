@@ -1,7 +1,6 @@
 import { reactive, ref } from 'vue'
 import { client } from '@/api/client'
 import { getOrgNumber, orgHeaders, withOrgNumber } from '@/shared/utils/orgContext'
-import { ensureDemoData } from '@/shared/utils/seedDemoData'
 
 export interface DashboardStat {
   label: string
@@ -96,11 +95,15 @@ interface DeviationApi {
   reportDate: string | null
 }
 
-interface TemperatureAlertApi {
-  entryId: number
-  logPointName: string | null
-  temperatureC: number
-  measuredAt: string
+interface NotificationApi {
+  notificationId: number
+  notificationType: string
+  title: string
+  bodyText: string
+  relatedEntityType: string | null
+  relatedEntityId: number | null
+  isRead: boolean
+  createdAt: string
 }
 
 const dashboardStats = reactive<DashboardStat[]>([])
@@ -112,9 +115,11 @@ const quickActions = reactive<QuickAction[]>([
 const reports = reactive<ReportItem[]>([])
 const documents = reactive<DocumentItem[]>([])
 const notifications = reactive<NotificationItem[]>([])
+let deviationsEndpointUnavailable = false
 
 let hasLoaded = false
 let loadInFlight: Promise<void> | null = null
+let lastLoadedOrgNumber: number | null = null
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
@@ -165,6 +170,24 @@ const mapDeviationStatus = (status: string): ReportItem['status'] => {
   return status === 'CLOSED' ? 'finalized' : 'draft'
 }
 
+const mapNotificationPriority = (type: string): NotificationItem['priority'] => {
+  if (type === 'TEMPERATURE_ALERT') return 'high'
+  if (type === 'DEVIATION_STATUS_CHANGED') return 'medium'
+  return 'low'
+}
+
+const mapNotificationType = (type: string): NotificationItem['type'] => {
+  if (type === 'TEMPERATURE_ALERT') return 'warning'
+  if (type === 'DEVIATION_STATUS_CHANGED') return 'info'
+  return 'info'
+}
+
+const mapNotificationActionUrl = (entityType: string | null): string | null => {
+  if (entityType === 'TEMPERATURE_LOG_ENTRY') return '/ik-mat/temperature'
+  if (entityType === 'DEVIATION_REPORT') return '/ik-mat/deviations'
+  return null
+}
+
 const splitIsoDate = (iso: string | null): { date: string; time: string } => {
   if (!iso) {
     return { date: '', time: '' }
@@ -182,8 +205,14 @@ const splitIsoDate = (iso: string | null): { date: string; time: string } => {
   }
 }
 
+const hasResponse = (value: unknown): value is { response?: unknown } => {
+  return typeof value === 'object' && value !== null && 'response' in value
+}
+
 const loadData = async (): Promise<void> => {
-  if (hasLoaded) {
+  const orgNumber = getOrgNumber()
+
+  if (hasLoaded && lastLoadedOrgNumber === orgNumber) {
     return
   }
 
@@ -196,10 +225,7 @@ const loadData = async (): Promise<void> => {
     error.value = null
 
     try {
-      await ensureDemoData()
-
-      const orgNumber = getOrgNumber()
-      const [filesResponse, exportsResponse, deviationsResponse, alertsResponse] = await Promise.allSettled([
+      const [filesResponse, exportsResponse, deviationsResponse, notificationsResponse] = await Promise.allSettled([
         client.get<FileApi[]>('/files', {
           params: withOrgNumber({}),
           headers: orgHeaders(),
@@ -207,18 +233,30 @@ const loadData = async (): Promise<void> => {
         client.get<ExportPageApi>('/exports', {
           params: withOrgNumber({ page: 0, size: 50 }),
         }),
-        client.get<DeviationApi[]>('/deviations', {
-          params: withOrgNumber({}),
-        }),
-        client.get<TemperatureAlertApi[]>('/temperature/alerts', {
+        deviationsEndpointUnavailable
+          ? Promise.resolve({ data: [] as DeviationApi[] })
+          : client.get<DeviationApi[]>('/deviations', {
+            params: withOrgNumber({}),
+            skipGlobalErrorLog: true,
+          }).catch((err: unknown) => {
+            if (hasResponse(err)) {
+              const response = err.response as { status?: number } | undefined
+              if (response?.status === 500) {
+                deviationsEndpointUnavailable = true
+                return { data: [] as DeviationApi[] }
+              }
+            }
+            throw err
+          }),
+        client.get<NotificationApi[]>('/notifications', {
           params: withOrgNumber({}),
         }),
       ])
 
-      const files = filesResponse.status === 'fulfilled' ? filesResponse.value.data : []
-      const exports = exportsResponse.status === 'fulfilled' ? exportsResponse.value.data.content : []
-      const deviations = deviationsResponse.status === 'fulfilled' ? deviationsResponse.value.data : []
-      const alerts = alertsResponse.status === 'fulfilled' ? alertsResponse.value.data : []
+      const files = (filesResponse.status === 'fulfilled' ? filesResponse.value.data : []) as FileApi[]
+      const exports = (exportsResponse.status === 'fulfilled' ? exportsResponse.value.data.content : []) as ExportApi[]
+      const deviations = (deviationsResponse.status === 'fulfilled' ? deviationsResponse.value.data : []) as DeviationApi[]
+      const storedNotifications = (notificationsResponse.status === 'fulfilled' ? notificationsResponse.value.data : []) as NotificationApi[]
 
       const mappedDocuments: DocumentItem[] = files.map((doc) => ({
         id: doc.documentId,
@@ -273,39 +311,22 @@ const loadData = async (): Promise<void> => {
         file_size: null,
       }))
 
-      const mappedNotifications: NotificationItem[] = [
-        ...deviations.map((report) => {
-          const split = splitIsoDate(report.reportDate)
-          const high = report.severity === 'CRITICAL'
-          return {
-            id: report.reportId,
-            title: report.title,
-            message: report.description,
-            type: high ? 'error' : 'warning',
-            priority: high ? 'high' : 'medium',
-            created_date: split.date,
-            created_time: split.time,
-            read: false,
-            action_url: '/ik-mat/deviations',
-            action_label: 'Se avvik',
-          } satisfies NotificationItem
-        }),
-        ...alerts.map((alert) => {
-          const split = splitIsoDate(alert.measuredAt)
-          return {
-            id: alert.entryId + 100000,
-            title: `Temperaturavvik: ${alert.logPointName ?? 'Ukjent punkt'}`,
-            message: `${alert.temperatureC}°C registrert utenfor grense`,
-            type: 'warning',
-            priority: 'high',
-            created_date: split.date,
-            created_time: split.time,
-            read: false,
-            action_url: '/ik-mat/temperature',
-            action_label: 'Se temperatur',
-          } satisfies NotificationItem
-        }),
-      ]
+      const mappedNotifications: NotificationItem[] = storedNotifications.map((notification) => {
+        const split = splitIsoDate(notification.createdAt)
+        const actionUrl = mapNotificationActionUrl(notification.relatedEntityType)
+        return {
+          id: notification.notificationId,
+          title: notification.title,
+          message: notification.bodyText,
+          type: mapNotificationType(notification.notificationType),
+          priority: mapNotificationPriority(notification.notificationType),
+          created_date: split.date,
+          created_time: split.time,
+          read: notification.isRead,
+          action_url: actionUrl,
+          action_label: actionUrl ? 'Se detaljer' : null,
+        } satisfies NotificationItem
+      })
 
       const allReports = [...mappedExportReports, ...mappedDeviationReports]
       const finalizedReports = allReports.filter((report) => report.status === 'finalized').length
@@ -343,7 +364,7 @@ const loadData = async (): Promise<void> => {
       documents.splice(0, documents.length, ...mappedDocuments)
       notifications.splice(0, notifications.length, ...mappedNotifications)
 
-      const failedCalls = [filesResponse, exportsResponse, deviationsResponse, alertsResponse]
+      const failedCalls = [filesResponse, exportsResponse, deviationsResponse, notificationsResponse]
         .filter((result) => result.status === 'rejected').length
       const succeededCalls = 4 - failedCalls
 
@@ -352,17 +373,21 @@ const loadData = async (): Promise<void> => {
         return
       }
 
-      // Keep rendering partial data when at least one endpoint succeeded.
       error.value = null
 
       hasLoaded = true
-      void orgNumber
-    } catch {
+      lastLoadedOrgNumber = orgNumber
+    } catch (err: unknown) {
       dashboardStats.splice(0, dashboardStats.length)
       reports.splice(0, reports.length)
       documents.splice(0, documents.length)
       notifications.splice(0, notifications.length)
-      error.value = 'Kunne ikke laste dashboard-data fra API.'
+
+      if (!hasResponse(err) || !err.response) {
+        error.value = 'Backend er ikke tilgjengelig. Kontroller at API kjører på port 8080.'
+      } else {
+        error.value = 'Kunne ikke laste dashboard-data fra API.'
+      }
     } finally {
       isLoading.value = false
       loadInFlight = null
@@ -379,6 +404,31 @@ const sortedNotifications = () => [...notifications].sort((a, b) => parseDateWit
 const reload = async () => {
   hasLoaded = false
   await loadData()
+}
+
+const markNotificationAsRead = async (notificationId: number) => {
+  await client.put(`/notifications/${notificationId}/read`)
+  const notification = notifications.find((item) => item.id === notificationId)
+  if (notification) {
+    notification.read = true
+  }
+}
+
+const markAllNotificationsAsRead = async () => {
+  await client.put('/notifications/read-all', null, {
+    params: withOrgNumber({}),
+  })
+  notifications.forEach((item) => {
+    item.read = true
+  })
+}
+
+const dismissNotification = async (notificationId: number) => {
+  await client.delete(`/notifications/${notificationId}`)
+  const index = notifications.findIndex((item) => item.id === notificationId)
+  if (index >= 0) {
+    notifications.splice(index, 1)
+  }
 }
 
 export const useFellesData = () => {
@@ -407,5 +457,8 @@ export const useFellesData = () => {
     isLoading,
     error,
     reload,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    dismissNotification,
   }
 }

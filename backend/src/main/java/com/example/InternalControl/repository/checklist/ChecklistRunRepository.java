@@ -2,6 +2,7 @@ package com.example.InternalControl.repository.checklist;
 
 import com.example.InternalControl.model.checklist.ChecklistRun;
 import com.example.InternalControl.model.enums.RunStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,8 +19,10 @@ import java.util.Optional;
 @Repository
 public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long> {
 
+    @EntityGraph(attributePaths = {"template", "template.items", "items"})
     List<ChecklistRun> findByOrgNumber(Integer orgNumber);
 
+    @EntityGraph(attributePaths = {"template", "template.items", "items"})
     List<ChecklistRun> findByOrgNumberAndStatus(Integer orgNumber, RunStatus status);
 
     List<ChecklistRun> findByOrgNumberAndRunDateBetween(
@@ -27,6 +30,7 @@ public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long
 
     List<ChecklistRun> findByTemplateTemplateId(Long templateId);
 
+    @EntityGraph(attributePaths = {"template", "template.items", "items"})
     Optional<ChecklistRun> findByRunIdAndOrgNumber(Long runId, Integer orgNumber);
 
     @Query("""

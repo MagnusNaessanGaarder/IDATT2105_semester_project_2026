@@ -22,9 +22,17 @@ public interface ChecklistRunService {
 
     ChecklistRun completeRun(Long runId, Integer orgNumber, Long userId);
 
+    default ChecklistRun completeRun(Long runId, Integer orgNumber) {
+        return completeRun(runId, orgNumber, null);
+    }
+
     ChecklistRun uncompleteRun(Long runId, Integer orgNumber);
 
     ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber, Long userId);
+
+    default ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber) {
+        return updateRunItem(runId, itemId, item, orgNumber, null);
+    }
 
     void checkOverdueRuns(Integer orgNumber);
 }

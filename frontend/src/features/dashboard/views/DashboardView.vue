@@ -94,7 +94,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 </script>
 
 <template>
-  <div class="dashboard">
+  <div class="view-page dashboard">
     <header class="dashboard__header">
       <div>
         <h1 class="dashboard__title">{{ getWelcomeMessage() }}, {{ user?.name?.split(' ')[0] || 'Bruker' }}</h1>
@@ -235,22 +235,20 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 <style scoped>
 .dashboard {
-  max-width: 76rem;
-  margin: 0 auto;
   display: grid;
-  gap: 1.25rem;
+  gap: var(--spacing-lg);
 }
 
 .dashboard__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .dashboard__title {
   margin: 0;
-  font-size: var(--font-size-3xl);
+  font-size: clamp(1.8rem, 2.4vw, var(--font-size-3xl));
   font-weight: 700;
   letter-spacing: -0.015em;
 }
@@ -268,6 +266,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   padding: 0.25rem;
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .dashboard__tab {
@@ -277,7 +276,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: none;
   font-size: var(--font-size-sm);
   color: var(--color-gray-600);
-  transition: all var(--transition-base);
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
 .dashboard__tab--active {
@@ -289,11 +288,12 @@ const goToNotificationAction = (actionUrl: string | null) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--spacing-md);
   border: 1px solid var(--color-danger-border);
   background: var(--color-danger-bg);
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .alert-banner__title {
@@ -320,7 +320,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 .dashboard__stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--spacing-md);
 }
 
 .stat-card {
@@ -328,6 +328,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border-radius: var(--radius-lg);
   background: var(--color-card);
   padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-card--warning {
@@ -383,7 +384,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 .dashboard__content-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .panel {
@@ -391,6 +392,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .panel__header {
@@ -420,7 +422,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   background: var(--color-gray-50);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 0.75rem;
+  padding: 0.8rem;
 }
 
 .panel__item-button {
@@ -484,6 +486,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .quick-actions__title {
@@ -493,7 +496,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 .quick-actions__grid {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--spacing-md);
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -501,7 +504,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-gray-50);
-  padding: 0.85rem 1rem;
+  padding: 0.95rem 1rem;
   text-decoration: none;
   transition: all var(--transition-fast);
 }
@@ -527,7 +530,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
 .analysis-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--spacing-md);
 }
 
 .analysis-card {
@@ -535,6 +538,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .analysis-card p {
@@ -560,6 +564,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .analysis-panel h2 {

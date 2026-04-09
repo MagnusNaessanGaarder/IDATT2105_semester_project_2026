@@ -13,6 +13,7 @@ import com.example.InternalControl.repository.user.UserOrganizationRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import com.example.InternalControl.security.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,6 +29,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -36,14 +38,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * REST controller for user management operations.
- * Provides endpoints for CRUD operations on users within an organization.
+ * REST controller for user management operations. Provides endpoints for CRUD
+ * operations on users within an organization.
  *
  * @author TriTacLe
  * @since 1.0
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "User Management", description = "Manage users within organizations")
@@ -64,9 +66,15 @@ public class UserController {
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Transactional(readOnly = true)
     @Operation(summary = "Get all users", description = "Retrieve all users in an organization")
-    @ApiResponse(responseCode = "200", description = "Successfully retrieved users")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved users"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public ResponseEntity<List<UserResponse>> getAllUsers(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber) {
         requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
         log.info("Getting all users for organization: {}", orgNumber);
@@ -96,6 +104,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     public ResponseEntity<UserResponse> getUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
         requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
@@ -197,6 +206,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<UserResponse> updateUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequest request,
             @RequestParam Integer orgNumber) {
@@ -264,6 +274,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     public ResponseEntity<Void> deleteUser(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber) {
         requireAnyRole("ROLE_ADMIN");
@@ -301,7 +312,7 @@ public class UserController {
 
         List<com.example.InternalControl.dto.user.RoleResponse> roles = userRoles.stream()
                 .map(uor -> com.example.InternalControl.dto.user.RoleResponse.builder()
-                        .roleId(uor.getRoleId())
+                        .roleId(uor.getId().getRoleId())
                         .roleName(uor.getRole() != null ? uor.getRole().getRoleName() : "UNKNOWN")
                         .description(uor.getRole() != null ? uor.getRole().getDescription() : null)
                         .isSystemRole(uor.getRole() != null ? uor.getRole().getIsSystemRole() : false)

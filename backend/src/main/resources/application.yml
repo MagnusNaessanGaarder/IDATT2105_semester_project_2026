@@ -1,7 +1,6 @@
-# Load .env from project root
 spring:
   config:
-    import: optional:file:../.env[.properties]
+    import: optional:file:.env[.properties],optional:file:../.env[.properties]
 
   # Database
   datasource:

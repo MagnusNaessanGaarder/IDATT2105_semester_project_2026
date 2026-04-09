@@ -12,12 +12,15 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,15 +34,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application-test.properties")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+
 @Import(TestBlobConfig.class)
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ChecklistIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private Environment environment;
-
-    @Autowired
-    private TestDataInitializer testDataInitializer;
 
     private ObjectMapper objectMapper;
     private HttpClient client;
@@ -55,36 +57,35 @@ class ChecklistIntegrationTest extends AbstractIntegrationTest {
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
-        // Create test user associated with organization
+        // Register and login to get auth token
         String timestamp = String.valueOf(System.currentTimeMillis());
         String email = "checklist_test_" + timestamp + "@example.com";
-        testDataInitializer.createTestUserWithOrg(email, "Checklist Test User", ORG_NUMBER);
-
-        // Login to get auth token
         String password = "TestPass123!";
-        String loginJson = String.format(
-            "{\"email\": \"%s\", \"password\": \"%s\"}",
+
+        // Register
+        String registerJson = String.format(
+            "{\"fullName\": \"Checklist Test User\", \"email\": \"%s\", \"password\": \"%s\"}",
             email, password
         );
 
-        HttpRequest loginRequest = HttpRequest.newBuilder()
-            .uri(URI.create(getBaseUrl() + "/auth/login"))
+        HttpRequest registerRequest = HttpRequest.newBuilder()
+            .uri(URI.create(getBaseUrl() + "/auth/register"))
             .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(loginJson))
+            .POST(HttpRequest.BodyPublishers.ofString(registerJson))
             .build();
 
-        HttpResponse<String> loginResponse = client.send(loginRequest,
+        HttpResponse<String> registerResponse = client.send(registerRequest,
             HttpResponse.BodyHandlers.ofString());
 
-        assertThat(loginResponse.statusCode()).isEqualTo(200);
+        assertThat(registerResponse.statusCode()).isIn(200, 201);
 
-        JsonNode loginBody = objectMapper.readTree(loginResponse.body());
-        authToken = loginBody.get("accessToken").asText();
+        JsonNode registerBody = objectMapper.readTree(registerResponse.body());
+        authToken = registerBody.get("accessToken").asText();
     }
 
     private String getBaseUrl() {
         String port = environment.getProperty("local.server.port", "8080");
-        return "http://localhost:" + port + "/api/v1";
+        return "http://localhost:" + port + "/api";
     }
 
     @Test
@@ -175,7 +176,6 @@ class ChecklistIntegrationTest extends AbstractIntegrationTest {
         HttpResponse<String> response = client.send(request,
             HttpResponse.BodyHandlers.ofString());
 
-        // Spring Security returns 401 or 403 for unauthenticated requests
-        assertThat(response.statusCode()).isIn(401, 403);
+        assertThat(response.statusCode()).isEqualTo(401);
     }
 }

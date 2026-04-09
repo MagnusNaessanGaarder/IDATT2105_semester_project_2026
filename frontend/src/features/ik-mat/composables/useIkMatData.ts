@@ -1,172 +1,62 @@
 import { reactive, ref } from 'vue'
-import { client } from '@/api/client'
-import { getOrgNumber, orgHeaders, withOrgNumber } from '@/shared/utils/orgContext'
-import { ensureDemoData } from '@/shared/utils/seedDemoData'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { ikMatApi } from '../api/ikMatApi'
+import { completionForChecklist, formatDate, isTemperatureInRange } from './useIkMatFormatters'
+import type {
+  Checklist,
+  ChecklistItem,
+  DeviationApi,
+  DeviationUpsertRequest,
+  ChecklistRunApi,
+  ChecklistTemplateApi,
+  DashboardStat,
+  Deviation,
+  HaccpPlan,
+  HaccpPoint,
+  LocationApi,
+  RecentCheck,
+  SupportingDocument,
+  OrganizationUserApi,
+  TemperatureEntryApi,
+  TemperatureEntryCreateRequest,
+  TemperatureEntryUpdateRequest,
+  TemperatureLogPointApi,
+  TemperatureLogPointUpsertRequest,
+  TemperatureRecord,
+  LocationUpsertRequest,
+} from '../types'
 
-export interface DashboardStat {
-  label: string
-  value: number
-  trend: 'up' | 'down' | 'neutral'
-  color: 'success' | 'warning' | 'info'
-  unit?: string
-}
-
-export interface RecentCheck {
-  id: number
-  name: string
-  completed_by: string
-  completed_date: string
-  completed_time: string
-  status: 'completed' | 'pending' | 'overdue'
-}
-
-export interface ChecklistItem {
-  id: number
-  task: string
-  required: boolean
-  completed: boolean
-  notes: string | null
-}
-
-export interface Checklist {
-  id: number
-  name: string
-  category: string
-  frequency: 'Daglig' | 'Ukentlig' | 'Månedlig' | string
-  description: string
-  created_date: string
-  law_unit: string
-  items: ChecklistItem[]
-  completed_by: string | null
-  completion_date: string | null
-  completion_time: string | null
-  status: 'completed' | 'pending' | 'overdue'
-}
-
-export interface TemperatureRecord {
-  id: number
-  location: string
-  temperature_c: number
-  min_temp: number
-  max_temp: number
-  recorded_by: string
-  recorded_date: string
-  recorded_time: string
-  status: 'ok' | 'warning' | 'critical'
-}
-
-export interface Deviation {
-  id: number
-  title: string
-  description: string
-  severity: 'low' | 'medium' | 'high'
-  reported_by: string
-  reported_date: string
-  reported_time: string
-  location: string
-  immediate_action: string
-  corrective_action: string
-  status: 'open' | 'resolved' | 'in-progress'
-}
-
-export interface HaccpPoint {
-  id: number
-  number: string
-  name: string
-  description: string
-  hazards: string[]
-  critical_limits: string
-  monitoring: string
-  corrective_actions: string
-  verification: string
-  responsible: string
-}
-
-export interface SupportingDocument {
-  id: number
-  name: string
-  date_updated: string
-  description: string
-}
-
-interface ChecklistTemplateApi {
-  templateId: number
-  title: string
-  description: string | null
-  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | string
-  moduleType: string
-  items?: Array<{
-    itemId: number
-    label: string
-    isRequired?: boolean
-    description?: string | null
-  }>
-}
-
-interface ChecklistRunApi {
-  runId: number
-  templateId: number
-  templateTitle: string | null
-  performedByUserId: number | null
-  runDate: string | null
-  completedAt: string | null
-  status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE' | string
-  items?: Array<{
-    templateItemId: number
-    templateItemLabel: string | null
-    hasAnswer: boolean
-    commentText: string | null
-  }>
-}
-
-interface TemperatureEntryApi {
-  entryId: number
-  locationId: number | null
-  locationName: string | null
-  logPointName: string | null
-  temperatureC: number
-  isAlert: boolean
-  recordedByName: string | null
-  measuredAt: string
-}
-
-interface LocationApi {
-  locationId: number
-  name: string
-  tempMinC: number | null
-  tempMaxC: number | null
-}
-
-interface DeviationApi {
-  reportId: number
-  title: string
-  description: string
-  severity: string
-  status: string
-  locationText: string | null
-  occurredDate: string | null
-  occurredTime: string | null
-  reportDate: string | null
-  reportedBy?: { fullName?: string; email?: string } | null
-  immediateActionText?: string | null
-  correctiveActionText?: string | null
-}
+export type {
+  Checklist,
+  ChecklistItem,
+  DashboardStat,
+  Deviation,
+  HaccpPlan,
+  HaccpPoint,
+  RecentCheck,
+  SupportingDocument,
+  TemperatureRecord,
+} from '../types'
 
 const dashboardStats = reactive<DashboardStat[]>([])
 const recentChecks = reactive<RecentCheck[]>([])
 const checklists = reactive<Checklist[]>([])
 const temperatureRecords = reactive<TemperatureRecord[]>([])
+const temperaturePoints = reactive<TemperatureLogPointApi[]>([])
+const locations = reactive<LocationApi[]>([])
+const orgUsers = reactive<OrganizationUserApi[]>([])
 const deviations = reactive<Deviation[]>([])
-const haccpPlan = reactive({
+const haccpPlan = reactive<HaccpPlan>({
   plan_name: 'HACCP-plan',
   version: '1.0',
   last_updated: new Date().toISOString(),
-  critical_control_points: [] as HaccpPoint[],
-  supporting_documents: [] as SupportingDocument[],
+  critical_control_points: [],
+  supporting_documents: [],
 })
 
 let hasLoaded = false
 let loadInFlight: Promise<void> | null = null
+let lastLoadedOrgNumber: number | null = null
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
@@ -211,8 +101,56 @@ const splitIsoDateTime = (value: string | null): { date: string; time: string } 
   }
 }
 
+const hasResponse = (value: unknown): value is { response?: unknown } => {
+  return typeof value === 'object' && value !== null && 'response' in value
+}
+
+const reporterFromNote = (noteText: string | null | undefined): string | null => {
+  if (!noteText) {
+    return null
+  }
+
+  const prefix = 'Malt av:'
+  if (!noteText.startsWith(prefix)) {
+    return null
+  }
+
+  const reporter = noteText.slice(prefix.length).trim()
+  return reporter.length > 0 ? reporter : null
+}
+
+const HACCP_META_PREFIX = '[HACCP_META]'
+
+const parseHaccpMeta = (description: string | null | undefined): Partial<HaccpPoint> | null => {
+  if (!description || !description.startsWith(HACCP_META_PREFIX)) {
+    return null
+  }
+
+  try {
+    const raw = description.slice(HACCP_META_PREFIX.length)
+    return JSON.parse(raw) as Partial<HaccpPoint>
+  } catch {
+    return null
+  }
+}
+
+const serializeHaccpMeta = (point: {
+  name: string
+  description: string
+  hazards: string[]
+  critical_limits: string
+  monitoring: string
+  corrective_actions: string
+  responsible: string
+  verification: string
+}): string => {
+  return `${HACCP_META_PREFIX}${JSON.stringify(point)}`
+}
+
 const loadData = async (): Promise<void> => {
-  if (hasLoaded) {
+  const orgNumber = getOrgNumber()
+
+  if (hasLoaded && lastLoadedOrgNumber === orgNumber) {
     return
   }
 
@@ -225,40 +163,26 @@ const loadData = async (): Promise<void> => {
     error.value = null
 
     try {
-      await ensureDemoData()
-
-      const orgNumber = getOrgNumber()
-
-      const [templatesResponse, runsResponse, entriesResponse, locationsResponse, deviationsResponse, documentsResponse] = await Promise.allSettled([
-        client.get<ChecklistTemplateApi[]>('/checklists/templates/module/FOOD', {
-          params: withOrgNumber({}),
-        }),
-        client.get<ChecklistRunApi[]>('/checklists/runs', {
-          params: withOrgNumber({}),
-        }),
-        client.get<TemperatureEntryApi[]>('/temperature/entries', {
-          params: withOrgNumber({}),
-        }),
-        client.get<LocationApi[]>('/locations', {
-          params: withOrgNumber({}),
-        }),
-        client.get<DeviationApi[]>('/deviations', {
-          params: withOrgNumber({}),
-        }),
-        client.get<Array<{ documentId: number; title: string; description: string | null; updatedAt: string | null }>>('/files', {
-          params: withOrgNumber({}),
-          headers: orgHeaders(),
-        }),
+      const [templatesResponse, runsResponse, entriesResponse, pointsResponse, locationsResponse, deviationsResponse, documentsResponse] = await Promise.allSettled([
+        ikMatApi.getChecklistTemplatesByModule('FOOD'),
+        ikMatApi.getChecklistRuns(),
+        ikMatApi.getTemperatureEntries(),
+        ikMatApi.getTemperaturePoints(),
+        ikMatApi.getLocations(),
+        ikMatApi.getDeviations(),
+        ikMatApi.getDocuments(),
       ])
 
-      const templates = templatesResponse.status === 'fulfilled' ? templatesResponse.value.data : []
-      const runs = runsResponse.status === 'fulfilled' ? runsResponse.value.data : []
-      const entries = entriesResponse.status === 'fulfilled' ? entriesResponse.value.data : []
-      const locations = locationsResponse.status === 'fulfilled' ? locationsResponse.value.data : []
-      const deviationReports = deviationsResponse.status === 'fulfilled' ? deviationsResponse.value.data : []
-      const documents = documentsResponse.status === 'fulfilled' ? documentsResponse.value.data : []
+      const templates = templatesResponse.status === 'fulfilled' ? templatesResponse.value : []
+      const runs = runsResponse.status === 'fulfilled' ? runsResponse.value : []
+      const entries = entriesResponse.status === 'fulfilled' ? entriesResponse.value : []
+      const temperatureLogPoints = pointsResponse.status === 'fulfilled' ? pointsResponse.value : []
+      const locationList = locationsResponse.status === 'fulfilled' ? locationsResponse.value : []
+      const deviationReports = deviationsResponse.status === 'fulfilled' ? deviationsResponse.value : []
+      const documents = documentsResponse.status === 'fulfilled' ? documentsResponse.value : []
 
-      const locationById = new Map(locations.map((location) => [location.locationId, location]))
+      const locationById = new Map(locationList.map((location) => [location.locationId, location]))
+      const pointById = new Map(temperatureLogPoints.map((point) => [point.logPointId, point]))
       const runsByTemplateId = new Map<number, ChecklistRunApi[]>()
 
       runs.forEach((run) => {
@@ -328,14 +252,20 @@ const loadData = async (): Promise<void> => {
         .sort((a, b) => new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime())
         .map((entry) => {
           const split = splitIsoDateTime(entry.measuredAt)
-          const location = entry.locationId ? locationById.get(entry.locationId) : undefined
+          const point = pointById.get(entry.logPointId)
+          const location = entry.locationId ? locationById.get(entry.locationId) : point?.locationId ? locationById.get(point.locationId) : undefined
+          const reporterName = reporterFromNote(entry.noteText) ?? entry.recordedByName
           return {
             id: entry.entryId,
-            location: entry.locationName ?? location?.name ?? entry.logPointName ?? 'Ukjent lokasjon',
+            log_point_id: entry.logPointId,
+            log_point_name: entry.logPointName ?? point?.name ?? 'Ukjent malepunkt',
+            location_id: entry.locationId ?? point?.locationId ?? null,
+            location: entry.locationName ?? point?.locationName ?? location?.name ?? 'Ukjent lokasjon',
             temperature_c: Number(entry.temperatureC),
             min_temp: Number(location?.tempMinC ?? 0),
             max_temp: Number(location?.tempMaxC ?? 4),
-            recorded_by: entry.recordedByName ?? 'Ukjent',
+            recorded_by: reporterName ?? 'Ukjent',
+            note_text: entry.noteText ?? null,
             recorded_date: split.date,
             recorded_time: split.time,
             status: entry.isAlert ? 'critical' : 'ok',
@@ -359,21 +289,25 @@ const loadData = async (): Promise<void> => {
             immediate_action: item.immediateActionText ?? 'Ingen umiddelbar handling registrert',
             corrective_action: item.correctiveActionText ?? 'Ingen korrigerende handling registrert',
             status: deviationStatus(item.status),
+            assigned_to_user_id: item.assignedToUserId ?? null,
           } satisfies Deviation
         })
 
-      const ccpPoints: HaccpPoint[] = mappedChecklists.slice(0, 8).map((checklist) => ({
-        id: checklist.id,
-        number: `CCP-${checklist.id}`,
-        name: checklist.name,
-        description: checklist.description,
-        hazards: ['Biologisk fare', 'Temperaturavvik'],
-        critical_limits: `${checklist.items.filter((item) => item.required).length} obligatoriske kontrollpunkter`,
-        monitoring: checklist.frequency,
-        corrective_actions: 'Registrer avvik og gjennomfør korrigerende tiltak',
-        verification: 'Daglig gjennomgang av ansvarlig leder',
-        responsible: checklist.completed_by ?? 'Driftsansvarlig',
-      }))
+      const ccpPoints: HaccpPoint[] = templates.map((template) => {
+        const meta = parseHaccpMeta(template.description)
+        return {
+          id: template.templateId,
+          number: `CCP-${template.templateId}`,
+          name: meta?.name ?? template.title,
+          description: meta?.description ?? (template.description ?? 'Ingen beskrivelse registrert'),
+          hazards: meta?.hazards ?? ['Biologisk fare', 'Temperaturavvik'],
+          critical_limits: meta?.critical_limits ?? `${(template.items ?? []).filter((item) => item.isRequired).length} obligatoriske kontrollpunkter`,
+          monitoring: meta?.monitoring ?? frequencyLabel(template.frequency),
+          corrective_actions: meta?.corrective_actions ?? 'Registrer avvik og gjennomfør korrigerende tiltak',
+          verification: meta?.verification ?? 'Daglig gjennomgang av ansvarlig leder',
+          responsible: meta?.responsible ?? 'Driftsansvarlig',
+        }
+      }).slice(0, 12)
 
       const supportingDocs: SupportingDocument[] = documents
         .slice()
@@ -412,6 +346,9 @@ const loadData = async (): Promise<void> => {
       recentChecks.splice(0, recentChecks.length, ...mappedRecentChecks)
       checklists.splice(0, checklists.length, ...mappedChecklists)
       temperatureRecords.splice(0, temperatureRecords.length, ...mappedTemperature)
+      temperaturePoints.splice(0, temperaturePoints.length, ...temperatureLogPoints)
+      locations.splice(0, locations.length, ...locationList)
+      orgUsers.splice(0, orgUsers.length)
       deviations.splice(0, deviations.length, ...mappedDeviations)
       haccpPlan.plan_name = `HACCP-plan org ${orgNumber}`
       haccpPlan.version = '2.0'
@@ -419,26 +356,34 @@ const loadData = async (): Promise<void> => {
       haccpPlan.critical_control_points = ccpPoints
       haccpPlan.supporting_documents = supportingDocs
 
-      const failedCalls = [templatesResponse, runsResponse, entriesResponse, locationsResponse, deviationsResponse, documentsResponse]
+      const failedCalls = [templatesResponse, runsResponse, entriesResponse, pointsResponse, locationsResponse, deviationsResponse, documentsResponse]
         .filter((result) => result.status === 'rejected').length
-      const succeededCalls = 6 - failedCalls
+      const succeededCalls = 7 - failedCalls
 
       if (succeededCalls === 0) {
         error.value = 'Alle IK-MAT endepunkter feilet. Kontroller innlogging og prov igjen.'
         return
       }
 
-      // Keep rendering available data when one or more endpoint calls fail.
       error.value = null
 
       hasLoaded = true
-    } catch {
+      lastLoadedOrgNumber = orgNumber
+    } catch (err: unknown) {
       dashboardStats.splice(0, dashboardStats.length)
       recentChecks.splice(0, recentChecks.length)
       checklists.splice(0, checklists.length)
       temperatureRecords.splice(0, temperatureRecords.length)
+      temperaturePoints.splice(0, temperaturePoints.length)
+      locations.splice(0, locations.length)
+      orgUsers.splice(0, orgUsers.length)
       deviations.splice(0, deviations.length)
-      error.value = 'Kunne ikke laste IK-MAT data fra API.'
+
+      if (!hasResponse(err) || !err.response) {
+        error.value = 'Backend er ikke tilgjengelig. Kontroller at API kjører på port 8080.'
+      } else {
+        error.value = 'Kunne ikke laste IK-MAT data fra API.'
+      }
     } finally {
       isLoading.value = false
       loadInFlight = null
@@ -453,30 +398,171 @@ const reload = async () => {
   await loadData()
 }
 
-const formatDate = (value: string | null): string => {
-  if (!value) {
-    return '-'
-  }
-
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return value
-  }
-
-  return parsed.toLocaleDateString('nb-NO')
+const createTemperaturePoint = async (payload: TemperatureLogPointUpsertRequest): Promise<TemperatureLogPointApi> => {
+  const created = await ikMatApi.createTemperaturePoint(payload)
+  await reload()
+  return created
 }
 
-const completionForChecklist = (checklist: Checklist): number => {
-  if (checklist.items.length === 0) {
-    return 0
-  }
-
-  const completed = checklist.items.filter((item) => item.completed).length
-  return Math.round((completed / checklist.items.length) * 100)
+const createTemperaturePointWithLocation = async (
+  locationPayload: LocationUpsertRequest,
+  pointPayload: Omit<TemperatureLogPointUpsertRequest, 'locationId'>,
+): Promise<TemperatureLogPointApi> => {
+  const location = await ikMatApi.createLocation(locationPayload)
+  const point = await ikMatApi.createTemperaturePoint({
+    ...pointPayload,
+    locationId: location.locationId,
+  })
+  await reload()
+  return point
 }
 
-const isTemperatureInRange = (record: TemperatureRecord): boolean => {
-  return record.temperature_c >= record.min_temp && record.temperature_c <= record.max_temp
+const updateTemperaturePoint = async (pointId: number, payload: TemperatureLogPointUpsertRequest): Promise<TemperatureLogPointApi> => {
+  const updated = await ikMatApi.updateTemperaturePoint(pointId, payload)
+  await reload()
+  return updated
+}
+
+const updateTemperaturePointAndLocation = async (
+  pointId: number,
+  locationId: number,
+  locationPayload: LocationUpsertRequest,
+  pointPayload: TemperatureLogPointUpsertRequest,
+): Promise<void> => {
+  await ikMatApi.updateLocation(locationId, locationPayload)
+  await ikMatApi.updateTemperaturePoint(pointId, pointPayload)
+  await reload()
+}
+
+const deleteTemperaturePoint = async (pointId: number): Promise<void> => {
+  await ikMatApi.deleteTemperaturePoint(pointId)
+  await reload()
+}
+
+const clearTemperatureMeasurementsForPoint = async (pointId: number): Promise<void> => {
+  await ikMatApi.clearTemperatureEntriesForPoint(pointId)
+  await reload()
+}
+
+const createTemperatureMeasurement = async (payload: TemperatureEntryCreateRequest): Promise<TemperatureEntryApi> => {
+  const created = await ikMatApi.createTemperatureEntry(payload)
+  await reload()
+  return created
+}
+
+const updateTemperatureMeasurement = async (entryId: number, payload: TemperatureEntryUpdateRequest): Promise<TemperatureEntryApi> => {
+  const updated = await ikMatApi.updateTemperatureEntry(entryId, payload)
+  await reload()
+  return updated
+}
+
+const createDeviation = async (payload: DeviationUpsertRequest): Promise<DeviationApi> => {
+  const created = await ikMatApi.createDeviation(payload)
+  await reload()
+  return created
+}
+
+const updateDeviation = async (id: number, payload: DeviationUpsertRequest): Promise<DeviationApi> => {
+  const updated = await ikMatApi.updateDeviation(id, payload)
+  await reload()
+  return updated
+}
+
+const deleteDeviation = async (id: number): Promise<void> => {
+  await ikMatApi.deleteDeviation(id)
+  await reload()
+}
+
+const resolveDeviation = async (id: number): Promise<void> => {
+  await ikMatApi.updateDeviationStatus(id, { status: 'CLOSED' })
+  await reload()
+}
+
+const startDeviationHandling = async (id: number): Promise<void> => {
+  await ikMatApi.updateDeviationStatus(id, { status: 'UNDER_INVESTIGATION' })
+  await reload()
+}
+
+const createHaccpControlPoint = async (point: {
+  name: string
+  description: string
+  hazards: string[]
+  critical_limits: string
+  monitoring: string
+  corrective_actions: string
+  responsible: string
+  verification: string
+}): Promise<void> => {
+  await ikMatApi.createChecklistTemplate({
+    title: point.name,
+    description: serializeHaccpMeta(point),
+    moduleType: 'FOOD',
+    frequency: 'DAILY',
+    items: [
+      {
+        label: point.critical_limits,
+        itemType: 'TEXT',
+        isRequired: true,
+      },
+    ],
+  })
+  await reload()
+}
+
+const updateHaccpControlPoint = async (templateId: number, point: {
+  name: string
+  description: string
+  hazards: string[]
+  critical_limits: string
+  monitoring: string
+  corrective_actions: string
+  responsible: string
+  verification: string
+}): Promise<void> => {
+  await ikMatApi.updateChecklistTemplate(templateId, {
+    title: point.name,
+    description: serializeHaccpMeta(point),
+    moduleType: 'FOOD',
+    frequency: 'DAILY',
+    items: [
+      {
+        label: point.critical_limits,
+        itemType: 'TEXT',
+        isRequired: true,
+      },
+    ],
+  })
+  await reload()
+}
+
+const deleteHaccpControlPoint = async (templateId: number): Promise<void> => {
+  await ikMatApi.deleteChecklistTemplate(templateId)
+  await reload()
+}
+
+const uploadSupportingDocument = async (file: File, title?: string, description?: string): Promise<void> => {
+  const uploaded = await ikMatApi.uploadDocument(file, 'procedure', 'haccp') as { documentId?: number }
+  if (uploaded?.documentId && (title || description)) {
+    await ikMatApi.updateDocument(uploaded.documentId, {
+      title: title?.trim() || file.name,
+      description: description?.trim() || undefined,
+    })
+  }
+  await reload()
+}
+
+const updateSupportingDocument = async (documentId: number, payload: { title?: string; description?: string }): Promise<void> => {
+  await ikMatApi.updateDocument(documentId, payload)
+  await reload()
+}
+
+const deleteSupportingDocument = async (documentId: number): Promise<void> => {
+  await ikMatApi.deleteDocument(documentId)
+  await reload()
+}
+
+const downloadSupportingDocument = async (documentId: number): Promise<Blob> => {
+  return ikMatApi.downloadDocument(documentId)
 }
 
 export const useIkMatData = () => {
@@ -487,6 +573,9 @@ export const useIkMatData = () => {
     recentChecks,
     checklists,
     temperatureRecords,
+    temperaturePoints,
+    locations,
+    orgUsers,
     deviations,
     haccpPlan,
     formatDate,
@@ -495,5 +584,25 @@ export const useIkMatData = () => {
     isLoading,
     error,
     reload,
+    createTemperaturePoint,
+    createTemperaturePointWithLocation,
+    updateTemperaturePoint,
+    updateTemperaturePointAndLocation,
+    deleteTemperaturePoint,
+    clearTemperatureMeasurementsForPoint,
+    createTemperatureMeasurement,
+    updateTemperatureMeasurement,
+    createDeviation,
+    updateDeviation,
+    deleteDeviation,
+    resolveDeviation,
+    startDeviationHandling,
+    createHaccpControlPoint,
+    updateHaccpControlPoint,
+    deleteHaccpControlPoint,
+    uploadSupportingDocument,
+    updateSupportingDocument,
+    deleteSupportingDocument,
+    downloadSupportingDocument,
   }
 }

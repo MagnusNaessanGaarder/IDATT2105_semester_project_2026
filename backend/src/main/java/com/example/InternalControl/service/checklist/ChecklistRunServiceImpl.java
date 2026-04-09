@@ -106,6 +106,10 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
         return runRepository.save(run);
     }
 
+    public ChecklistRun completeRun(Long runId, Integer orgNumber) {
+        return completeRun(runId, orgNumber, null);
+    }
+
     @Override
     public ChecklistRun uncompleteRun(Long runId, Integer orgNumber) {
         ChecklistRun run = getRun(runId, orgNumber);
@@ -152,6 +156,10 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
         }
 
         return runItemRepository.save(existing);
+    }
+
+    public ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber) {
+        return updateRunItem(runId, itemId, item, orgNumber, null);
     }
 
     @Override

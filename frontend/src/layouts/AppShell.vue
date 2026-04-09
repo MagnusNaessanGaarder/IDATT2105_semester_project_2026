@@ -4,8 +4,8 @@ import Sidebar from './Sidebar.vue'
 
 const isSidebarOpen = ref(false)
 
-const toggleSidebar = () => {
-  isSidebarOpen.value = !isSidebarOpen.value
+const openSidebar = () => {
+  isSidebarOpen.value = true
 }
 
 const closeSidebar = () => {
@@ -18,6 +18,15 @@ const closeSidebar = () => {
     <a href="#main-content" class="skip-link">
       Hopp til hovedinnhold
     </a>
+
+    <button
+      class="sidebar-toggle"
+      type="button"
+      aria-label="Åpne meny"
+      @click="openSidebar"
+    >
+      ☰
+    </button>
     
     <button
       class="menu-toggle"
@@ -66,33 +75,37 @@ const closeSidebar = () => {
   width: 100%;
   position: relative;
   isolation: isolate;
-  background: linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
+  background:
+    radial-gradient(circle at top left, var(--color-surface-tint) 0%, transparent 30%),
+    linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
 }
 
 .skip-link {
   position: absolute;
   top: -100px;
-  left: 16px;
+  left: var(--spacing-md);
   z-index: 100;
-  padding: 8px 16px;
+  padding: 0.75rem 1rem;
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
 }
 
 .skip-link:focus {
-  top: 8px;
+  top: var(--spacing-md);
 }
 
 .menu-toggle {
   position: fixed;
-  top: var(--spacing-md);
-  left: var(--spacing-md);
+  top: 1rem;
+  left: 1rem;
   z-index: 45;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: var(--radius-md);
   background: var(--color-card);
   border: 1px solid var(--color-border);
@@ -101,19 +114,38 @@ const closeSidebar = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .menu-toggle:hover {
   background: var(--color-card-muted);
   border-color: var(--color-border-strong);
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 @media (min-width: 48rem) {
   .menu-toggle {
     display: none;
   }
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 60;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  color: var(--color-foreground);
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .sidebar-backdrop {
@@ -133,14 +165,18 @@ const closeSidebar = () => {
 .main-content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-lg) var(--spacing-md);
+  padding: var(--content-padding);
   content-visibility: auto;
-  contain-intrinsic-size: 800px;
+  contain-intrinsic-size: 900px;
 }
 
 @media (min-width: 768px) {
+  .sidebar-toggle {
+    display: none;
+  }
+
   .main-content {
-    padding: var(--spacing-xl) clamp(1.25rem, 2.2vw, 2.5rem);
+    padding: clamp(1.25rem, 2vw, 2rem) clamp(1.25rem, 2.2vw, 2.5rem);
   }
 }
 

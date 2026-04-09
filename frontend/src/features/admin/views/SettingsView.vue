@@ -1,48 +1,53 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { type AuditLogEntry, type SettingItem, useAdminData } from '../composables/useAdminData'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import {
+  type AuditLogEntry,
+  type SettingItem,
+  type SettingsState,
+  useAdminData,
+} from '../composables/useAdminData'
+import { useAuthStore } from '@/stores/auth'
+import type { BackendSettings } from '../api/settingsApi'
 
+const authStore = useAuthStore()
 const data = useAdminData()
 
-const settingsState = ref({
-  system: { section_title: '', items: [] as SettingItem[] },
-  notification_preferences: { section_title: '', items: [] as SettingItem[] },
-  security: { section_title: '', items: [] as SettingItem[] },
-  backup: { section_title: '', items: [] as SettingItem[] },
-}) as {
-  value: {
-    system: { section_title: string; items: SettingItem[] }
-    notification_preferences: { section_title: string; items: SettingItem[] }
-    security: { section_title: string; items: SettingItem[] }
-    backup: { section_title: string; items: SettingItem[] }
-  }
-}
+// Get current organization from auth store
+const currentOrgNumber = computed(() => {
+  return authStore.currentOrg?.orgNumber || 0
+})
 
-watch(
-  () => data.settings,
-  (nextSettings) => {
-    settingsState.value = {
-      system: JSON.parse(JSON.stringify(nextSettings.system)),
-      notification_preferences: JSON.parse(JSON.stringify(nextSettings.notification_preferences)),
-      security: JSON.parse(JSON.stringify(nextSettings.security)),
-      backup: JSON.parse(JSON.stringify(nextSettings.backup)),
-    }
-  },
-  { immediate: true, deep: true },
-)
+const settingsState = ref<SettingsState>({
+  system: JSON.parse(JSON.stringify(data.settings.system)),
+  notification_preferences: JSON.parse(JSON.stringify(data.settings.notification_preferences)),
+  security: JSON.parse(JSON.stringify(data.settings.security)),
+  backup: JSON.parse(JSON.stringify(data.settings.backup)),
+})
+
+const backendSettings = ref<BackendSettings | null>(null)
+const hasChanges = ref(false)
+const showSuccessMessage = ref(false)
+const successMessage = ref('')
+const successTimeoutId = ref<number | null>(null)
 
 const query = ref('')
 
 const sections = computed(() => [
-  settingsState.value.system,
-  settingsState.value.notification_preferences,
-  settingsState.value.security,
-  settingsState.value.backup,
+  data.settings.system,
+  data.settings.notification_preferences,
+  data.settings.security,
+  data.settings.backup,
 ])
+
+const persistenceLabel = (item: SettingItem): string => {
+  if (item.persistence === 'backend') return 'Delt (database)'
+  if (item.persistence === 'local') return 'Lokal (denne nettleseren)'
+  return 'Skrivebeskyttet'
+}
 
 const filteredAuditLog = computed(() => {
   const search = query.value.trim().toLowerCase()
-  return data.sortedAuditLog.filter((entry) => {
+  return data.sortedAuditLog().filter((entry) => {
     if (search.length === 0) {
       return true
     }
@@ -63,14 +68,96 @@ const updateSetting = (sectionIndex: number, itemId: string, nextValue: unknown)
   }
 
   const item = section.items.find((entry) => entry.id === itemId)
-  if (!item) {
+  if (!item || item.persistence === 'readonly') {
     return
   }
 
   item.current_value = nextValue
+  hasChanges.value = true
 }
 
+const isSettingActive = (item: SettingItem) => item.active !== false
+
 const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.timestamp)
+
+/**
+ * Load settings from backend on mount
+ */
+const loadBackendSettings = async () => {
+  if (!currentOrgNumber.value) {
+    return
+  }
+
+  const settings = await data.fetchSettingsFromBackend(currentOrgNumber.value)
+  if (settings) {
+    backendSettings.value = settings
+    const mappedSettings = data.applyLocalSettings(
+      data.mapBackendSettingsToFrontend(settings),
+      currentOrgNumber.value
+    )
+    settingsState.value = {
+      system: { ...mappedSettings.system },
+      notification_preferences: { ...mappedSettings.notification_preferences },
+      security: { ...mappedSettings.security },
+      backup: { ...mappedSettings.backup },
+    }
+    hasChanges.value = false
+  }
+}
+
+/**
+ * Save settings to backend and localStorage
+ */
+const handleSave = async () => {
+  if (!currentOrgNumber.value || !backendSettings.value) {
+    return
+  }
+
+  const updatedBackendSettings = await data.saveSettings(
+    settingsState.value,
+    backendSettings.value,
+    currentOrgNumber.value
+  )
+
+  if (updatedBackendSettings) {
+    backendSettings.value = updatedBackendSettings
+    hasChanges.value = false
+    successMessage.value = 'Innstillinger lagret'
+    showSuccessMessage.value = true
+    if (successTimeoutId.value !== null) {
+      window.clearTimeout(successTimeoutId.value)
+    }
+    successTimeoutId.value = window.setTimeout(() => {
+      showSuccessMessage.value = false
+      successTimeoutId.value = null
+    }, 3000)
+  }
+}
+
+/**
+ * Export settings as JSON
+ */
+const handleExport = () => {
+  if (!currentOrgNumber.value || !backendSettings.value) {
+    return
+  }
+
+  data.exportSettings(
+    settingsState.value,
+    backendSettings.value,
+    currentOrgNumber.value
+  )
+}
+
+onMounted(() => {
+  loadBackendSettings()
+})
+
+onUnmounted(() => {
+  if (successTimeoutId.value !== null) {
+    window.clearTimeout(successTimeoutId.value)
+  }
+})
 </script>
 
 <template>
@@ -81,128 +168,150 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
         <p class="subtitle">Konfigurer system, varslinger, sikkerhet og sikkerhetskopi</p>
       </div>
       <div class="header-actions">
-        <button class="btn btn--secondary" type="button">Eksporter data</button>
-        <button class="btn btn--primary" type="button">Lagre endringer</button>
+        <button
+          class="btn btn--secondary"
+          type="button"
+          :disabled="data.isLoading.value || !backendSettings"
+          @click="handleExport"
+        >
+          Eksporter data
+        </button>
+        <button
+          class="btn btn--primary"
+          type="button"
+          :disabled="!hasChanges || data.isLoading.value"
+          @click="handleSave"
+        >
+          {{ data.isLoading.value ? 'Lagrer...' : 'Lagre endringer' }}
+        </button>
       </div>
     </header>
 
-    <section v-if="data.error" class="audit-section">
-      <header class="audit-header">
-        <h2>Kunne ikke hente innstillinger</h2>
-        <button class="btn btn--primary" type="button" @click="data.reload">Prøv igjen</button>
-      </header>
-      <p>{{ data.error }}</p>
-    </section>
+    <!-- Success message -->
+    <div v-if="showSuccessMessage" class="success-message">
+      ✓ {{ successMessage }}
+    </div>
 
-    <section v-else-if="data.isLoading" class="audit-section">
-      <header class="audit-header">
-        <h2>Laster innstillinger...</h2>
-      </header>
-    </section>
+    <!-- Error message -->
+    <div v-if="data.error.value" class="error-message">
+      ⚠ {{ data.error.value }}
+    </div>
 
-    <section v-if="!data.isLoading && !data.error" class="settings-summary" aria-label="Systemoversikt">
-      <article class="summary-card">
-        <strong>{{ sections.length }}</strong>
-        <span>Konfigurasjonsseksjoner</span>
-      </article>
-      <article class="summary-card">
-        <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'toggle').length }}</strong>
-        <span>Brytere</span>
-      </article>
-      <article class="summary-card">
-        <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'number').length }}</strong>
-        <span>Numeriske felt</span>
-      </article>
-      <article class="summary-card">
-        <strong>{{ data.auditLog.length }}</strong>
-        <span>Revisjonshendelser</span>
-      </article>
-    </section>
+    <!-- Loading state -->
+    <div v-if="data.isLoading.value && !backendSettings" class="loading-state">
+      <p>Laster innstillinger fra server...</p>
+    </div>
 
-    <section v-if="!data.isLoading && !data.error" class="settings-grid" aria-label="Konfigurasjonspanel">
-      <article v-for="(section, sectionIndex) in sections" :key="section.section_title" class="settings-section">
-        <h2 class="settings-title">{{ section.section_title }}</h2>
-        <div class="settings-items">
-          <div v-for="item in section.items" :key="item.id" class="setting-item">
-            <div class="setting-header">
-              <label :for="item.id" class="setting-label">{{ item.label }}</label>
-              <p v-if="item.description" class="setting-description">{{ item.description }}</p>
-            </div>
+    <!-- Settings content (hidden while loading) -->
+    <template v-if="backendSettings">
+      <section class="settings-summary" aria-label="Systemoversikt">
+        <article class="summary-card">
+          <strong>{{ sections.length }}</strong>
+          <span>Konfigurasjonsseksjoner</span>
+        </article>
+        <article class="summary-card">
+          <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'toggle').length }}</strong>
+          <span>Brytere</span>
+        </article>
+        <article class="summary-card">
+          <strong>{{ sections.flatMap((section) => section.items).filter((item) => item.type === 'number').length }}</strong>
+          <span>Numeriske felt</span>
+        </article>
+        <article class="summary-card">
+          <strong>{{ data.auditLog.length }}</strong>
+          <span>Revisjonshendelser</span>
+        </article>
+      </section>
 
-            <div class="setting-control">
-              <select
-                v-if="item.type === 'select'"
-                :id="item.id"
-                class="setting-select"
-                :value="String(item.current_value)"
-                @change="updateSetting(sectionIndex, item.id, ($event.target as HTMLSelectElement).value)"
-              >
-                <option v-for="option in item.options" :key="option">{{ option }}</option>
-              </select>
+      <section class="settings-grid" aria-label="Konfigurasjonspanel">
+        <article v-for="(section, sectionIndex) in sections" :key="section.section_title" class="settings-section">
+          <h2 class="settings-title">{{ section.section_title }}</h2>
+          <div class="settings-items">
+            <div v-for="item in section.items" :key="item.id" class="setting-item">
+              <div class="setting-header">
+                <label :for="item.id" class="setting-label">{{ item.label }}</label>
+                <span class="setting-persistence">{{ persistenceLabel(item) }}</span>
+                <p v-if="item.description" class="setting-description">{{ item.description }}</p>
+              </div>
 
-              <label v-else-if="item.type === 'toggle'" class="toggle-wrap">
-                <input
+              <div class="setting-control">
+                <select
+                  v-if="item.type === 'select'"
                   :id="item.id"
-                  type="checkbox"
-                  :checked="Boolean(item.current_value)"
-                  @change="updateSetting(sectionIndex, item.id, ($event.target as HTMLInputElement).checked)"
+                  class="setting-select"
+                  :value="String(item.current_value)"
+                  :disabled="item.persistence === 'readonly' || data.isLoading.value"
+                  @change="updateSetting(sectionIndex, item.id, ($event.target as HTMLSelectElement).value)"
                 >
-                <span>{{ Boolean(item.current_value) ? 'På' : 'Av' }}</span>
-              </label>
+                  <option v-for="option in item.options" :key="option">{{ option }}</option>
+                </select>
 
-              <input
-                v-else-if="item.type === 'number'"
-                :id="item.id"
-                class="setting-input"
-                type="number"
-                :value="Number(item.current_value)"
-                :min="item.min"
-                :max="item.max"
-                @change="updateSetting(sectionIndex, item.id, Number(($event.target as HTMLInputElement).value))"
-              >
+                <label v-else-if="item.type === 'toggle'" class="toggle-wrap">
+                  <input
+                    :id="item.id"
+                    type="checkbox"
+                    :checked="Boolean(item.current_value)"
+                    :disabled="item.persistence === 'readonly' || data.isLoading.value"
+                    @change="updateSetting(sectionIndex, item.id, ($event.target as HTMLInputElement).checked)"
+                  >
+                  <span>{{ Boolean(item.current_value) ? 'På' : 'Av' }}</span>
+                </label>
 
-              <span v-else class="setting-info">{{ String(item.current_value) }}</span>
+                <input
+                  v-else-if="item.type === 'number'"
+                  :id="item.id"
+                  class="setting-input"
+                  type="number"
+                  :value="Number(item.current_value)"
+                  :min="item.min"
+                  :max="item.max"
+                  :disabled="item.persistence === 'readonly' || data.isLoading.value"
+                  @change="updateSetting(sectionIndex, item.id, Number(($event.target as HTMLInputElement).value))"
+                >
+
+                <span v-else class="setting-info">{{ String(item.current_value) }}</span>
+              </div>
             </div>
           </div>
+        </article>
+      </section>
+
+      <section class="audit-section">
+        <header class="audit-header">
+          <h2>Revisjonslogg</h2>
+          <input v-model="query" class="audit-search" type="search" placeholder="Søk i hendelser" />
+        </header>
+
+        <div class="audit-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tid</th>
+                <th>Bruker</th>
+                <th>Handling</th>
+                <th>Ressurs</th>
+                <th>Detaljer</th>
+                <th>Resultat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="entry in filteredAuditLog" :key="entry.id">
+                <td>{{ asDateTime(entry) }}</td>
+                <td>{{ entry.user }}</td>
+                <td>{{ entry.action }}</td>
+                <td>{{ entry.resource }}</td>
+                <td>{{ entry.details }}</td>
+                <td>
+                  <span class="result-pill" :class="{ 'result-pill--ok': entry.result === 'SUCCESS' }">
+                    {{ entry.result }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </article>
-    </section>
-
-    <section v-if="!data.isLoading && !data.error" class="audit-section">
-      <header class="audit-header">
-        <h2>Revisjonslogg</h2>
-        <input v-model="query" class="audit-search" type="search" placeholder="Søk i hendelser" />
-      </header>
-
-      <div class="audit-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Tid</th>
-              <th>Bruker</th>
-              <th>Handling</th>
-              <th>Ressurs</th>
-              <th>Detaljer</th>
-              <th>Resultat</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="entry in filteredAuditLog" :key="entry.id">
-              <td>{{ asDateTime(entry) }}</td>
-              <td>{{ entry.user }}</td>
-              <td>{{ entry.action }}</td>
-              <td>{{ entry.resource }}</td>
-              <td>{{ entry.details }}</td>
-              <td>
-                <span class="result-pill" :class="{ 'result-pill--ok': entry.result === 'SUCCESS' }">
-                  {{ entry.result }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+      </section>
+    </template>
   </div>
 </template>
 
@@ -229,6 +338,18 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
 .subtitle {
   margin-top: 0.4rem;
   color: var(--color-gray-500);
+}
+
+.warning-state {
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-md);
+  color: var(--color-warning);
+  padding: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
 }
 
 .header-actions {
@@ -299,6 +420,10 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
   border-bottom: none;
 }
 
+.setting-item--inactive {
+  opacity: 0.6;
+}
+
 .setting-header {
   display: flex;
   flex-direction: column;
@@ -315,6 +440,17 @@ const asDateTime = (entry: AuditLogEntry): string => data.formatDateTime(entry.t
   margin: 0;
   font-size: var(--font-size-xs);
   color: var(--color-gray-600);
+}
+
+.setting-persistence {
+  width: fit-content;
+  margin-top: 0.1rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  background: var(--color-gray-100);
 }
 
 .setting-control {
@@ -448,6 +584,42 @@ td {
   background: var(--color-card);
   color: var(--color-gray-700);
   border: 1px solid var(--color-border);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.success-message {
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-md);
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.error-message {
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-md);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 20rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-gray-50);
+  color: var(--color-gray-600);
 }
 
 @media (max-width: 48rem) {

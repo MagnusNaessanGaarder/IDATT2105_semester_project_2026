@@ -1,9 +1,13 @@
 package com.example.InternalControl;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Assumptions;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -15,28 +19,37 @@ import org.testcontainers.utility.DockerImageName;
  * @since 1.0
  */
 @SpringBootTest
+@Transactional
 @TestPropertySource(locations = "classpath:application-test.properties")
 public abstract class AbstractIntegrationTest {
 
-    private static final MySQLContainer<?> mysql;
+    static MySQLContainer<?> mysql;
 
-    static {
-        if (useTestcontainers()) {
-            if (isLinux()) {
-                setPropertyIfAbsent("docker.host", "unix:///var/run/docker.sock");
-                setPropertyIfAbsent("testcontainers.docker.socket.override", "/var/run/docker.sock");
-            }
-            setPropertyIfAbsent("testcontainers.ryuk.disabled", "true");
-
-            mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
-                    .withDatabaseName("testdb")
-                    .withUsername("test")
-                    .withPassword("test")
-                    .withReuse(true);
-            mysql.start();
-        } else {
+    @BeforeAll
+    static void startContainerIfAvailable() {
+        if (System.getenv("SPRING_DATASOURCE_URL") != null) {
             mysql = null;
+            return;
         }
+
+        if (!isDockerAvailable()) {
+            Assumptions.assumeTrue(false, "Docker is not available; skipping integration tests");
+            return;
+        }
+
+        if (isLinux()) {
+            setPropertyIfAbsent("docker.host", "unix:///var/run/docker.sock");
+            setPropertyIfAbsent("testcontainers.docker.socket.override", "/var/run/docker.sock");
+            setPropertyIfAbsent("api.version", "1.41");
+        }
+        setPropertyIfAbsent("testcontainers.ryuk.disabled", "true");
+
+        mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
+                .withDatabaseName("testdb")
+                .withUsername("test")
+                .withPassword("test")
+                .withReuse(true);
+        mysql.start();
     }
 
     @DynamicPropertySource
@@ -45,7 +58,6 @@ public abstract class AbstractIntegrationTest {
             registry.add("spring.datasource.url", mysql::getJdbcUrl);
             registry.add("spring.datasource.username", mysql::getUsername);
             registry.add("spring.datasource.password", mysql::getPassword);
-            registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
         }
     }
 
@@ -54,12 +66,12 @@ public abstract class AbstractIntegrationTest {
         return osName != null && osName.toLowerCase().contains("linux");
     }
 
-    private static boolean useTestcontainers() {
-        String enabled = System.getProperty("testcontainers.enabled");
-        if (enabled == null || enabled.isBlank()) {
-            enabled = System.getenv("TESTCONTAINERS_ENABLED");
+    private static boolean isDockerAvailable() {
+        try {
+            return DockerClientFactory.instance().isDockerAvailable();
+        } catch (Exception exception) {
+            return false;
         }
-        return "true".equalsIgnoreCase(enabled);
     }
 
     private static void setPropertyIfAbsent(String propertyName, String value) {

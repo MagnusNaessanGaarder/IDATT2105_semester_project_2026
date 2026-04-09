@@ -16,18 +16,18 @@
   />
 -->
 <script setup lang="ts">
-interface Props {
-  id: string
-  modelValue: string
-  label: string
-  type?: 'text' | 'email' | 'password' | 'number' | 'textarea'
-  placeholder?: string
-  required?: boolean
-  disabled?: boolean
-  error?: string
-}
+  interface Props {
+    id: string
+    modelValue: string
+    label: string
+    type?: 'text' | 'email' | 'password' | 'number' | 'textarea'
+    placeholder?: string
+    required?: boolean
+    disabled?: boolean
+    error?: string
+  }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   type: 'text',
   placeholder: '',
   required: false,
@@ -35,14 +35,14 @@ const props = withDefaults(defineProps<Props>(), {
   error: '',
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+  const emit = defineEmits<{
+    'update:modelValue': [value: string]
+  }>()
 
-const handleInput = (event: Event) => {
-  const target = event.target as HTMLInputElement | HTMLTextAreaElement
-  emit('update:modelValue', target.value)
-}
+  const handleInput = (event: Event) => {
+    const target = event.target as HTMLInputElement | HTMLTextAreaElement
+    emit('update:modelValue', target.value)
+  }
 </script>
 
 <template>
@@ -93,49 +93,50 @@ const handleInput = (event: Event) => {
 </template>
 
 <style scoped>
-.base-input {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
+  .base-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
 
-.base-input__label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-foreground);
-}
+  .base-input__label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-foreground);
+  }
 
-.base-input__required {
-  color: var(--color-danger);
-}
+  .base-input__required {
+    color: var(--color-danger);
+  }
 
-.base-input__field {
-  padding: var(--input-padding);
-  font-size: var(--font-size-base);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-card);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
-}
+  .base-input__field {
+    padding: var(--input-padding);
+    font-size: var(--font-size-base);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-card);
+    min-height: var(--touch-target);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+  }
 
-.base-input__field:focus {
-  border-color: var(--color-focus);
-  box-shadow: var(--shadow-focus);
-}
+  .base-input__field:focus {
+    border-color: var(--color-focus);
+    box-shadow: var(--shadow-focus);
+  }
 
-.base-input__field--error {
-  border-color: var(--color-danger);
-}
+  .base-input__field--error {
+    border-color: var(--color-danger);
+  }
 
-.base-input__field:disabled {
-  background: var(--color-card-muted);
-  cursor: not-allowed;
-}
+  .base-input__field:disabled {
+    background: var(--color-card-muted);
+    cursor: not-allowed;
+  }
 
-.base-input__error {
-  font-size: 14px;
-  color: var(--color-danger);
-}
+  .base-input__error {
+    font-size: var(--font-size-sm);
+    color: var(--color-danger);
+  }
 
 textarea.base-input__field {
   min-height: 100px;

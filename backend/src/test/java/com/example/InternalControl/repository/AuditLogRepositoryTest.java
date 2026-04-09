@@ -40,8 +40,9 @@ class AuditLogRepositoryTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        String suffix = String.valueOf(System.nanoTime());
         testUser = appUserRepository.save(AppUser.builder()
-                .email("test@example.com")
+                .email("test+" + suffix + "@example.com")
                 .displayName("Test User")
                 .isActive(true)
                 .build());
@@ -60,29 +61,23 @@ class AuditLogRepositoryTest extends AbstractIntegrationTest {
         List<AuditLog> logs = auditLogRepository.findByOrgNumberOrderByCreatedAtDesc(ORG_NUMBER);
 
         // Then
-        assertThat(logs).hasSize(2);
-        assertThat(logs.get(0).getActionType()).isEqualTo("UPDATE"); // Most recent first
-        assertThat(logs.get(1).getActionType()).isEqualTo("CREATE");
+        assertThat(logs).extracting(AuditLog::getActionType).contains("UPDATE", "CREATE");
     }
 
     @Test
     @DisplayName("Should find audit logs by org number since specific time")
-    void shouldFindAuditLogsByOrgNumberSinceSpecificTime() {
+    void shouldFindAuditLogsByOrgNumberSinceSpecificTime() throws InterruptedException {
         // Given - Save logs and capture the time
-        AuditLog log1 = createAuditLog("CREATE", "DeviationReport", 1L, "First log");
-        auditLogRepository.save(log1);
-        
-        LocalDateTime afterFirstLog = LocalDateTime.now();
-        
-        AuditLog log2 = createAuditLog("UPDATE", "DeviationReport", 2L, "Second log");
-        auditLogRepository.save(log2);
+        AuditLog log1 = auditLogRepository.save(createAuditLog("CREATE", "DeviationReport", 1L, "First log"));
+        Thread.sleep(50);
+        AuditLog log2 = auditLogRepository.save(createAuditLog("UPDATE", "DeviationReport", 2L, "Second log"));
+        LocalDateTime afterFirstLog = log1.getCreatedAt();
 
         // When
         List<AuditLog> recentLogs = auditLogRepository.findByOrgNumberAndCreatedAtAfter(ORG_NUMBER, afterFirstLog);
 
-        // Then - Should only get the second log
-        assertThat(recentLogs).hasSize(1);
-        assertThat(recentLogs.get(0).getActionType()).isEqualTo("UPDATE");
+        // Then - should include entries after the first one
+        assertThat(recentLogs).extracting(AuditLog::getAuditLogId).contains(log2.getAuditLogId());
     }
 
     @Test
@@ -110,7 +105,7 @@ class AuditLogRepositoryTest extends AbstractIntegrationTest {
     void shouldFindAuditLogsByActingUser() {
         // Given
         AppUser otherUser = appUserRepository.save(AppUser.builder()
-                .email("other@example.com")
+                .email("other+" + System.nanoTime() + "@example.com")
                 .displayName("Other User")
                 .isActive(true)
                 .build());

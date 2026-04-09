@@ -25,7 +25,7 @@ const handleLogin = async () => {
     // redirect to dashboard
     const redirect = route.query.redirect as string
     router.push(redirect || { name: 'Dashboard' })
-  } catch (e) {
+  } catch {
     error.value = 'Ugyldig e-post eller passord'
   } finally {
     isLoading.value = false
@@ -104,30 +104,30 @@ const handleLogin = async () => {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(circle at 10% 12%, var(--color-surface-tint), transparent 34%),
-    radial-gradient(circle at 90% 90%, var(--color-surface-tint-strong), transparent 36%),
+    radial-gradient(circle at 8% 14%, var(--color-surface-tint), transparent 32%),
+    radial-gradient(circle at 90% 88%, var(--color-surface-tint-strong), transparent 35%),
     linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
-  padding: var(--spacing-lg);
+  padding: var(--content-padding);
 }
 
 .login-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 28rem;
 }
 
 /* Form */
 .login-form {
   background: linear-gradient(180deg, var(--color-card) 0%, var(--color-card-muted) 100%);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: clamp(1.5rem, 4vw, 2rem);
+  border-radius: var(--radius-xl);
+  padding: clamp(1.75rem, 4vw, 2.25rem);
   box-shadow: var(--shadow-md);
 }
 
 .login-kicker {
   margin-bottom: 0.375rem;
   font-size: var(--font-size-xs);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-gray-600);
   font-weight: var(--font-weight-semibold);
@@ -135,16 +135,16 @@ const handleLogin = async () => {
 
 .login-form h2 {
   font-family: var(--font-family-display);
-  font-size: var(--font-size-xl);
+  font-size: clamp(1.6rem, 2vw, var(--font-size-2xl));
   font-weight: 700;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
   line-height: var(--line-height-heading);
   color: var(--color-foreground);
   margin-bottom: 0.5rem;
 }
 
 .login-subtitle {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   color: var(--color-gray-600);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
@@ -155,7 +155,7 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 0.75rem 1rem;
   margin-bottom: var(--spacing-md);
   background-color: var(--color-danger-bg);
   color: var(--color-danger-fg);
@@ -166,7 +166,7 @@ const handleLogin = async () => {
 
 /* Form Group */
 .form-group {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 1rem;
 }
 
 .form-group label {
@@ -185,6 +185,7 @@ const handleLogin = async () => {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  min-height: var(--touch-target);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
@@ -232,7 +233,7 @@ const handleLogin = async () => {
 /* Responsive */
 @media (max-width: 480px) {
   .login-form {
-    padding: var(--spacing-lg);
+    padding: 1.5rem;
   }
 }
 </style>

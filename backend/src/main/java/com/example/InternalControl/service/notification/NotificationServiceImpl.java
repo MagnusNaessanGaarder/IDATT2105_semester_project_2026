@@ -20,9 +20,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Implementation of NotificationService.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j

@@ -18,7 +18,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Implementation of AuditLogService.
+ * @author TriTacLe
+ * @since 1.0
  */
 @Service
 @RequiredArgsConstructor

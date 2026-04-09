@@ -65,15 +65,17 @@ const handleClick = () => {
   font-weight: var(--font-weight-semibold);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
+  min-height: var(--touch-target);
   cursor: pointer;
   transform: translateY(0);
-  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 
 .base-button--primary {
   background: var(--color-primary);
   color: var(--color-primary-foreground);
   box-shadow: var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--color-primary) 40%, black);
 }
 
 .base-button--primary:hover:not(:disabled) {
