@@ -115,7 +115,7 @@ public class ExportServiceImpl implements ExportService {
       throw new IllegalStateException("Export not ready. Status: " + job.getStatus());
     }
 
-    if (job.getResultDocument() == null) {
+    if (job.getResultDocumentId() == null) {
       throw new IllegalStateException("Export file not available");
     }
 

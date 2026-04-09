@@ -49,12 +49,12 @@ public class OrganizationSettingsController {
         return ResponseEntity.ok(settingsService.getSettings(orgNumber));
     }
 
-    @Operation(summary = "Update organization settings (Admin only)")
+    @Operation(summary = "Update organization settings (Admin/Manager only)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Settings updated successfully"),
         @ApiResponse(responseCode = "400", description = "Bad request"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden - Admin only"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - Admin/Manager only"),
         @ApiResponse(responseCode = "404", description = "Settings not found")
     })
     @PutMapping

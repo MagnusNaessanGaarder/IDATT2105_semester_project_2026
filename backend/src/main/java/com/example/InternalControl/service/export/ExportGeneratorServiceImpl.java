@@ -4,10 +4,14 @@ import com.example.InternalControl.model.checklist.ChecklistRun;
 import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.model.export.ExportJob;
+import com.example.InternalControl.model.temperature.TemperatureLogEntry;
+import com.example.InternalControl.model.training.TrainingRecord;
+import com.example.InternalControl.repository.temperature.TemperatureLogEntryRepository;
+import com.example.InternalControl.repository.training.TrainingRecordRepository;
 import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
 import com.example.InternalControl.repository.deviation.DeviationReportRepository;
 import com.example.InternalControl.service.export.generator.PdfGenerator;
-import com.example.InternalControl.shared.enums.ExportType;
+import com.example.InternalControl.model.export.ExportType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -30,6 +34,8 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
   private final ChecklistRunRepository checklistRunRepository;
   private final DeviationReportRepository deviationReportRepository;
   private final ObjectMapper objectMapper;
+  private final TemperatureLogEntryRepository temperatureLogEntryRepository;
+  private final TrainingRecordRepository trainingRecordRepository;
 
   @Override
   public byte[] generateExport(ExportJob job) {
@@ -81,10 +87,10 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
     List<ChecklistRun> runs;
 
     if (params.dateFrom() != null && params.dateTo() != null) {
-      runs = checklistRunRepository.findByOrgNumberAndRunDateBetween(
+      runs = checklistRunRepository.findByOrgNumberAndRunDateBetweenWithTemplate(
           job.getOrgNumber(), params.dateFrom(), params.dateTo());
     } else {
-      runs = checklistRunRepository.findByOrgNumber(job.getOrgNumber());
+      runs = checklistRunRepository.findByOrgNumberWithTemplate(job.getOrgNumber());
     }
 
     log.info("Found {} checklist runs for PDF export", runs.size());
@@ -143,13 +149,36 @@ public class ExportGeneratorServiceImpl implements ExportGeneratorService {
         data.put("deviationReports", reports);
         data.put("totalReports", reports.size());
       }
-      case FULL_COMPLIANCE_REPORT, AUDIT_REPORT, TEMPERATURE_REPORT, TRAINING_REPORT -> {
-        List<ChecklistRun> runs = checklistRunRepository.findByOrgNumber(job.getOrgNumber());
+      case TEMPERATURE_REPORT -> {
+        List<TemperatureLogEntry> entries = temperatureLogEntryRepository
+                .findByOrgNumberWithLogPointOrderByMeasuredAtDesc(job.getOrgNumber());
+        long alertCount = entries.stream().filter(e -> Boolean.TRUE.equals(e.getIsAlert())).count();
+        data.put("temperatureLogs", entries);
+        data.put("totalRecords", entries.size());
+        data.put("totalAlerts", alertCount);
+      }
+      case TRAINING_REPORT -> {
+        List<TrainingRecord> records = trainingRecordRepository
+                .findByOrgNumber(job.getOrgNumber());
+        data.put("trainingRecords", records);
+        data.put("totalRecords", records.size());
+      }
+      case FULL_COMPLIANCE_REPORT, AUDIT_REPORT -> {
+        List<ChecklistRun> runs = checklistRunRepository.findByOrgNumberWithTemplate(job.getOrgNumber());
         List<DeviationReport> reports = deviationReportRepository.findByOrgNumber(job.getOrgNumber());
+        List<TemperatureLogEntry> entries = temperatureLogEntryRepository
+                .findByOrgNumberOrderByMeasuredAtDesc(job.getOrgNumber());
+        long alertCount = entries.stream().filter(e -> Boolean.TRUE.equals(e.getIsAlert())).count();
+        List<TrainingRecord> records = trainingRecordRepository.findByOrgNumber(job.getOrgNumber());
         data.put("checklistRuns", runs);
         data.put("deviationReports", reports);
+        data.put("temperatureLogs", entries);
+        data.put("trainingRecords", records);
         data.put("totalRuns", runs.size());
         data.put("totalReports", reports.size());
+        data.put("totalRecords", entries.size());
+        data.put("alertCount", alertCount);
+        entries.stream().filter(e -> Boolean.TRUE.equals(e.getIsAlert())).count();
       }
     }
 

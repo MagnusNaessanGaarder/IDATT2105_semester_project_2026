@@ -1,6 +1,9 @@
 package com.example.InternalControl.service.temperature;
 
-import com.example.InternalControl.dto.temperature.*;
+import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRequest;
+import com.example.InternalControl.dto.temperature.request.TemperatureLogEntryRequest;
+import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
+import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

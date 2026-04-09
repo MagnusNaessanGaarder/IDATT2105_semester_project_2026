@@ -1,36 +1,27 @@
 package com.example.InternalControl.model.training;
 
-import java.time.LocalDateTime;
-
+import com.example.InternalControl.model.document.OrganizationDocument;
+import com.example.InternalControl.model.user.AppUser;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.time.LocalDateTime;
 
+/**
+ * JPA Entity mapping to training_record table.
+ * Tracks employee training and certifications.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
+@Entity
+@Table(name = "training_record")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@AllArgsConstructor
 @Builder
-@Table(name = "training_record", indexes = {
-    @Index(name = "ix_training_org", columnList = "org_number"),
-    @Index(name = "ix_training_user", columnList = "user_id"),
-    @Index(name = "ix_training_status", columnList = "org_number, status"),
-    @Index(name = "ix_training_expires", columnList = "expires_at")
-})
 public class TrainingRecord {
 
     @Id
@@ -38,14 +29,15 @@ public class TrainingRecord {
     @Column(name = "training_record_id")
     private Long trainingRecordId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private AppUser user;
 
     @Column(name = "org_number", nullable = false)
     private Integer orgNumber;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "training_type", nullable = false)
+    @Enumerated(EnumType.STRING)
     private TrainingType trainingType;
 
     @Column(name = "title", nullable = false)
@@ -57,13 +49,14 @@ public class TrainingRecord {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
     @Builder.Default
     private TrainingStatus status = TrainingStatus.ASSIGNED;
 
-    @Column(name = "certificate_document_id")
-    private Long certificateDocumentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "certificate_document_id")
+    private OrganizationDocument certificateDocument;
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;

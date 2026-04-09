@@ -171,6 +171,15 @@ client.interceptors.response.use(
       }
 
       try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'}/auth/refresh`,
+          { refreshToken }
+        )
+
+        const { accessToken, refreshToken: newRefreshToken } = response.data
+
+        sessionStorage.setItem('accessToken', accessToken)
+        sessionStorage.setItem('refreshToken', newRefreshToken)
         originalRequest.headers.Authorization = `Bearer ${accessToken}`
         processQueue(null, accessToken)
 

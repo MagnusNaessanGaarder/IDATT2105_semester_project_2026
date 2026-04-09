@@ -56,4 +56,25 @@ public class UserOrganizationRole {
     @CreationTimestamp
     @Column(name = "assigned_at", nullable = false, updatable = false)
     private LocalDateTime assignedAt;
+
+    /**
+     * Helper method to get the role ID from the composite key.
+     */
+    public Long getRoleId() {
+        return id != null ? id.getRoleId() : null;
+    }
+
+    /**
+     * Helper method to get the user ID from the composite key.
+     */
+    public Long getUserId() {
+        return id != null ? id.getUserId() : null;
+    }
+
+    /**
+     * Helper method to get the org number from the composite key.
+     */
+    public Integer getOrgNumber() {
+        return id != null ? id.getOrgNumber() : null;
+    }
 }

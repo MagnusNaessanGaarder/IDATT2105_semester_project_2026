@@ -35,12 +35,13 @@ SELECT user_id, 937219997, 1, NOW()
 FROM app_user;
 
 -- Role assignments
+-- manager@everest-sushi.no gets both MANAGER and KITCHEN_MANAGER roles
 INSERT INTO user_organization_role (user_id, org_number, role_id, assigned_at, assigned_by_user_id)
 SELECT u.user_id, 937219997, r.role_id, NOW(), u.user_id
 FROM app_user u
 CROSS JOIN role r
 WHERE (u.email = 'admin@everest-sushi.no' AND r.role_name = 'ADMIN')
-   OR (u.email = 'manager@everest-sushi.no' AND r.role_name = 'KITCHEN_MANAGER')
+   OR (u.email = 'manager@everest-sushi.no' AND r.role_name IN ('MANAGER', 'KITCHEN_MANAGER'))
    OR (u.email = 'anine@personligmail.com' AND r.role_name = 'COOK')
    OR (u.email = 'harald@oersonligmail.no' AND r.role_name = 'BARTENDER')
    OR (u.email = 'surya@personligmai.com' AND r.role_name = 'WAITER');

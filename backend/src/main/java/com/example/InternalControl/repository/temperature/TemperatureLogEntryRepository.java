@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,5 +26,8 @@ public interface TemperatureLogEntryRepository extends JpaRepository<Temperature
   Page<TemperatureLogEntry> findByOrgNumberOrderByMeasuredAtDesc(Integer orgNumber, Pageable pageable);
 
   Optional<TemperatureLogEntry> findByEntryIdAndOrgNumber(Long entryId, Integer orgNumber);
+
+  @Query("SELECT e FROM TemperatureLogEntry e LEFT JOIN FETCH e.logPoint WHERE e.orgNumber = :orgNumber ORDER BY e.measuredAt DESC")
+  List<TemperatureLogEntry> findByOrgNumberWithLogPointOrderByMeasuredAtDesc(@Param("orgNumber") Integer orgNumber);
 
 }

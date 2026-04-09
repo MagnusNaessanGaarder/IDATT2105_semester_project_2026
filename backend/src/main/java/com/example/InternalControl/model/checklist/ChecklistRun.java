@@ -1,6 +1,7 @@
 package com.example.InternalControl.model.checklist;
 
 import com.example.InternalControl.model.enums.RunStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,6 +31,7 @@ public class ChecklistRun {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "template_id", nullable = false)
+    @JsonIgnore
     private ChecklistTemplate template;
 
     @Column(name = "org_number", nullable = false)
@@ -69,15 +71,16 @@ public class ChecklistRun {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "run", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "run", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
+    @JsonIgnore
     private List<ChecklistRunItem> items = new ArrayList<>();
 
     /**
      * Checks if this run can be edited.
      */
     public boolean isEditable() {
-        return status == RunStatus.DRAFT || status == RunStatus.IN_PROGRESS;
+        return status == RunStatus.DRAFT || status == RunStatus.IN_PROGRESS || status == RunStatus.OVERDUE;
     }
 
     /**

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 public class OrganizationSettingsResponse {
 
-    private long orgNumber;
+    private int orgNumber;
     private String timezoneName;
     private String localeCode;
     private boolean enableFoodModule;
@@ -19,8 +19,8 @@ public class OrganizationSettingsResponse {
     private BigDecimal defaultTempMaxC;
     private boolean reminderEmailEnabled;
     private String notificationEmail;
-    private Long retentionUserMonths;
-    private Long retentionAuditMonths;
+    private Integer retentionUserMonths;
+    private Integer retentionAuditMonths;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

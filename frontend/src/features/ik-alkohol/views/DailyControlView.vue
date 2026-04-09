@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useAlkoholData } from '../composables/useAlkoholData'
 import { useAuthStore } from '@/stores/auth'
+import { completeRun } from '../api/checklistsRun'
 import ControllItem from '../components/ControllItem.vue'
 import ControlProgressCard from '../components/ControlProgressCard.vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
@@ -10,7 +11,7 @@ import type { DailyControlItem } from '../composables/useAlkoholData'
 const { dailyControls } = useAlkoholData()
 const authStore = useAuthStore()
 
-const controls = ref(dailyControls.map((item) => ({ ...item })))
+const controls = ref<DailyControlItem[]>([])
 const filter = ref<'all' | 'checked' | 'pending'>('all')
 const isAdmin = computed(() => authStore.isAdmin)
 
@@ -31,21 +32,43 @@ const formState = ref({
   attachment: '',
   is_checked: false,
 })
+const isSubmittingRunId = ref<number | null>(null)
 
 const completed = computed(() => controls.value.filter((item) => item.is_checked).length)
 const total = computed(() => controls.value.length)
 
-const toggleControl = (id: number) => {
-  controls.value = controls.value.map((item) => {
-    if (item.id !== id) {
-      return item
-    }
+const toggleControl = async (id: number) => {
+  const selected = controls.value.find((item) => item.id === id)
+  const orgNumber = authStore.currentOrg?.orgNumber
 
-    return {
-      ...item,
-      is_checked: !item.is_checked,
-    }
-  })
+  if (
+    !selected?.run_id ||
+    !orgNumber ||
+    selected.is_checked ||
+    selected.run_status === 'COMPLETED' ||
+    isSubmittingRunId.value === selected.run_id
+  ) {
+    return
+  }
+
+  isSubmittingRunId.value = selected.run_id
+
+  try {
+    await completeRun(selected.run_id, orgNumber)
+    controls.value = controls.value.map((item) =>
+      item.run_id === selected.run_id
+        ? {
+            ...item,
+            run_status: 'COMPLETED',
+            is_checked: true,
+          }
+        : item,
+    )
+  } catch (error) {
+    console.error('Failed to complete checklist run', error)
+  } finally {
+    isSubmittingRunId.value = null
+  }
 }
 
 const openDetails = (id: number) => {
@@ -123,6 +146,8 @@ const saveControlItem = () => {
     const nextId = controls.value.length > 0 ? Math.max(...controls.value.map((item) => item.id)) + 1 : 1
     controls.value.push({
       id: nextId,
+      run_id: null,
+      run_status: null,
       name: formState.value.name.trim(),
       law_unit: formState.value.law_unit.trim(),
       employee: formState.value.employee.trim() || 'Ukjent',
@@ -192,6 +217,14 @@ const filteredControls = computed(() => {
 
   return controls.value
 })
+
+watch(
+  dailyControls,
+  (items) => {
+    controls.value = items.map((item) => ({ ...item }))
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

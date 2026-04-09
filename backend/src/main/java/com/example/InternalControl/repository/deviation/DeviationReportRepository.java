@@ -30,7 +30,7 @@ public interface DeviationReportRepository extends JpaRepository<DeviationReport
 
     boolean existsByReportIdAndOrgNumber(Long reportId, Integer orgNumber);
 
-    @Query("SELECT COUNT(d) FROM DeviationReport d WHERE d.orgNumber = :orgNumber AND d.status != 'closed'")
+    @Query("SELECT COUNT(d) FROM DeviationReport d WHERE d.orgNumber = :orgNumber AND d.status != com.example.InternalControl.model.enums.DeviationStatus.CLOSED")
     Long countOpenByOrgNumber(@Param("orgNumber") Integer orgNumber);
 
     @Query("SELECT d FROM DeviationReport d WHERE d.orgNumber = :orgNumber " +

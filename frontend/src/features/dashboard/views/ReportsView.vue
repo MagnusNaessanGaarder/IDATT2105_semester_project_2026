@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useFellesData } from '../composables/useFellesData'
 
 const data = useFellesData()
+const router = useRouter()
 
 const tabs = ['all', 'monthly', 'deviation', 'haccp'] as const
 const activeTab = ref<(typeof tabs)[number]>('all')
@@ -13,9 +15,9 @@ const filteredReports = computed(() => {
     const matchesTab = activeTab.value === 'all' || report.type === activeTab.value
     const search = query.value.trim().toLowerCase()
     const matchesSearch =
-      search.length === 0 ||
-      report.title.toLowerCase().includes(search) ||
-      report.created_by.toLowerCase().includes(search)
+        search.length === 0 ||
+        report.title.toLowerCase().includes(search) ||
+        report.created_by.toLowerCase().includes(search)
 
     return matchesTab && matchesSearch
   })
@@ -45,7 +47,7 @@ const tabLabel = (tab: (typeof tabs)[number]): string => {
         <p class="subtitle">Månedlige kontroller og avviksrapporter samlet på ett sted</p>
       </div>
       <div class="header-actions">
-        <button type="button" class="header-btn header-btn--ghost">Eksporter</button>
+        <button type="button" class="header-btn header-btn--ghost" @click="router.push({ name: 'Export' })">Eksporter</button>
         <button type="button" class="header-btn">Generer rapport</button>
       </div>
     </header>
@@ -72,12 +74,12 @@ const tabLabel = (tab: (typeof tabs)[number]): string => {
     <section class="reports-toolbar" aria-label="Filtrering">
       <div class="tab-list" role="tablist" aria-label="Rapporttyper">
         <button
-          v-for="tab in tabs"
-          :key="tab"
-          type="button"
-          class="tab"
-          :class="{ 'tab--active': activeTab === tab }"
-          @click="activeTab = tab"
+            v-for="tab in tabs"
+            :key="tab"
+            type="button"
+            class="tab"
+            :class="{ 'tab--active': activeTab === tab }"
+            @click="activeTab = tab"
         >
           {{ tabLabel(tab) }}
         </button>

@@ -74,20 +74,20 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
     @Override
     @Transactional(readOnly = true)
     public ChecklistRun getRun(Long runId, Integer orgNumber) {
-        return runRepository.findByRunIdAndOrgNumber(runId, orgNumber)
+        return runRepository.findByRunIdAndOrgNumberWithDetails(runId, orgNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Run not found: " + runId));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ChecklistRun> getRunsByOrg(Integer orgNumber) {
-        return runRepository.findByOrgNumber(orgNumber);
+        return runRepository.findByOrgNumberWithDetails(orgNumber);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ChecklistRun> getRunsByStatus(Integer orgNumber, RunStatus status) {
-        return runRepository.findByOrgNumberAndStatus(orgNumber, status);
+        return runRepository.findByOrgNumberAndStatusWithDetails(orgNumber, status);
     }
 
     @Override

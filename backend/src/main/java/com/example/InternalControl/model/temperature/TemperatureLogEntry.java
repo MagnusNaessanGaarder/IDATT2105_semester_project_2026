@@ -2,6 +2,7 @@ package com.example.InternalControl.model.temperature;
 
 import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.model.user.AppUser;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -51,9 +52,11 @@ public class TemperatureLogEntry {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "log_point_id", insertable = false, updatable = false)
+  @JsonIgnore
   private TemperatureLogPoint logPoint;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "recorded_by_user_id", insertable = false, updatable = false)
+  @JsonIgnore
   private AppUser recordedBy;
 }

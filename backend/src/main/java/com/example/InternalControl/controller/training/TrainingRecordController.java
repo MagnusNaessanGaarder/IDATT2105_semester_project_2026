@@ -173,14 +173,15 @@ public class TrainingRecordController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Complete training record")
+    @Operation(summary = "Complete training record (Admin/Manager only)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Training record marked as completed"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - Admin/Manager only"),
         @ApiResponse(responseCode = "404", description = "Training record not found")
     })
     @PostMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainingRecord> completeTrainingRecord(
             @PathVariable Long id,
             @RequestParam(required = false) Long certificateDocumentId,

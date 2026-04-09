@@ -25,7 +25,7 @@ public class OpenApiConfig {
             .title("IK-Kontroll API")
             .version("1.0")
             .description("API for restaurant internkontroll system. " +
-                "Authentication with JWT. Test users: admin@everest-sushi.no / Test1234!")
+                "Authentication with JWT. See README.md for test user information.")
             .contact(new Contact()
                 .name("IDATT2105 Frivillig prosjekt 2026")
                 .email("trile@stud.ntnu.no")))

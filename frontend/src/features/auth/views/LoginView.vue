@@ -112,7 +112,7 @@ const handleLogin = async () => {
 
 .login-container {
   width: 100%;
-  max-width: 26rem;
+  max-width: 400px;
 }
 
 /* Form */

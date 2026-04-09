@@ -6,7 +6,6 @@ import com.example.InternalControl.dto.checklist.response.ChecklistRunItemRespon
 import com.example.InternalControl.dto.checklist.response.ChecklistRunResponse;
 import com.example.InternalControl.model.checklist.ChecklistRun;
 import com.example.InternalControl.model.checklist.ChecklistRunItem;
-import com.example.InternalControl.model.checklist.ChecklistTemplateItem;
 import com.example.InternalControl.model.enums.RunStatus;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistRunService;
@@ -50,6 +49,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Get all runs for organization")
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
     public ResponseEntity<List<ChecklistRunResponse>> getRuns(
             @RequestParam Integer orgNumber,
             @RequestParam(required = false) RunStatus status,
@@ -71,6 +71,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Get run by ID")
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
     public ResponseEntity<ChecklistRunResponse> getRun(
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
@@ -110,6 +111,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Complete a run")
     @PutMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
     public ResponseEntity<ChecklistRunResponse> completeRun(
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
@@ -123,6 +125,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Update run item (answer question)")
     @PutMapping("/{runId}/items/{itemId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
     public ResponseEntity<ChecklistRunItemResponse> updateRunItem(
             @PathVariable Long runId,
             @PathVariable Long itemId,
@@ -147,6 +150,7 @@ public class ChecklistRunController {
 
     @Operation(summary = "Get all items for a run")
     @GetMapping("/{id}/items")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
     public ResponseEntity<List<ChecklistRunItemResponse>> getRunItems(
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
@@ -183,20 +187,11 @@ public class ChecklistRunController {
     }
 
     private ChecklistRunItemResponse mapToItemResponse(ChecklistRunItem item) {
-        String templateItemLabel = null;
-        if (item.getRun() != null && item.getRun().getTemplate() != null) {
-            templateItemLabel = item.getRun().getTemplate().getItems().stream()
-                    .filter(templateItem -> templateItem.getItemId().equals(item.getTemplateItemId()))
-                    .findFirst()
-                    .map(ChecklistTemplateItem::getLabel)
-                    .orElse(null);
-        }
-
         return ChecklistRunItemResponse.builder()
                 .runItemId(item.getRunItemId())
                 .runId(item.getRun() != null ? item.getRun().getRunId() : null)
                 .templateItemId(item.getTemplateItemId())
-                .templateItemLabel(templateItemLabel)
+                .templateItemLabel(null)
                 .booleanValue(item.getBooleanValue())
                 .textValue(item.getTextValue())
                 .numericValue(item.getNumericValue())

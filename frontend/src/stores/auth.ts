@@ -76,7 +76,7 @@ export const useAuthStore = defineStore('auth', () => {
         email: userData.email,
         password: userData.password,
         fullName: userData.fullName || userData.email.split('@')[0] || 'User',
-        phone: undefined
+        phone: undefined,
       })
       setAuthData(response)
       return response
@@ -155,7 +155,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!payload) return null
 
       const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
-      const padding = '='.repeat((4 - base64.length % 4) % 4)
+      const padding = '='.repeat((4 - (base64.length % 4)) % 4)
       const decoded = atob(base64 + padding)
 
       return JSON.parse(decoded) as JwtPayload
