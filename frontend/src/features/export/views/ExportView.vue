@@ -1,13 +1,30 @@
 <script setup lang="ts">
+/**
+ * Export View
+ * 
+ * Main export generation interface allowing users to:
+ * - Select export type (compliance report, audit log, checklist report, etc.)
+ * - Choose format (PDF or JSON)
+ * - Filter by date range
+ * - Monitor job status with polling
+ * - Download completed exports
+ * 
+ * @remarks
+ * All export logic is in the shared useExport composable (dashboard feature).
+ * Export and ExportView are both consumers of the same job system.
+ */
+
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+// ─ Composables ─────────────────────────────────────────────────────────────
 import {
   useExport,
   exportTypeLabels,
   exportFormatLabels,
   exportStatusLabels,
   exportStatusTone,
-} from '../composables/useExport.ts'
-import type { ExportType, ExportFormat } from '../api.ts'
+} from '../../dashboard/composables/useExport'
+import type { ExportType, ExportFormat } from '../../dashboard/types/index'
 
 const {
   exports,

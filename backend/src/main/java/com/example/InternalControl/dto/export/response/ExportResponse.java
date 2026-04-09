@@ -2,7 +2,7 @@ package com.example.InternalControl.dto.export.response;
 
 import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.model.export.ExportStatus;
-import com.example.InternalControl.model.export.ExportType;
+import com.example.InternalControl.shared.enums.ExportType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;

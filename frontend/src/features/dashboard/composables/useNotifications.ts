@@ -7,6 +7,7 @@ import {
     relatedEntityRoute,
     type AppNotification,
 } from '../api/notifications'
+import type { ApiErrorResponse } from '../types/index'
 
 export function useNotifications() {
     const authStore = useAuthStore()
@@ -30,8 +31,9 @@ export function useNotifications() {
                 if (a.isRead !== b.isRead) return a.isRead ? 1 : -1
                 return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             })
-        } catch (e: any) {
-            error.value = e.response?.data?.message ?? 'Kunne ikke laste varsler'
+        } catch (e: unknown) {
+            const apiError = e as ApiErrorResponse
+            error.value = apiError.response?.data?.message ?? 'Kunne ikke laste varsler'
         } finally {
             isLoading.value = false
         }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { toRef } from 'vue'
 import type { Deviation } from '../types'
+import { useDeviationCardState } from '../composables/useDeviationCardState'
 
 const props = defineProps<{
   deviation: Deviation
@@ -10,26 +11,7 @@ const emit = defineEmits<{
   view: []
 }>()
 
-const severityLabel = computed(() => {
-  const { severity } = props.deviation
-  if (severity === 'high') return 'Høy'
-  if (severity === 'medium') return 'Medium'
-  return 'Lav'
-})
-
-const statusLabel = computed(() => {
-  const { status } = props.deviation
-  if (status === 'resolved') return 'Løst'
-  if (status === 'in-progress') return 'Under behandling'
-  return 'Åpent'
-})
-
-const statusIcon = computed(() => {
-  const { status } = props.deviation
-  if (status === 'resolved') return '✓'
-  if (status === 'in-progress') return '⟳'
-  return '!'
-})
+const { severityLabel, statusLabel, statusIcon } = useDeviationCardState(toRef(props, 'deviation'))
 </script>
 
 <template>

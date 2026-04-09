@@ -2,7 +2,6 @@ package com.example.InternalControl.service.export;
 
 import com.example.InternalControl.model.checklist.ChecklistRun;
 import com.example.InternalControl.model.deviation.DeviationReport;
-import com.example.InternalControl.model.export.ExportFormat;
 import com.example.InternalControl.model.export.ExportJob;
 import com.example.InternalControl.model.temperature.TemperatureLogEntry;
 import com.example.InternalControl.model.training.TrainingRecord;
@@ -11,7 +10,7 @@ import com.example.InternalControl.repository.training.TrainingRecordRepository;
 import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
 import com.example.InternalControl.repository.deviation.DeviationReportRepository;
 import com.example.InternalControl.service.export.generator.PdfGenerator;
-import com.example.InternalControl.model.export.ExportType;
+import com.example.InternalControl.shared.enums.ExportType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

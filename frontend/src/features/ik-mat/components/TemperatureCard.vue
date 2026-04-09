@@ -1,29 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { toRef } from 'vue'
 import type { TemperatureRecord } from '../types'
+import { useTemperatureCardState } from '../composables/useTemperatureCardState'
 
-  const props = defineProps<{
-    record: TemperatureRecord
-  }>()
+const props = defineProps<{
+  record: TemperatureRecord
+}>()
 
-  const statusLabel = computed(() => {
-    const { status } = props.record
-    if (status === 'critical') return 'Kritisk'
-    if (status === 'warning') return 'Advarsel'
-    return 'OK'
-})
-
-const statusIcon = computed(() => {
-  const { status } = props.record
-  if (status === 'critical') return '⚠️'
-  if (status === 'warning') return '⚡'
-  return '✓'
-})
-
-const isWithinRange = computed(() => {
-  const { temperature_c, min_temp, max_temp } = props.record
-  return temperature_c >= min_temp && temperature_c <= max_temp
-})
+const { statusLabel, statusIcon, isWithinRange } = useTemperatureCardState(toRef(props, 'record'))
 </script>
 
 <template>

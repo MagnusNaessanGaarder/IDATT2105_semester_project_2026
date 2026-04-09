@@ -14,13 +14,14 @@ services:
     # Hvis du IKKE bruker VPN
     #   - La 'ports:' seksjonen være som den er (aktiv)
     #   - La 'network_mode: host' være kommentert ut
-
-    # VPN-modus
-    network_mode: host
-
-    # ports:
-    #   - "3306:3306"
-
+    
+    # VPN-modus 
+    # network_mode: host
+    
+    # Standard-modus (default):
+    ports:
+      - '3306:3306'
+    
     volumes:
       - mysql-dev-data:/var/lib/mysql
     healthcheck:

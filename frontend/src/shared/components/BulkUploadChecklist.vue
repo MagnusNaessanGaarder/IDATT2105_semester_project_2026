@@ -13,7 +13,7 @@
 -->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import * as XLSX from 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm'
+import * as XLSX from 'xlsx'
 
 type Frequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM'
 type ModuleType = 'FOOD' | 'ALCOHOL'
@@ -115,6 +115,9 @@ function validateItems(parsed: ChecklistItem[]): string | null {
 
   for (let i = 0; i < parsed.length; i++) {
     const item = parsed[i]
+    if (!item) {
+      return `Rad ${i + 1}: mangler data`
+    }
     if (!item.label) return `Rad ${i + 1}: «label» mangler`
     if (!VALID_ITEM_TYPES.includes(item.itemType)) {
       return `Rad ${i + 1}: ugyldig itemType «${item.itemType}». Gyldige: ${VALID_ITEM_TYPES.join(', ')}`
@@ -135,8 +138,10 @@ function parseJSON(text: string): ChecklistItem[] {
 function parseCSV(text: string): ChecklistItem[] {
   const lines = text.trim().split('\n')
   if (lines.length < 2) throw new Error('CSV mangler innhold')
+  const firstLine = lines[0]
+  if (!firstLine) throw new Error('CSV mangler header')
 
-  const headers = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''))
+  const headers = firstLine.split(',').map((h) => h.trim().replace(/^"|"$/g, ''))
   return lines.slice(1).map((line, i) => {
     const values = line.split(',').map((v) => v.trim().replace(/^"|"$/g, ''))
     const row: Record<string, unknown> = {}
@@ -147,7 +152,14 @@ function parseCSV(text: string): ChecklistItem[] {
 
 function parseXLSX(buffer: ArrayBuffer): ChecklistItem[] {
   const wb = XLSX.read(buffer, { type: 'array' })
-  const ws = wb.Sheets[wb.SheetNames[0]]
+  const firstSheetName = wb.SheetNames[0]
+  if (!firstSheetName) {
+    return []
+  }
+  const ws = wb.Sheets[firstSheetName]
+  if (!ws) {
+    return []
+  }
   const rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(ws, { defval: '' })
   return rows.map((r, i) => normalizeItem(r, i))
 }

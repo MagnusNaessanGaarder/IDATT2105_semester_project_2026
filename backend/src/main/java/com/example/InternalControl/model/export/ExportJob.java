@@ -1,6 +1,7 @@
 package com.example.InternalControl.model.export;
 
 import com.example.InternalControl.model.document.OrganizationDocument;
+import com.example.InternalControl.shared.enums.ExportType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -64,4 +65,26 @@ public class ExportJob {
 
   @Column(name = "failure_reason", columnDefinition = "TEXT")
   private String failureReason;
+
+  public void setExportType(ExportType exportType) {
+    this.exportType = exportType;
+  }
+
+  public void setExportType(com.example.InternalControl.model.export.ExportType exportType) {
+    this.exportType = exportType != null ? ExportType.valueOf(exportType.name()) : null;
+  }
+
+  public static class ExportJobBuilder {
+    public ExportJobBuilder exportType(ExportType exportType) {
+      this.exportType = exportType;
+      return this;
+    }
+
+    public ExportJobBuilder exportType(com.example.InternalControl.model.export.ExportType exportType) {
+      this.exportType = exportType != null
+          ? ExportType.valueOf(exportType.name())
+          : null;
+      return this;
+    }
+  }
 }

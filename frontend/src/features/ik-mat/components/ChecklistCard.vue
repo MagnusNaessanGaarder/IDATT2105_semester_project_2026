@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { toRef } from 'vue'
 import type { Checklist } from '../types'
+import { useChecklistCardState } from '../composables/useChecklistCardState'
 
 const props = defineProps<{
   checklist: Checklist
@@ -11,24 +12,7 @@ const emit = defineEmits<{
   edit: []
 }>()
 
-const completedCount = computed(() => {
-  return props.checklist.items.filter(item => item.completed).length
-})
-
-const totalCount = computed(() => {
-  return props.checklist.items.length
-})
-
-const completionPercentage = computed(() => {
-  if (totalCount.value === 0) return 0
-  return Math.round((completedCount.value / totalCount.value) * 100)
-})
-
-const statusColor = computed(() => {
-  if (props.checklist.status === 'completed') return 'success'
-  if (props.checklist.status === 'pending') return 'warning'
-  return 'danger'
-})
+const { completedCount, totalCount, completionPercentage, statusColor } = useChecklistCardState(toRef(props, 'checklist'))
 </script>
 
 <template>

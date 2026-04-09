@@ -1,7 +1,7 @@
 package com.example.InternalControl.controller.auth;
 
 import com.example.InternalControl.dto.auth.request.LoginRequest;
-import com.example.InternalControl.dto.auth.request.RefreshTokenRequest;
+import com.example.InternalControl.dto.RefreshTokenRequest;
 import com.example.InternalControl.dto.auth.request.RegisterRequest;
 import com.example.InternalControl.dto.auth.response.AuthResponse;
 import com.example.InternalControl.service.auth.AuthService;

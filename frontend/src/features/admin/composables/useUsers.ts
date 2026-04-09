@@ -7,6 +7,16 @@ import { useApi } from '@/shared/composables/useApi'
 import * as usersApi from '../api/users'
 import type { User, UserCreateRequest, UserUpdateRequest } from '../api/users'
 
+type ApiErrorResponse = {
+  response?: {
+    data?: {
+      message?: string
+      error?: string
+    }
+  }
+  message?: string
+}
+
 export type { User, UserCreateRequest, UserUpdateRequest }
 
 export function useUsers() {
@@ -30,8 +40,9 @@ export function useUsers() {
     try {
       const data = await usersApi.getUsers(orgNumber)
       users.value = data
-    } catch (e: any) {
-      error.value = e.response?.data?.message ?? 'Kunne ikke hente brukere'
+    } catch (e: unknown) {
+      const apiError = e as ApiErrorResponse
+      error.value = apiError.response?.data?.message ?? 'Kunne ikke hente brukere'
       throw e
     } finally {
       isLoading.value = false
@@ -82,7 +93,7 @@ export function useUsers() {
     await deleteApi.execute(userId, orgNumber)
     // Remove user from local list or update status
     const index = users.value.findIndex((u) => u.userId === userId)
-    if (index !== -1) {
+    if (index !== -1 && users.value[index]) {
       users.value[index].isActive = false
     }
   }
@@ -111,8 +122,9 @@ export function useUsers() {
    * @returns Role name or 'Unknown'
    */
   function getUserRole(user: User): string {
-    if (user.roles && user.roles.length > 0) {
-      return user.roles[0].roleName
+    const firstRole = user.roles?.[0]
+    if (firstRole) {
+      return firstRole.roleName
     }
     return 'Unknown'
   }
@@ -123,7 +135,7 @@ export function useUsers() {
    * @returns true if admin
    */
   function isAdmin(user: User): boolean {
-    return user.roles.some((r) => r.roleName === 'ADMIN')
+    return user.roles?.some((r) => r.roleName === 'ADMIN') ?? false
   }
 
   /**
@@ -132,7 +144,7 @@ export function useUsers() {
    * @returns true if manager
    */
   function isManager(user: User): boolean {
-    return user.roles.some((r) => r.roleName === 'MANAGER')
+    return user.roles?.some((r) => r.roleName === 'MANAGER') ?? false
   }
 
   /**

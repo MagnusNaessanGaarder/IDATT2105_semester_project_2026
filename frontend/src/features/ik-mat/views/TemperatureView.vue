@@ -1,403 +1,58 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import BaseModal from '@/shared/components/BaseModal.vue'
-import { useAuthStore } from '@/stores/auth'
-import { useIkMatData } from '../composables/useIkMatData'
-
-type PointModalMode = 'add' | 'edit'
-
-interface TemperatureInstance {
-  pointId: number
-  title: string
-  locationId: number
-  locationName: string
-  minTemp: number
-  maxTemp: number
-  latestEntryId: number | null
-  latestTemp: number | null
-  latestRecordedBy: string
-  latestDate: string
-  latestTime: string
-  isAlert: boolean
-}
-
-const router = useRouter()
-const authStore = useAuthStore()
+import { useTemperatureViewState } from '../composables/useTemperatureViewState'
 
 const {
-  temperatureRecords,
-  temperaturePoints,
-  locations,
-  orgUsers,
-  isTemperatureInRange,
-  createTemperaturePointWithLocation,
-  updateTemperaturePointAndLocation,
-  deleteTemperaturePoint,
-  clearTemperatureMeasurementsForPoint,
-  createTemperatureMeasurement,
-  updateTemperatureMeasurement,
+  isMobile,
+  actionError,
+  isSubmitting,
+  desktopMenuPointId,
+  selectedMobileCardId,
+  pointModalOpen,
+  pointModalMode,
+  pointForm,
+  measurementModalOpen,
+  measurementForm,
+  editingMeasurementEntryId,
+  canManage,
+  alerts,
+  okCount,
+  instances,
+  currentMeasurementPoint,
+  selectedLocationLabel,
+  employeeOptions,
   isLoading,
   error,
-} = useIkMatData()
-
-const isMobile = ref(false)
-const actionError = ref<string | null>(null)
-const isSubmitting = ref(false)
-
-const desktopMenuPointId = ref<number | null>(null)
-const selectedMobileCardId = ref<number | null>(null)
-
-const pointModalOpen = ref(false)
-const pointModalMode = ref<PointModalMode>('add')
-const editingPointId = ref<number | null>(null)
-const editingLocationId = ref<number | null>(null)
-const originalRange = ref<{ min: number | null; max: number | null }>({ min: null, max: null })
-const pointForm = reactive({
-  name: '',
-  locationName: '',
-  minTempC: '',
-  maxTempC: '',
-})
-
-const measurementModalOpen = ref(false)
-const measurementPointId = ref<number | null>(null)
-const editingMeasurementEntryId = ref<number | null>(null)
-const measurementForm = reactive({
-  temperatureC: '',
-  measuredDate: '',
-  measuredTime: '',
-  employeeId: null as number | null,
-  employeeName: '',
-})
-
-const canManage = computed(() => authStore.hasRole('ADMIN', 'MANAGER'))
-
-const alerts = computed(() => instances.value.filter((item) => item.isAlert))
-const okCount = computed(() => instances.value.filter((item) => !item.isAlert && item.latestTemp !== null).length)
-
-const locationById = computed(() => {
-  return new Map(locations.map((location) => [location.locationId, location]))
-})
-
-const latestRecordByPoint = computed(() => {
-  const map = new Map<number, (typeof temperatureRecords)[number]>()
-
-  for (const record of temperatureRecords) {
-    if (!map.has(record.log_point_id)) {
-      map.set(record.log_point_id, record)
-    }
-  }
-
-  return map
-})
-
-const instances = computed<TemperatureInstance[]>(() => {
-  return temperaturePoints
-    .filter((point) => point.isActive !== false)
-    .map((point) => {
-      const latest = latestRecordByPoint.value.get(point.logPointId)
-      const location = locationById.value.get(point.locationId)
-
-      const minTemp = Number(location?.tempMinC ?? 0)
-      const maxTemp = Number(location?.tempMaxC ?? 4)
-      const isAlert = latest ? !isTemperatureInRange(latest) : false
-
-      return {
-        pointId: point.logPointId,
-        title: point.name,
-        locationId: point.locationId,
-        locationName: point.locationName ?? location?.name ?? 'Ukjent lokasjon',
-        minTemp,
-        maxTemp,
-        latestEntryId: latest?.id ?? null,
-        latestTemp: latest ? latest.temperature_c : null,
-        latestRecordedBy: latest?.recorded_by ?? '-',
-        latestDate: latest?.recorded_date ?? '-',
-        latestTime: latest?.recorded_time ?? '-',
-        isAlert,
-      }
-    })
-    .sort((a, b) => {
-      if (a.isAlert !== b.isAlert) {
-        return a.isAlert ? -1 : 1
-      }
-      return a.title.localeCompare(b.title, 'nb')
-    })
-})
-
-const currentMeasurementPoint = computed(() => {
-  return instances.value.find((item) => item.pointId === measurementPointId.value) ?? null
-})
-
-const selectedLocationLabel = computed(() => {
-  if (!pointForm.locationName.trim()) {
-    return null
-  }
-  return `${pointForm.locationName.trim()} (${pointForm.minTempC || '-'} til ${pointForm.maxTempC || '-'}°C)`
-})
-
-const employeeOptions = computed(() => {
-  return orgUsers
-    .filter((user) => user.isActive)
-    .map((user) => ({
-      id: user.userId,
-      label: user.displayName || user.email,
-    }))
-})
-
-const updateViewport = () => {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  isMobile.value = window.matchMedia('(max-width: 47.99rem)').matches
-}
-
-const resetPointForm = () => {
-  pointForm.name = ''
-  pointForm.locationName = ''
-  pointForm.minTempC = ''
-  pointForm.maxTempC = ''
-  editingLocationId.value = null
-  originalRange.value = { min: null, max: null }
-}
-
-const openAddPointModal = () => {
-  pointModalMode.value = 'add'
-  editingPointId.value = null
-  resetPointForm()
-  actionError.value = null
-  pointModalOpen.value = true
-}
-
-const openEditPointModal = (pointId: number) => {
-  const point = temperaturePoints.find((item) => item.logPointId === pointId)
-  if (!point) {
-    return
-  }
-  const location = locationById.value.get(point.locationId)
-
-  pointModalMode.value = 'edit'
-  editingPointId.value = pointId
-  pointForm.name = point.name
-  pointForm.locationName = location?.name ?? point.locationName ?? ''
-  pointForm.minTempC = location?.tempMinC != null ? String(location.tempMinC) : ''
-  pointForm.maxTempC = location?.tempMaxC != null ? String(location.tempMaxC) : ''
-  originalRange.value = {
-    min: location?.tempMinC != null ? Number(location.tempMinC) : null,
-    max: location?.tempMaxC != null ? Number(location.tempMaxC) : null,
-  }
-  editingLocationId.value = point.locationId
-  actionError.value = null
-  pointModalOpen.value = true
-  desktopMenuPointId.value = null
-  selectedMobileCardId.value = null
-}
-
-const closePointModal = () => {
-  pointModalOpen.value = false
-}
-
-const savePoint = async () => {
-  const minTemp = Number(pointForm.minTempC)
-  const maxTemp = Number(pointForm.maxTempC)
-
-  if (!canManage.value || !pointForm.name.trim() || !pointForm.locationName.trim()) {
-    return
-  }
-
-  if (!Number.isFinite(minTemp) || !Number.isFinite(maxTemp)) {
-    return
-  }
-
-  actionError.value = null
-  isSubmitting.value = true
-
-  try {
-    const locationPayload = {
-      name: pointForm.locationName.trim(),
-      locationType: 'OTHER' as const,
-      tempMinC: minTemp,
-      tempMaxC: maxTemp,
-      isActive: true,
-    }
-
-    const pointPayload = {
-      name: pointForm.name.trim(),
-      isActive: true,
-    }
-
-    if (pointModalMode.value === 'add') {
-      await createTemperaturePointWithLocation(locationPayload, pointPayload)
-    } else if (editingPointId.value !== null && editingLocationId.value !== null) {
-      const didChangeRange = originalRange.value.min !== minTemp || originalRange.value.max !== maxTemp
-
-      await updateTemperaturePointAndLocation(editingPointId.value, editingLocationId.value, locationPayload, {
-        ...pointPayload,
-        locationId: editingLocationId.value,
-      })
-
-      if (didChangeRange) {
-        await clearTemperatureMeasurementsForPoint(editingPointId.value)
-      }
-    }
-
-    pointModalOpen.value = false
-  } catch {
-    actionError.value = 'Kunne ikke lagre temperaturpunkt. Prov igjen.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-const removePoint = async (pointId: number) => {
-  if (!canManage.value) {
-    return
-  }
-
-  const shouldDelete = window.confirm('Slette temperaturpunktet?')
-  if (!shouldDelete) {
-    return
-  }
-
-  actionError.value = null
-  isSubmitting.value = true
-
-  try {
-    await deleteTemperaturePoint(pointId)
-    desktopMenuPointId.value = null
-    selectedMobileCardId.value = null
-  } catch {
-    actionError.value = 'Kunne ikke slette temperaturpunkt. Prov igjen.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-const openMeasurementModal = (pointId: number) => {
-  measurementPointId.value = pointId
-  const instance = instances.value.find((item) => item.pointId === pointId)
-  const now = new Date()
-  const defaultDate = now.toISOString().slice(0, 10)
-  const defaultTime = now.toISOString().slice(11, 16)
-
-  measurementForm.temperatureC = instance?.latestTemp != null ? String(instance.latestTemp) : ''
-  measurementForm.measuredDate = instance?.latestDate && instance.latestDate !== '-' ? instance.latestDate : defaultDate
-  measurementForm.measuredTime = instance?.latestTime && instance.latestTime !== '-' ? instance.latestTime : defaultTime
-  measurementForm.employeeName = instance?.latestRecordedBy && instance.latestRecordedBy !== '-' ? instance.latestRecordedBy : (authStore.user?.name ?? '')
-
-  const matchedEmployee = employeeOptions.value.find((employee) => employee.label === measurementForm.employeeName)
-  measurementForm.employeeId = matchedEmployee?.id ?? null
-  editingMeasurementEntryId.value = instance?.latestEntryId ?? null
-
-  actionError.value = null
-  measurementModalOpen.value = true
-  desktopMenuPointId.value = null
-}
-
-const closeMeasurementModal = () => {
-  measurementModalOpen.value = false
-  editingMeasurementEntryId.value = null
-}
-
-const combinedMeasuredAt = () => {
-  if (!measurementForm.measuredDate || !measurementForm.measuredTime) {
-    return new Date().toISOString()
-  }
-  return new Date(`${measurementForm.measuredDate}T${measurementForm.measuredTime}:00`).toISOString()
-}
-
-const submitMeasurement = async () => {
-  if (measurementPointId.value === null) {
-    return
-  }
-
-  const numericTemp = Number(measurementForm.temperatureC)
-  if (!Number.isFinite(numericTemp)) {
-    return
-  }
-
-  actionError.value = null
-  isSubmitting.value = true
-
-  try {
-    const selectedEmployee = measurementForm.employeeId != null
-      ? employeeOptions.value.find((employee) => employee.id === measurementForm.employeeId)
-      : null
-    const measuredBy = selectedEmployee?.label ?? measurementForm.employeeName.trim()
-    const payload = {
-      logPointId: measurementPointId.value,
-      temperatureC: numericTemp,
-      measuredAt: combinedMeasuredAt(),
-      noteText: measuredBy ? `Malt av: ${measuredBy}` : undefined,
-      recordedByUserId: measurementForm.employeeId ?? undefined,
-    }
-
-    if (editingMeasurementEntryId.value) {
-      await updateTemperatureMeasurement(editingMeasurementEntryId.value, payload)
-    } else {
-      await createTemperatureMeasurement(payload)
-    }
-
-    measurementModalOpen.value = false
-    selectedMobileCardId.value = null
-  } catch {
-    actionError.value = 'Kunne ikke registrere temperaturmaling. Prov igjen.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-const openDeviationFlow = (instance: TemperatureInstance) => {
-  const measuredLabel = instance.latestTemp === null ? 'ukjent temperatur' : `${instance.latestTemp}°C`
-  const description = `Temperatur ved ${instance.title} (${instance.locationName}) ble malt til ${measuredLabel}. Gyldig omrade er ${instance.minTemp}°C til ${instance.maxTemp}°C.`
-
-  void router.push({
-    name: 'Deviations',
-    query: {
-      openCreate: '1',
-      source: 'temperature',
-      title: `Temperaturavvik - ${instance.title}`,
-      location: instance.locationName,
-      description,
-      severity: 'MAJOR',
-      discoverer: authStore.user?.name ?? '',
-      sourceEntryId: instance.latestEntryId != null ? String(instance.latestEntryId) : undefined,
-    },
-  })
-}
-
-const toggleDesktopMenu = (pointId: number) => {
-  desktopMenuPointId.value = desktopMenuPointId.value === pointId ? null : pointId
-}
-
-const toggleMobileActions = (pointId: number) => {
-  selectedMobileCardId.value = selectedMobileCardId.value === pointId ? null : pointId
-}
-
-onMounted(() => {
-  updateViewport()
-  window.addEventListener('resize', updateViewport)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateViewport)
-})
+  openAddPointModal,
+  openEditPointModal,
+  closePointModal,
+  savePoint,
+  removePoint,
+  openMeasurementModal,
+  closeMeasurementModal,
+  submitMeasurement,
+  openDeviationFlow,
+  toggleDesktopMenu,
+  toggleMobileActions,
+} = useTemperatureViewState()
 </script>
 
 <template>
   <div class="temperature-page">
+
+    <!-- Page Header -->
     <header class="page-header">
       <h1>Temperaturkontroll</h1>
-      <p class="subtitle">Kontinuerlig overvaking av kjol, frys og varmholding</p>
+      <p class="subtitle">Kontinuerlig overvaking av kjøl, frys og varmholding</p>
     </header>
 
+    <!-- Alert Banner -->
     <section v-if="alerts.length > 0" class="alert-banner" role="alert">
-      <p><strong>{{ alerts.length }}</strong> malepunkter har temperaturavvik og trenger oppfolging.</p>
+      <p><strong>{{ alerts.length }}</strong> Målepunkter har temperaturavvik og trenger oppfølging.</p>
       <router-link :to="{ name: 'Deviations' }">Se avvik</router-link>
     </section>
 
+    <!-- Summary Stats -->
     <section class="summary-grid" aria-label="Temperaturstatus">
       <article class="summary-card">
         <p>Temperaturpunkter</p>
@@ -413,9 +68,13 @@ onUnmounted(() => {
       </article>
     </section>
 
+    <!-- Error Messages -->
     <section v-if="error" class="inline-error">{{ error }}</section>
+    
+    <!-- Error Action: Displays action-specific errors -->
     <section v-else-if="actionError" class="inline-error">{{ actionError }}</section>
 
+    <!-- Desktop display of temperature points: Table -->
     <section v-if="!isMobile" class="desktop-list" aria-label="Temperaturpunkter">
       <header class="desktop-list__header">
         <span>Tittel</span>
@@ -425,28 +84,34 @@ onUnmounted(() => {
         <span>Handlinger</span>
       </header>
 
+      <!-- Temperature Control points instance -->
       <article
         v-for="instance in instances"
         :key="instance.pointId"
         class="desktop-row"
         :class="{ 'desktop-row--alert': instance.isAlert }"
       >
+        <!-- Temperature Title + location -->
         <div>
           <p class="desktop-row__title">{{ instance.title }}</p>
           <p class="desktop-row__meta">{{ instance.locationName }}</p>
         </div>
 
+        <!-- Temperature Measurement + DateTime -->
         <div>
           <p class="desktop-row__value">{{ instance.latestTemp === null ? '-' : `${instance.latestTemp}°C` }}</p>
           <p class="desktop-row__meta">{{ instance.latestDate }} {{ instance.latestTime === '-' ? '' : `kl. ${instance.latestTime}` }}</p>
         </div>
 
+        <!-- Temperature Range -->
         <p class="desktop-row__value">{{ instance.minTemp }}°C til {{ instance.maxTemp }}°C</p>
 
+        <!-- Alert Status -->
         <span class="status-pill" :class="instance.isAlert ? 'status-pill--danger' : 'status-pill--good'">
-          {{ instance.isAlert ? 'Avvik' : instance.latestTemp === null ? 'Ikke malt' : 'OK' }}
+          {{ instance.isAlert ? 'Avvik' : instance.latestTemp === null ? 'Ikke målt' : 'OK' }}
         </span>
 
+        <!-- Desktop Actions: Register measurement / deviation -->
         <div class="desktop-actions">
           <button
             type="button"
@@ -454,14 +119,15 @@ onUnmounted(() => {
             :class="instance.isAlert ? 'action-btn--danger' : ''"
             @click="instance.isAlert ? openDeviationFlow(instance) : openMeasurementModal(instance.pointId)"
           >
-            {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger maling' : 'Registrer maling' }}
+            {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger måling' : 'Registrer måling' }}
           </button>
 
+          <!-- If Admin or Manager, managment options: Delete & Edit-->
           <div v-if="canManage" class="options-menu">
             <button
               class="options-menu__trigger"
               type="button"
-              aria-label="Apne handlinger"
+              aria-label="Åpne handlinger"
               :aria-expanded="desktopMenuPointId === instance.pointId"
               @click="toggleDesktopMenu(instance.pointId)"
             >
@@ -470,6 +136,7 @@ onUnmounted(() => {
               <span class="dot" />
             </button>
 
+            <!-- Dropdown Options Field -->
             <div v-if="desktopMenuPointId === instance.pointId" class="options-menu__list" role="menu">
               <button type="button" role="menuitem" class="options-menu__item" @click="openEditPointModal(instance.pointId)">Rediger</button>
               <button type="button" role="menuitem" class="options-menu__item options-menu__item--danger" @click="removePoint(instance.pointId)">Slett</button>
@@ -478,13 +145,16 @@ onUnmounted(() => {
         </div>
       </article>
 
+      <!-- Loading Item -->
       <p v-if="instances.length === 0 && !isLoading" class="empty-state">Ingen temperaturpunkter registrert.</p>
 
+      <!-- Add Item Button -->
       <button v-if="canManage" type="button" class="add-item-btn" @click="openAddPointModal">
         + Legg til temperaturpunkt
       </button>
     </section>
 
+    <!-- Mobile Display of Temperature Points: Cards-->
     <section v-else class="mobile-cards" aria-label="Temperaturkort">
       <article
         v-for="instance in instances"
@@ -493,41 +163,48 @@ onUnmounted(() => {
         :class="{ 'mobile-card--alert': instance.isAlert, 'mobile-card--active': selectedMobileCardId === instance.pointId }"
         @click="toggleMobileActions(instance.pointId)"
       >
+        <!-- Management -->
         <div v-if="canManage && selectedMobileCardId === instance.pointId" class="mobile-card__manage" @click.stop>
           <button type="button" class="mobile-card__manage-btn" @click="openEditPointModal(instance.pointId)">Rediger</button>
           <button type="button" class="mobile-card__manage-btn mobile-card__manage-btn--danger" @click="removePoint(instance.pointId)">Slett</button>
         </div>
 
+        <!-- Header Mobile-->
         <header class="mobile-card__header">
           <h2>{{ instance.title }}</h2>
           <span class="status-pill" :class="instance.isAlert ? 'status-pill--danger' : 'status-pill--good'">
-            {{ instance.isAlert ? 'Avvik' : instance.latestTemp === null ? 'Ikke malt' : 'OK' }}
+            {{ instance.isAlert ? 'Avvik' : instance.latestTemp === null ? 'Ikke målt' : 'OK' }}
           </span>
         </header>
 
+        <!-- Body Mobile -->
         <p class="mobile-card__meta">{{ instance.locationName }}</p>
         <p class="mobile-card__temperature">{{ instance.latestTemp === null ? '-' : `${instance.latestTemp}°C` }}</p>
         <p class="mobile-card__meta">Gyldig: {{ instance.minTemp }}°C til {{ instance.maxTemp }}°C</p>
         <p class="mobile-card__meta">{{ instance.latestDate }} {{ instance.latestTime === '-' ? '' : `kl. ${instance.latestTime}` }}</p>
         <p class="mobile-card__meta">Malt av: {{ instance.latestRecordedBy }}</p>
 
+        <!-- Register Measurement / Deviation -->
         <button
           type="button"
           class="action-btn mobile-card__action"
           :class="instance.isAlert ? 'action-btn--danger' : ''"
           @click.stop="instance.isAlert ? openDeviationFlow(instance) : openMeasurementModal(instance.pointId)"
         >
-          {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger maling' : 'Registrer maling' }}
+          {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger måling' : 'Registrer måling' }}
         </button>
       </article>
 
+      <!-- Empty State -->
       <p v-if="instances.length === 0 && !isLoading" class="empty-state">Ingen temperaturpunkter registrert.</p>
 
+      <!-- Add Item Button: IF Manager or Admin -->
       <button v-if="canManage" type="button" class="add-item-btn" @click="openAddPointModal">
         + Legg til temperaturpunkt
       </button>
     </section>
 
+    <!-- Temperature Point Overlay Modal -->
     <BaseModal
       :open="pointModalOpen"
       :title="pointModalMode === 'add' ? 'Legg til temperaturpunkt' : 'Rediger temperaturpunkt'"
@@ -573,6 +250,7 @@ onUnmounted(() => {
       </template>
     </BaseModal>
 
+    <!-- Register Temperature Measurement Modal -->
     <BaseModal
       :open="measurementModalOpen"
       title="Registrer temperaturmaling"
@@ -584,7 +262,7 @@ onUnmounted(() => {
         </p>
 
         <label>
-          Malt temperatur (°C)
+          Målt temperatur (°C)
           <input v-model="measurementForm.temperatureC" type="number" step="0.1" required />
         </label>
 

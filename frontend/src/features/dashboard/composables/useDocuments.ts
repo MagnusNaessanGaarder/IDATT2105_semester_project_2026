@@ -6,6 +6,7 @@ import {
   type UploadNewDocumentPayload,
   type UploadNewVersionPayload,
 } from '../api/documents'
+import type { ApiErrorResponse } from '../types/index'
 
 export function useDocuments() {
   const authStore = useAuthStore()
@@ -51,8 +52,9 @@ export function useDocuments() {
     error.value = null
     try {
       documents.value = await documentsApi.listDocuments(orgNumber.value)
-    } catch (e: any) {
-      error.value = e.response?.data?.message ?? 'Kunne ikke laste dokumenter'
+    } catch (e: unknown) {
+      const apiError = e as ApiErrorResponse
+      error.value = apiError.response?.data?.message ?? 'Kunne ikke laste dokumenter'
     } finally {
       isLoading.value = false
     }
@@ -66,8 +68,9 @@ export function useDocuments() {
       const newDoc = await documentsApi.uploadDocument(orgNumber.value, payload)
       documents.value = [newDoc, ...documents.value]
       showUploadModal.value = false
-    } catch (e: any) {
-      uploadError.value = e.response?.data?.message ?? 'Opplasting feilet. Prøv igjen.'
+    } catch (e: unknown) {
+      const apiError = e as ApiErrorResponse
+      uploadError.value = apiError.response?.data?.message ?? 'Opplasting feilet. Prøv igjen.'
     } finally {
       isUploading.value = false
     }
@@ -85,8 +88,9 @@ export function useDocuments() {
         d.documentId === updatedDoc.documentId ? updatedDoc : d
       )
       showUploadModal.value = false
-    } catch (e: any) {
-      uploadError.value = e.response?.data?.message ?? 'Opplasting feilet. Prøv igjen.'
+    } catch (e: unknown) {
+      const apiError = e as ApiErrorResponse
+      uploadError.value = apiError.response?.data?.message ?? 'Opplasting feilet. Prøv igjen.'
     } finally {
       isUploading.value = false
     }

@@ -137,9 +137,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
 // Add JWT token to all requests
 client.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    console.log(`[HTTP] 📤 ${config.method?.toUpperCase()} ${config.url}`)
     if (config.params) {
-      console.log('[HTTP]    Params:', config.params)
     }
 
     if (shouldSkipAuthHeader(config.url)) {
@@ -149,7 +147,6 @@ client.interceptors.request.use(
     let token = sessionStorage.getItem('accessToken')
 
     if (!token || isTokenExpiringSoon(token)) {
-      console.log('[HTTP]    Token expired/missing, refreshing...')
       token = await refreshAccessToken()
     }
 
@@ -161,7 +158,6 @@ client.interceptors.request.use(
     }
 
     config.headers.Authorization = `Bearer ${token}`
-    console.log('[HTTP]    ✅ Authorization header set')
 
     if (shouldAttachOrgContext(config.url)) {
       const orgNumber = getOrgNumber()
@@ -173,8 +169,6 @@ client.interceptors.request.use(
       if (isFilesEndpoint(config.url)) {
         config.headers['X-Org-Number'] = String(orgNumber)
       }
-
-      console.log(`[HTTP]    ✅ Org context set (orgNumber=${orgNumber})`)
     }
 
     return config
@@ -187,7 +181,7 @@ client.interceptors.request.use(
 
 // Handle 401 errors with automatic token refresh
 let isRefreshing = false
-let failedQueue: { resolve: (value: string) => void; reject: (reason: any) => void }[] = []
+let failedQueue: { resolve: (value: string) => void; reject: (reason: unknown) => void }[] = []
 const suppressed500LogUrls = new Set<string>()
 
 const processQueue = (error: unknown, token: string | null = null) => {
@@ -203,12 +197,9 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 client.interceptors.response.use(
   (response) => {
-    console.log(`[HTTP] 📥 ${response.status} ${response.config.url}`)
     if (response.data) {
       if (Array.isArray(response.data)) {
-        console.log(`[HTTP]    ✅ Received ${response.data.length} items`)
       } else {
-        console.log('[HTTP]    ✅ Response:', summarizeResponseData(response.data))
       }
     }
     return response
@@ -222,7 +213,6 @@ client.interceptors.response.use(
       const key = originalRequest.url || 'unknown-url'
       if (!suppressed500LogUrls.has(key)) {
         suppressed500LogUrls.add(key)
-        console.warn(`[HTTP] ⚠️ ${status} ${key} (suppressed repeated logging; endpoint handled as optional)`)
       }
     } else {
       console.error(`[HTTP] ❌ ${status || 'unknown'} ${originalRequest.url}`)

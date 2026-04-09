@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { client } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
-import { getUsers, type User } from '@/features/admin/api/users'
 import DeviationReportForm from '@/shared/components/DeviationReportForm.vue'
 
 type DeviationStatus =
@@ -38,6 +37,20 @@ interface DeviationReport {
   assignedToName?: string | null
 }
 
+interface UserRole {
+  roleId: number
+  roleName: string
+}
+
+interface User {
+  userId: number
+  displayName: string
+  email: string
+  phone?: string
+  isActive: boolean
+  roles: UserRole[]
+}
+
 type FilterStatus = 'all' | DeviationStatus
 
 const authStore = useAuthStore()
@@ -66,7 +79,10 @@ const assignError = ref<string | null>(null)
 async function fetchEmployees() {
   if (!orgNumber.value) return
   try {
-    const data = await getUsers(orgNumber.value)
+    const response = await client.get<User[]>('/api/users', {
+      params: { orgNumber: orgNumber.value },
+    })
+    const data = response.data
     employees.value = data.filter((u) => u.isActive)
   } catch {
     // non-critical — assign UI degrades gracefully
@@ -82,8 +98,9 @@ async function fetchDeviations() {
       params: { orgNumber: orgNumber.value },
     })
     deviations.value = data
-    if (selectedId.value === null && data.length > 0) {
-      selectedId.value = data[0].reportId
+    const first = data[0]
+    if (selectedId.value === null && first) {
+      selectedId.value = first.reportId
     }
   } catch {
     error.value = 'Kunne ikke hente avvik. Prøv igjen.'
@@ -107,8 +124,9 @@ const selectedDeviation = computed(
 )
 
 watch(filtered, (list) => {
-  if (!list.find((d) => d.reportId === selectedId.value) && list.length > 0) {
-    selectedId.value = list[0].reportId
+  const first = list[0]
+  if (!list.find((d) => d.reportId === selectedId.value) && first) {
+    selectedId.value = first.reportId
   }
 })
 
@@ -145,7 +163,6 @@ async function assignReport() {
   } catch (err: unknown) {
     const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
     assignError.value = msg ?? 'Tildeling feilet. Prøv igjen.'
-    console.error('assignReport error:', err)
   } finally {
     assignLoading.value = false
   }
@@ -180,7 +197,6 @@ async function startInvestigation() {
   } catch (err: unknown) {
     const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response?.data?.message
     actionError.value = msg ? `Statusendring feilet: ${msg}` : 'Statusendring feilet.'
-    console.error('startInvestigation error:', err)
   } finally {
     actionLoading.value = false
   }
@@ -212,7 +228,6 @@ async function submitAction() {
   } catch (err: unknown) {
     const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response?.data?.message
     actionError.value = msg ? `Feilet: ${msg}` : 'Handlingen feilet. Prøv igjen.'
-    console.error('submitAction error:', err)
   } finally {
     actionLoading.value = false
   }
@@ -301,6 +316,8 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 
 <template>
   <div class="deviations-page">
+    
+    <!-- Page Header -->
     <header class="page-header">
       <div>
         <h1 class="page-title">Avvik</h1>
@@ -358,6 +375,7 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 
         <p class="detail-description">{{ selectedDeviation.description }}</p>
 
+        <!-- Deviation Details -->
         <div class="detail-grid">
           <div class="detail-field">
             <p class="detail-label">Rapportert</p>

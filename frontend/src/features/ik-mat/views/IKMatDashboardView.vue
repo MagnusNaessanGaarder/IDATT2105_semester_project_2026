@@ -1,56 +1,35 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useIkMatData } from '../composables/useIkMatData'
+import { useIkMatDashboardState } from '../composables/useIkMatDashboardState'
+import { useAuthStore } from '@/stores/auth.ts';
+
+const currentOrg = useAuthStore().organizations[0] // Assuming the first organization is the current one, adjust
 
 const {
   dashboardStats,
   recentChecks,
-  checklists,
   temperatureRecords,
-  deviations,
-  completionForChecklist,
+  openDeviations,
+  checklistCompletion,
+  temperatureAlerts,
   isTemperatureInRange,
   formatDate,
   isLoading,
   error,
   reload,
-} = useIkMatData()
-
-const openDeviations = computed(() => deviations.filter((item) => item.status !== 'resolved'))
-
-const checklistCompletion = computed(() => {
-  if (checklists.length === 0) {
-    return 0
-  }
-
-  const sum = checklists.reduce((acc, checklist) => acc + completionForChecklist(checklist), 0)
-  return Math.round(sum / checklists.length)
-})
-
-const temperatureAlerts = computed(() => {
-  return temperatureRecords.filter((record) => !isTemperatureInRange(record))
-})
-
-const cardTone = (color: 'success' | 'warning' | 'info') => {
-  if (color === 'success') {
-    return 'stat-card--success'
-  }
-
-  if (color === 'warning') {
-    return 'stat-card--warning'
-  }
-
-  return 'stat-card--info'
-}
+  cardTone,
+} = useIkMatDashboardState()
 </script>
 
 <template>
   <div class="view-page ik-mat-dashboard">
+    
+    <!-- Page Header -->
     <header class="page-header">
       <h1>IK-MAT</h1>
-      <p class="subtitle">Everest Sushi &amp; Fusion - internkontroll for matsikkerhet og hygiene</p>
+      <p class="subtitle">{{ currentOrg?.orgName }}</p>
     </header>
 
+    <!-- Stat Cards -->
     <section class="stats-grid" aria-label="Nøkkeltall for IK-MAT">
       <article v-for="stat in dashboardStats" :key="stat.label" class="stat-card" :class="cardTone(stat.color)">
         <p class="stat-card__label">{{ stat.label }}</p>
@@ -60,6 +39,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
       </article>
     </section>
 
+    <!-- API Error information -->
     <section v-if="error" class="panel-card" aria-label="API-feil">
       <header class="panel-card__header">
         <h2>Kunne ikke hente IK-MAT data</h2>
@@ -68,10 +48,12 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
       <p class="item-row__meta">{{ error }}</p>
     </section>
 
+    <!-- Loading State: displayed when loading -->
     <section v-else-if="isLoading" class="panel-card" aria-label="Laster IK-MAT data">
       <p class="item-row__meta">Laster IK-MAT data...</p>
     </section>
 
+    <!-- Quick Actions: Checklists, Temperature, Deviations and HACCP -->
     <section class="quick-actions" aria-label="Snarveier">
       <router-link :to="{ name: 'Checklists' }" class="action-card">
         <h2>Sjekklister</h2>
@@ -91,7 +73,10 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
       </router-link>
     </section>
 
+    <!-- Dashboard Details -->
     <section class="details-grid" aria-label="Detaljoversikt">
+
+      <!-- Status -->
       <article class="panel-card">
         <header class="panel-card__header">
           <h2>Siste kontroller</h2>
@@ -110,6 +95,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
         </ul>
       </article>
 
+      <!-- Temperature Alerts -->
       <article class="panel-card">
         <header class="panel-card__header">
           <h2>Operative varsler</h2>
@@ -131,6 +117,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
         </ul>
       </article>
 
+      <!-- Open Deviations -->
       <article class="panel-card details-grid__span-2">
         <header class="panel-card__header">
           <h2>Åpne avvik</h2>

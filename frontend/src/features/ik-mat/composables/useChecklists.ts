@@ -124,7 +124,7 @@ export function useChecklists() {
     await deleteApi.execute(templateId, orgNumber)
     // Mark as inactive in local state
     const index = templates.value.findIndex((t) => t.templateId === templateId)
-    if (index !== -1) {
+    if (index !== -1 && templates.value[index]) {
       templates.value[index].isActive = false
     }
   }

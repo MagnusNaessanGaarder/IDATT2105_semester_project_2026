@@ -113,11 +113,13 @@ const toggleTask = (checklistId: number, itemId: number) => {
 
 <template>
   <div class="checklists-page">
+    <!-- Page Header -->
     <header class="page-header">
       <h1>Sjekklister</h1>
       <p class="subtitle">Operative kontrollpunkter sortert etter lavest progresjon</p>
     </header>
 
+    <!-- Filter buttons: Alle, Daglig, Ukentlig, Månedlig -->
     <div class="filter-row" role="tablist" aria-label="Filtrer etter frekvens">
       <button
         v-for="frequency in frequencies"
@@ -130,6 +132,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
       </button>
     </div>
 
+    <!-- Checklist -->
     <div class="checklist-list">
       <article v-for="checklist in sorted" :key="checklist.id" class="checklist-card">
         <!-- Header: Split into expandable area and actions to avoid nested buttons -->
@@ -175,9 +178,11 @@ const toggleTask = (checklistId: number, itemId: number) => {
           </div>
         </div>
 
+        <!-- Checklist Body -->
         <div v-if="expandedId === checklist.id" class="checklist-body">
           <p class="checklist-body__description">{{ checklist.description }}</p>
 
+          <!-- Task list -->
           <ul class="task-list">
             <li v-for="task in checklist.items" :key="task.id" class="task-row">
               <label>
@@ -191,6 +196,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
       </article>
     </div>
 
+    <!-- Empty State -->
     <div v-if="sorted.length === 0" class="empty-state">Ingen sjekklister matcher valgt filter.</div>
 
     <!-- Edit Checklist Modal -->
