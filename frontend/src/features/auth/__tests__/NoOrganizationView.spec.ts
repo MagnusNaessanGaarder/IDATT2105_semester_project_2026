@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, nextTick } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
-import NoOrganizationView from '../NoOrganizationView.vue'
+import NoOrganizationView from '../views/NoOrganizationView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 vi.mock('@/stores/auth', () => ({
