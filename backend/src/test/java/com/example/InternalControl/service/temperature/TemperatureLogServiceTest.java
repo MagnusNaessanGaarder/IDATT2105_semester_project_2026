@@ -26,6 +26,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for TemperatureLogService.
+ * Tests temperature logging and monitoring logic.
+ * 
+ * @author TriTacLe
+ * @since 1.0
+ */
 @ExtendWith(MockitoExtension.class)
 class TemperatureLogServiceTest {
 

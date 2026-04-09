@@ -11,6 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+/**
+ * Initializes test data for integration tests.
+ * Creates users, organizations and roles.
+ * 
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Component
 public class TestDataInitializer {
 

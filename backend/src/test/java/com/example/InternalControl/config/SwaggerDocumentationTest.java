@@ -19,6 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Tests that verify Swagger/OpenAPI documentation coverage.
+ * Checks that all endpoints are documented.
+ * 
+ * @author TriTacLe
+ * @since 1.0
+ */
 @AutoConfigureMockMvc
 @DisplayName("Swagger Documentation Coverage Tests")
 class SwaggerDocumentationTest extends AbstractIntegrationTest {
