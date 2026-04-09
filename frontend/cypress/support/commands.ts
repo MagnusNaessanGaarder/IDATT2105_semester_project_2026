@@ -69,19 +69,19 @@ Cypress.Commands.add('clearSession', () => {
 })
 
 Cypress.Commands.add('getSessionToken', () => {
-  return cy.window().then((win) => win.sessionStorage.getItem('accessToken'))
+  return cy.window().its('sessionStorage').invoke('getItem', 'accessToken')
 })
 
 Cypress.Commands.add('getSessionRefreshToken', () => {
-  return cy.window().then((win) => win.sessionStorage.getItem('refreshToken'))
+  return cy.window().its('sessionStorage').invoke('getItem', 'refreshToken')
 })
 
 Cypress.Commands.add('getSessionEmail', () => {
-  return cy.window().then((win) => win.sessionStorage.getItem('email'))
+  return cy.window().its('sessionStorage').invoke('getItem', 'email')
 })
 
 Cypress.Commands.add('getSessionRole', () => {
-  return cy.window().then((win) => win.sessionStorage.getItem('role'))
+  return cy.window().its('sessionStorage').invoke('getItem', 'role')
 })
 
 export {}

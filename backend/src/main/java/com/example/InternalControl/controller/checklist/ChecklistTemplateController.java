@@ -42,170 +42,161 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChecklistTemplateController {
 
-    private final ChecklistTemplateService templateService;
-    private final UserOrganizationService userOrgService;
+  private final ChecklistTemplateService templateService;
+  private final UserOrganizationService userOrgService;
 
-    @Operation(summary = "Get all templates for organization")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved templates"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
-    @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<List<ChecklistTemplate>> getTemplates(
-            @Parameter(description = "Organization number identifying the tenant", required = true)
-            @RequestParam Integer orgNumber,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
-        validateUserOrganizationAccess(userId, orgNumber);
-        return ResponseEntity.ok(templateService.getTemplatesByOrg(orgNumber));
+  @Operation(summary = "Get all templates for organization")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved templates"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
+  @GetMapping
+  @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
+  public ResponseEntity<List<ChecklistTemplate>> getTemplates(
+      @Parameter(description = "Organization number identifying the tenant", required = true) @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    return ResponseEntity.ok(templateService.getTemplatesByOrg(orgNumber));
+  }
+
+  @Operation(summary = "Get template by ID")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved template"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Template not found")
+  })
+  @GetMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
+  public ResponseEntity<ChecklistTemplate> getTemplate(
+      @Parameter(description = "Identifier of the id") @PathVariable Long id,
+      @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    return ResponseEntity.ok(templateService.getTemplate(id, orgNumber));
+  }
+
+  @Operation(summary = "Get templates by module type")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved templates"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
+  @GetMapping("/module/{moduleType}")
+  @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
+  public ResponseEntity<List<ChecklistTemplate>> getTemplatesByModule(
+      @Parameter(description = "Module type (FOOD or ALCOHOL)", required = true) @PathVariable ModuleType moduleType,
+      @Parameter(description = "Organization number identifying the tenant", required = true) @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    return ResponseEntity.ok(templateService.getTemplatesByModule(orgNumber, moduleType));
+  }
+
+  @Operation(summary = "Get active templates")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved templates"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
+  @GetMapping("/active")
+  public ResponseEntity<List<ChecklistTemplate>> getActiveTemplates(
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    return ResponseEntity.ok(templateService.getActiveTemplates(orgNumber));
+  }
+
+  @Operation(summary = "Create new template")
+  @ApiResponses({
+      @ApiResponse(responseCode = "201", description = "Template created successfully"),
+      @ApiResponse(responseCode = "400", description = "Bad request"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
+  @PostMapping
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+  public ResponseEntity<ChecklistTemplate> createTemplate(
+      @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+
+    ChecklistTemplate template = ChecklistTemplate.builder()
+        .title(requestDto.getTitle())
+        .description(requestDto.getDescription())
+        .moduleType(requestDto.getModuleType())
+        .frequency(requestDto.getFrequency())
+        .build();
+
+    ChecklistTemplate created = templateService.createTemplate(template, orgNumber, userId);
+
+    URI location = ServletUriComponentsBuilder
+        .fromCurrentRequest()
+        .path("/{id}")
+        .buildAndExpand(created.getTemplateId())
+        .toUri();
+
+    return ResponseEntity.created(location).body(created);
+  }
+
+  @Operation(summary = "Update template")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Template updated successfully"),
+      @ApiResponse(responseCode = "400", description = "Bad request"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Template not found")
+  })
+  @PutMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+  public ResponseEntity<ChecklistTemplate> updateTemplate(
+      @Parameter(description = "Identifier of the id") @PathVariable Long id,
+      @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
+      @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+
+    ChecklistTemplate template = ChecklistTemplate.builder()
+        .title(requestDto.getTitle())
+        .description(requestDto.getDescription())
+        .moduleType(requestDto.getModuleType())
+        .frequency(requestDto.getFrequency())
+        .build();
+
+    return ResponseEntity.ok(templateService.updateTemplate(id, template, orgNumber));
+  }
+
+  @Operation(summary = "Delete template (soft delete)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "204", description = "Template deleted successfully"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Template not found")
+  })
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+  public ResponseEntity<Void> deleteTemplate(
+      @Parameter(description = "Identifier of the id") @PathVariable Long id,
+      @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    templateService.deleteTemplate(id, orgNumber);
+    return ResponseEntity.noContent().build();
+  }
+
+  private void validateUserOrganizationAccess(Long userId, Integer orgNumber) {
+    if (!userOrgService.isUserInOrganization(userId, orgNumber)) {
+      throw new EntityNotFoundException("Organization not found or user does not have access");
     }
-
-    @Operation(summary = "Get template by ID")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved template"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Template not found")
-    })
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<ChecklistTemplate> getTemplate(
-            @Parameter(description = "Identifier of the id")
-            @PathVariable Long id,
-            @RequestParam Integer orgNumber,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
-        validateUserOrganizationAccess(userId, orgNumber);
-        return ResponseEntity.ok(templateService.getTemplate(id, orgNumber));
-    }
-
-    @Operation(summary = "Get templates by module type")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved templates"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
-    @GetMapping("/module/{moduleType}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<List<ChecklistTemplate>> getTemplatesByModule(
-            @Parameter(description = "Module type (FOOD or ALCOHOL)", required = true)
-            @PathVariable ModuleType moduleType,
-            @Parameter(description = "Organization number identifying the tenant", required = true)
-            @RequestParam Integer orgNumber,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
-        validateUserOrganizationAccess(userId, orgNumber);
-        return ResponseEntity.ok(templateService.getTemplatesByModule(orgNumber, moduleType));
-    }
-
-    @Operation(summary = "Get active templates")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved templates"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
-    @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
-    public ResponseEntity<List<ChecklistTemplate>> getActiveTemplates(
-            @Parameter(description = "The orgNumber parameter")
-            @RequestParam Integer orgNumber,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
-        validateUserOrganizationAccess(userId, orgNumber);
-        return ResponseEntity.ok(templateService.getActiveTemplates(orgNumber));
-    }
-
-    @Operation(summary = "Create new template")
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Template created successfully"),
-        @ApiResponse(responseCode = "400", description = "Bad request"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
-    @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ChecklistTemplate> createTemplate(
-            @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
-            @Parameter(description = "The orgNumber parameter")
-            @RequestParam Integer orgNumber,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-        Long userId = userDetails.getUserId();
-        validateUserOrganizationAccess(userId, orgNumber);
-
-        ChecklistTemplate template = ChecklistTemplate.builder()
-                .title(requestDto.getTitle())
-                .description(requestDto.getDescription())
-                .moduleType(requestDto.getModuleType())
-                .frequency(requestDto.getFrequency())
-                .build();
-
-        ChecklistTemplate created = templateService.createTemplate(template, orgNumber, userId);
-
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(created.getTemplateId())
-                .toUri();
-
-        return ResponseEntity.created(location).body(created);
-    }
-
-    @Operation(summary = "Update template")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Template updated successfully"),
-        @ApiResponse(responseCode = "400", description = "Bad request"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Template not found")
-    })
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<ChecklistTemplate> updateTemplate(
-            @Parameter(description = "Identifier of the id")
-            @PathVariable Long id,
-            @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
-            @RequestParam Integer orgNumber,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-
-        Long userId = userDetails.getUserId();
-        validateUserOrganizationAccess(userId, orgNumber);
-
-        ChecklistTemplate template = ChecklistTemplate.builder()
-                .title(requestDto.getTitle())
-                .description(requestDto.getDescription())
-                .moduleType(requestDto.getModuleType())
-                .frequency(requestDto.getFrequency())
-                .build();
-
-        return ResponseEntity.ok(templateService.updateTemplate(id, template, orgNumber));
-    }
-
-    @Operation(summary = "Delete template (soft delete)")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Template deleted successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Template not found")
-    })
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Void> deleteTemplate(
-            @Parameter(description = "Identifier of the id")
-            @PathVariable Long id,
-            @RequestParam Integer orgNumber,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
-        validateUserOrganizationAccess(userId, orgNumber);
-        templateService.deleteTemplate(id, orgNumber);
-        return ResponseEntity.noContent().build();
-    }
-
-    private void validateUserOrganizationAccess(Long userId, Integer orgNumber) {
-        if (!userOrgService.isUserInOrganization(userId, orgNumber)) {
-            throw new EntityNotFoundException("Organization not found or user does not have access");
-        }
-    }
+  }
 }

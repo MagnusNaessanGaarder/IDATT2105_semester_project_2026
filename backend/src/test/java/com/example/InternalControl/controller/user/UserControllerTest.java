@@ -106,7 +106,7 @@ class UserControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/users")
+        mockMvc.perform(get("/api/v1/users")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].email").value("test@example.com"));
@@ -121,7 +121,7 @@ class UserControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/users")
+        mockMvc.perform(get("/api/v1/users")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk());
     }
@@ -135,7 +135,7 @@ class UserControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/users")
+        mockMvc.perform(get("/api/v1/users")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk());
     }
@@ -148,7 +148,7 @@ class UserControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/users/1")
+        mockMvc.perform(get("/api/v1/users/1")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(1))
@@ -161,7 +161,7 @@ class UserControllerTest {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(get("/api/users/999")
+        mockMvc.perform(get("/api/v1/users/999")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isNotFound());
     }
@@ -193,7 +193,7 @@ class UserControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -213,7 +213,7 @@ class UserControllerTest {
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
         // When & Then
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -246,7 +246,7 @@ class UserControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
@@ -275,7 +275,7 @@ class UserControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(put("/api/users/1")
+        mockMvc.perform(put("/api/v1/users/1")
                         .param("orgNumber", "937219997")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -291,7 +291,7 @@ class UserControllerTest {
                 .thenReturn(Optional.of(testUserOrg));
 
         // When & Then
-        mockMvc.perform(delete("/api/users/1")
+        mockMvc.perform(delete("/api/v1/users/1")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isNoContent());
     }
@@ -302,7 +302,7 @@ class UserControllerTest {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(delete("/api/users/999")
+        mockMvc.perform(delete("/api/v1/users/999")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isNotFound());
     }
@@ -315,7 +315,7 @@ class UserControllerTest {
                 .thenReturn(Optional.of(testUserOrg));
 
         // When & Then
-        mockMvc.perform(delete("/api/users/1")
+        mockMvc.perform(delete("/api/v1/users/1")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isNoContent());
     }
@@ -341,7 +341,7 @@ class UserControllerTest {
                 .thenReturn(List.of(userRole));
 
         // When & Then
-        mockMvc.perform(get("/api/users/1")
+        mockMvc.perform(get("/api/v1/users/1")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roles[0].roleName").value("EMPLOYEE"));

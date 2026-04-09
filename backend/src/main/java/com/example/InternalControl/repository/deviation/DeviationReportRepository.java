@@ -28,6 +28,8 @@ public interface DeviationReportRepository extends JpaRepository<DeviationReport
 
     Optional<DeviationReport> findByReportIdAndOrgNumber(Long reportId, Integer orgNumber);
 
+       List<DeviationReport> findByOrgNumberAndSourceTemperatureEntryIdIn(Integer orgNumber, List<Long> sourceTemperatureEntryIds);
+
     boolean existsByReportIdAndOrgNumber(Long reportId, Integer orgNumber);
 
     @Query("SELECT COUNT(d) FROM DeviationReport d WHERE d.orgNumber = :orgNumber AND d.status != com.example.InternalControl.model.enums.DeviationStatus.CLOSED")

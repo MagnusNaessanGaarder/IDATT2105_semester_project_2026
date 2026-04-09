@@ -139,6 +139,16 @@ function tabLabel(type: string): string {
   return typeLabel(type)
 }
 
+function requestedByLabel(job: ExportResponse): string | null {
+  const extended = job as ExportResponse & { requestedByDisplayName?: string | null }
+  return extended.requestedByDisplayName ?? null
+}
+
+function parametersJson(job: ExportResponse): string | null | undefined {
+  const extended = job as ExportResponse & { parametersJson?: string | null }
+  return extended.parametersJson
+}
+
 onMounted(() => loadExports())
 onBeforeUnmount(() => resetActiveJob())
 </script>
@@ -232,8 +242,8 @@ onBeforeUnmount(() => resetActiveJob())
             </span>
           </div>
           <p class="report-item__details">
-            <template v-if="job.requestedByDisplayName">
-              {{ job.requestedByDisplayName }} ·
+            <template v-if="requestedByLabel(job)">
+              {{ requestedByLabel(job) }} ·
             </template>
             Opprettet {{ formatDate(job.requestedAt) }}
             <template v-if="job.completedAt">
@@ -243,9 +253,9 @@ onBeforeUnmount(() => resetActiveJob())
               · <span class="failure-reason">{{ job.failureReason }}</span>
             </template>
           </p>
-          <div v-if="parseParams(job.parametersJson).length" class="report-item__params">
+          <div v-if="parseParams(parametersJson(job)).length" class="report-item__params">
             <span
-                v-for="p in parseParams(job.parametersJson)"
+                v-for="p in parseParams(parametersJson(job))"
                 :key="p.label"
                 class="param-chip"
             >{{ p.label }}: {{ p.value }}</span>
@@ -314,15 +324,15 @@ onBeforeUnmount(() => resetActiveJob())
               <div class="preview-meta">
                 <span class="pill">{{ exportFormatLabels[previewJob.format] }}</span>
                 <span class="preview-meta__text">
-                  <template v-if="previewJob.requestedByDisplayName">
-                    {{ previewJob.requestedByDisplayName }} ·
+                  <template v-if="requestedByLabel(previewJob)">
+                    {{ requestedByLabel(previewJob) }} ·
                   </template>
                   Generert {{ formatDate(previewJob.requestedAt) }}
                 </span>
               </div>
-              <div v-if="parseParams(previewJob.parametersJson).length" class="preview-params">
+              <div v-if="parseParams(parametersJson(previewJob)).length" class="preview-params">
                 <span
-                    v-for="p in parseParams(previewJob.parametersJson)"
+                    v-for="p in parseParams(parametersJson(previewJob))"
                     :key="p.label"
                     class="param-chip"
                 >{{ p.label }}: {{ p.value }}</span>

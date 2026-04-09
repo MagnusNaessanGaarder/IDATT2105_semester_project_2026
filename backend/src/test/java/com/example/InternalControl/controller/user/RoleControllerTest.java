@@ -92,7 +92,7 @@ class RoleControllerTest {
                 .thenReturn(List.of(adminRole, managerRole, employeeRole));
 
         // When & Then
-        mockMvc.perform(get("/api/admin/roles"))
+        mockMvc.perform(get("/api/v1/admin/roles"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].roleName").value("ADMIN"))
@@ -107,7 +107,7 @@ class RoleControllerTest {
                 .thenReturn(List.of(managerRole, employeeRole));
 
         // When & Then
-        mockMvc.perform(get("/api/admin/roles"))
+        mockMvc.perform(get("/api/v1/admin/roles"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
@@ -119,7 +119,7 @@ class RoleControllerTest {
                 .thenReturn(List.of(adminRole, managerRole, employeeRole));
 
         // When & Then
-        mockMvc.perform(get("/api/admin/roles"))
+        mockMvc.perform(get("/api/v1/admin/roles"))
                 .andExpect(status().isOk());
     }
 
@@ -129,7 +129,7 @@ class RoleControllerTest {
         when(roleRepository.findById(1L)).thenReturn(Optional.of(adminRole));
 
         // When & Then
-        mockMvc.perform(get("/api/admin/roles/1"))
+        mockMvc.perform(get("/api/v1/admin/roles/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roleId").value(1))
                 .andExpect(jsonPath("$.roleName").value("ADMIN"))
@@ -142,7 +142,7 @@ class RoleControllerTest {
         when(roleRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(get("/api/admin/roles/999"))
+        mockMvc.perform(get("/api/v1/admin/roles/999"))
                 .andExpect(status().isNotFound());
     }
 
@@ -159,7 +159,7 @@ class RoleControllerTest {
                 .thenReturn(List.of(userRole));
 
         // When & Then
-        mockMvc.perform(get("/api/admin/roles/user/1")
+        mockMvc.perform(get("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
@@ -173,7 +173,7 @@ class RoleControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/admin/roles/user/1")
+        mockMvc.perform(get("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
@@ -186,7 +186,7 @@ class RoleControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/admin/roles/user/1")
+        mockMvc.perform(get("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk());
     }
@@ -198,7 +198,7 @@ class RoleControllerTest {
                 .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/admin/roles/user/1")
+        mockMvc.perform(get("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk());
     }
@@ -212,7 +212,7 @@ class RoleControllerTest {
                 .thenReturn(UserOrganizationRole.builder().build());
 
         // When & Then
-        mockMvc.perform(post("/api/admin/roles/user/1")
+        mockMvc.perform(post("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997")
                         .param("roleId", "2"))
                 .andExpect(status().isCreated());
@@ -225,7 +225,7 @@ class RoleControllerTest {
                 .thenReturn(true);
 
         // When & Then
-        mockMvc.perform(post("/api/admin/roles/user/1")
+        mockMvc.perform(post("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997")
                         .param("roleId", "2"))
                 .andExpect(status().isOk());
@@ -240,7 +240,7 @@ class RoleControllerTest {
                 .thenReturn(UserOrganizationRole.builder().build());
 
         // When & Then
-        mockMvc.perform(post("/api/admin/roles/user/1")
+        mockMvc.perform(post("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997")
                         .param("roleId", "2"))
                 .andExpect(status().isCreated());
@@ -259,7 +259,7 @@ class RoleControllerTest {
                 .thenReturn(Optional.of(userRole));
 
         // When & Then
-        mockMvc.perform(delete("/api/admin/roles/user/1")
+        mockMvc.perform(delete("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997")
                         .param("roleId", "2"))
                 .andExpect(status().isNoContent());
@@ -272,7 +272,7 @@ class RoleControllerTest {
                 .thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(delete("/api/admin/roles/user/1")
+        mockMvc.perform(delete("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997")
                         .param("roleId", "999"))
                 .andExpect(status().isNotFound());
@@ -291,7 +291,7 @@ class RoleControllerTest {
                 .thenReturn(Optional.of(userRole));
 
         // When & Then
-        mockMvc.perform(delete("/api/admin/roles/user/1")
+        mockMvc.perform(delete("/api/v1/admin/roles/user/1")
                         .param("orgNumber", "937219997")
                         .param("roleId", "2"))
                 .andExpect(status().isNoContent());

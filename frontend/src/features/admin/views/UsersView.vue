@@ -20,6 +20,16 @@ const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const selectedUser = ref<User | null>(null)
 
+const usersList = computed(() => usersComposable.users.value)
+const usersError = computed(() => usersComposable.error.value)
+const createErrorMessage = computed(() => usersComposable.createError.value ?? '')
+const updateErrorMessage = computed(() => usersComposable.updateError.value ?? '')
+const deleteErrorMessage = computed(() => usersComposable.deleteError.value ?? '')
+const isCreating = computed(() => usersComposable.isCreating.value)
+const isUpdating = computed(() => usersComposable.isUpdating.value)
+const isDeleting = computed(() => usersComposable.isDeleting.value)
+const isUsersLoading = computed(() => usersComposable.isLoading.value)
+
 // Form state for create/edit
 const formData = ref({
   displayName: '',
@@ -56,7 +66,7 @@ async function loadUsers() {
 
 // Filter users based on search and role
 const filteredUsers = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   return users.filter((user) => {
     const matchesRole = roleFilter.value === 'all' || usersComposable.getUserRole(user) === roleFilter.value
     const search = query.value.trim().toLowerCase()
@@ -71,24 +81,24 @@ const filteredUsers = computed(() => {
 
 // Statistics
 const activeUsersCount = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   return users.filter((u) => u.isActive).length
 })
 
 const inactiveUsersCount = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   return users.filter((u) => !u.isActive).length
 })
 
 const uniqueRolesCount = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   const allRoleNames = users.flatMap((u) => u.roles?.map((r) => r.roleName) || [])
   const uniqueRoles = new Set(allRoleNames.filter(Boolean))
   return uniqueRoles.size
 })
 
 const roleSummaries = computed(() => {
-  const users = usersComposable.users
+  const users = usersList.value
   const roles: Array<'ADMIN' | 'MANAGER' | 'EMPLOYEE'> = ['ADMIN', 'MANAGER', 'EMPLOYEE']
   return roles.map((role) => ({
     role,
@@ -217,15 +227,15 @@ async function handleDeleteUser(user: User) {
     </header>
 
     <!-- Loading state -->
-    <div v-if="usersComposable.isLoading" class="loading-state">
+    <div v-if="isUsersLoading" class="loading-state">
       <BaseSpinner />
       <p>Laster brukere...</p>
     </div>
 
     <!-- Error state -->
     <ErrorMessage 
-      v-else-if="usersComposable.error" 
-      :message="usersComposable.error"
+      v-else-if="usersError" 
+      :message="usersError"
       show-retry
       @retry="loadUsers"
     />
@@ -234,7 +244,7 @@ async function handleDeleteUser(user: User) {
     <template v-else>
       <section class="stats-row" aria-label="Brukerstatistikk">
         <article class="stats-card">
-          <strong>{{ usersComposable.users.length }}</strong>
+          <strong>{{ usersList.length }}</strong>
           <span>Brukere totalt</span>
         </article>
         <article class="stats-card">
@@ -349,12 +359,12 @@ async function handleDeleteUser(user: User) {
             </option>
           </select>
         </div>
-        <ErrorMessage v-if="usersComposable.createError" :message="usersComposable.createError" />
+        <ErrorMessage v-if="createErrorMessage" :message="createErrorMessage" />
       </form>
       <template #footer>
         <button type="button" class="action-btn action-btn--ghost" @click="closeModals">Avbryt</button>
-        <button type="submit" form="createUserForm" class="action-btn" :disabled="usersComposable.isCreating">
-          <BaseSpinner v-if="usersComposable.isCreating" size="small" />
+        <button type="submit" form="createUserForm" class="action-btn" :disabled="isCreating">
+          <BaseSpinner v-if="isCreating" size="sm" />
           <span v-else>Opprett bruker</span>
         </button>
       </template>
@@ -383,8 +393,8 @@ async function handleDeleteUser(user: User) {
             </option>
           </select>
         </div>
-        <ErrorMessage v-if="usersComposable.updateError" :message="usersComposable.updateError" />
-        <ErrorMessage v-if="usersComposable.deleteError" :message="usersComposable.deleteError" />
+        <ErrorMessage v-if="updateErrorMessage" :message="updateErrorMessage" />
+        <ErrorMessage v-if="deleteErrorMessage" :message="deleteErrorMessage" />
       </form>
       <template #footer>
         <button type="button" class="action-btn action-btn--ghost" @click="closeModals">Avbryt</button>
@@ -392,14 +402,14 @@ async function handleDeleteUser(user: User) {
           v-if="selectedUser?.isActive" 
           type="button" 
           class="action-btn action-btn--danger" 
-          :disabled="usersComposable.isDeleting"
+          :disabled="isDeleting"
           @click="handleDeleteUser(selectedUser)"
         >
-          <BaseSpinner v-if="usersComposable.isDeleting" size="small" />
+          <BaseSpinner v-if="isDeleting" size="sm" />
           <span v-else>Deaktiver</span>
         </button>
-        <button type="submit" form="editUserForm" class="action-btn" :disabled="usersComposable.isUpdating">
-          <BaseSpinner v-if="usersComposable.isUpdating" size="small" />
+        <button type="submit" form="editUserForm" class="action-btn" :disabled="isUpdating">
+          <BaseSpinner v-if="isUpdating" size="sm" />
           <span v-else>Lagre endringer</span>
         </button>
       </template>
@@ -410,19 +420,19 @@ async function handleDeleteUser(user: User) {
 <style scoped>
 .users-view {
   display: grid;
-  gap: 1rem;
+  gap: var(--spacing-lg);
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: var(--font-size-3xl);
+  font-size: clamp(1.8rem, 2.4vw, var(--font-size-3xl));
   font-weight: 700;
   letter-spacing: -0.015em;
 }
@@ -432,14 +442,27 @@ async function handleDeleteUser(user: User) {
   color: var(--color-gray-500);
 }
 
+.warning-state {
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-md);
+  color: var(--color-warning);
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
 .create-btn {
-  min-height: 2.7rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-foreground);
-  color: var(--color-background);
+  min-height: var(--touch-target);
+  padding: var(--button-padding-md);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
 .loading-state {
@@ -454,15 +477,16 @@ async function handleDeleteUser(user: User) {
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--spacing-md);
 }
 
 .stats-card {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: #fff;
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
   text-align: center;
-  padding: 0.85rem;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .stats-card strong {
@@ -480,14 +504,15 @@ async function handleDeleteUser(user: User) {
 .roles-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: var(--spacing-md);
 }
 
 .role-card {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: #fff;
-  padding: 0.8rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .role-pill {
@@ -499,18 +524,18 @@ async function handleDeleteUser(user: User) {
 }
 
 .role-pill--red {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
 }
 
 .role-pill--amber {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .role-pill--blue {
-  background: #e0f2fe;
-  color: #075985;
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .role-description {
@@ -528,21 +553,22 @@ async function handleDeleteUser(user: User) {
 
 .users-table-card {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: #fff;
-  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .table-toolbar {
   display: flex;
   justify-content: space-between;
-  gap: 0.6rem;
-  margin-bottom: 0.75rem;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .table-search,
 .role-select {
-  min-height: 2.6rem;
+  min-height: var(--touch-target);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-gray-50);
@@ -566,7 +592,7 @@ table {
 th,
 td {
   text-align: left;
-  padding: 0.7rem;
+  padding: 0.85rem 0.75rem;
   border-bottom: 1px solid var(--color-gray-100);
   vertical-align: middle;
 }
@@ -586,8 +612,8 @@ th {
 }
 
 .avatar {
-  width: 1.8rem;
-  height: 1.8rem;
+  width: 2rem;
+  height: 2rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -633,12 +659,12 @@ th {
 }
 
 .action-btn {
-  min-height: 2rem;
-  padding: 0.25rem 0.6rem;
-  border: none;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-foreground);
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
   font-size: var(--font-size-xs);
   font-weight: 600;
   cursor: pointer;
@@ -654,7 +680,7 @@ th {
 }
 
 .action-btn--ghost {
-  background: #fff;
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   color: var(--color-gray-700);
 }
@@ -671,6 +697,7 @@ th {
   text-align: center;
   padding: 2rem;
   color: var(--color-gray-600);
+  box-shadow: var(--shadow-sm);
 }
 
 /* User Form Styles */

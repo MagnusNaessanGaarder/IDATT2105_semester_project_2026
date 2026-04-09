@@ -3,7 +3,6 @@ package com.example.InternalControl.service;
 import com.example.InternalControl.dto.auth.request.LoginRequest;
 import com.example.InternalControl.dto.auth.request.RegisterRequest;
 import com.example.InternalControl.dto.auth.response.AuthResponse;
-import com.example.InternalControl.dto.auth.response.OrganizationRoleResponse;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.repository.user.AppUserRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRepository;

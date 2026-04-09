@@ -69,7 +69,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
                 .thenReturn(Optional.of(testSettings));
 
         // When & Then
-        mockMvc.perform(get("/api/admin/organizations/settings")
+        mockMvc.perform(get("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orgNumber").value(937219997))
@@ -91,7 +91,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
                 .thenReturn(Optional.of(testSettings));
 
         // When & Then
-        mockMvc.perform(get("/api/admin/organizations/settings")
+        mockMvc.perform(get("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isOk());
     }
@@ -100,7 +100,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
     @WithMockUser(roles = {"EMPLOYEE"})
     void getSettings_AsEmployee_ReturnsForbidden() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/admin/organizations/settings")
+        mockMvc.perform(get("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isForbidden());
     }
@@ -113,7 +113,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
                 .thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(get("/api/admin/organizations/settings")
+        mockMvc.perform(get("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "937219997"))
                 .andExpect(status().isNotFound());
     }
@@ -157,7 +157,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
                 .thenReturn(updatedSettings);
 
         // When & Then
-        mockMvc.perform(put("/api/admin/organizations/settings")
+        mockMvc.perform(put("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "937219997")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -198,7 +198,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
                 .thenReturn(updatedSettings);
 
         // When & Then
-        mockMvc.perform(put("/api/admin/organizations/settings")
+        mockMvc.perform(put("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "937219997")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -220,7 +220,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        mockMvc.perform(put("/api/admin/organizations/settings")
+        mockMvc.perform(put("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "937219997")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -234,7 +234,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
         String invalidRequest = "{\"notificationEmail\": \"invalid-email\"}";
 
         // When & Then
-        mockMvc.perform(put("/api/admin/organizations/settings")
+        mockMvc.perform(put("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "937219997")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequest))
@@ -257,7 +257,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
                 .thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(put("/api/admin/organizations/settings")
+        mockMvc.perform(put("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "937219997")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -280,7 +280,7 @@ class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
                 .thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(put("/api/admin/organizations/settings")
+        mockMvc.perform(put("/api/v1/admin/organizations/settings")
                         .param("orgNumber", "999999999")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

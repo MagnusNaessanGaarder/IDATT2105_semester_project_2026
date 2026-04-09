@@ -1,27 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { TemperatureRecord } from '../types'
 
-interface TemperatureRecord {
-  id: number
-  location: string
-  temperature_c: number
-  min_temp: number
-  max_temp: number
-  recorded_by: string
-  recorded_date: string
-  recorded_time: string
-  status: 'ok' | 'warning' | 'critical'
-}
+  const props = defineProps<{
+    record: TemperatureRecord
+  }>()
 
-const props = defineProps<{
-  record: TemperatureRecord
-}>()
-
-const statusLabel = computed(() => {
-  const { status } = props.record
-  if (status === 'critical') return 'Kritisk'
-  if (status === 'warning') return 'Advarsel'
-  return 'OK'
+  const statusLabel = computed(() => {
+    const { status } = props.record
+    if (status === 'critical') return 'Kritisk'
+    if (status === 'warning') return 'Advarsel'
+    return 'OK'
 })
 
 const statusIcon = computed(() => {
@@ -90,6 +79,9 @@ const isWithinRange = computed(() => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   transition: box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
@@ -98,17 +90,17 @@ const isWithinRange = computed(() => {
 }
 
 .temperature-card--ok {
-  border-left: 0.25rem solid #10b981;
+  border-left: 0.25rem solid var(--color-success);
 }
 
 .temperature-card--warning {
-  border-left: 0.25rem solid #f59e0b;
-  background: rgba(245, 158, 11, 0.02);
+  border-left: 0.25rem solid var(--color-warning);
+  background: var(--color-warning-bg);
 }
 
 .temperature-card--critical {
-  border-left: 0.25rem solid #ef4444;
-  background: rgba(239, 68, 68, 0.02);
+  border-left: 0.25rem solid var(--color-danger);
+  background: var(--color-danger-bg);
 }
 
 .temperature-card__header {
@@ -149,18 +141,18 @@ const isWithinRange = computed(() => {
 }
 
 .temperature-card__status--ok {
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .temperature-card__status--warning {
-  background: rgba(245, 158, 11, 0.1);
-  color: #b45309;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .temperature-card__status--critical {
-  background: rgba(239, 68, 68, 0.1);
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
 }
 
 .temperature-card__status-icon {
@@ -174,12 +166,15 @@ const isWithinRange = computed(() => {
 
 .temperature-card__body {
   padding: 1.5rem;
+  flex: 1;
+  display: flex;
 }
 
 .temperature-card__temperature-display {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
+  width: 100%;
 }
 
 .temperature-card__current {
@@ -204,6 +199,7 @@ const isWithinRange = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  grid-column: 1 / -1;
 }
 
 .temperature-card__range-label {
@@ -222,11 +218,15 @@ const isWithinRange = computed(() => {
 
 .temperature-card__range-indicator {
   margin-top: 0.5rem;
+  width: 100%;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
 }
 
 .temperature-card__range-bar {
   position: relative;
   height: 0.5rem;
+  width: 100%;
   background: var(--color-gray-200);
   border-radius: var(--radius-full);
   overflow: visible;
@@ -238,15 +238,15 @@ const isWithinRange = computed(() => {
   transform: translate(-50%, -50%);
   width: 1rem;
   height: 1rem;
-  background: #10b981;
-  border: 0.125rem solid white;
+  background: var(--color-success);
+  border: 0.125rem solid var(--color-card);
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-sm);
   transition: background-color var(--transition-fast);
 }
 
 .temperature-card__range-marker--outside {
-  background: #ef4444;
+  background: var(--color-danger);
 }
 
 .temperature-card__footer {

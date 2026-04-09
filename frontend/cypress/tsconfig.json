@@ -3,6 +3,7 @@
   "include": ["./e2e/**/*", "./support/**/*"],
   "exclude": ["./support/component.*"],
   "compilerOptions": {
+    "moduleResolution": "node",
     "isolatedModules": false,
     "types": ["cypress"]
   }
