@@ -31,7 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -142,7 +144,9 @@ public class ChecklistRunController {
                 .build();
 
         ChecklistRunItem updated = runService.updateRunItem(runId, itemId, item, orgNumber);
-        return ResponseEntity.ok(mapToItemResponse(updated));
+        ChecklistRun run = runService.getRun(runId, orgNumber);
+        Map<Long, String> labelsByTemplateItemId = mapTemplateItemLabels(run);
+        return ResponseEntity.ok(mapToItemResponse(updated, runId, labelsByTemplateItemId));
     }
 
     @Operation(summary = "Get all items for a run")
@@ -155,12 +159,15 @@ public class ChecklistRunController {
         validateUserOrganizationAccess(userId, orgNumber);
 
         ChecklistRun run = runService.getRun(id, orgNumber);
+        Map<Long, String> labelsByTemplateItemId = mapTemplateItemLabels(run);
         return ResponseEntity.ok(run.getItems().stream()
-                .map(this::mapToItemResponse)
+            .map(item -> mapToItemResponse(item, run.getRunId(), labelsByTemplateItemId))
                 .collect(Collectors.toList()));
     }
 
     private ChecklistRunResponse mapToResponse(ChecklistRun run) {
+        Map<Long, String> labelsByTemplateItemId = mapTemplateItemLabels(run);
+
         return ChecklistRunResponse.builder()
                 .runId(run.getRunId())
                 .templateId(run.getTemplate() != null ? run.getTemplate().getTemplateId() : null)
@@ -177,29 +184,17 @@ public class ChecklistRunController {
                 .createdAt(run.getCreatedAt())
                 .updatedAt(run.getUpdatedAt())
                 .items(run.getItems() != null ? run.getItems().stream()
-                        .map(this::mapToItemResponse)
+                        .map(item -> mapToItemResponse(item, run.getRunId(), labelsByTemplateItemId))
                         .collect(Collectors.toList()) : null)
                 .build();
     }
 
-    private ChecklistRunItemResponse mapToItemResponse(ChecklistRunItem item) {
-        String templateItemLabel = null;
-        if (item.getRun() != null
-            && item.getRun().getTemplate() != null
-            && item.getRun().getTemplate().getItems() != null) {
-            templateItemLabel = item.getRun().getTemplate().getItems().stream()
-                    .filter(templateItem -> templateItem.getItemId() != null
-                        && templateItem.getItemId().equals(item.getTemplateItemId()))
-                    .findFirst()
-                    .map(ChecklistTemplateItem::getLabel)
-                    .orElse(null);
-        }
-
+    private ChecklistRunItemResponse mapToItemResponse(ChecklistRunItem item, Long runId, Map<Long, String> labelsByTemplateItemId) {
         return ChecklistRunItemResponse.builder()
                 .runItemId(item.getRunItemId())
-                .runId(item.getRun() != null ? item.getRun().getRunId() : null)
+                .runId(runId)
                 .templateItemId(item.getTemplateItemId())
-                .templateItemLabel(templateItemLabel)
+                .templateItemLabel(labelsByTemplateItemId.get(item.getTemplateItemId()))
                 .booleanValue(item.getBooleanValue())
                 .textValue(item.getTextValue())
                 .numericValue(item.getNumericValue())
@@ -210,6 +205,16 @@ public class ChecklistRunController {
                 .updatedAt(item.getUpdatedAt())
                 .hasAnswer(item.hasAnswer())
                 .build();
+    }
+
+    private Map<Long, String> mapTemplateItemLabels(ChecklistRun run) {
+        if (run.getTemplate() == null || run.getTemplate().getItems() == null) {
+            return Collections.emptyMap();
+        }
+
+        return run.getTemplate().getItems().stream()
+                .filter(templateItem -> templateItem.getItemId() != null)
+                .collect(Collectors.toMap(ChecklistTemplateItem::getItemId, ChecklistTemplateItem::getLabel, (left, right) -> left));
     }
 
     private void validateUserOrganizationAccess(Long userId, Integer orgNumber) {

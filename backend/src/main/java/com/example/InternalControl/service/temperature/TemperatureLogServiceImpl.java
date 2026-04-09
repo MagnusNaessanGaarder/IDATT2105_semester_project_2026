@@ -1,12 +1,19 @@
 package com.example.InternalControl.service.temperature;
 
 import com.example.InternalControl.dto.temperature.*;
+import com.example.InternalControl.model.deviation.DeviationReport;
+import com.example.InternalControl.model.notification.NotificationType;
+import com.example.InternalControl.model.notification.RelatedEntityType;
 import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.model.temperature.TemperatureLogEntry;
 import com.example.InternalControl.model.temperature.TemperatureLogPoint;
+import com.example.InternalControl.repository.deviation.DeviationReportRepository;
 import com.example.InternalControl.repository.organization.LocationRepository;
 import com.example.InternalControl.repository.temperature.TemperatureLogEntryRepository;
 import com.example.InternalControl.repository.temperature.TemperatureLogPointRepository;
+import com.example.InternalControl.repository.user.AppUserRepository;
+import com.example.InternalControl.service.notification.NotificationService;
+import com.example.InternalControl.service.user.UserOrganizationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +36,10 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
   private final TemperatureLogPointRepository pointRepository;
   private final TemperatureLogEntryRepository entryRepository;
   private final LocationRepository locationRepository;
+  private final DeviationReportRepository deviationReportRepository;
+  private final AppUserRepository appUserRepository;
+  private final UserOrganizationService userOrganizationService;
+  private final NotificationService notificationService;
 
   @Override
   public TemperatureLogPointResponse createLogPoint(TemperatureLogPointRequest request, Integer orgNumber) {
@@ -55,13 +66,20 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
     TemperatureLogPoint point = pointRepository.findByLogPointIdAndOrgNumber(pointId, orgNumber)
         .orElseThrow(() -> new EntityNotFoundException("Temperature log point not found: " + pointId));
 
+    Location location = locationRepository.findById(request.getLocationId())
+        .orElseThrow(() -> new EntityNotFoundException("Location not found: " + request.getLocationId()));
+
+    if (!location.getOrgNumber().equals(orgNumber)) {
+      throw new EntityNotFoundException("Location not found in organization");
+    }
+
+    point.setLocationId(request.getLocationId());
     point.setName(request.getName());
     if (request.getIsActive() != null) {
       point.setIsActive(request.getIsActive());
     }
 
     TemperatureLogPoint saved = pointRepository.save(point);
-    Location location = locationRepository.findById(saved.getLocationId()).orElse(null);
     return mapToPointResponse(saved, location);
   }
 
@@ -69,7 +87,35 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
   public void deleteLogPoint(Long pointId, Integer orgNumber) {
     TemperatureLogPoint point = pointRepository.findByLogPointIdAndOrgNumber(pointId, orgNumber)
         .orElseThrow(() -> new EntityNotFoundException("Temperature log point not found: " + pointId));
+
+    clearEntriesAndLinkedDeviations(pointId, orgNumber);
+
     pointRepository.delete(point);
+  }
+
+  @Override
+  public void clearEntriesForPoint(Long pointId, Integer orgNumber) {
+    pointRepository.findByLogPointIdAndOrgNumber(pointId, orgNumber)
+        .orElseThrow(() -> new EntityNotFoundException("Temperature log point not found: " + pointId));
+
+    clearEntriesAndLinkedDeviations(pointId, orgNumber);
+  }
+
+  private void clearEntriesAndLinkedDeviations(Long pointId, Integer orgNumber) {
+
+    List<TemperatureLogEntry> entries = entryRepository.findByOrgNumberAndLogPointId(orgNumber, pointId);
+    List<Long> entryIds = entries.stream()
+        .map(TemperatureLogEntry::getEntryId)
+        .toList();
+
+    if (!entryIds.isEmpty()) {
+      List<DeviationReport> linkedReports = deviationReportRepository.findByOrgNumberAndSourceTemperatureEntryIdIn(orgNumber, entryIds);
+      if (!linkedReports.isEmpty()) {
+        deviationReportRepository.deleteAll(linkedReports);
+      }
+      entryRepository.deleteByOrgNumberAndLogPointId(orgNumber, pointId);
+    }
+
   }
 
   @Override
@@ -110,11 +156,12 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
 
     Location location = locationRepository.findById(point.getLocationId()).orElse(null);
     boolean isAlert = checkIfAlert(request.getTemperatureC(), location);
+    Long recordedByUserId = resolveRecordedByUserId(request.getRecordedByUserId(), orgNumber, userId);
 
     TemperatureLogEntry entry = TemperatureLogEntry.builder()
         .orgNumber(orgNumber)
         .logPointId(request.getLogPointId())
-        .recordedByUserId(userId)
+      .recordedByUserId(recordedByUserId)
         .measuredAt(request.getMeasuredAt() != null ? request.getMeasuredAt() : LocalDateTime.now())
         .temperatureC(request.getTemperatureC())
         .isAlert(isAlert)
@@ -124,12 +171,48 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
     TemperatureLogEntry saved = entryRepository.save(entry);
 
     if (isAlert) {
+      try {
+        notificationService.createNotificationWithEntity(
+            orgNumber,
+            userId,
+            NotificationType.TEMPERATURE_ALERT,
+            "Temperaturavvik registrert",
+            buildTemperatureAlertMessage(point, location, request.getTemperatureC()),
+            RelatedEntityType.TEMPERATURE_LOG_ENTRY,
+            saved.getEntryId());
+      } catch (Exception ex) {
+        log.error("Failed to create temperature alert notification for entry {}", saved.getEntryId(), ex);
+      }
+
       log.warn("Temperature alert recorded for point {}: {}C (outside range {} - {})",
           point.getLogPointId(), request.getTemperatureC(),
           location != null ? location.getTempMinC() : "N/A",
           location != null ? location.getTempMaxC() : "N/A");
     }
 
+    return mapToEntryResponse(saved, point, location);
+  }
+
+  @Override
+  public TemperatureLogEntryResponse updateEntry(Long entryId, TemperatureLogEntryRequest request, Integer orgNumber, Long userId) {
+    TemperatureLogEntry entry = entryRepository.findByEntryIdAndOrgNumber(entryId, orgNumber)
+        .orElseThrow(() -> new EntityNotFoundException("Temperature log entry not found: " + entryId));
+
+    TemperatureLogPoint point = pointRepository.findByLogPointIdAndOrgNumber(request.getLogPointId(), orgNumber)
+        .orElseThrow(() -> new EntityNotFoundException("Temperature log point not found: " + request.getLogPointId()));
+
+    Location location = locationRepository.findById(point.getLocationId()).orElse(null);
+    Long recordedByUserId = resolveRecordedByUserId(request.getRecordedByUserId(), orgNumber, userId);
+    boolean isAlert = checkIfAlert(request.getTemperatureC(), location);
+
+    entry.setLogPointId(request.getLogPointId());
+    entry.setRecordedByUserId(recordedByUserId);
+    entry.setMeasuredAt(request.getMeasuredAt() != null ? request.getMeasuredAt() : LocalDateTime.now());
+    entry.setTemperatureC(request.getTemperatureC());
+    entry.setNoteText(request.getNoteText());
+    entry.setIsAlert(isAlert);
+
+    TemperatureLogEntry saved = entryRepository.save(entry);
     return mapToEntryResponse(saved, point, location);
   }
 
@@ -148,6 +231,17 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
     boolean aboveMax = maxTemp != null && temperature.compareTo(maxTemp) > 0;
 
     return belowMin || aboveMax;
+  }
+
+  private String buildTemperatureAlertMessage(TemperatureLogPoint point, Location location, BigDecimal measuredTemp) {
+    String pointName = point != null ? point.getName() : "Ukjent punkt";
+    String min = location != null && location.getTempMinC() != null ? location.getTempMinC().toPlainString() : "-";
+    String max = location != null && location.getTempMaxC() != null ? location.getTempMaxC().toPlainString() : "-";
+    return String.format("%s ble registrert med %s°C (grense %s°C til %s°C).",
+        pointName,
+        measuredTemp != null ? measuredTemp.toPlainString() : "-",
+        min,
+        max);
   }
 
   @Override
@@ -210,6 +304,13 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
   }
 
   private TemperatureLogEntryResponse mapToEntryResponse(TemperatureLogEntry entry, TemperatureLogPoint point, Location location) {
+    String recordedByName = null;
+    if (entry.getRecordedByUserId() != null) {
+      recordedByName = appUserRepository.findById(entry.getRecordedByUserId())
+          .map(user -> user.getDisplayName() != null ? user.getDisplayName() : user.getEmail())
+          .orElse(null);
+    }
+
     return TemperatureLogEntryResponse.builder()
         .entryId(entry.getEntryId())
         .logPointId(entry.getLogPointId())
@@ -219,6 +320,7 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
         .temperatureC(entry.getTemperatureC())
         .isAlert(entry.getIsAlert())
         .noteText(entry.getNoteText())
+        .recordedByName(recordedByName)
         .measuredAt(entry.getMeasuredAt())
         .createdAt(entry.getCreatedAt())
         .build();
@@ -228,5 +330,13 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
     TemperatureLogPoint point = pointRepository.findByLogPointIdAndOrgNumber(entry.getLogPointId(), orgNumber).orElse(null);
     Location location = point != null ? locationRepository.findById(point.getLocationId()).orElse(null) : null;
     return mapToEntryResponse(entry, point, location);
+  }
+
+  private Long resolveRecordedByUserId(Long requestedUserId, Integer orgNumber, Long fallbackUserId) {
+    Long resolvedUserId = requestedUserId != null ? requestedUserId : fallbackUserId;
+    if (!userOrganizationService.isUserInOrganization(resolvedUserId, orgNumber)) {
+      throw new EntityNotFoundException("Recorded-by user not found in organization");
+    }
+    return resolvedUserId;
   }
 }

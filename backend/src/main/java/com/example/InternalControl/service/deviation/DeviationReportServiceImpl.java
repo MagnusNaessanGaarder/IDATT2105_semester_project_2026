@@ -6,12 +6,17 @@ import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.model.enums.DeviationStatus;
 import com.example.InternalControl.model.enums.Severity;
+import com.example.InternalControl.model.notification.NotificationType;
+import com.example.InternalControl.model.notification.RelatedEntityType;
 import com.example.InternalControl.repository.user.AppUserRepository;
 import com.example.InternalControl.repository.deviation.DeviationReportRepository;
 import com.example.InternalControl.repository.organization.LocationRepository;
 import com.example.InternalControl.repository.organization.OrganizationRepository;
+import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
+import com.example.InternalControl.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +30,15 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class DeviationReportServiceImpl implements DeviationReportService {
 
     private final DeviationReportRepository deviationReportRepository;
     private final OrganizationRepository organizationRepository;
     private final LocationRepository locationRepository;
     private final AppUserRepository appUserRepository;
+    private final UserOrganizationRoleRepository userOrganizationRoleRepository;
+    private final NotificationService notificationService;
 
     @Override
     public DeviationReport createReport(DeviationReportCreateRequest request, Integer orgNumber, Long userId) {
@@ -49,6 +57,7 @@ public class DeviationReportServiceImpl implements DeviationReportService {
                 .description(request.getDescription())
                 .location(location)
                 .locationText(request.getLocationText())
+                .sourceTemperatureEntryId(request.getSourceTemperatureEntryId())
                 .occurredDate(request.getOccurredDate())
                 .occurredTime(request.getOccurredTime())
                 .reportDate(LocalDate.now())
@@ -68,9 +77,19 @@ public class DeviationReportServiceImpl implements DeviationReportService {
                 .build();
 
         DeviationReport saved = deviationReportRepository.save(report);
-        
-        // TODO: Issue #51 - Emit notification event for deviation created
-        // TODO: Issue #?? - Add audit log entry for deviation creation
+
+        try {
+            notificationService.createNotificationWithEntity(
+                orgNumber,
+                userId,
+                NotificationType.DEVIATION_STATUS_CHANGED,
+                "Nytt avvik registrert",
+                String.format("Avvik '%s' er opprettet med alvorlighet %s.", saved.getTitle(), saved.getSeverity()),
+                RelatedEntityType.DEVIATION_REPORT,
+                saved.getReportId());
+        } catch (Exception ex) {
+            log.error("Failed to create deviation notification for report {}", saved.getReportId(), ex);
+        }
         
         return saved;
     }
@@ -166,6 +185,14 @@ public class DeviationReportServiceImpl implements DeviationReportService {
     public DeviationReport updateStatus(Long reportId, DeviationStatus newStatus, Integer orgNumber, Long userId) {
         DeviationReport report = findReportByIdAndOrg(reportId, orgNumber);
 
+        if (newStatus == DeviationStatus.UNDER_INVESTIGATION) {
+            validateAssignableUserRole(userId, orgNumber);
+        }
+
+        if (newStatus == DeviationStatus.CLOSED) {
+            validateAssignableUserRole(userId, orgNumber);
+        }
+
         validateStatusTransition(report.getStatus(), newStatus);
 
         report.setStatus(newStatus);
@@ -184,6 +211,8 @@ public class DeviationReportServiceImpl implements DeviationReportService {
         if (report.isClosed()) {
             throw new IllegalStateException("Cannot assign closed report");
         }
+
+        validateAssignableUserRole(assignedToUserId, orgNumber);
 
         AppUser assignedTo = findUserById(assignedToUserId);
         report.setAssignedTo(assignedTo);
@@ -317,7 +346,8 @@ public class DeviationReportServiceImpl implements DeviationReportService {
             case DRAFT -> newStatus == DeviationStatus.REPORTED;
             case REPORTED -> newStatus == DeviationStatus.UNDER_INVESTIGATION;
             case UNDER_INVESTIGATION -> newStatus == DeviationStatus.CORRECTIVE_ACTION_PLANNED
-                || newStatus == DeviationStatus.REPORTED;
+                || newStatus == DeviationStatus.REPORTED
+                || newStatus == DeviationStatus.CLOSED;
             case CORRECTIVE_ACTION_PLANNED -> newStatus == DeviationStatus.CORRECTIVE_ACTION_COMPLETED
                 || newStatus == DeviationStatus.UNDER_INVESTIGATION;
             case CORRECTIVE_ACTION_COMPLETED -> newStatus == DeviationStatus.CLOSED
@@ -328,6 +358,19 @@ public class DeviationReportServiceImpl implements DeviationReportService {
         if (!valid) {
             throw new IllegalStateException(
                 String.format("Invalid status transition from %s to %s", currentStatus, newStatus));
+        }
+    }
+
+    private void validateAssignableUserRole(Long userId, Integer orgNumber) {
+        boolean hasAllowedRole = userOrganizationRoleRepository.findByUserIdAndOrgNumber(userId, orgNumber)
+                .stream()
+                .map(userOrgRole -> userOrgRole.getRole())
+                .filter(role -> role != null && role.getRoleName() != null)
+                .map(role -> role.getRoleName().toUpperCase())
+                .anyMatch(roleName -> roleName.equals("ADMIN") || roleName.equals("MANAGER"));
+
+        if (!hasAllowedRole) {
+            throw new IllegalStateException("Deviation can only be assigned to a manager or admin");
         }
     }
 

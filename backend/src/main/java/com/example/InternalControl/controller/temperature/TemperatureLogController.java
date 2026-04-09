@@ -110,6 +110,19 @@ public class TemperatureLogController {
     return ResponseEntity.noContent().build();
   }
 
+  @DeleteMapping("/points/{pointId}/entries")
+  @Operation(summary = "Clear measurements for log point")
+  @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+  public ResponseEntity<Void> clearPointEntries(
+      @Parameter(description = "Log point ID") @PathVariable Long pointId,
+      @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    temperatureLogService.clearEntriesForPoint(pointId, orgNumber);
+    return ResponseEntity.noContent().build();
+  }
+
   // Temperature Entries
   @PostMapping("/entries")
   @Operation(summary = "Record temperature reading")
@@ -125,6 +138,19 @@ public class TemperatureLogController {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
     return ResponseEntity.status(201).body(temperatureLogService.recordEntry(request, orgNumber, userId));
+  }
+
+  @PutMapping("/entries/{entryId}")
+  @Operation(summary = "Update temperature reading")
+  @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+  public ResponseEntity<TemperatureLogEntryResponse> updateEntry(
+      @PathVariable Long entryId,
+      @Valid @RequestBody TemperatureLogEntryRequest request,
+      @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    return ResponseEntity.ok(temperatureLogService.updateEntry(entryId, request, orgNumber, userId));
   }
 
   @GetMapping("/entries")

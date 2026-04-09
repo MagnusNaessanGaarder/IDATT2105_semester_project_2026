@@ -16,6 +16,8 @@ public interface TemperatureLogService {
 
   void deleteLogPoint(Long pointId, Integer orgNumber);
 
+  void clearEntriesForPoint(Long pointId, Integer orgNumber);
+
   TemperatureLogPointResponse getLogPoint(Long pointId, Integer orgNumber);
 
   List<TemperatureLogPointResponse> listLogPoints(Integer orgNumber);
@@ -24,6 +26,8 @@ public interface TemperatureLogService {
 
   // Entries
   TemperatureLogEntryResponse recordEntry(TemperatureLogEntryRequest request, Integer orgNumber, Long userId);
+
+  TemperatureLogEntryResponse updateEntry(Long entryId, TemperatureLogEntryRequest request, Integer orgNumber, Long userId);
 
   TemperatureLogEntryResponse getEntry(Long entryId, Integer orgNumber);
 

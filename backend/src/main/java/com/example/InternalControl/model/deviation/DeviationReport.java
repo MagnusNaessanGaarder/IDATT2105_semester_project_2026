@@ -60,6 +60,9 @@ public class DeviationReport {
   @Column(name = "location_text", length = 100)
   private String locationText;
 
+  @Column(name = "source_temperature_entry_id")
+  private Long sourceTemperatureEntryId;
+
   @Column(name = "occurred_date")
   private LocalDate occurredDate;
 

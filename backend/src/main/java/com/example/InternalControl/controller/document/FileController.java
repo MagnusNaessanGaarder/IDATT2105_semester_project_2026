@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/files")
@@ -139,5 +141,46 @@ public class FileController {
         .header(HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"" + safeFilename + "\"")
         .body(stream.toByteArray());
+  }
+
+  @PutMapping("/{documentId}")
+  @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+  @Operation(summary = "Update document metadata")
+  public ResponseEntity<OrganizationDocument> updateDocumentMetadata(
+      @RequestHeader("X-Org-Number") Integer orgNumber,
+      @PathVariable Long documentId,
+      @RequestBody Map<String, String> payload) {
+
+    OrganizationDocument doc = documentRepo.findByDocumentIdAndOrgNumber(documentId, orgNumber)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    String title = payload.get("title");
+    String description = payload.get("description");
+
+    if (title != null && !title.isBlank()) {
+      doc.setTitle(title.trim());
+    }
+    if (description != null) {
+      doc.setDescription(description.trim().isEmpty() ? null : description.trim());
+    }
+
+    OrganizationDocument saved = documentRepo.save(doc);
+    return ResponseEntity.ok(saved);
+  }
+
+  @DeleteMapping("/{documentId}")
+  @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+  @Operation(summary = "Delete document (soft delete)")
+  public ResponseEntity<Void> deleteDocument(
+      @RequestHeader("X-Org-Number") Integer orgNumber,
+      @PathVariable Long documentId) {
+
+    OrganizationDocument doc = documentRepo.findByDocumentIdAndOrgNumber(documentId, orgNumber)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    doc.setActive(false);
+    documentRepo.save(doc);
+
+    return ResponseEntity.noContent().build();
   }
 }
