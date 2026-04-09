@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
-import RegisterView from '../views/RegisterView.vue'
+import RegisterView from '../RegisterView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 vi.mock('@/stores/auth', () => ({
@@ -30,6 +30,7 @@ const mountView = () =>
         global: {
             plugins: [mockRouter],
             stubs: { 'router-link': { template: '<a><slot /></a>' } },
+            directives: { motion: {} },
         },
     })
 
@@ -232,8 +233,10 @@ describe('RegisterView', () => {
             await mockRouter.push('/registrer')
             await fillForm(wrapper)
             await wrapper.find('form').trigger('submit')
+            // Wait for the register promise, then the router.push promise
             await Promise.resolve()
             await Promise.resolve()
+            await mockRouter.isReady()
 
             expect(mockRouter.currentRoute.value.name).toBe('Dashboard')
         })
