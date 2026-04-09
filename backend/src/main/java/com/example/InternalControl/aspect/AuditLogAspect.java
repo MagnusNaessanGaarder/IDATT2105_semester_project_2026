@@ -7,27 +7,30 @@ import com.example.InternalControl.service.audit.AuditLogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Optional;
-
 @Aspect
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class AuditLogAspect {
+
+  private static final Logger log = LoggerFactory.getLogger(AuditLogAspect.class);
 
   private final AuditLogService auditLogService;
   private final ObjectMapper objectMapper;
+
+  public AuditLogAspect(AuditLogService auditLogService, ObjectMapper objectMapper) {
+    this.auditLogService = auditLogService;
+    this.objectMapper = objectMapper;
+  }
 
   @AfterReturning(value = "@annotation(audited)", returning = "result")
   public void logAuditEvent(JoinPoint joinPoint, Audited audited, Object result) {
@@ -65,7 +68,7 @@ public class AuditLogAspect {
           audited.action(),
           audited.entityType(),
           entityId,
-          null, // oldValues - would need to fetch before update
+          null,
           newValuesJson,
           ipAddress,
           userAgent);
@@ -86,7 +89,6 @@ public class AuditLogAspect {
     Object[] args = joinPoint.getArgs();
     for (Object arg : args) {
       if (arg instanceof Integer intValue) {
-        // Assume first Integer arg is orgNumber if it's a reasonable org number
         if (intValue > 0 && intValue < 1000000000) {
           return intValue;
         }
@@ -100,7 +102,6 @@ public class AuditLogAspect {
       return null;
     }
 
-    // Simple extraction for common patterns
     try {
       if (result instanceof com.example.InternalControl.model.deviation.DeviationReport report) {
         return report.getReportId();

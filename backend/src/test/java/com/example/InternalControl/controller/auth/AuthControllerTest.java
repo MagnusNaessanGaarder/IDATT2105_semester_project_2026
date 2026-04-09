@@ -4,6 +4,7 @@ import com.example.InternalControl.dto.auth.request.LoginRequest;
 import com.example.InternalControl.dto.auth.request.RefreshTokenRequest;
 import com.example.InternalControl.dto.auth.request.RegisterRequest;
 import com.example.InternalControl.dto.auth.response.AuthResponse;
+import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.auth.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private JwtService jwtService;
 
     private static final String REGISTER_URL = "/api/v1/auth/register";
     private static final String LOGIN_URL = "/api/v1/auth/login";

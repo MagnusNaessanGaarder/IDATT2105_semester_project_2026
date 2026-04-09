@@ -1,11 +1,8 @@
 package com.example.InternalControl.config;
 
 import com.example.InternalControl.AbstractIntegrationTest;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.Paths;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,19 +11,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Integration tests for verifying Swagger/OpenAPI documentation coverage.
- * Ensures all REST endpoints have proper Swagger annotations.
- * <p>
- * Uses MockMvc to fetch the generated OpenAPI spec from /v3/api-docs endpoint
- * rather than relying on the injected OpenAPI bean, which may not have paths populated.
- */
 @AutoConfigureMockMvc
 @DisplayName("Swagger Documentation Coverage Tests")
 class SwaggerDocumentationTest extends AbstractIntegrationTest {
@@ -37,20 +29,24 @@ class SwaggerDocumentationTest extends AbstractIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private OpenAPI openAPI;
+    private JsonNode openApiJson;
 
-    /**
-     * Fetches the OpenAPI spec from /v3/api-docs before each test.
-     * This ensures each test is self-contained and works with the actual generated spec.
-     */
     @BeforeEach
     void setUp() throws Exception {
         MvcResult result = mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andReturn();
+        openApiJson = objectMapper.readTree(result.getResponse().getContentAsString());
+    }
 
-        String content = result.getResponse().getContentAsString();
-        this.openAPI = objectMapper.readValue(content, OpenAPI.class);
+    private Set<String> pathKeys() {
+        JsonNode pathsNode = openApiJson.path("paths");
+        Set<String> keys = new HashSet<>();
+        Iterator<String> fields = pathsNode.fieldNames();
+        while (fields.hasNext()) {
+            keys.add(fields.next());
+        }
+        return keys;
     }
 
     @Test
@@ -70,304 +66,159 @@ class SwaggerDocumentationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should have documented endpoints with no missing summaries or responses")
     void shouldHaveDocumentedEndpointsWithNoMissingSummariesOrResponses() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths)
-                .withFailMessage("OpenAPI paths should not be null")
-                .isNotNull();
-        assertThat(paths)
-                .withFailMessage("OpenAPI paths should not be empty")
-                .isNotEmpty();
+        JsonNode paths = openApiJson.path("paths");
+        assertThat(paths.isObject()).isTrue();
+        assertThat(paths.size()).isGreaterThan(0);
 
-        long endpointCount = paths.values().stream()
-                .flatMap(pathItem -> pathItem.readOperations().stream())
-                .count();
+        int operationCount = 0;
+        int missingSummary = 0;
+        int missingResponses = 0;
 
-        assertThat(endpointCount)
-                .withFailMessage("Expected at least 1 documented endpoint, but found %d", endpointCount)
-                .isGreaterThanOrEqualTo(1);
+        Iterator<String> pathIterator = paths.fieldNames();
+        while (pathIterator.hasNext()) {
+            JsonNode operations = paths.get(pathIterator.next());
+            Iterator<String> methods = operations.fieldNames();
+            while (methods.hasNext()) {
+                String method = methods.next();
+                if ("parameters".equals(method)) {
+                    continue;
+                }
+                operationCount++;
+                JsonNode operation = operations.get(method);
+                String summary = operation.path("summary").asText("");
+                if (summary.isBlank()) {
+                    missingSummary++;
+                }
+                if (operation.path("responses").isMissingNode() || operation.path("responses").size() == 0) {
+                    missingResponses++;
+                }
+            }
+        }
 
-        // Check for missing summaries
-        long operationsWithoutSummary = paths.entrySet().stream()
-                .flatMap(entry -> entry.getValue().readOperations().stream()
-                        .map(op -> Map.entry(entry.getKey(), op)))
-                .filter(entry -> {
-                    Operation op = entry.getValue();
-                    return op.getSummary() == null || op.getSummary().isBlank();
-                })
-                .count();
-
-        assertThat(operationsWithoutSummary)
-                .withFailMessage("Found %d endpoints without operation summaries", operationsWithoutSummary)
-                .isZero();
-
-        // Check for missing responses
-        long operationsWithoutResponses = paths.entrySet().stream()
-                .flatMap(entry -> entry.getValue().readOperations().stream()
-                        .map(op -> Map.entry(entry.getKey(), op)))
-                .filter(entry -> {
-                    Operation op = entry.getValue();
-                    return op.getResponses() == null || op.getResponses().isEmpty();
-                })
-                .count();
-
-        assertThat(operationsWithoutResponses)
-                .withFailMessage("Found %d endpoints without documented responses", operationsWithoutResponses)
-                .isZero();
+        assertThat(operationCount).isGreaterThanOrEqualTo(1);
+        assertThat(missingSummary).isZero();
+        assertThat(missingResponses).isZero();
     }
 
     @Test
     @DisplayName("Should document authentication endpoints")
     void shouldDocumentAuthenticationEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        // Check for auth endpoints
-        assertThat(paths.containsKey("/api/v1/auth/login"))
-                .withFailMessage("Login endpoint should be documented")
-                .isTrue();
-        assertThat(paths.containsKey("/api/v1/auth/register"))
-                .withFailMessage("Register endpoint should be documented")
-                .isTrue();
-        assertThat(paths.containsKey("/api/v1/auth/refresh"))
-                .withFailMessage("Refresh token endpoint should be documented")
-                .isTrue();
+        Set<String> paths = pathKeys();
+        assertThat(paths).contains("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/refresh");
     }
 
     @Test
     @DisplayName("Should document user management endpoints")
     void shouldDocumentUserManagementEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        // Check for user endpoints (using pattern matching since some have path variables)
-        boolean hasUsersEndpoint = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/users"));
-
-        assertThat(hasUsersEndpoint)
-                .withFailMessage("User management endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/users"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document checklist endpoints")
     void shouldDocumentChecklistEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        // Check for checklist endpoints
-        boolean hasChecklistTemplates = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/checklists/templates"));
-
-        boolean hasChecklistRuns = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/checklists/runs"));
-
-        assertThat(hasChecklistTemplates)
-                .withFailMessage("Checklist template endpoints should be documented")
-                .isTrue();
-
-        assertThat(hasChecklistRuns)
-                .withFailMessage("Checklist run endpoints should be documented")
-                .isTrue();
+        Set<String> paths = pathKeys();
+        assertThat(paths.stream().anyMatch(path -> path.startsWith("/api/v1/checklists/templates"))).isTrue();
+        assertThat(paths.stream().anyMatch(path -> path.startsWith("/api/v1/checklists/runs"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document deviation report endpoints")
     void shouldDocumentDeviationReportEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasDeviationEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/deviations"));
-
-        assertThat(hasDeviationEndpoints)
-                .withFailMessage("Deviation report endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/deviations"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document temperature logging endpoints")
     void shouldDocumentTemperatureLoggingEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasTemperatureEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/temperature"));
-
-        assertThat(hasTemperatureEndpoints)
-                .withFailMessage("Temperature logging endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/temperature"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document notification endpoints")
     void shouldDocumentNotificationEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasNotificationEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/notifications"));
-
-        assertThat(hasNotificationEndpoints)
-                .withFailMessage("Notification endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/notifications"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document file management endpoints")
     void shouldDocumentFileManagementEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasFileEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/files"));
-
-        assertThat(hasFileEndpoints)
-                .withFailMessage("File management endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/files"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document analytics endpoints")
     void shouldDocumentAnalyticsEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasAnalyticsEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/analytics"));
-
-        assertThat(hasAnalyticsEndpoints)
-                .withFailMessage("Analytics endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/analytics"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document export endpoints")
     void shouldDocumentExportEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasExportEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/exports"));
-
-        assertThat(hasExportEndpoints)
-                .withFailMessage("Export endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/exports"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document training record endpoints")
     void shouldDocumentTrainingRecordEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasTrainingEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/training"));
-
-        assertThat(hasTrainingEndpoints)
-                .withFailMessage("Training record endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/training"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document location endpoints")
     void shouldDocumentLocationEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasLocationEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/locations"));
-
-        assertThat(hasLocationEndpoints)
-                .withFailMessage("Location endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/locations"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document admin audit log endpoints")
     void shouldDocumentAdminAuditLogEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasAuditLogEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/admin/audit-log"));
-
-        assertThat(hasAuditLogEndpoints)
-                .withFailMessage("Admin audit log endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/admin/audit-log"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document role and permission endpoints")
     void shouldDocumentRoleAndPermissionEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasRoleEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/admin/roles"));
-
-        boolean hasPermissionEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/admin/permissions"));
-
-        assertThat(hasRoleEndpoints)
-                .withFailMessage("Role management endpoints should be documented")
-                .isTrue();
-
-        assertThat(hasPermissionEndpoints)
-                .withFailMessage("Permission management endpoints should be documented")
-                .isTrue();
+        Set<String> paths = pathKeys();
+        assertThat(paths.stream().anyMatch(path -> path.startsWith("/api/admin/roles"))).isTrue();
+        assertThat(paths.stream().anyMatch(path -> path.startsWith("/api/admin/permissions"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document organization settings endpoints")
     void shouldDocumentOrganizationSettingsEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasSettingsEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/organizations") && path.contains("settings"));
-
-        assertThat(hasSettingsEndpoints)
-                .withFailMessage("Organization settings endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/organizations/") && path.contains("/settings"))).isTrue();
     }
 
     @Test
     @DisplayName("Should document identity provider endpoints")
     void shouldDocumentIdentityProviderEndpoints() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        boolean hasIdentityEndpoints = paths.keySet().stream()
-                .anyMatch(path -> path.startsWith("/api/v1/identity"));
-
-        assertThat(hasIdentityEndpoints)
-                .withFailMessage("Identity provider endpoints should be documented")
-                .isTrue();
+        assertThat(pathKeys().stream().anyMatch(path -> path.startsWith("/api/v1/identity"))).isTrue();
     }
 
     @Test
     @DisplayName("All documented paths should have defined operations")
     void allDocumentedPathsShouldHaveDefinedOperations() {
-        Paths paths = openAPI.getPaths();
-        assertThat(paths).isNotNull();
-
-        for (Map.Entry<String, PathItem> entry : paths.entrySet()) {
-            String path = entry.getKey();
-            PathItem pathItem = entry.getValue();
-
-            long operationCount = pathItem.readOperations().size();
-
-            assertThat(operationCount)
-                    .withFailMessage("Path %s should have at least one operation defined", path)
-                    .isGreaterThan(0);
+        JsonNode paths = openApiJson.path("paths");
+        Iterator<String> pathIterator = paths.fieldNames();
+        while (pathIterator.hasNext()) {
+            JsonNode operations = paths.get(pathIterator.next());
+            int operationCount = 0;
+            Iterator<String> methods = operations.fieldNames();
+            while (methods.hasNext()) {
+                String method = methods.next();
+                if (!"parameters".equals(method)) {
+                    operationCount++;
+                }
+            }
+            assertThat(operationCount).isGreaterThan(0);
         }
     }
 
     @Test
     @DisplayName("Should have security scheme configured for protected endpoints")
     void shouldHaveSecuritySchemeConfiguredForProtectedEndpoints() {
-        assertThat(openAPI.getComponents()).isNotNull();
-        assertThat(openAPI.getComponents().getSecuritySchemes()).isNotNull();
-        assertThat(openAPI.getComponents().getSecuritySchemes()).containsKey("bearerAuth");
+        JsonNode securitySchemes = openApiJson.path("components").path("securitySchemes");
+        assertThat(securitySchemes.isObject()).isTrue();
+        assertThat(securitySchemes.has("bearerAuth")).isTrue();
     }
 }

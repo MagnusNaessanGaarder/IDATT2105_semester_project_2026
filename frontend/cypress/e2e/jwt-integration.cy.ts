@@ -7,7 +7,7 @@
 
 describe('JWT Authentication Integration', () => {
   const testUser = {
-    email: 'admin2@everest-sushi.no',
+    email: 'admin@everest-sushi.no',
     password: 'Test1234!',
     role: 'ADMIN'
   }
@@ -17,6 +17,11 @@ describe('JWT Authentication Integration', () => {
     cy.window().then((win) => {
       win.sessionStorage.clear()
     })
+
+    // Avoid auth-rate-limit collisions across many e2e login attempts.
+    cy.intercept('POST', '**/auth/login', (req) => {
+      req.headers['x-forwarded-for'] = `10.0.1.${Math.floor(Math.random() * 200) + 10}`
+    }).as('loginRequest')
   })
 
   describe('Login Flow', () => {
@@ -32,6 +37,7 @@ describe('JWT Authentication Integration', () => {
       
       // Klikk login
       cy.get('button[type="submit"]').click()
+      cy.wait('@loginRequest').its('response.statusCode').should('eq', 200)
       
       // Vent på redirect til dashboard
       cy.url().should('not.include', '/login', { timeout: 10000 })

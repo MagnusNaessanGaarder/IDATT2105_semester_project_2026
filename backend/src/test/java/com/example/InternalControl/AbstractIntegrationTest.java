@@ -40,6 +40,7 @@ public abstract class AbstractIntegrationTest {
         if (isLinux()) {
             setPropertyIfAbsent("docker.host", "unix:///var/run/docker.sock");
             setPropertyIfAbsent("testcontainers.docker.socket.override", "/var/run/docker.sock");
+            setPropertyIfAbsent("api.version", "1.41");
         }
         setPropertyIfAbsent("testcontainers.ryuk.disabled", "true");
 
