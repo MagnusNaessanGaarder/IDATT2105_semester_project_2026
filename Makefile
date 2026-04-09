@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := dev
 
-.PHONY: help dev stop restart status logs logs-backend logs-frontend test clean clean-db clean-full install
+.PHONY: help dev stop restart status logs logs-backend logs-frontend test clean clean-db clean-full install backend-rebuild
 
 UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
 IS_WINDOWS := 0
@@ -131,7 +131,12 @@ endif
 	@echo "  All services stopped"
 	@echo ""
 
-restart: stop dev
+backend-rebuild:
+	@echo "Cleaning and rebuilding backend..."
+	@cd backend && ./mvnw clean -DskipTests compile
+	@echo "  Backend rebuild completed"
+
+restart: stop backend-rebuild dev
 
 status:
 	@echo ""
