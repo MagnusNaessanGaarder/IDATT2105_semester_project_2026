@@ -1,72 +1,15 @@
 import { computed, ref } from 'vue'
-import { getRuns, type ChecklistRun } from '../api/checklistsRun'
-
-export interface DailyControlItem {
-  id: number
-  run_id: number | null
-  run_status: string | null
-  name: string
-  law_unit: string
-  employee: string
-  comment: string
-  completion_date: {
-    date: string
-    time: string
-  }
-  attachment: string | null
-  is_checked: boolean
-}
-
-export interface EmployeeCertificate {
-  name: string
-  expire_date: string
-}
-
-export interface EmployeeCertification {
-  name: string
-  certifications: EmployeeCertificate[]
-}
-
-export interface LawSection {
-  section: string
-  description: string
-}
-
-export interface LawItem {
-  name: string
-  type: string
-  short: string
-  description: string
-  link: string
-  last_updated_code: string
-  sub_sections?: LawSection[]
-  'sub-sections'?: LawSection[]
-}
-
-export interface DemandItem {
-  title: string
-  bullet_points: string[]
-}
-
-export type CertificateStatus = 'Gyldig' | 'Utløper snart' | 'Utgått'
-
-interface ChecklistTemplateApi {
-  templateId: number
-  title: string
-  description: string | null
-  moduleType: string
-}
-
-interface ChecklistRunApi {
-  runId: number
-  templateId: number
-  templateTitle: string | null
-  performedByUserId: number | null
-  runDate: string | null
-  completedAt: string | null
-  status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE' | string
-  notes: string | null
-}
+import { getRuns } from '../api/checklistsRun'
+import type {
+  CertificateStatus,
+  ChecklistRunApi,
+  ChecklistRunItemApi,
+  DailyControlItem,
+  DemandItem,
+  EmployeeCertification,
+  LawItem,
+  LawSection,
+} from '../types'
 
 const SOON_DAYS = 120
 
@@ -77,25 +20,6 @@ const laws = ref<LawItem[]>([])
 const demands = ref<DemandItem[]>([])
 const isLoading = ref(false)
 const hasLoaded = ref(false)
-
-interface ChecklistRunItemApi {
-  runItemId?: number
-  templateItemId?: number
-  templateItemLabel?: string | null
-  booleanValue?: boolean | null
-  commentText?: string | null
-  updatedAt?: string | null
-  createdAt?: string | null
-}
-
-interface ChecklistRunApi extends ChecklistRun {
-  runId?: number
-  templateTitle?: string | null
-  performedByUserId?: number | null
-  assignedToUserId?: number | null
-  runDate?: string | null
-  items?: ChecklistRunItemApi[]
-}
 
 const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
 
@@ -145,6 +69,7 @@ const mapRunItemToDailyControl = (
   return {
     id: Number(item.runItemId ?? `${run.runId ?? 0}${index + 1}`),
     run_id: run.runId ?? null,
+    template_item_id: item.templateItemId ?? null,
     run_status: asString(run.status) || null,
     name:
       asString(item.templateItemLabel) ||

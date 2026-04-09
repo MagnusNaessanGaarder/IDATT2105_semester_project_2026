@@ -1,33 +1,25 @@
 import axios, { AxiosError } from 'axios'
 import { client } from '../../../api/client'
+import type { ChecklistRun, GetRunsResult } from '../types'
 
-type RunStatus = 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE' | 'CANCELLED'
-
-export interface ChecklistRun {
-  id: string
-  orgNumber: string
-  status: RunStatus
-  [key: string]: unknown
+export async function updateRunItem(
+  runId: number,
+  itemId: number,
+  orgNumber: number,
+): Promise<void> {
+  await client.put(
+    `/checklists/runs/${runId}/items/${itemId}`,
+    {
+      booleanValue: true,
+    },
+    {
+      params: { orgNumber },
+      headers: {
+        Accept: 'application/json',
+      },
+    },
+  )
 }
-
-export interface GetRunsSuccess {
-  ok: true
-  data: ChecklistRun[]
-}
-
-export interface GetRunsError {
-  ok: false
-  error: {
-    message: string
-    status: number | null
-    data: unknown
-    contentType: string | null
-    authorizationSent: boolean
-    url: string | null
-  }
-}
-
-export type GetRunsResult = GetRunsSuccess | GetRunsError
 
 export async function completeRun(runId: number, orgNumber: number): Promise<void> {
   await client.put(`/checklists/runs/${runId}/complete`, null, {

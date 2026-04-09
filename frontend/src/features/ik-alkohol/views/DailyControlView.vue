@@ -2,11 +2,11 @@
 import { computed, ref, watch } from 'vue'
 import { useAlkoholData } from '../composables/useAlkoholData'
 import { useAuthStore } from '@/stores/auth'
-import { completeRun } from '../api/checklistsRun'
+import { updateRunItem } from '../api/checklistsRun'
 import ControllItem from '../components/ControllItem.vue'
 import ControlProgressCard from '../components/ControlProgressCard.vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
-import type { DailyControlItem } from '../composables/useAlkoholData'
+import type { DailyControlItem } from '../types'
 
 const { dailyControls } = useAlkoholData()
 const authStore = useAuthStore()
@@ -32,7 +32,7 @@ const formState = ref({
   attachment: '',
   is_checked: false,
 })
-const isSubmittingRunId = ref<number | null>(null)
+const isSubmittingItemId = ref<number | null>(null)
 
 const completed = computed(() => controls.value.filter((item) => item.is_checked).length)
 const total = computed(() => controls.value.length)
@@ -43,23 +43,23 @@ const toggleControl = async (id: number) => {
 
   if (
     !selected?.run_id ||
+    !selected.template_item_id ||
     !orgNumber ||
     selected.is_checked ||
     selected.run_status === 'COMPLETED' ||
-    isSubmittingRunId.value === selected.run_id
+    isSubmittingItemId.value === selected.id
   ) {
     return
   }
 
-  isSubmittingRunId.value = selected.run_id
+  isSubmittingItemId.value = selected.id
 
   try {
-    await completeRun(selected.run_id, orgNumber)
+    await updateRunItem(selected.run_id, selected.template_item_id, orgNumber)
     controls.value = controls.value.map((item) =>
-      item.run_id === selected.run_id
+      item.id === selected.id
         ? {
             ...item,
-            run_status: 'COMPLETED',
             is_checked: true,
           }
         : item,
@@ -67,7 +67,7 @@ const toggleControl = async (id: number) => {
   } catch (error) {
     console.error('Failed to complete checklist run', error)
   } finally {
-    isSubmittingRunId.value = null
+    isSubmittingItemId.value = null
   }
 }
 
@@ -147,6 +147,7 @@ const saveControlItem = () => {
     controls.value.push({
       id: nextId,
       run_id: null,
+      template_item_id: null,
       run_status: null,
       name: formState.value.name.trim(),
       law_unit: formState.value.law_unit.trim(),
