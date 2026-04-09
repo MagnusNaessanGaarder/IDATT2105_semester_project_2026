@@ -24,6 +24,12 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Creates and manages export jobs with async processing and download links.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

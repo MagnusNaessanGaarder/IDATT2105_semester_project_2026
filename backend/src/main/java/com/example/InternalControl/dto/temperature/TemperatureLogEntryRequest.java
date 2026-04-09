@@ -9,6 +9,12 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Request to record a temperature measurement at a specific log point.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Data
 @Builder
 @NoArgsConstructor

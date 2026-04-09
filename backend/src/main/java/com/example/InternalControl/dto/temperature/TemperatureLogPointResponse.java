@@ -5,6 +5,12 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * Response containing temperature log point information with location details.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Data
 @Builder
 public class TemperatureLogPointResponse {

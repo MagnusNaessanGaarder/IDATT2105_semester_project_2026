@@ -18,6 +18,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Configuration settings for an organization including modules, timezone, and retention policies.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Getter
 @Setter
 @AllArgsConstructor

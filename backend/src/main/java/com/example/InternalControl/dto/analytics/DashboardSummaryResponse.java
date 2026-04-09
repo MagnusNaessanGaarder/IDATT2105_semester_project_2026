@@ -3,6 +3,12 @@ package com.example.InternalControl.dto.analytics;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * Aggregated dashboard metrics for compliance overview.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Data
 @Builder
 public class DashboardSummaryResponse {

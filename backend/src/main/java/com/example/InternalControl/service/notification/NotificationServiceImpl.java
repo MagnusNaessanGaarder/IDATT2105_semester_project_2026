@@ -20,6 +20,12 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Handles creation and management of user notifications with delivery tracking.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

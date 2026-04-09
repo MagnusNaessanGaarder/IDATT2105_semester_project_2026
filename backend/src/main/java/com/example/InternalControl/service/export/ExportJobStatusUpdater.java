@@ -10,6 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+/**
+ * Updates export job status through its lifecycle with isolated transactions.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Component
 @RequiredArgsConstructor
 public class ExportJobStatusUpdater {

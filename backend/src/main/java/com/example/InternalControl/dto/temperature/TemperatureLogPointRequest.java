@@ -7,6 +7,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Request to create or update a temperature monitoring point.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Data
 @Builder
 @NoArgsConstructor

@@ -6,6 +6,12 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Response containing temperature measurement details with location context.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Data
 @Builder
 public class TemperatureLogEntryResponse {

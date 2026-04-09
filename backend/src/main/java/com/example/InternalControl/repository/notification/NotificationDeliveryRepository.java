@@ -11,6 +11,12 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for tracking notification delivery attempts across different channels.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Repository
 public interface NotificationDeliveryRepository extends JpaRepository<NotificationDelivery, Long> {
 

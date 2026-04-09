@@ -19,6 +19,12 @@ import org.springframework.transaction.annotation.Propagation;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 
+/**
+ * Async processor that generates exports and stores them as documents.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j

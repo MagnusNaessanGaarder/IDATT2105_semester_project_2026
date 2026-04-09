@@ -1,5 +1,11 @@
 package com.example.InternalControl.model.training;
 
+/**
+ * Categories of training that can be assigned to employees.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 public enum TrainingType {
     FOOD_HYGIENE,
     ALLERGEN_HANDLING,

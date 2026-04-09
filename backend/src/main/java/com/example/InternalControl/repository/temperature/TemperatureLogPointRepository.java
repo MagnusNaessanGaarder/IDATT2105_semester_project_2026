@@ -7,6 +7,12 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for managing temperature log points where measurements are taken.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Repository
 public interface TemperatureLogPointRepository extends JpaRepository<TemperatureLogPoint, Long> {
 

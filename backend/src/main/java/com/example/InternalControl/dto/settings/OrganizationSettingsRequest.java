@@ -10,6 +10,12 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+/**
+ * Request to update organization configuration settings.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Data
 @Builder
 @NoArgsConstructor

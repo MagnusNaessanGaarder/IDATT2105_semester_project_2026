@@ -6,6 +6,12 @@ import com.example.InternalControl.dto.training.TrainingRecordRequest;
 import com.example.InternalControl.model.training.TrainingRecord;
 import com.example.InternalControl.model.training.TrainingStatus;
 
+/**
+ * Manages employee training records, assignments, and expiration tracking.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 public interface TrainingRecordService {
 
     TrainingRecord createTrainingRecord(TrainingRecordRequest request, Integer orgNumber, Long currentUserId);

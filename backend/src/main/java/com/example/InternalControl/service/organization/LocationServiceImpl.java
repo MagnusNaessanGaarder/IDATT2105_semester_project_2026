@@ -10,6 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Implements location management with CRUD operations and soft deletion.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor

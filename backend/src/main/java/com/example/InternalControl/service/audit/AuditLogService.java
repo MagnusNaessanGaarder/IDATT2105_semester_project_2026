@@ -6,6 +6,12 @@ import java.util.List;
 import com.example.InternalControl.model.audit.ActionType;
 import com.example.InternalControl.model.audit.AuditLog;
 
+/**
+ * Records and retrieves audit logs for compliance and security tracking.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 public interface AuditLogService {
 
     AuditLog logAction(Integer orgNumber, Long userId, ActionType actionType,

@@ -5,6 +5,12 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * Represents a document stored for an organization with versioning support.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Entity
 @Table(name = "organization_document")
 public class OrganizationDocument {

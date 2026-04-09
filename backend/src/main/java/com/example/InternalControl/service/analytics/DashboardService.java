@@ -24,6 +24,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Compiles dashboard metrics and compliance scores from various data sources.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

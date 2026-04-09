@@ -6,6 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+/**
+ * Repository for managing document versions and their storage metadata.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Repository
 public interface OrganizationDocumentVersionRepository extends JpaRepository<OrganizationDocumentVersion, Long> {
 

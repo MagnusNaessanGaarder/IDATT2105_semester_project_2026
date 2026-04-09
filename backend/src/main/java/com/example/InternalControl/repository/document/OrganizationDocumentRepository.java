@@ -7,6 +7,12 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for storing and retrieving organization documents and files.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Repository
 public interface OrganizationDocumentRepository extends JpaRepository<OrganizationDocument, Long> {
 

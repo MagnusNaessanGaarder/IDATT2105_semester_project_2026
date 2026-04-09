@@ -16,6 +16,12 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 
+/**
+ * Handles document storage and retrieval in Azure Blob Storage.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 public class BlobStorageService {
 

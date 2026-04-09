@@ -8,6 +8,12 @@ import com.example.InternalControl.model.organization.Location;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for accessing physical locations within an organization.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Repository
 public interface LocationRepository extends JpaRepository<Location, Long> {
 

@@ -6,6 +6,12 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Compliance score breakdown with weighted component scores.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Data
 @Builder
 public class ComplianceScoreResponse {

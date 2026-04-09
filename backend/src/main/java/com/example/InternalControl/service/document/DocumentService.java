@@ -13,6 +13,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
+/**
+ * Handles document uploads, versioning, and storage management.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 public class DocumentService {
 

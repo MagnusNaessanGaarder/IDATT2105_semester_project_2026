@@ -18,6 +18,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+/**
+ * Captures audit events by intercepting methods annotated with {@link Audited}.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Aspect
 @Component
 public class AuditLogAspect {

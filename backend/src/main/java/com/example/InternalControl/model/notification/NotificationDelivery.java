@@ -17,6 +17,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Tracks the delivery status of a notification through a specific channel.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Getter
 @Setter
 @AllArgsConstructor

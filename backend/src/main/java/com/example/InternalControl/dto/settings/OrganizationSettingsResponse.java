@@ -8,6 +8,12 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Response containing current organization settings and configuration.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Data
 @Builder
 @NoArgsConstructor

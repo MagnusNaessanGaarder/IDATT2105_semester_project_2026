@@ -7,6 +7,12 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Stores metadata for a specific version of an organization document in Azure Blob Storage.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Getter
 @Entity
 @Table(name = "organization_document_version")

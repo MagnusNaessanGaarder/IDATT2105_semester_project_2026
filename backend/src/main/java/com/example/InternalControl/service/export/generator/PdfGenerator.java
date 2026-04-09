@@ -7,6 +7,12 @@ import com.example.InternalControl.model.export.ExportJob;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Generates PDF reports for various compliance and audit purposes.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 public interface PdfGenerator {
 
   byte[] generateChecklistReport(List<ChecklistRun> runs, ExportJob job);

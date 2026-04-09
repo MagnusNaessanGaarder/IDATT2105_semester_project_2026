@@ -7,6 +7,12 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+/**
+ * Request to create or update an employee training record.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Data
 public class TrainingRecordRequest {
 
