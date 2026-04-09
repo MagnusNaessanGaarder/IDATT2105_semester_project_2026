@@ -106,6 +106,15 @@ const toCompletionDateParts = (value: unknown) => {
   }
 }
 
+const todayDateString = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
 const mapRunItemToDailyControl = (
   run: ChecklistRunApi,
   item: ChecklistRunItemApi,
@@ -143,9 +152,11 @@ const loadRuns = async () => {
   try {
     const result = await getRuns()
     dailyControls.value = result.ok
-      ? (result.data as ChecklistRunApi[]).flatMap((run) =>
+      ? (result.data as ChecklistRunApi[])
+          .filter((run) => asString(run.runDate) === todayDateString())
+          .flatMap((run) =>
           (run.items ?? []).map((item, index) => mapRunItemToDailyControl(run, item, index)),
-        )
+          )
       : []
   } catch {
     dailyControls.value = []
