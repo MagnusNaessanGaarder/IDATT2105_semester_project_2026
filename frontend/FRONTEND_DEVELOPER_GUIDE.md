@@ -103,6 +103,7 @@ The shared Axios client in src/api/client.ts:
 - reads JWT token from sessionStorage
 - attaches Authorization header
 - handles 401 globally by clearing session and redirecting to login
+- normalizes `VITE_API_URL` to a versioned base (`.../api/v1`) so feature API calls can use consistent relative paths (for example `/users`, `/organizations/{orgNumber}/settings`)
 
 ---
 
