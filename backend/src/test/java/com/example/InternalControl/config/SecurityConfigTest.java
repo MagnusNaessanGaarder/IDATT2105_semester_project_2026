@@ -1,4 +1,6 @@
 package com.example.InternalControl.config;
+import com.example.InternalControl.AbstractIntegrationTest;
+
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,16 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Integration tests for SecurityConfig.
  * Verifies security beans are properly configured.
  */
-@SpringBootTest
+
 @TestPropertySource(
         locations = "classpath:application-test.properties",
         properties = {
                 "spring.flyway.enabled=false",
-                "spring.jpa.hibernate.ddl-auto=create-drop"
+                "spring.jpa.hibernate.ddl-auto=create-drop",
         }
 )
 @DisplayName("SecurityConfig Tests")
-class SecurityConfigTest {
+class SecurityConfigTest extends AbstractIntegrationTest {
 
     @Autowired
     private SecurityFilterChain securityFilterChain;
