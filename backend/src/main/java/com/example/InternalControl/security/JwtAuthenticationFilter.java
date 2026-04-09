@@ -19,7 +19,10 @@ import java.io.IOException;
 
 /**
  * Filter that validates JWT tokens on every request.
-
+ * Extracts and validates the Bearer token from the Authorization header.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

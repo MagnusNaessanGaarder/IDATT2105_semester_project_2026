@@ -12,8 +12,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository for ChecklistRun entity.
- * Provides CRUD operations and queries for checklist runs.
+ * Repository for {@link ChecklistRun} entities.
+ * Manages checklist execution instances and their status.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Repository
 public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long> {

@@ -20,7 +20,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Service for automatically generating checklist runs based on template frequency.
+ * Scheduled service for automatic checklist generation.
+ * Creates checklist runs based on template frequencies and checks for overdue items.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Service
 @RequiredArgsConstructor

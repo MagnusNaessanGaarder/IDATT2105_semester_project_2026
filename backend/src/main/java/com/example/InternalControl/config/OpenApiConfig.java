@@ -10,8 +10,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Swagger/OpenAPI configuration.
- * Open http://localhost:8080/swagger-ui.html after running the app
+ * Swagger/OpenAPI configuration for API documentation.
+ * Configures API metadata and JWT security scheme.
+ * Access documentation at http://localhost:8080/swagger-ui.html when running.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Configuration
 public class OpenApiConfig {

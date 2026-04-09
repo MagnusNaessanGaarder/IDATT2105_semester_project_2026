@@ -10,7 +10,11 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * Response DTO for export job status and result.
+ * DTO for export job response.
+ * Contains export job details, status, and download information.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Data
 @Builder

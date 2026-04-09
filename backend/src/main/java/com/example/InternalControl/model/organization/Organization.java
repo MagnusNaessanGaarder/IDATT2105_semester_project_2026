@@ -8,7 +8,11 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 /**
- * JPA Entity mapping to organization table.
+ * JPA Entity representing an organization (tenant) in the system.
+ * Maps to the organization table. Each organization has a unique orgNumber.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Entity
 @Table(name = "organization")

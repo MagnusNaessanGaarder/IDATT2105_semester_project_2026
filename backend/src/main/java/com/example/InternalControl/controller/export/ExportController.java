@@ -33,7 +33,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Controller for export operations.
+ * REST controller for export operations.
+ * Manages creation and retrieval of compliance report exports in various formats.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @RestController
 @RequestMapping("/api/v1/exports")

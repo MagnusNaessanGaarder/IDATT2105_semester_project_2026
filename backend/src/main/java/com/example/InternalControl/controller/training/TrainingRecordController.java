@@ -34,6 +34,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * REST controller for training record operations.
+ * Manages employee training records, certifications, and compliance tracking.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/v1/training")
 @Tag(name = "Training Records", description = "Employee training and certification management")

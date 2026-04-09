@@ -13,7 +13,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository for DeviationReport entity.
+ * Repository for {@link DeviationReport} entities.
+ * Manages deviation and incident reports for compliance tracking.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Repository
 public interface DeviationReportRepository extends JpaRepository<DeviationReport, Long> {

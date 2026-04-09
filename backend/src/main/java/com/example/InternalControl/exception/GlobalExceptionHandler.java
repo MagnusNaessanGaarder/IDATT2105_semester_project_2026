@@ -16,8 +16,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Standard global error handling used across all APIS
- *  */
+ * Global exception handler for REST controllers.
+ * Provides standardized error responses for common exception types.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {

@@ -9,7 +9,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO for registration requests.
+ * DTO for user registration requests.
+ * Contains user information and credentials for creating a new account.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Data
 @NoArgsConstructor

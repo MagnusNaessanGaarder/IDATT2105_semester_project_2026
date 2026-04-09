@@ -7,6 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service for user-organization membership operations.
+ * Validates and manages user access to organizations.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Service
 @RequiredArgsConstructor

@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository for ChecklistTemplate entity.
- * Provides CRUD operations and custom queries for checklist templates.
+ * Repository for {@link ChecklistTemplate} entities.
+ * Manages checklist templates used for compliance verification.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Repository
 public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemplate, Long> {

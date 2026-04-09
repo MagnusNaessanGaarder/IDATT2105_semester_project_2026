@@ -26,6 +26,13 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * API for tracking temperatures in food storage areas.
+ * Lets users record readings and set up monitoring points.
+ * 
+ * @author TriTacLe
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/v1/temperature")
 @RequiredArgsConstructor

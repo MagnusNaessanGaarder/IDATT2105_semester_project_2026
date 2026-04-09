@@ -12,6 +12,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository for {@link TemperatureLogEntry} entities.
+ * Manages temperature readings and alerts for food safety compliance.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Repository
 public interface TemperatureLogEntryRepository extends JpaRepository<TemperatureLogEntry, Long> {
 

@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * REST controller for notification management.
+ * Handles user notifications including reading, marking as read, and deletion.
+ *
  * @author TriTacLe
  * @since 1.0
  */

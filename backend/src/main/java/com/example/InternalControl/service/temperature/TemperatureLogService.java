@@ -10,6 +10,13 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Service interface for temperature logging operations.
+ * Defines methods for managing temperature log points and recording temperature entries.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 public interface TemperatureLogService {
 
   // Log Points

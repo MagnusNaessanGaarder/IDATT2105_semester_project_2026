@@ -9,6 +9,10 @@ import java.util.List;
 
 /**
  * Service interface for checklist run operations.
+ * Manages execution and completion of checklist instances.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 public interface ChecklistRunService {
 

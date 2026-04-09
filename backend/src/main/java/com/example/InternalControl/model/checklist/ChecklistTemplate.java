@@ -13,7 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Template defining what should be checked and how often.
+ * JPA Entity representing a checklist template.
+ * Maps to the checklist_template table. Defines reusable checklists for compliance verification.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Entity
 @Table(name = "checklist_template")

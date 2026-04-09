@@ -10,6 +10,10 @@ import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
 
 /**
  * Configuration for Jackson ObjectMapper.
+ * Configures serialization/deserialization settings including date/time handling and Hibernate support.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Configuration
 public class JacksonConfig {

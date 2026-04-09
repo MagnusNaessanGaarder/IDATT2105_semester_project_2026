@@ -11,7 +11,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 /**
- * Request DTO for creating an export job.
+ * DTO for creating an export job request.
+ * Defines parameters for exporting compliance data in various formats.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Data
 @NoArgsConstructor

@@ -15,6 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Service for JWT token operations.
+ * Handles generation, validation, and parsing of access and refresh tokens.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 public class JwtService {
 

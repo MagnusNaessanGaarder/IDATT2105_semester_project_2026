@@ -24,6 +24,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
+ * Implementation of {@link DeviationReportService}.
+ * Manages the full lifecycle of deviation reports including notifications and audit logging.
+ *
  * @author TriTacLe
  * @since 1.0
  */

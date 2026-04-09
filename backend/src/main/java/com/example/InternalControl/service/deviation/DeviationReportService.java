@@ -11,7 +11,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Service interface for deviation/incident report management.
+ * Service interface for deviation and incident report management.
+ * Defines methods for the full lifecycle of deviation reports.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 public interface DeviationReportService {
 

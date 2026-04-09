@@ -12,8 +12,10 @@ import java.util.concurrent.Executor;
 
 /**
  * Configuration for asynchronous processing.
- * Configures thread pools for export job processing.
-
+ * Configures thread pools for export job processing and other background tasks.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Configuration
 @EnableAsync

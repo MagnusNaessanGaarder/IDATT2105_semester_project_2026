@@ -10,6 +10,13 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * JPA Entity representing a temperature log entry.
+ * Maps to the temperature_log_entry table. Stores temperature readings for compliance monitoring.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Entity
 @Table(name = "temperature_log_entry")
 @Getter

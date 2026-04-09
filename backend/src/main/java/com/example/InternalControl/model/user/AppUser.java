@@ -9,8 +9,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
- * JPA Entity mapping to app_user table.
- * No passwords stored here.
+ * JPA Entity representing a user in the system.
+ * Maps to the app_user table. Passwords are stored separately in {@link AppUserLocalCredential}.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Entity
 @Table(name="app_user")

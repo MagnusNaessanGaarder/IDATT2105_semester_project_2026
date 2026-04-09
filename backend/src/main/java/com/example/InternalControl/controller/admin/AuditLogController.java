@@ -26,6 +26,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * REST controller for audit log management.
+ * Provides administrative access to system audit trails for compliance and security monitoring.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/v1/admin/audit-log")
 @Tag(name = "Admin - Audit Log", description = "Audit log management (Admin only)")

@@ -14,14 +14,17 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Request DTO for creating a checklist template.
-
+ * DTO for creating a checklist template.
+ * Contains template metadata and optional items for compliance checklists.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(name = "ChecklistTemplateCreateRequest", description = "DTO for ChecklistTemplateCreateRequest")
+@Schema(name = "ChecklistTemplateCreateRequest", description = "DTO for creating a new checklist template")
 public class ChecklistTemplateCreateRequest {
 
     @NotBlank(message = "Title is required")

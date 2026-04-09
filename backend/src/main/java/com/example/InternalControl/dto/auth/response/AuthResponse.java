@@ -8,8 +8,11 @@ import java.util.List;
 import com.example.InternalControl.dto.auth.response.OrganizationRoleResponse;
 
 /**
- * DTO for authentication responses. Contains JWT tokens and user info with
- * organizations and roles.
+ * DTO for authentication responses.
+ * Contains JWT tokens and user information including organizations and roles.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Schema(name = "AuthResponse", description = "Authentication response with JWT tokens and user details")
 @Builder

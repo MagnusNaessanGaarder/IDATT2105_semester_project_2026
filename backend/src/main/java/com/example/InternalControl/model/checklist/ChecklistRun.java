@@ -13,7 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Specific execution/instance of a checklist template.
+ * JPA Entity representing a checklist execution instance.
+ * Maps to the checklist_run table. Tracks the completion status of checklist templates.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Entity
 @Table(name = "checklist_run")

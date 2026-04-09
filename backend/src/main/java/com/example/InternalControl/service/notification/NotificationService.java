@@ -7,7 +7,11 @@ import com.example.InternalControl.model.notification.NotificationType;
 import com.example.InternalControl.model.notification.RelatedEntityType;
 
 /**
- * Service interface for managing notifications.
+ * Service interface for notification management.
+ * Handles creation, retrieval, and status updates of user notifications.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 public interface NotificationService {
 

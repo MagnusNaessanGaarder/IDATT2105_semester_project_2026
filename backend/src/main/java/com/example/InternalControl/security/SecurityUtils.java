@@ -6,6 +6,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/**
+ * Utility class for security-related operations.
+ * Provides methods for extracting user information from JWT tokens and validating access.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Component
 @RequiredArgsConstructor
 public class SecurityUtils {

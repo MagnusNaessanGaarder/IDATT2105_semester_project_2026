@@ -21,6 +21,13 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Handles user login, registration, and token refresh.
+ * Includes rate limiting to prevent brute force attacks.
+ * 
+ * @author TriTacLe
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/v1/auth")
 @Tag(name = "Authentication", description = "Authentication endpoints for login, register, and token refresh")

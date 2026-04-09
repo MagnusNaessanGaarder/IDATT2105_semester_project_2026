@@ -20,6 +20,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller for dashboard and analytics operations.
+ * Provides compliance scores and dashboard summaries for organizations.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/v1/analytics")
 @Tag(name = "Dashboard and Analytics", description = "Dashboard statistics and compliance analytics")

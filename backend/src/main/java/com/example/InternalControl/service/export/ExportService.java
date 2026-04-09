@@ -7,6 +7,10 @@ import org.springframework.data.domain.Pageable;
 
 /**
  * Service interface for export operations.
+ * Manages creation and retrieval of compliance report exports.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 public interface ExportService {
 

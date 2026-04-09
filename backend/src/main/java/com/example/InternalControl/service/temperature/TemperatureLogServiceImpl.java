@@ -23,6 +23,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of {@link TemperatureLogService}.
+ * Handles temperature log point management and temperature entry recording with alert detection.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

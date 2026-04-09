@@ -9,7 +9,11 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 /**
- * Repository for AppUser entities.
+ * Repository for {@link AppUser} entities.
+ * Provides CRUD operations and custom queries for user management.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Repository
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {

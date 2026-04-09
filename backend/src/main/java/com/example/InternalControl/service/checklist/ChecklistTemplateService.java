@@ -7,6 +7,10 @@ import java.util.List;
 
 /**
  * Service interface for checklist template operations.
+ * Manages templates used to create checklist runs for compliance verification.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 public interface ChecklistTemplateService {
 

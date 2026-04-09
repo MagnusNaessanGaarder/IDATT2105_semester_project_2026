@@ -29,6 +29,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * REST controller for document file operations.
+ * Handles uploading, downloading, and versioning of organization documents.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/v1/files")
 @Tag(name = "File Management", description = "Endpoints for uploading and downloading organization documents")

@@ -24,6 +24,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller for organization settings management.
+ * Provides endpoints for retrieving and updating organization-specific configurations.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/v1/organizations/{orgNumber}/settings")
 @Tag(name = "Organization Settings", description = "Organization configuration management")

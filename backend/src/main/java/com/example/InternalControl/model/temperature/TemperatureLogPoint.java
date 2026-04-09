@@ -8,6 +8,13 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * JPA Entity representing a temperature monitoring point.
+ * Maps to the temperature_log_point table. Defines locations where temperatures are measured.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Entity
 @Table(name = "temperature_log_point")
 @Getter

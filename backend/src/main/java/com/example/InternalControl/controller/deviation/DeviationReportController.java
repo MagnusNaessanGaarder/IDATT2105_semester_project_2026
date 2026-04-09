@@ -39,7 +39,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * REST Controller for Deviation/Incident Report operations.
+ * REST controller for deviation and incident report operations.
+ * Manages the full lifecycle of deviation reports from creation to closure.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @RestController
 @RequestMapping("/api/v1/deviations")

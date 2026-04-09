@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Lifecycle states of a deviation report.
- * Maps to database ENUM values.
+ * Enum representing the lifecycle states of a deviation report.
+ * Maps to database ENUM values for deviation status tracking.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 public enum DeviationStatus {
     DRAFT("DRAFT"),

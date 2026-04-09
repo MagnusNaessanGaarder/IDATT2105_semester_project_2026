@@ -12,8 +12,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository for export jobs.
-
+ * Repository for {@link ExportJob} entities.
+ * Manages export jobs for compliance report generation.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Repository
 public interface ExportJobRepository extends JpaRepository<ExportJob, Long> {

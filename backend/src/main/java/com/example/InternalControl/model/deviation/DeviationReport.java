@@ -20,7 +20,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Deviation/Incident report entity.
+ * JPA Entity representing a deviation or incident report.
+ * Maps to the deviation_report table. Tracks non-conformances and their resolution.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Entity
 @Table(name = "deviation_report")

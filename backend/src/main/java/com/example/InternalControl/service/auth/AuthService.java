@@ -29,7 +29,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Service for authentication.
+ * Service for authentication operations.
+ * Handles user registration, login, token refresh, and user organization/role retrieval.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Service
 @RequiredArgsConstructor

@@ -8,6 +8,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+/**
+ * Configuration for Azure Blob Storage client.
+ * Creates the BlobServiceClient for document storage operations.
+ * Disabled in test profile.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @Configuration
 @Profile("!test")
 @Slf4j

@@ -7,7 +7,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO for login requests.
+ * DTO for user login requests.
+ * Contains email and password credentials for authentication.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Data
 @NoArgsConstructor

@@ -29,6 +29,10 @@ import java.util.List;
 
 /**
  * Security configuration for the application.
+ * Configures JWT authentication, CORS, authorization rules, and security headers.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Configuration
 @EnableWebSecurity

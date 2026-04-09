@@ -33,7 +33,11 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * REST Controller for Checklist Template operations.
+ * REST controller for checklist template operations.
+ * Manages templates used to create checklist runs for compliance checks.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @RestController
 @RequestMapping("/api/v1/checklists/templates")

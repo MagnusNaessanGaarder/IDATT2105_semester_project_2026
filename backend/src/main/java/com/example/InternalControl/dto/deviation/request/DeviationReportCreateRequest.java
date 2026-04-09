@@ -14,8 +14,11 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**
- * Request DTO for creating a deviation report.
-
+ * DTO for creating a deviation report.
+ * Contains all information needed to register a new deviation or incident.
+ *
+ * @author TriTacLe
+ * @since 1.0
  */
 @Data
 @Builder

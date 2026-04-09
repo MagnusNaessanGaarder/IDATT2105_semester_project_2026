@@ -21,6 +21,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for location management operations.
+ * Manages physical locations and areas within an organization.
+ *
+ * @author TriTacLe
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/api/v1/locations")
 @Tag(name = "Locations", description = "Manage locations/areas within an organization")
