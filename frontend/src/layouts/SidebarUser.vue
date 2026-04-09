@@ -9,7 +9,7 @@ interface User {
   role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
 }
 
-const props = defineProps<{
+defineProps<{
   user: User
 }>()
 

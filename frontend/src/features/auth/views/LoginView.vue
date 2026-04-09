@@ -25,7 +25,7 @@ const handleLogin = async () => {
     // redirect to dashboard
     const redirect = route.query.redirect as string
     router.push(redirect || { name: 'Dashboard' })
-  } catch (e) {
+  } catch {
     error.value = 'Ugyldig e-post eller passord'
   } finally {
     isLoading.value = false
