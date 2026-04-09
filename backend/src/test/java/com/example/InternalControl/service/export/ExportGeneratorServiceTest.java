@@ -44,6 +44,7 @@ class ExportGeneratorServiceTest {
     private ObjectMapper objectMapper;
 
     @Mock
+
     private TemperatureLogEntryRepository temperatureLogEntryRepository;
 
     @Mock
