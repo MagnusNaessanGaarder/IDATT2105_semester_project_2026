@@ -334,10 +334,10 @@ describe('Role-based auth, permissions and menu interaction', () => {
     cy.contains('.control-card__title', testName).should('be.visible')
 
     cy.contains('.control-card', testName)
-      .within(() => {
-        cy.get('.options-menu__trigger').click()
-        cy.contains('button', 'Rediger').click()
-      })
+        .within(() => {
+          cy.get('.options-menu__trigger').click()
+          cy.contains('button', 'Rediger').click()
+        })
 
     cy.get('input[type="text"]').eq(0).clear()
     cy.get('input[type="text"]').eq(0).type(editedName)
@@ -345,10 +345,10 @@ describe('Role-based auth, permissions and menu interaction', () => {
     cy.contains('.control-card__title', editedName).should('be.visible')
 
     cy.contains('.control-card', editedName)
-      .within(() => {
-        cy.get('.options-menu__trigger').click()
-        cy.contains('button', 'Slett').click()
-      })
+        .within(() => {
+          cy.get('.options-menu__trigger').click()
+          cy.contains('button', 'Slett').click()
+        })
 
     cy.contains('.control-card__title', editedName).should('not.exist')
   })
@@ -363,6 +363,8 @@ describe('Role-based auth, permissions and menu interaction', () => {
     })
 
     cy.visit('/admin/brukere')
+
+    cy.get('tbody tr', { timeout: 10000 }).should('have.length.greaterThan', 0)
 
     cy.window().then((win) => {
       const refreshedAccessToken = win.sessionStorage.getItem('accessToken')
