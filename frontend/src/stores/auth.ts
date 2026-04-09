@@ -106,7 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(userData: { email: string; password: string; fullName?: string }) {
+  async function register(userData: { email: string; password: string; fullName: string; phone?: string }) {
     loading.value = true
     error.value = null
 
@@ -114,8 +114,8 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.register({
         email: userData.email,
         password: userData.password,
-        fullName: userData.fullName || userData.email.split('@')[0] || 'User',
-        phone: undefined,
+        fullName: userData.fullName,
+        phone: userData.phone,
       })
       setAuthData(response)
       return response
@@ -227,9 +227,9 @@ export const useAuthStore = defineStore('auth', () => {
     const orgFromList = parseOrgNumber(response.organizations?.[0]?.orgNumber)
     const payload = decodeJwtPayload(response.accessToken)
     const orgFromToken = parseOrgNumber(payload?.orgNumber)
-      ?? parseOrgNumber(payload?.org_number)
-      ?? parseOrgNumber(payload?.organizationNumber)
-      ?? parseOrgNumber(payload?.organization_number)
+        ?? parseOrgNumber(payload?.org_number)
+        ?? parseOrgNumber(payload?.organizationNumber)
+        ?? parseOrgNumber(payload?.organization_number)
 
     const resolvedOrg = orgFromList ?? orgFromToken
     if (resolvedOrg) {

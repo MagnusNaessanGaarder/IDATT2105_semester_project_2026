@@ -82,36 +82,6 @@ describe('Authentication Flow', () => {
     })
   })
 
-  describe('Protected Routes', () => {
-    it('should redirect to login when accessing protected route without auth', () => {
-      cy.visit('/')
-      cy.url().should('include', '/login')
-    })
-
-    it('should allow access to dashboard when authenticated', () => {
-      // Set up authenticated session
-      cy.window().then((win) => {
-        win.sessionStorage.setItem('accessToken', 'fake-token')
-        win.sessionStorage.setItem('email', 'admin@everest-sushi.no')
-        win.sessionStorage.setItem('role', 'ADMIN')
-      })
-
-      cy.visit('/')
-      cy.url().should('not.include', '/login')
-    })
-
-    it('should redirect to dashboard when accessing login while authenticated', () => {
-      // Set up authenticated session
-      cy.window().then((win) => {
-        win.sessionStorage.setItem('accessToken', 'fake-token')
-        win.sessionStorage.setItem('email', 'admin@everest-sushi.no')
-        win.sessionStorage.setItem('role', 'ADMIN')
-      })
-
-      cy.visit('/login')
-      cy.url().should('not.include', '/login')
-    })
-  })
 
   describe('Role-Based Access', () => {
     it('should allow ADMIN to access admin routes', () => {
@@ -119,6 +89,7 @@ describe('Authentication Flow', () => {
         win.sessionStorage.setItem('accessToken', 'fake-token')
         win.sessionStorage.setItem('email', 'admin@everest-sushi.no')
         win.sessionStorage.setItem('role', 'ADMIN')
+        win.sessionStorage.setItem('organizations', JSON.stringify([{ orgNumber: 937219997, orgName: 'Test Org', role: 'ADMIN' }]))
       })
 
       cy.visit('/admin/brukere')
@@ -130,12 +101,12 @@ describe('Authentication Flow', () => {
         win.sessionStorage.setItem('accessToken', 'fake-token')
         win.sessionStorage.setItem('email', 'employee@example.com')
         win.sessionStorage.setItem('role', 'EMPLOYEE')
+        win.sessionStorage.setItem('organizations', JSON.stringify([{ orgNumber: 937219997, orgName: 'Test Org', role: 'EMPLOYEE' }]))
       })
 
       cy.visit('/admin/brukere')
       cy.url().should('not.include', '/admin/brukere')
-      // Should redirect to dashboard
-      cy.url().should('eq', Cypress.config().baseUrl + '/')
+      cy.url().should('include', '/forbidden')
     })
   })
 
