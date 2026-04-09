@@ -1,21 +1,12 @@
 package com.example.InternalControl.dto.temperature;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
 @NoArgsConstructor
-@AllArgsConstructor
-public class TemperatureLogPointRequest {
+public class TemperatureLogPointRequest extends com.example.InternalControl.dto.temperature.request.TemperatureLogPointRequest {
 
-  @NotNull(message = "Location ID is required")
-  private Long locationId;
-
-  @NotBlank(message = "Name is required")
-  private String name;
-
-  private Boolean isActive;
 }

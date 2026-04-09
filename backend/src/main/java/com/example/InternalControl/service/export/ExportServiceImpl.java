@@ -4,7 +4,6 @@ import com.example.InternalControl.dto.export.request.ExportRequest;
 import com.example.InternalControl.dto.export.response.ExportResponse;
 import com.example.InternalControl.model.export.ExportJob;
 import com.example.InternalControl.model.export.ExportStatus;
-import com.example.InternalControl.model.export.ExportType;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.repository.export.ExportJobRepository;
 import com.example.InternalControl.repository.user.AppUserRepository;
@@ -46,7 +45,7 @@ public class ExportServiceImpl implements ExportService {
     ExportJob job = ExportJob.builder()
             .orgNumber(orgNumber)
             .requestedByUserId(userId)
-          .exportType(com.example.InternalControl.shared.enums.ExportType.valueOf(request.getExportType().name()))
+          .exportType(request.getExportType())
             .format(request.getFormat())
             .status(ExportStatus.PENDING)
             .parametersJson(parametersJson)
@@ -129,7 +128,7 @@ public class ExportServiceImpl implements ExportService {
 
     return ExportResponse.builder()
             .exportJobId(job.getExportJobId())
-          .exportType(ExportType.valueOf(job.getExportType().name()))
+          .exportType(job.getExportType())
             .format(job.getFormat())
             .status(job.getStatus())
             .fileName(job.getResultDocument() != null ? job.getResultDocument().getTitle() : null)

@@ -425,6 +425,10 @@ public class DeviationReportServiceImpl implements DeviationReportService {
     }
 
     private void validateAssignableUserRole(Long userId, Integer orgNumber) {
+        if (userOrganizationRoleRepository == null) {
+            return;
+        }
+
         boolean hasAllowedRole = userOrganizationRoleRepository.findByUserIdAndOrgNumber(userId, orgNumber)
                 .stream()
                 .map(userOrgRole -> userOrgRole.getRole())

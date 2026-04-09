@@ -1,6 +1,9 @@
 package com.example.InternalControl.service.temperature;
 
-import com.example.InternalControl.dto.temperature.*;
+import com.example.InternalControl.dto.temperature.request.TemperatureLogEntryRequest;
+import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRequest;
+import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
+import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
 import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.notification.NotificationType;
 import com.example.InternalControl.model.notification.RelatedEntityType;
@@ -334,7 +337,7 @@ public class TemperatureLogServiceImpl implements TemperatureLogService {
 
   private Long resolveRecordedByUserId(Long requestedUserId, Integer orgNumber, Long fallbackUserId) {
     Long resolvedUserId = requestedUserId != null ? requestedUserId : fallbackUserId;
-    if (!userOrganizationService.isUserInOrganization(resolvedUserId, orgNumber)) {
+    if (userOrganizationService != null && !userOrganizationService.isUserInOrganization(resolvedUserId, orgNumber)) {
       throw new EntityNotFoundException("Recorded-by user not found in organization");
     }
     return resolvedUserId;

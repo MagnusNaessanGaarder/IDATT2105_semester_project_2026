@@ -1,9 +1,9 @@
 package com.example.InternalControl.controller.auth;
 
-import com.example.InternalControl.dto.AuthResponse;
-import com.example.InternalControl.dto.LoginRequest;
+import com.example.InternalControl.dto.auth.request.LoginRequest;
 import com.example.InternalControl.dto.RefreshTokenRequest;
-import com.example.InternalControl.dto.RegisterRequest;
+import com.example.InternalControl.dto.auth.request.RegisterRequest;
+import com.example.InternalControl.dto.auth.response.AuthResponse;
 import com.example.InternalControl.service.auth.AuthService;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
@@ -52,7 +52,7 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        Bucket bucket = loginBuckets.computeIfAbsent(request.email(), k -> createLoginBucket());
+        Bucket bucket = loginBuckets.computeIfAbsent(request.getEmail(), k -> createLoginBucket());
         if (!bucket.tryConsume(1)) {
             throw new IllegalStateException("Too many login attempts. Please try again later.");
         }

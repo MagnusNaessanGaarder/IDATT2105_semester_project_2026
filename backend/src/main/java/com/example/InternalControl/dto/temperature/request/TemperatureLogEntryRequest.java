@@ -2,9 +2,9 @@ package com.example.InternalControl.dto.temperature.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * DTO for temperature log entry requests.
  */
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TemperatureLogEntryRequest {
@@ -27,4 +27,6 @@ public class TemperatureLogEntryRequest {
   private LocalDateTime measuredAt;
 
   private String noteText;
+
+  private Long recordedByUserId;
 }
