@@ -47,17 +47,17 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        LOGGER.info("Registering new user: {}", request.email());
+        LOGGER.info("Registering new user: {}", request.getEmail());
 
-        if (userRepository.existsByEmail(request.email())) {
-            LOGGER.warn("Email {} already in use", request.email());
+        if (userRepository.existsByEmail(request.getEmail())) {
+            LOGGER.warn("Email {} already in use", request.getEmail());
             throw new IllegalArgumentException("Email is already in use");
         }
 
         AppUser user = AppUser.builder()
-                .displayName(request.fullName())
-                .email(request.email())
-                .phone(request.phone())
+                .displayName(request.getFullName())
+                .email(request.getEmail())
+                .phone(request.getPhone())
                 .isActive(true)
                 .build();
 
@@ -66,7 +66,7 @@ public class AuthService {
 
         AppUserLocalCredential credential = AppUserLocalCredential.builder()
                 .user(user)
-                .passwordHash(passwordEncoder.encode(request.password()))
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .mustChangePw(false)
                 .lastChangedAt(LocalDateTime.now())
                 .failedAttempts(0)
@@ -75,7 +75,7 @@ public class AuthService {
         user.setLocalCredential(credential);
         userRepository.save(user);
 
-        LOGGER.info("User {} registered", request.email());
+        LOGGER.info("User {} registered", request.getEmail());
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtService.generateAccessToken(userDetails, user.getUserId());
@@ -96,17 +96,17 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        LOGGER.info("Login attempt: {}", request.email());
+        LOGGER.info("Login attempt: {}", request.getEmail());
 
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
-            AppUser user = userRepository.findByEmail(request.email()).orElseThrow();
+            AppUser user = userRepository.findByEmail(request.getEmail()).orElseThrow();
             if (user.getLocalCredential() != null) {
                 user.getLocalCredential().resetFailedAttempts();
-                LOGGER.debug("Failed attempts reset for {}", request.email());
+                LOGGER.debug("Failed attempts reset for {}", request.getEmail());
             }
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -117,7 +117,7 @@ public class AuthService {
             List<OrganizationRoleResponse> organizations = fetchUserOrganizationsAndRoles(user.getUserId());
             String primaryRole = extractPrimaryRole(userDetails);
 
-            LOGGER.info("User {} logged in", request.email());
+            LOGGER.info("User {} logged in", request.getEmail());
 
             return AuthResponse.builder()
                     .accessToken(accessToken)
@@ -128,14 +128,14 @@ public class AuthService {
                     .build();
 
         } catch (BadCredentialsException e) {
-            AppUser user = userRepository.findByEmailWithCredentials(request.email()).orElse(null);
+            AppUser user = userRepository.findByEmailWithCredentials(request.getEmail()).orElse(null);
             if (user != null && user.getLocalCredential() != null) {
                 user.getLocalCredential().recordFailedAttempt();
                 int attempts = user.getLocalCredential().getFailedAttempts();
-                LOGGER.warn("Failed login attempt {} for {}", attempts, request.email());
+                LOGGER.warn("Failed login attempt {} for {}", attempts, request.getEmail());
                 
                 if (user.isLocked()) {
-                    LOGGER.warn("User {} is now locked", request.email());
+                    LOGGER.warn("User {} is now locked", request.getEmail());
                     throw new LockedException("Account is temporarily locked after 5 failed attempts. Try again in 30 minutes.");
                 }
             }

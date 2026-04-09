@@ -1,7 +1,8 @@
 package com.example.InternalControl.dto.export.request;
 
 import com.example.InternalControl.model.export.ExportFormat;
-import com.example.InternalControl.shared.enums.ExportType;
+import com.example.InternalControl.model.export.ExportType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,19 +16,26 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "ExportRequest", description = "Request to create a new export job")
 public class ExportRequest {
 
-  @NotNull(message = "Export type is required")
-  private ExportType exportType;
+    @NotNull(message = "Export type is required")
+    @Schema(description = "Type of export (CHECKLIST, DEVIATION, TRAINING, TEMPERATURE, etc.)", requiredMode = Schema.RequiredMode.REQUIRED)
+    private ExportType exportType;
 
-  @NotNull(message = "Format is required")
-  private ExportFormat format;
+    @NotNull(message = "Format is required")
+    @Schema(description = "Export file format (PDF or JSON)", requiredMode = Schema.RequiredMode.REQUIRED)
+    private ExportFormat format;
 
-  private LocalDate dateFrom;
+    @Schema(description = "Start date for filtering records (optional)")
+    private LocalDate dateFrom;
 
-  private LocalDate dateTo;
+    @Schema(description = "End date for filtering records (optional)")
+    private LocalDate dateTo;
 
-  private Long locationId;
+    @Schema(description = "Filter by specific location ID (optional)")
+    private Long locationId;
 
-  private String checklistType;
+    @Schema(description = "Filter by checklist type (optional)")
+    private String checklistType;
 }

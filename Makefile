@@ -4,6 +4,7 @@
 JAVA_HOME := $(shell dirname $$(dirname $$(readlink -f $$(command -v javac))))
 PATH := $(JAVA_HOME)/bin:$(PATH)
 export JAVA_HOME PATH
+endif
 
 help:
 	@echo ""
@@ -53,7 +54,7 @@ dev:
 	done
 	@echo "  Backend started"
 	@echo ""
-	@echo "[3/3] Starting frontend..."
+	@echo "[3/4] Starting frontend..."
 	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
 	@for i in $$(seq 1 30); do \
 		ss -ltnp 2>/dev/null | grep -q ':5173' && break; \
@@ -98,7 +99,7 @@ stop:
 	@# Stop Docker
 	@-docker stop backend-mysql-1 2>/dev/null || true
 	@-docker rm backend-mysql-1 2>/dev/null || true
-	@-docker compose -f compose-dev.yaml down -v 
+	@-docker compose -f compose-dev.yaml down -v
 	@echo "  All services stopped"
 	@echo ""
 
@@ -113,7 +114,7 @@ status:
 	@printf "Frontend (port 5173): "
 	@if lsof -ti:5173 > /dev/null 2>&1; then echo "Running"; else echo "Stopped"; fi
 	@printf "MySQL (port 3306):    "
-	@if lsof -ti:3306 > /dev/null 2>&1; then echo "Running"; else echo "Stopped"; fi
+	@if lsof -ti:3306 > /dev/null 2>&1 || (command -v docker > /dev/null 2>&1 && [ "$$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' backend-mysql-1 2>/dev/null)" = "healthy" ]); then echo "Running"; else echo "Stopped"; fi
 	@echo ""
 	@echo "URLs:"
 	@echo "  Backend:  http://localhost:8080"
@@ -157,7 +158,7 @@ clean-db:
 	@docker system prune -f 2>/dev/null || true
 	@echo "Database reset - run 'make dev' to start fresh"
 
-clean-full: clean
+clean-full: clean clean-db
 	@docker compose down -v 2>/dev/null || true
 	@docker system prune -af --volumes 2>/dev/null || true
 	@find . -type d -name ".idea" -exec rm -rf {} + 2>/dev/null || true

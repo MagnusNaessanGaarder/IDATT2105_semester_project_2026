@@ -190,7 +190,7 @@ let isRefreshing = false
 let failedQueue: { resolve: (value: string) => void; reject: (reason: any) => void }[] = []
 const suppressed500LogUrls = new Set<string>()
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((promise) => {
     if (error) {
       promise.reject(error)

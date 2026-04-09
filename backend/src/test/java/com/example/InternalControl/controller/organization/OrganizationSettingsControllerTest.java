@@ -1,5 +1,6 @@
 package com.example.InternalControl.controller.organization;
 
+import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.dto.organization.OrganizationSettingsRequest;
 import com.example.InternalControl.model.organization.Organization;
 import com.example.InternalControl.model.organization.OrganizationSettings;
@@ -10,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -26,11 +27,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Unit tests for OrganizationSettingsController.
+ * Integration tests for OrganizationSettingsController using TestContainers.
  */
-@WebMvcTest(OrganizationSettingsAdminController.class)
+@SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class OrganizationSettingsControllerTest {
+class OrganizationSettingsControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

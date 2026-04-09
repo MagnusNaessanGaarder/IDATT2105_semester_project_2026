@@ -12,7 +12,10 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistRunService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -51,11 +54,18 @@ public class ChecklistRunController {
     private final UserOrganizationService userOrgService;
 
     @Operation(summary = "Get all runs for organization")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved runs"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     @GetMapping
     public ResponseEntity<List<ChecklistRunResponse>> getRuns(
-            @RequestParam Integer orgNumber,
-            @RequestParam(required = false) RunStatus status,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+                @Parameter(description = "Organization number identifying the tenant", required = true)
+                @RequestParam Integer orgNumber,
+                @Parameter(description = "Filter by run status (optional)")
+                @RequestParam(required = false) RunStatus status,
+                @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
         validateUserOrganizationAccess(userId, orgNumber);
 
@@ -72,8 +82,15 @@ public class ChecklistRunController {
     }
 
     @Operation(summary = "Get run by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved run"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Run not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<ChecklistRunResponse> getRun(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -85,10 +102,17 @@ public class ChecklistRunController {
     }
 
     @Operation(summary = "Create new run from template")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Run created successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ChecklistRunResponse> createRun(
             @Valid @RequestBody ChecklistRunCreateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -111,8 +135,16 @@ public class ChecklistRunController {
     }
 
     @Operation(summary = "Complete a run")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Run completed successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request - run already completed or invalid state"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Run not found")
+    })
     @PutMapping("/{id}/complete")
     public ResponseEntity<ChecklistRunResponse> completeRun(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -124,11 +156,20 @@ public class ChecklistRunController {
     }
 
     @Operation(summary = "Update run item (answer question)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Item updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Run or item not found")
+    })
     @PutMapping("/{runId}/items/{itemId}")
     public ResponseEntity<ChecklistRunItemResponse> updateRunItem(
+            @Parameter(description = "Identifier of the runId")
             @PathVariable Long runId,
             @PathVariable Long itemId,
             @Valid @RequestBody ChecklistRunItemUpdateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -150,8 +191,15 @@ public class ChecklistRunController {
     }
 
     @Operation(summary = "Get all items for a run")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved items"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Run not found")
+    })
     @GetMapping("/{id}/items")
     public ResponseEntity<List<ChecklistRunItemResponse>> getRunItems(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

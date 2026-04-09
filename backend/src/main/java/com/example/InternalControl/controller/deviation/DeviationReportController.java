@@ -11,6 +11,7 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.deviation.DeviationReportService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -58,6 +59,7 @@ public class DeviationReportController {
     })
     @GetMapping
     public ResponseEntity<List<DeviationReport>> getReports(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -74,6 +76,7 @@ public class DeviationReportController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<DeviationReport> getReport(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -90,6 +93,7 @@ public class DeviationReportController {
     })
     @GetMapping("/search")
     public ResponseEntity<List<DeviationReport>> searchReports(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @RequestParam(required = false) DeviationStatus status,
             @RequestParam(required = false) Severity severity,
@@ -111,6 +115,7 @@ public class DeviationReportController {
     })
     @GetMapping("/status/{status}")
     public ResponseEntity<List<DeviationReport>> getReportsByStatus(
+            @Parameter(description = "Identifier of the status")
             @PathVariable DeviationStatus status,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -127,6 +132,7 @@ public class DeviationReportController {
     })
     @GetMapping("/severity/{severity}")
     public ResponseEntity<List<DeviationReport>> getReportsBySeverity(
+            @Parameter(description = "Identifier of the severity")
             @PathVariable Severity severity,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -143,6 +149,7 @@ public class DeviationReportController {
     })
     @GetMapping("/assigned/{assignedToId}")
     public ResponseEntity<List<DeviationReport>> getReportsAssignedTo(
+            @Parameter(description = "Identifier of the assignedToId")
             @PathVariable Long assignedToId,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -162,6 +169,7 @@ public class DeviationReportController {
     @PostMapping
     public ResponseEntity<DeviationReport> createReport(
             @Valid @RequestBody DeviationReportCreateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -188,6 +196,7 @@ public class DeviationReportController {
     })
     @PutMapping("/{id}")
     public ResponseEntity<DeviationReport> updateReport(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody DeviationReportUpdateRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -207,6 +216,7 @@ public class DeviationReportController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteReport(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -227,6 +237,7 @@ public class DeviationReportController {
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<DeviationReport> updateStatus(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody DeviationStatusUpdateRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -248,6 +259,7 @@ public class DeviationReportController {
     @PostMapping("/{id}/assign")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<DeviationReport> assignReport(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Long assignedToUserId,
             @RequestParam Integer orgNumber,
@@ -268,6 +280,7 @@ public class DeviationReportController {
     })
     @PostMapping("/{id}/immediate-action")
     public ResponseEntity<DeviationReport> addImmediateAction(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -288,6 +301,7 @@ public class DeviationReportController {
     })
     @PostMapping("/{id}/cause-analysis")
     public ResponseEntity<DeviationReport> addCauseAnalysis(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -308,6 +322,7 @@ public class DeviationReportController {
     })
     @PostMapping("/{id}/corrective-action")
     public ResponseEntity<DeviationReport> addCorrectiveAction(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -328,6 +343,7 @@ public class DeviationReportController {
     })
     @PostMapping("/{id}/complete")
     public ResponseEntity<DeviationReport> completeReport(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody DeviationActionRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -349,6 +365,7 @@ public class DeviationReportController {
     @PostMapping("/{id}/close")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<DeviationReport> closeReport(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -365,6 +382,7 @@ public class DeviationReportController {
     })
     @GetMapping("/count/open")
     public ResponseEntity<Long> getOpenReportCount(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();

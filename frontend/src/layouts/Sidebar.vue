@@ -6,6 +6,10 @@ import { useAuthStore } from '@/stores/auth'
 import NavSection from './NavSection.vue'
 import SidebarUser from './SidebarUser.vue'
 
+defineOptions({
+  name: 'AppSidebar',
+})
+
 const props = defineProps<{
   isOpen: boolean
 }>()

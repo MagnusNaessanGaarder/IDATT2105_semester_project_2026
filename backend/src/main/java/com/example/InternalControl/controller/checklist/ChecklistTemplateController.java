@@ -7,6 +7,9 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistTemplateService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
@@ -43,8 +46,14 @@ public class ChecklistTemplateController {
     private final UserOrganizationService userOrgService;
 
     @Operation(summary = "Get all templates for organization")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved templates"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     @GetMapping
     public ResponseEntity<List<ChecklistTemplate>> getTemplates(
+            @Parameter(description = "Organization number identifying the tenant", required = true)
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -53,8 +62,15 @@ public class ChecklistTemplateController {
     }
 
     @Operation(summary = "Get template by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved template"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Template not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<ChecklistTemplate> getTemplate(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -64,9 +80,16 @@ public class ChecklistTemplateController {
     }
 
     @Operation(summary = "Get templates by module type")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved templates"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     @GetMapping("/module/{moduleType}")
     public ResponseEntity<List<ChecklistTemplate>> getTemplatesByModule(
+            @Parameter(description = "Module type (FOOD or ALCOHOL)", required = true)
             @PathVariable ModuleType moduleType,
+            @Parameter(description = "Organization number identifying the tenant", required = true)
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -75,8 +98,14 @@ public class ChecklistTemplateController {
     }
 
     @Operation(summary = "Get active templates")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved templates"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     @GetMapping("/active")
     public ResponseEntity<List<ChecklistTemplate>> getActiveTemplates(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -85,10 +114,17 @@ public class ChecklistTemplateController {
     }
 
     @Operation(summary = "Create new template")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Template created successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ChecklistTemplate> createTemplate(
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -114,9 +150,17 @@ public class ChecklistTemplateController {
     }
 
     @Operation(summary = "Update template")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Template updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Template not found")
+    })
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ChecklistTemplate> updateTemplate(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody ChecklistTemplateCreateRequest requestDto,
             @RequestParam Integer orgNumber,
@@ -136,9 +180,16 @@ public class ChecklistTemplateController {
     }
 
     @Operation(summary = "Delete template (soft delete)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Template deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Template not found")
+    })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> deleteTemplate(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

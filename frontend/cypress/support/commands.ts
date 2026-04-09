@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-/* eslint-disable jest/no-standalone-expect */
+/* eslint-disable @typescript-eslint/no-namespace */
 
 /**
  * Authentication Commands
@@ -43,8 +43,8 @@ Cypress.Commands.add('loginViaAPI', (email: string, password: string) => {
       body: { email, password },
       failOnStatusCode: false
     }).then((response) => {
-      expect(response.status).to.equal(200)
-      
+      cy.wrap(response.status).should('eq', 200)
+
       cy.window().then((win) => {
         win.sessionStorage.setItem('accessToken', response.body.accessToken)
         win.sessionStorage.setItem('refreshToken', response.body.refreshToken)

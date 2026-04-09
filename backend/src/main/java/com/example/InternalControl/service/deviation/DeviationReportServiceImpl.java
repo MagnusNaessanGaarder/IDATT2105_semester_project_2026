@@ -1,6 +1,9 @@
 package com.example.InternalControl.service.deviation;
 
 import com.example.InternalControl.dto.deviation.request.*;
+import com.example.InternalControl.model.audit.ActionType;
+import com.example.InternalControl.model.notification.NotificationType;
+import com.example.InternalControl.model.notification.RelatedEntityType;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.organization.Location;
@@ -13,6 +16,7 @@ import com.example.InternalControl.repository.deviation.DeviationReportRepositor
 import com.example.InternalControl.repository.organization.LocationRepository;
 import com.example.InternalControl.repository.organization.OrganizationRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
+import com.example.InternalControl.service.audit.AuditLogService;
 import com.example.InternalControl.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +28,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Implementation of DeviationReportService.
- * Handles deviation/incident report management with workflow state machine.
+ * @author TriTacLe
+ * @since 1.0
  */
 @Service
 @Transactional
@@ -39,6 +43,7 @@ public class DeviationReportServiceImpl implements DeviationReportService {
     private final AppUserRepository appUserRepository;
     private final UserOrganizationRoleRepository userOrganizationRoleRepository;
     private final NotificationService notificationService;
+    private final AuditLogService auditLogService;
 
     @Override
     public DeviationReport createReport(DeviationReportCreateRequest request, Integer orgNumber, Long userId) {
@@ -184,6 +189,7 @@ public class DeviationReportServiceImpl implements DeviationReportService {
     @Override
     public DeviationReport updateStatus(Long reportId, DeviationStatus newStatus, Integer orgNumber, Long userId) {
         DeviationReport report = findReportByIdAndOrg(reportId, orgNumber);
+        DeviationStatus oldStatus = report.getStatus();
 
         if (newStatus == DeviationStatus.UNDER_INVESTIGATION) {
             validateAssignableUserRole(userId, orgNumber);
@@ -201,7 +207,38 @@ public class DeviationReportServiceImpl implements DeviationReportService {
             report.close();
         }
 
-        return deviationReportRepository.save(report);
+        DeviationReport saved = deviationReportRepository.save(report);
+        
+        // Notify reporter and assigned user about status change
+        String statusText = String.format("Status endret fra %s til %s", oldStatus, newStatus);
+        
+        // Notify assigned user
+        if (saved.getAssignedTo() != null) {
+            notificationService.createNotificationWithEntity(
+                orgNumber,
+                saved.getAssignedTo().getUserId(),
+                NotificationType.DEVIATION_STATUS_CHANGED,
+                "Avvik status oppdatert: " + saved.getTitle(),
+                statusText + ". Se detaljer for mer informasjon.",
+                RelatedEntityType.DEVIATION_REPORT,
+                saved.getReportId()
+            );
+        }
+        
+        // Audit log
+        auditLogService.logAction(
+            orgNumber,
+            userId,
+            ActionType.UPDATE,
+            "DEVIATION_REPORT",
+            saved.getReportId(),
+            String.format("{\"status\": \"%s\"}", oldStatus),
+            String.format("{\"status\": \"%s\"}", newStatus),
+            null,
+            null
+        );
+
+        return saved;
     }
 
     @Override
@@ -217,7 +254,33 @@ public class DeviationReportServiceImpl implements DeviationReportService {
         AppUser assignedTo = findUserById(assignedToUserId);
         report.setAssignedTo(assignedTo);
 
-        return deviationReportRepository.save(report);
+        DeviationReport saved = deviationReportRepository.save(report);
+        
+        // Notify assigned user
+        notificationService.createNotificationWithEntity(
+            orgNumber,
+            assignedToUserId,
+            NotificationType.DEVIATION_ASSIGNED,
+            "Avvik tildelt deg: " + saved.getTitle(),
+            "Et avvik har blitt tildelt deg. Vennligst se nærmere på det.",
+            RelatedEntityType.DEVIATION_REPORT,
+            saved.getReportId()
+        );
+        
+        // Audit log
+        auditLogService.logAction(
+            orgNumber,
+            currentUserId,
+            ActionType.UPDATE,
+            "DEVIATION_REPORT",
+            saved.getReportId(),
+            null,
+            String.format("{\"action\": \"assigned\", \"assignedTo\": %d}", assignedToUserId),
+            null,
+            null
+        );
+
+        return saved;
     }
 
     @Override

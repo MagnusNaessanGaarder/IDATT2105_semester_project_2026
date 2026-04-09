@@ -26,7 +26,7 @@ const handleLogin = async () => {
     const redirect = route.query.redirect as string
     router.push(redirect || { name: 'Dashboard' })
   } catch {
-    error.value = authStore.error?.message || 'Kunne ikke logge inn. Prøv igjen.'
+    error.value = 'Ugyldig e-post eller passord'
   } finally {
     isLoading.value = false
   }

@@ -36,6 +36,9 @@ class ExportServiceTest {
   @Mock
   private ExportJobProcessor exportJobProcessor;
 
+  @Mock
+  private com.example.InternalControl.repository.user.AppUserRepository appUserRepository;
+
   @InjectMocks
   private ExportServiceImpl exportService;
 
@@ -50,23 +53,23 @@ class ExportServiceTest {
     validRequest.setFormat(ExportFormat.PDF);
 
     pendingJob = ExportJob.builder()
-        .exportJobId(1L)
-        .orgNumber(123456789)
-        .requestedByUserId(1L)
-        .exportType(ExportType.CHECKLIST_REPORT)
-        .format(ExportFormat.PDF)
-        .status(ExportStatus.PENDING)
-        .build();
+            .exportJobId(1L)
+            .orgNumber(123456789)
+            .requestedByUserId(1L)
+            .exportType(ExportType.CHECKLIST_REPORT)
+            .format(ExportFormat.PDF)
+            .status(ExportStatus.PENDING)
+            .build();
 
     completedJob = ExportJob.builder()
-        .exportJobId(2L)
-        .orgNumber(123456789)
-        .requestedByUserId(1L)
-        .exportType(ExportType.CHECKLIST_REPORT)
-        .format(ExportFormat.PDF)
-        .status(ExportStatus.COMPLETED)
-        .resultDocumentId(100L)
-        .build();
+            .exportJobId(2L)
+            .orgNumber(123456789)
+            .requestedByUserId(1L)
+            .exportType(ExportType.CHECKLIST_REPORT)
+            .format(ExportFormat.PDF)
+            .status(ExportStatus.COMPLETED)
+            .resultDocumentId(100L)
+            .build();
   }
 
   @Test
@@ -106,8 +109,8 @@ class ExportServiceTest {
 
     // Then
     assertThatThrownBy(() -> exportService.getExportStatus(99L, 123456789))
-        .isInstanceOf(jakarta.persistence.EntityNotFoundException.class)
-        .hasMessageContaining("Export job not found");
+            .isInstanceOf(jakarta.persistence.EntityNotFoundException.class)
+            .hasMessageContaining("Export job not found");
   }
 
   @Test
@@ -117,8 +120,8 @@ class ExportServiceTest {
 
     // Then
     assertThatThrownBy(() -> exportService.getExportStatus(1L, 999999999))
-        .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-        .hasMessageContaining("Access denied");
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+            .hasMessageContaining("Access denied");
   }
 
   @Test
@@ -128,7 +131,7 @@ class ExportServiceTest {
 
     // Then
     assertThatThrownBy(() -> exportService.getDownloadUrl(1L, 123456789))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("Export not ready");
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Export not ready");
   }
 }

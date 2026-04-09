@@ -7,6 +7,7 @@ import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.training.TrainingRecordService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -51,6 +52,7 @@ public class TrainingRecordController {
     })
     @GetMapping
     public ResponseEntity<List<TrainingRecord>> getTrainingRecords(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -67,6 +69,7 @@ public class TrainingRecordController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<TrainingRecord> getTrainingRecord(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -83,6 +86,7 @@ public class TrainingRecordController {
     })
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TrainingRecord>> getUserTrainingRecords(
+            @Parameter(description = "Identifier of the userId")
             @PathVariable Long userId,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -99,6 +103,7 @@ public class TrainingRecordController {
     })
     @GetMapping("/status/{status}")
     public ResponseEntity<List<TrainingRecord>> getTrainingRecordsByStatus(
+            @Parameter(description = "Identifier of the status")
             @PathVariable TrainingStatus status,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -118,6 +123,7 @@ public class TrainingRecordController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainingRecord> createTrainingRecord(
             @Valid @RequestBody TrainingRecordRequest request,
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -145,6 +151,7 @@ public class TrainingRecordController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainingRecord> updateTrainingRecord(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @Valid @RequestBody TrainingRecordRequest request,
             @RequestParam Integer orgNumber,
@@ -164,6 +171,7 @@ public class TrainingRecordController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Void> deleteTrainingRecord(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -183,6 +191,7 @@ public class TrainingRecordController {
     @PostMapping("/{id}/complete")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TrainingRecord> completeTrainingRecord(
+            @Parameter(description = "Identifier of the id")
             @PathVariable Long id,
             @RequestParam(required = false) Long certificateDocumentId,
             @RequestParam Integer orgNumber,
@@ -200,6 +209,7 @@ public class TrainingRecordController {
     })
     @GetMapping("/expiring")
     public ResponseEntity<List<TrainingRecord>> getExpiringTrainingRecords(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @RequestParam(defaultValue = "30") int days,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -216,6 +226,7 @@ public class TrainingRecordController {
     })
     @GetMapping("/expiring/count")
     public ResponseEntity<Map<String, Long>> getExpiringCount(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();

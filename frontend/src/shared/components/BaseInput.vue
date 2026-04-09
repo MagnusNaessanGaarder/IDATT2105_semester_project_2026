@@ -27,13 +27,13 @@
     error?: string
   }
 
-  const props = withDefaults(defineProps<Props>(), {
-    type: 'text',
-    placeholder: '',
-    required: false,
-    disabled: false,
-    error: '',
-  })
+withDefaults(defineProps<Props>(), {
+  type: 'text',
+  placeholder: '',
+  required: false,
+  disabled: false,
+  error: '',
+})
 
   const emit = defineEmits<{
     'update:modelValue': [value: string]
@@ -138,8 +138,8 @@
     color: var(--color-danger);
   }
 
-  textarea.base-input__field {
-    min-height: 7rem;
-    resize: vertical;
-  }
+textarea.base-input__field {
+  min-height: 100px;
+  resize: vertical;
+}
 </style>

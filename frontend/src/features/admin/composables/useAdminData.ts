@@ -1,6 +1,6 @@
-import { reactive, ref } from 'vue'
-import { client } from '@/api/client'
-import { withOrgNumber } from '@/shared/utils/orgContext'
+import { ref } from 'vue'
+import adminData from '@/data/admin.json'
+import { settingsApi, type BackendSettings, type BackendSettingsRequest } from '../api/settingsApi'
 
 export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF'
 export type UserStatus = 'active' | 'inactive'
@@ -23,6 +23,7 @@ export interface SettingItem {
   label: string
   description?: string
   type: 'select' | 'toggle' | 'number' | 'info'
+  persistence: 'backend' | 'local' | 'readonly'
   current_value: unknown
   active?: boolean
   options?: string[]
@@ -33,6 +34,13 @@ export interface SettingItem {
 export interface SettingSection {
   section_title: string
   items: SettingItem[]
+}
+
+export interface SettingsState {
+  system: SettingSection
+  notification_preferences: SettingSection
+  security: SettingSection
+  backup: SettingSection
 }
 
 export interface AuditLogEntry {
@@ -46,131 +54,24 @@ export interface AuditLogEntry {
   result: 'SUCCESS' | 'FAILED' | string
 }
 
-interface DeviationApi {
-  reportId: number
-  title: string
-  status: string
-  severity: string
-  updatedAt?: string | null
+const users = adminData.users as AdminUser[]
+const rawSettings = adminData.settings as SettingsState
+const auditLog = adminData.audit_log_sample as AuditLogEntry[]
+
+const LOCAL_STORAGE_KEY_PREFIX = 'admin_settings_local_'
+const PERSISTENCE_BY_ITEM_ID: Record<string, SettingItem['persistence']> = {
+  language: 'backend',
+  timezone: 'backend',
+  date_format: 'local',
+  email_critical: 'backend',
+  email_updates: 'local',
+  in_app_notifications: 'local',
+  password_expires: 'readonly',
+  session_timeout: 'readonly',
+  two_factor: 'readonly',
+  last_backup: 'readonly',
+  backup_retention: 'backend',
 }
-
-interface ExportPageApi {
-  content: Array<{
-    exportJobId: number
-    exportType: string
-    status: string
-    requestedAt: string | null
-  }>
-}
-
-interface FileApi {
-  documentId: number
-  title: string
-  updatedAt: string | null
-}
-
-interface TemperatureAlertApi {
-  entryId: number
-  measuredAt: string
-  temperatureC: number
-}
-
-const users = reactive<AdminUser[]>([])
-const settings = reactive({
-  system: {
-    section_title: 'System',
-    items: [
-      {
-        id: 'language',
-        label: 'Sprak',
-        description: 'Standardsprak for brukergrensesnitt',
-        type: 'select',
-        current_value: 'nb-NO',
-        active: true,
-        options: ['nb-NO', 'en-US'],
-      },
-      {
-        id: 'timezone',
-        label: 'Tidssone',
-        type: 'select',
-        current_value: 'Europe/Oslo',
-        active: true,
-        options: ['Europe/Oslo', 'UTC'],
-      },
-    ] as SettingItem[],
-  },
-  notification_preferences: {
-    section_title: 'Varslinger',
-    items: [
-      {
-        id: 'mail_alerts',
-        label: 'E-postvarsler',
-        description: 'Send varsler ved kritiske avvik',
-        type: 'toggle',
-        current_value: true,
-        active: false,
-      },
-      {
-        id: 'digest_frequency',
-        label: 'Oppsummering',
-        description: 'Hyppighet for oppsummeringsvarsler',
-        type: 'select',
-        current_value: 'Ukentlig',
-        active: false,
-        options: ['Daglig', 'Ukentlig', 'Manedlig'],
-      },
-    ] as SettingItem[],
-  },
-  security: {
-    section_title: 'Sikkerhet',
-    items: [
-      {
-        id: 'session_timeout',
-        label: 'Sesjon utlop (min)',
-        type: 'number',
-        current_value: 60,
-        active: false,
-        min: 15,
-        max: 240,
-      },
-      {
-        id: 'mfa_required',
-        label: 'Krev MFA for administratorer',
-        type: 'toggle',
-        current_value: true,
-        active: false,
-      },
-    ] as SettingItem[],
-  },
-  backup: {
-    section_title: 'Sikkerhetskopi',
-    items: [
-      {
-        id: 'backup_frequency',
-        label: 'Frekvens',
-        type: 'select',
-        current_value: 'Daglig',
-        active: false,
-        options: ['Daglig', 'Ukentlig'],
-      },
-      {
-        id: 'last_backup',
-        label: 'Sist sikkerhetskopiert',
-        type: 'info',
-        current_value: new Date().toISOString(),
-        active: false,
-      },
-    ] as SettingItem[],
-  },
-})
-
-const auditLog = reactive<AuditLogEntry[]>([])
-let deviationsEndpointUnavailable = false
-
-let hasLoaded = false
-let loadInFlight: Promise<void> | null = null
-const isLoading = ref(false)
-const error = ref<string | null>(null)
 
 const roleLabel = (role: UserRole): string => {
   if (role === 'ADMIN') return 'Admin'
@@ -295,156 +196,391 @@ const loadData = async (): Promise<void> => {
       const fallbackName = fallbackEmail.split('@')[0] || 'Bruker'
       const fallbackLastLogin = sessionStorage.getItem('lastLogin') || new Date().toISOString()
 
-      users.splice(0, users.length, {
-        id: 1,
-        name: fallbackName,
-        email: fallbackEmail,
-        role: roleForUser(fallbackRole),
-        department: 'Drift',
-        status: 'active',
-        created_date: new Date().toISOString(),
-        certifications: [],
-        certifications_valid: true,
-        last_login: fallbackLastLogin,
-      })
+/**
+ * Persistence strategy:
+ * - Backend settings: Stored in database, shared across organization, requires Admin/Manager role
+ *   Includes: language, timezone, critical email alerts, backup retention
+ * - Local client settings: Stored in localStorage, user-specific non-sensitive UI preferences
+ *   Includes: date format, non-critical update preferences, in-app notifications
+ * - Read-only settings: Displayed to users but not editable on this page
+ *   Includes: security policy flags, last backup timestamp
+ */
 
-      const deviations = deviationsResponse.status === 'fulfilled' ? deviationsResponse.value.data : []
-      const exports = exportsResponse.status === 'fulfilled' ? exportsResponse.value.data.content : []
-      const files = filesResponse.status === 'fulfilled' ? filesResponse.value.data : []
-      const alerts = alertsResponse.status === 'fulfilled' ? alertsResponse.value.data : []
+const isLoading = ref(false)
+const error = ref<string | null>(null)
 
-      const entries: AuditLogEntry[] = []
+const cloneSettings = (source: SettingsState): SettingsState => {
+  return JSON.parse(JSON.stringify(source)) as SettingsState
+}
 
-      deviations.forEach((report: DeviationApi) => {
-        entries.push({
-          id: report.reportId,
-          timestamp: report.updatedAt ?? new Date().toISOString(),
-          user: 'System',
-          action: 'DEVIATION_UPDATED',
-          resource: report.title,
-          details: `Status: ${report.status}, alvorlighet: ${report.severity}`,
-          ip_address: '-',
-          result: 'SUCCESS',
-        })
-      })
+const applyPersistenceMetadata = (source: SettingsState): SettingsState => {
+  const cloned = cloneSettings(source)
+  ;(Object.keys(cloned) as (keyof SettingsState)[]).forEach((sectionKey) => {
+    cloned[sectionKey].items = cloned[sectionKey].items.map((item) => ({
+      ...item,
+      persistence: PERSISTENCE_BY_ITEM_ID[item.id] ?? 'readonly',
+    }))
+  })
+  return cloned
+}
 
-      exports.forEach((job: { exportJobId: number; exportType: string; status: string; requestedAt: string | null }) => {
-        entries.push({
-          id: job.exportJobId + 100000,
-          timestamp: job.requestedAt ?? new Date().toISOString(),
-          user: 'System',
-          action: 'EXPORT_REQUESTED',
-          resource: String(job.exportType),
-          details: `Eksportstatus: ${job.status}`,
-          ip_address: '-',
-          result: 'SUCCESS',
-        })
-      })
+const settings = applyPersistenceMetadata(rawSettings)
 
-      files.forEach((doc: FileApi) => {
-        entries.push({
-          id: doc.documentId + 200000,
-          timestamp: doc.updatedAt ?? new Date().toISOString(),
-          user: 'System',
-          action: 'DOCUMENT_UPDATED',
-          resource: doc.title,
-          details: 'Dokument oppdatert i organisasjonens bibliotek',
-          ip_address: '-',
-          result: 'SUCCESS',
-        })
-      })
+const localeToLanguageOption = (localeCode: string | undefined): string => {
+  if (localeCode === 'en_US') return 'English'
+  if (localeCode === 'sv_SE') return 'Swedish'
+  return 'Norwegian'
+}
 
-      const openDeviations = deviations.filter((report) => report.status !== 'CLOSED').length
-      const latestExport = [...exports]
-        .sort((a, b) => new Date(b.requestedAt ?? 0).getTime() - new Date(a.requestedAt ?? 0).getTime())[0]
+const languageOptionToLocale = (value: unknown): string => {
+  if (value === 'English' || value === 'en_US') return 'en_US'
+  if (value === 'Swedish' || value === 'sv_SE') return 'sv_SE'
+  return 'nb_NO'
+}
 
-      updateSetting('mail_alerts', {
-        active: deviationsResponse.status === 'fulfilled',
-        current_value: openDeviations > 0 || alerts.length > 0,
-      })
+const readLocalSettings = (orgNumber: number): Record<string, unknown> => {
+  if (typeof localStorage === 'undefined') {
+    return {}
+  }
 
-      updateSetting('digest_frequency', {
-        active: exportsResponse.status === 'fulfilled',
-        current_value: openDeviations > 3 ? 'Daglig' : 'Ukentlig',
-      })
+  const raw = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}${orgNumber}`)
+  if (!raw) {
+    return {}
+  }
 
-      updateSetting('session_timeout', {
-        active: deviationsResponse.status === 'fulfilled' || alertsResponse.status === 'fulfilled',
-        current_value: alerts.length > 0 ? 30 : 60,
-      })
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed && typeof parsed === 'object') {
+      return parsed as Record<string, unknown>
+    }
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to read local settings'
+  }
 
-      updateSetting('mfa_required', {
-        active: true,
-        current_value: openDeviations > 0,
-      })
+  return {}
+}
 
-      updateSetting('backup_frequency', {
-        active: exportsResponse.status === 'fulfilled',
-        current_value: exports.length > 10 ? 'Daglig' : 'Ukentlig',
-      })
+const writeLocalSettings = (orgNumber: number, localSettings: Record<string, unknown>) => {
+  if (typeof localStorage === 'undefined') {
+    return
+  }
 
-      updateSetting('last_backup', {
-        active: exportsResponse.status === 'fulfilled',
-        current_value: latestExport?.requestedAt ?? 'Ingen eksport registrert',
-      })
+  localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${orgNumber}`, JSON.stringify(localSettings))
+}
 
-      updateSetting('language', {
-        active: true,
-        current_value: typeof navigator !== 'undefined' && navigator.language.startsWith('en') ? 'en-US' : 'nb-NO',
-      })
+const applyLocalSettings = (source: SettingsState, orgNumber: number): SettingsState => {
+  const localSettings = readLocalSettings(orgNumber)
+  const cloned = cloneSettings(source)
 
-      updateSetting('timezone', {
-        active: true,
-        current_value: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Oslo',
-      })
-
-      auditLog.splice(0, auditLog.length, ...entries)
-
-      const failedCalls = [deviationsResponse, exportsResponse, filesResponse, alertsResponse].filter((result) => result.status === 'rejected').length
-      const succeededCalls = 4 - failedCalls
-
-      if (succeededCalls === 0) {
-        error.value = 'Admin-data er delvis utilgjengelig akkurat nå. Viser fallback-data.'
-        return
+  ;(Object.keys(cloned) as (keyof SettingsState)[]).forEach((sectionKey) => {
+    cloned[sectionKey].items = cloned[sectionKey].items.map((item) => {
+      if (item.persistence !== 'local') {
+        return item
       }
 
-      error.value = failedCalls > 0 ? 'Noen admin-endepunkter feilet. Viser data som er tilgjengelig.' : null
-      hasLoaded = true
-    } catch {
-      auditLog.splice(0, auditLog.length)
-      error.value = 'Kunne ikke laste administrator-data fra API. Viser lokale standardverdier.'
-    } finally {
-      isLoading.value = false
-      loadInFlight = null
-    }
-  })()
+      if (!(item.id in localSettings)) {
+        return item
+      }
 
-  return loadInFlight
+      return {
+        ...item,
+        current_value: localSettings[item.id],
+      }
+    })
+  })
+
+  return cloned
 }
 
-const reload = async () => {
-  hasLoaded = false
-  await loadData()
-}
-
-export const useAdminData = () => {
-  void loadData()
-
+/**
+ * Map backend settings to frontend SettingItem structure
+ * @param backendSettings Backend settings from API
+ * @returns Frontend settings structure
+ */
+const mapBackendSettingsToFrontend = (
+  backendSettings: BackendSettings
+): SettingsState => {
   return {
-    users,
-    settings,
-    auditLog,
-    get sortedAuditLog() {
-      return sortedAuditLog()
+    system: {
+      section_title: 'Systeminnstillinger',
+      items: [
+        {
+          id: 'language',
+          label: 'Språk',
+          description: 'Velg systemspråk',
+          type: 'select',
+          persistence: 'backend',
+          current_value: localeToLanguageOption(backendSettings.localeCode),
+          options: ['Norwegian', 'English', 'Swedish'],
+        },
+        {
+          id: 'timezone',
+          label: 'Tidssone',
+          description: 'Velg tidssone for registreringer',
+          type: 'select',
+          persistence: 'backend',
+          current_value: backendSettings.timezoneName,
+          options: ['Europe/Oslo', 'UTC', 'Europe/Stockholm', 'Europe/Copenhagen'],
+        },
+        {
+          id: 'date_format',
+          label: 'Datoformat',
+          description: 'Format for datovisning',
+          type: 'select',
+          persistence: 'local',
+          current_value: 'dd.MM.yyyy',
+          options: ['dd.MM.yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'],
+        },
+      ],
     },
-    roleLabel,
-    roleTone,
-    roleDescription,
-    statusLabel,
-    formatDate,
-    formatDateTime,
-    isLoading,
-    error,
-    reload,
+    notification_preferences: {
+      section_title: 'Varslingsinnstillinger',
+      items: [
+        {
+          id: 'email_critical',
+          label: 'E-post for kritiske varsler',
+          description: 'Motta e-post ved kritiske hendelser',
+          type: 'toggle',
+          persistence: 'backend',
+          current_value: backendSettings.reminderEmailEnabled,
+        },
+        {
+          id: 'email_updates',
+          label: 'E-post for systemoppdateringer',
+          description: 'Motta e-post ved systemvedlikehold',
+          type: 'toggle',
+          persistence: 'local',
+          current_value: false,
+        },
+        {
+          id: 'in_app_notifications',
+          label: 'Varsler i systemet',
+          description: 'Vis varsler i systemet',
+          type: 'toggle',
+          persistence: 'local',
+          current_value: true,
+        },
+      ],
+    },
+    security: {
+      section_title: 'Sikkerhet',
+      items: [
+        {
+          id: 'password_expires',
+          label: 'Passord utløper',
+          description: 'Sikkerhetspolicy administreres sentralt (skrivebeskyttet)',
+          type: 'info',
+          persistence: 'readonly',
+          current_value: true,
+        },
+        {
+          id: 'session_timeout',
+          label: 'Sesjonstimeout (minutter)',
+          description: 'Session policy administreres sentralt (skrivebeskyttet)',
+          type: 'info',
+          persistence: 'readonly',
+          current_value: 30,
+        },
+        {
+          id: 'two_factor',
+          label: 'To-faktor autentisering',
+          description: 'Autentiseringspolicy administreres sentralt (skrivebeskyttet)',
+          type: 'info',
+          persistence: 'readonly',
+          current_value: true,
+        },
+      ],
+    },
+    backup: {
+      section_title: 'Sikkerhetskopi',
+      items: [
+        {
+          id: 'last_backup',
+          label: 'Siste sikkerhetskopi',
+          type: 'info',
+          persistence: 'readonly',
+          current_value: '2024-06-01 02:00',
+          description: 'Automatisk sikkerhetskopi kjøres daglig',
+        },
+        {
+          id: 'backup_retention',
+          label: 'Oppbevar sikkerhetskopier i (dager)',
+          type: 'number',
+          persistence: 'backend',
+          current_value: backendSettings.retentionAuditMonths ? backendSettings.retentionAuditMonths * 30 : 30,
+          min: 7,
+          max: 365,
+        },
+      ],
+    },
   }
 }
+
+/**
+ * Convert frontend settings back to backend request format
+ * @param frontendSettings Frontend settings structure
+ * @param currentBackendSettings Current backend settings (for unmapped fields)
+ * @returns Request object for backend API
+ */
+const mapFrontendSettingsToBackend = (
+  frontendSettings: SettingsState,
+  currentBackendSettings: BackendSettings
+): BackendSettingsRequest => {
+  const systemItems = frontendSettings.system.items
+  const notificationItems = frontendSettings.notification_preferences.items
+  const backupItems = frontendSettings.backup.items
+
+  const languageValue = systemItems.find(i => i.id === 'language')?.current_value ?? 'Norwegian'
+  const localeCode = languageOptionToLocale(languageValue)
+
+  const timezone = systemItems.find(i => i.id === 'timezone')?.current_value || 'Europe/Oslo'
+  const reminderEnabled = notificationItems.find(i => i.id === 'email_critical')?.current_value === true
+  const retentionDays = Number(backupItems.find(i => i.id === 'backup_retention')?.current_value)
+  const retentionAuditMonths = Number.isFinite(retentionDays)
+    ? Math.max(1, Math.round(retentionDays / 30))
+    : currentBackendSettings.retentionAuditMonths
+
+  return {
+    timezoneName: String(timezone),
+    localeCode,
+    enableFoodModule: currentBackendSettings.enableFoodModule,
+    enableAlcoholModule: currentBackendSettings.enableAlcoholModule,
+    defaultTempMinC: currentBackendSettings.defaultTempMinC,
+    defaultTempMaxC: currentBackendSettings.defaultTempMaxC,
+    reminderEmailEnabled: reminderEnabled,
+    notificationEmail: currentBackendSettings.notificationEmail,
+    retentionUserMonths: currentBackendSettings.retentionUserMonths,
+    retentionAuditMonths,
+  }
+}
+
+/**
+ * Save settings to backend and localStorage
+ * @param frontendSettings Updated settings from UI
+ * @param backendSettings Current backend settings
+ * @param orgNumber Organization number
+ */
+const saveSettings = async (
+  frontendSettings: SettingsState,
+  backendSettings: BackendSettings,
+  orgNumber: number
+) => {
+  isLoading.value = true
+  error.value = null
+
+  try {
+    // Save to backend
+    const backendRequest = mapFrontendSettingsToBackend(
+      frontendSettings,
+      backendSettings
+    )
+    const updatedBackendSettings = await settingsApi.updateSettings(orgNumber, backendRequest)
+
+    // Persist only non-sensitive local preferences.
+    const localSettings = Object.fromEntries(
+      Object.values(frontendSettings)
+        .flatMap((section) => section.items)
+        .filter((item) => item.persistence === 'local')
+        .map((item) => [item.id, item.current_value])
+    )
+    writeLocalSettings(orgNumber, localSettings)
+
+    return updatedBackendSettings
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to save settings'
+    return null
+  } finally {
+    isLoading.value = false
+  }
+}
+
+/**
+ * Export all settings as JSON file
+ * @param frontendSettings Settings to export
+ * @param backendSettings Backend settings for reference
+ * @param orgNumber Organization number
+ */
+const exportSettings = (
+  frontendSettings: SettingsState,
+  backendSettings: BackendSettings,
+  orgNumber: number
+) => {
+  const allItems = Object.values(frontendSettings).flatMap((section) => section.items)
+  const localSettings = readLocalSettings(orgNumber)
+  const backendPayload = mapFrontendSettingsToBackend(frontendSettings, backendSettings)
+
+  const exportData = {
+    organization: orgNumber,
+    exportedAt: new Date().toISOString(),
+    persistenceStrategy: {
+      backend: allItems.filter((item) => item.persistence === 'backend').map((item) => item.id),
+      local: allItems.filter((item) => item.persistence === 'local').map((item) => item.id),
+      readonly: allItems.filter((item) => item.persistence === 'readonly').map((item) => item.id),
+    },
+    backendSettings: {
+      ...backendPayload,
+      orgNumber: backendSettings.orgNumber,
+      createdAt: backendSettings.createdAt,
+      updatedAt: backendSettings.updatedAt,
+    },
+    localSettings,
+    readonlySnapshot: Object.fromEntries(
+      allItems
+        .filter((item) => item.persistence === 'readonly')
+        .map((item) => [item.id, item.current_value])
+    ),
+  }
+
+  const jsonString = JSON.stringify(exportData, null, 2)
+  const blob = new Blob([jsonString], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `org-settings-${orgNumber}-${new Date().toISOString().split('T')[0]}.json`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+/**
+ * Fetch settings from backend
+ * @param orgNumber Organization number
+ * @returns Backend settings
+ */
+const fetchSettingsFromBackend = async (orgNumber: number): Promise<BackendSettings | null> => {
+  isLoading.value = true
+  error.value = null
+
+  try {
+    const backendSettings = await settingsApi.getSettings(orgNumber)
+    return backendSettings
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to fetch settings'
+    return null
+  } finally {
+    isLoading.value = false
+  }
+}
+
+export const useAdminData = () => ({
+  users,
+  settings,
+  auditLog,
+  sortedAuditLog,
+  roleLabel,
+  roleTone,
+  roleDescription,
+  statusLabel,
+  formatDate,
+  formatDateTime,
+  // New backend integration methods
+  saveSettings,
+  exportSettings,
+  applyLocalSettings,
+  fetchSettingsFromBackend,
+  mapBackendSettingsToFrontend,
+  mapFrontendSettingsToBackend,
+  isLoading,
+  error,
+})
