@@ -31,17 +31,38 @@ dev:
 	@echo ""
 	@echo "[1/3] Starting MySQL (Docker)..."
 	@docker compose -f compose-dev.yaml up -d mysql 2>/dev/null || docker start backend-mysql-1 2>/dev/null || true
-	@sleep 5
+	@for i in $$(seq 1 30); do \
+		docker exec backend-mysql-1 mysqladmin ping -h 127.0.0.1 -uik_root -pik_pwd >/dev/null 2>&1 && break; \
+		if [ $$i -eq 30 ]; then \
+			echo "  ERROR: MySQL did not become ready"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
 	@echo "  MySQL started"
 	@echo ""
 	@echo "[2/3] Starting backend..."
-	@(cd backend && SPRING_DATASOURCE_URL=jdbc:mysql://127.0.0.1:3306/internal_control SPRING_DATASOURCE_USERNAME=ik_root SPRING_DATASOURCE_PASSWORD=ikroot ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
-	@sleep 15
+	@(cd backend && nohup ./mvnw -Plocal-run spring-boot:run -Dmaven.test.skip=true -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
+	@for i in $$(seq 1 60); do \
+		ss -ltnp 2>/dev/null | grep -q ':8080' && break; \
+		if [ $$i -eq 60 ]; then \
+			echo "  ERROR: Backend failed to start (see /tmp/backend.log)"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
 	@echo "  Backend started"
 	@echo ""
 	@echo "[3/3] Starting frontend..."
 	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
-	@sleep 3
+	@for i in $$(seq 1 30); do \
+		ss -ltnp 2>/dev/null | grep -q ':5173' && break; \
+		if [ $$i -eq 30 ]; then \
+			echo "  ERROR: Frontend failed to start (see /tmp/frontend.log)"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
 	@echo "  Frontend started"
 	@echo ""
 	@echo "========================================"
