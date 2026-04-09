@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useAlkoholData } from '../composables/useAlkoholData'
 import { useAuthStore } from '@/stores/auth'
-import { createChecklistTemplate, createRun, uncompleteRun, updateRunItem } from '../api/checklistsRun'
+import { createChecklistTemplate, createRun, uncompleteRun, updateChecklistTemplate, updateRunItem } from '../api/checklistsRun'
 import ControllItem from '../components/ControllItem.vue'
 import ControlProgressCard from '../components/ControlProgressCard.vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
@@ -190,10 +190,6 @@ const saveControlItem = async () => {
     return
   }
 
-  if (!formState.value.completion_date.date || !formState.value.completion_date.time) {
-    return
-  }
-
   if (formMode.value === 'add') {
     const orgNumber = authStore.currentOrg?.orgNumber
     if (!orgNumber || isSavingForm.value) {
@@ -238,25 +234,35 @@ const saveControlItem = async () => {
   }
 
   if (formMode.value === 'edit' && editingItemId.value !== null) {
-    controls.value = controls.value.map((item) => {
-      if (item.id !== editingItemId.value) {
-        return item
-      }
+    const orgNumber = authStore.currentOrg?.orgNumber
+    const selected = controls.value.find((item) => item.id === editingItemId.value)
 
-      return {
-        ...item,
-        name: formState.value.name.trim(),
-        law_unit: formState.value.law_unit.trim(),
-        employee: formState.value.employee.trim() || item.employee,
-        comment: formState.value.comment.trim(),
-        completion_date: {
-          date: formState.value.completion_date.date,
-          time: formState.value.completion_date.time,
+    if (!orgNumber || !selected?.template_id || isSavingForm.value) {
+      return
+    }
+
+    isSavingForm.value = true
+
+    try {
+      await updateChecklistTemplate(
+        selected.template_id,
+        {
+          title: formState.value.name.trim(),
+          description: formState.value.law_unit.trim(),
+          moduleType: 'ALCOHOL',
+          frequency: 'DAILY',
+          items: [],
         },
-        attachment: formState.value.attachment.trim() || null,
-        is_checked: formState.value.is_checked,
-      }
-    })
+        orgNumber,
+      )
+
+      await reload()
+    } catch (error) {
+      console.error('Failed to update daily checklist template', error)
+      return
+    } finally {
+      isSavingForm.value = false
+    }
   }
 
   showFormModal.value = false

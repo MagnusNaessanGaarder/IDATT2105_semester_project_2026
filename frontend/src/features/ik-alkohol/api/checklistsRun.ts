@@ -31,6 +31,25 @@ export async function updateRunItem(
   return response.data
 }
 
+export async function updateChecklistTemplate(
+  templateId: number,
+  payload: ChecklistTemplateCreatePayload,
+  orgNumber: number,
+): Promise<ChecklistTemplateResponse> {
+  const response = await client.put<ChecklistTemplateResponse>(
+    `/checklists/templates/${templateId}`,
+    payload,
+    {
+      params: { orgNumber },
+      headers: {
+        Accept: 'application/json',
+      },
+    },
+  )
+
+  return response.data
+}
+
 export async function completeRun(runId: number, orgNumber: number): Promise<void> {
   await client.put(`/checklists/runs/${runId}/complete`, null, {
     params: { orgNumber },

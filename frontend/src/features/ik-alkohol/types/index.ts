@@ -34,6 +34,7 @@ export type GetRunsResult = GetRunsSuccess | GetRunsError
 export interface DailyControlItem {
   id: number
   run_id: number | null
+  template_id: number | null
   template_item_id: number | null
   run_status: string | null
   name: string

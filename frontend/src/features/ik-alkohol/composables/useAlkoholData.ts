@@ -92,6 +92,7 @@ export const mapRunItemToDailyControl = (
   return {
     id: Number(item.runItemId ?? `${run.runId ?? 0}${index + 1}`),
     run_id: run.runId ?? null,
+    template_id: run.templateId ?? null,
     template_item_id: item.templateItemId ?? null,
     run_status: asString(run.status) || null,
     name:
