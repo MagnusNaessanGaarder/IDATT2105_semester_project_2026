@@ -243,7 +243,7 @@
         <profile>
             <id>local-run</id>
             <properties>
-                <spring-boot.run.arguments>--spring.datasource.url=jdbc:mysql://127.0.0.1:3306/internal_control?useSSL=false&amp;allowPublicKeyRetrieval=true --spring.datasource.username=ik_root --spring.datasource.password=ik_pwd --spring.config.import=optional:file:./.env[.properties]</spring-boot.run.arguments>
+                <spring-boot.run.arguments>--spring.datasource.url=jdbc:mysql://127.0.0.1:3306/internal_control?useSSL=false&amp;allowPublicKeyRetrieval=true --spring.datasource.username=ik_root --spring.datasource.password=ikroot --spring.config.import=optional:file:./.env[.properties]</spring-boot.run.arguments>
             </properties>
         </profile>
     </profiles>
