@@ -1,6 +1,12 @@
 import axios, { AxiosError } from 'axios'
 import { client } from '../../../api/client'
-import type { ChecklistRun, GetRunsResult } from '../types'
+import type {
+  ChecklistRun,
+  ChecklistRunApi,
+  ChecklistTemplateCreatePayload,
+  ChecklistTemplateResponse,
+  GetRunsResult,
+} from '../types'
 
 export async function updateRunItem(
   runId: number,
@@ -38,6 +44,46 @@ export async function uncompleteRun(runId: number, orgNumber: number): Promise<v
       Accept: 'application/json',
     },
   })
+}
+
+export async function createChecklistTemplate(
+  payload: ChecklistTemplateCreatePayload,
+  orgNumber: number,
+): Promise<ChecklistTemplateResponse> {
+  const response = await client.post<ChecklistTemplateResponse>(
+    '/checklists/templates',
+    payload,
+    {
+      params: { orgNumber },
+      headers: {
+        Accept: 'application/json',
+      },
+    },
+  )
+
+  return response.data
+}
+
+export async function createRun(
+  templateId: number,
+  runDate: string,
+  orgNumber: number,
+): Promise<ChecklistRunApi> {
+  const response = await client.post<ChecklistRunApi>(
+    '/checklists/runs',
+    {
+      templateId,
+      runDate,
+    },
+    {
+      params: { orgNumber },
+      headers: {
+        Accept: 'application/json',
+      },
+    },
+  )
+
+  return response.data
 }
 
 export async function getRuns(): Promise<GetRunsResult> {

@@ -19,7 +19,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
             <h2 class="law-card__name">{{ law.name }}</h2>
             <p class="law-card__short">{{ law.short }}</p>
           </div>
-          <a class="law-card__link" :href="law.link" target="_blank" rel="noopener noreferrer">Les på Lovdata</a>
+          <a class="law-card__link" :href="law.link" target="_blank" rel="noopener noreferrer">Åpne dokument</a>
         </header>
 
         <p class="law-card__description">{{ law.description }}</p>
@@ -33,8 +33,8 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
       </article>
     </section>
 
-    <section class="demands-section" aria-label="Krav i praksis">
-      <h2>Viktige krav for IK-Alkohol</h2>
+    <section class="demands-section" aria-label="Eksempler og praksisdokumenter">
+      <h2>Eksempler og praksisdokumenter</h2>
       <div class="demands-grid">
         <article v-for="demand in demands" :key="demand.title" class="demand-card">
           <h3>{{ demand.title }}</h3>

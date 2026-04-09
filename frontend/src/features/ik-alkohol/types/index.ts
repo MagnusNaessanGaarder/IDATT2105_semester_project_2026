@@ -79,6 +79,19 @@ export interface DemandItem {
   bullet_points: string[]
 }
 
+export interface OrganizationDocumentApi {
+  documentId: number
+  orgNumber: number
+  documentType: string
+  title: string
+  description: string | null
+  currentVersion: number
+  active: boolean
+  createdByUserId: number | null
+  createdAt?: string | null
+  updatedAt?: string | null
+}
+
 export type CertificateStatus = 'Gyldig' | 'Utløper snart' | 'Utgått'
 
 export interface ChecklistRunItemApi {
@@ -102,4 +115,28 @@ export interface ChecklistRunApi {
   status?: string | null
   notes?: string | null
   items?: ChecklistRunItemApi[]
+}
+
+export interface ChecklistTemplateItemCreatePayload {
+  sortOrder: number
+  label: string
+  description?: string
+  itemType: 'BOOLEAN'
+  isRequired: boolean
+}
+
+export interface ChecklistTemplateCreatePayload {
+  title: string
+  description: string
+  moduleType: 'ALCOHOL'
+  frequency: 'DAILY'
+  items: ChecklistTemplateItemCreatePayload[]
+}
+
+export interface ChecklistTemplateResponse {
+  templateId: number
+  title: string
+  description: string | null
+  moduleType: string
+  frequency: string
 }

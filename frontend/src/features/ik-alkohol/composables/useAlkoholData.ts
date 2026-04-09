@@ -1,4 +1,6 @@
 import { computed, ref } from 'vue'
+import { client } from '@/api/client'
+import { useAuthStore } from '@/stores/auth'
 import { getRuns } from '../api/checklistsRun'
 import type {
   CertificateStatus,
@@ -9,6 +11,7 @@ import type {
   EmployeeCertification,
   LawItem,
   LawSection,
+  OrganizationDocumentApi,
 } from '../types'
 
 const SOON_DAYS = 120
@@ -20,6 +23,8 @@ const laws = ref<LawItem[]>([])
 const demands = ref<DemandItem[]>([])
 const isLoading = ref(false)
 const hasLoaded = ref(false)
+const error = ref<string | null>(null)
+let loadInFlight: Promise<void> | null = null
 
 const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
 
@@ -57,7 +62,25 @@ const todayDateString = () => {
   return `${year}-${month}-${day}`
 }
 
-const mapRunItemToDailyControl = (
+const documentUrl = (documentId: number, orgNumber: number): string =>
+  `/api/v1/files/download/${documentId}?orgNumber=${orgNumber}`
+
+const mapDocumentToLaw = (document: OrganizationDocumentApi, orgNumber: number): LawItem => ({
+  name: document.title,
+  type: document.documentType === 'POLICY' ? 'Regelverk' : document.documentType,
+  short: document.title,
+  description: asString(document.description) || 'Dokumentert regelverk for alkoholservering.',
+  link: documentUrl(document.documentId, orgNumber),
+  last_updated_code: `DOC-${document.documentId}`,
+  sub_sections: [],
+})
+
+const mapDocumentToDemand = (document: OrganizationDocumentApi): DemandItem => ({
+  title: document.title,
+  bullet_points: [asString(document.description) || 'Eksempeldokument tilgjengelig i dokumentarkivet.'],
+})
+
+export const mapRunItemToDailyControl = (
   run: ChecklistRunApi,
   item: ChecklistRunItemApi,
   index: number,
@@ -73,9 +96,9 @@ const mapRunItemToDailyControl = (
     run_status: asString(run.status) || null,
     name:
       asString(item.templateItemLabel) ||
-      (item.templateItemId ? `Kontrollpunkt ${item.templateItemId}` : '') ||
       asString(run.templateTitle) ||
-      `Kontrollpunkt ${index + 1}`,
+      (item.templateItemId ? `Punkt ${item.templateItemId}` : '') ||
+      `Punkt ${index + 1}`,
     law_unit: asString(run.templateTitle) || 'Daglig alkoholkontroll',
     employee: asString(run.performedByUserId ?? run.assignedToUserId) || 'Ukjent',
     comment: asString(item.commentText),
@@ -85,28 +108,70 @@ const mapRunItemToDailyControl = (
   }
 }
 
-const loadRuns = async () => {
-  if (hasLoaded.value || isLoading.value) {
+const loadData = async () => {
+  if (hasLoaded.value) {
     return
   }
 
-  isLoading.value = true
+  if (loadInFlight) {
+    return loadInFlight
+  }
 
-  try {
-    const result = await getRuns()
-    dailyControls.value = result.ok
-      ? (result.data as ChecklistRunApi[])
+  const authStore = useAuthStore()
+  const orgNumber = authStore.currentOrg?.orgNumber ?? 937219997
+
+  loadInFlight = (async () => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const [runsResult, documentsResult] = await Promise.allSettled([
+        getRuns(),
+        client.get<OrganizationDocumentApi[]>('/files', {
+          params: { orgNumber },
+        }),
+      ])
+
+      if (runsResult.status === 'fulfilled' && runsResult.value.ok) {
+        dailyControls.value = (runsResult.value.data as ChecklistRunApi[])
           .filter((run) => asString(run.runDate) === todayDateString())
           .flatMap((run) =>
-          (run.items ?? []).map((item, index) => mapRunItemToDailyControl(run, item, index)),
+            (run.items ?? []).map((item, index) => mapRunItemToDailyControl(run, item, index)),
           )
-      : []
-  } catch {
-    dailyControls.value = []
-  } finally {
-    hasLoaded.value = true
-    isLoading.value = false
-  }
+      } else {
+        dailyControls.value = []
+      }
+
+      const documents =
+        documentsResult.status === 'fulfilled' ? documentsResult.value.data.filter((doc) => doc.active) : []
+
+      laws.value = documents
+        .filter((document) => document.documentType === 'POLICY')
+        .map((document) => mapDocumentToLaw(document, orgNumber))
+
+      demands.value = documents
+        .filter((document) => document.documentType === 'PROCEDURE' || document.documentType === 'TRAINING_MATERIAL')
+        .map(mapDocumentToDemand)
+
+      if (
+        (runsResult.status === 'rejected' || (runsResult.status === 'fulfilled' && !runsResult.value.ok)) &&
+        documentsResult.status === 'rejected'
+      ) {
+        error.value = 'Kunne ikke laste IK-Alkohol-data.'
+      }
+    } catch {
+      dailyControls.value = []
+      laws.value = []
+      demands.value = []
+      error.value = 'Kunne ikke laste IK-Alkohol-data.'
+    } finally {
+      hasLoaded.value = true
+      isLoading.value = false
+      loadInFlight = null
+    }
+  })()
+
+  return loadInFlight
 }
 
 const sectionsForLaw = (law: LawItem): LawSection[] => law.sub_sections ?? law['sub-sections'] ?? []
@@ -186,7 +251,12 @@ const completionRate = computed(() =>
 )
 
 export const useAlkoholData = () => {
-  void loadRuns()
+  void loadData()
+
+  const reload = async () => {
+    hasLoaded.value = false
+    await loadData()
+  }
 
   return {
     dailyControls,
@@ -201,6 +271,8 @@ export const useAlkoholData = () => {
     pendingControls,
     completionRate,
     isLoading,
+    error,
+    reload,
     sectionsForLaw,
     certificateStatus,
     formattedDate,

@@ -1,7 +1,9 @@
 package com.example.InternalControl.controller.checklist;
 
 import com.example.InternalControl.dto.checklist.request.ChecklistTemplateCreateRequest;
+import com.example.InternalControl.dto.checklist.request.ChecklistTemplateItemCreateRequest;
 import com.example.InternalControl.model.checklist.ChecklistTemplate;
+import com.example.InternalControl.model.checklist.ChecklistTemplateItem;
 import com.example.InternalControl.model.enums.Frequency;
 import com.example.InternalControl.model.enums.ModuleType;
 import com.example.InternalControl.security.CustomUserDetails;
@@ -112,6 +114,7 @@ public class ChecklistTemplateController {
                 .moduleType(requestDto.getModuleType() != null ? requestDto.getModuleType() : ModuleType.FOOD)
                 .frequency(requestDto.getFrequency() != null ? requestDto.getFrequency() : Frequency.DAILY)
                 .build();
+        applyTemplateItems(template, requestDto.getItems());
 
         ChecklistTemplate created = templateService.createTemplate(template, orgNumber, userId);
 
@@ -186,6 +189,27 @@ public class ChecklistTemplateController {
     private void validateUserOrganizationAccess(Long userId, Integer orgNumber) {
         if (!userOrgService.isUserInOrganization(userId, orgNumber)) {
             throw new EntityNotFoundException("Organization not found or user does not have access");
+        }
+    }
+
+    private void applyTemplateItems(ChecklistTemplate template, List<ChecklistTemplateItemCreateRequest> itemRequests) {
+        if (itemRequests == null || itemRequests.isEmpty()) {
+            return;
+        }
+
+        for (ChecklistTemplateItemCreateRequest itemRequest : itemRequests) {
+            ChecklistTemplateItem item = ChecklistTemplateItem.builder()
+                    .sortOrder(itemRequest.getSortOrder())
+                    .label(itemRequest.getLabel())
+                    .description(itemRequest.getDescription())
+                    .itemType(itemRequest.getItemType())
+                    .isRequired(itemRequest.getIsRequired() != null ? itemRequest.getIsRequired() : Boolean.TRUE)
+                    .expectedText(itemRequest.getExpectedText())
+                    .expectedNumericMin(itemRequest.getExpectedNumericMin())
+                    .expectedNumericMax(itemRequest.getExpectedNumericMax())
+                    .choiceOptionsJson(itemRequest.getChoiceOptionsJson())
+                    .build();
+            template.addItem(item);
         }
     }
 }

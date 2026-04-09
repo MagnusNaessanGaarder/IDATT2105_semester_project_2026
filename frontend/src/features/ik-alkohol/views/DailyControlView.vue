@@ -2,13 +2,13 @@
 import { computed, ref, watch } from 'vue'
 import { useAlkoholData } from '../composables/useAlkoholData'
 import { useAuthStore } from '@/stores/auth'
-import { uncompleteRun, updateRunItem } from '../api/checklistsRun'
+import { createChecklistTemplate, createRun, uncompleteRun, updateRunItem } from '../api/checklistsRun'
 import ControllItem from '../components/ControllItem.vue'
 import ControlProgressCard from '../components/ControlProgressCard.vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
 import type { DailyControlItem } from '../types'
 
-const { dailyControls } = useAlkoholData()
+const { dailyControls, reload } = useAlkoholData()
 const authStore = useAuthStore()
 
 const controls = ref<DailyControlItem[]>([])
@@ -33,6 +33,16 @@ const formState = ref({
   is_checked: false,
 })
 const isSubmittingItemId = ref<number | null>(null)
+const isSavingForm = ref(false)
+
+const todayDateString = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
 
 const completed = computed(() => controls.value.filter((item) => item.is_checked).length)
 const total = computed(() => controls.value.length)
@@ -149,7 +159,7 @@ const closeFormModal = () => {
   showFormModal.value = false
 }
 
-const saveControlItem = () => {
+const saveControlItem = async () => {
   if (!formState.value.name.trim() || !formState.value.law_unit.trim()) {
     return
   }
@@ -159,23 +169,46 @@ const saveControlItem = () => {
   }
 
   if (formMode.value === 'add') {
-    const nextId = controls.value.length > 0 ? Math.max(...controls.value.map((item) => item.id)) + 1 : 1
-    controls.value.push({
-      id: nextId,
-      run_id: null,
-      template_item_id: null,
-      run_status: null,
-      name: formState.value.name.trim(),
-      law_unit: formState.value.law_unit.trim(),
-      employee: formState.value.employee.trim() || 'Ukjent',
-      comment: formState.value.comment.trim(),
-      completion_date: {
-        date: formState.value.completion_date.date,
-        time: formState.value.completion_date.time,
-      },
-      attachment: formState.value.attachment.trim() || null,
-      is_checked: formState.value.is_checked,
-    })
+    const orgNumber = authStore.currentOrg?.orgNumber
+    if (!orgNumber || isSavingForm.value) {
+      return
+    }
+
+    isSavingForm.value = true
+
+    try {
+      const createdTemplate = await createChecklistTemplate(
+        {
+          title: formState.value.name.trim(),
+          description: formState.value.law_unit.trim(),
+          moduleType: 'ALCOHOL',
+          frequency: 'DAILY',
+          items: [
+            {
+              sortOrder: 1,
+              label: formState.value.name.trim(),
+              description: formState.value.comment.trim() || formState.value.law_unit.trim(),
+              itemType: 'BOOLEAN',
+              isRequired: true,
+            },
+          ],
+        },
+        orgNumber,
+      )
+
+      await createRun(
+        createdTemplate.templateId,
+        todayDateString(),
+        orgNumber,
+      )
+
+      await reload()
+    } catch (error) {
+      console.error('Failed to create daily checklist template', error)
+      return
+    } finally {
+      isSavingForm.value = false
+    }
   }
 
   if (formMode.value === 'edit' && editingItemId.value !== null) {
