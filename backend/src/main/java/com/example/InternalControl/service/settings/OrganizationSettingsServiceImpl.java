@@ -28,10 +28,8 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     public OrganizationSettingsResponse getSettings(Integer orgNumber) {
         return settingsRepository.findById(orgNumber)
                 .map(this::mapToResponse)
-                .orElseGet(() -> {
-                    log.info("No settings found for org: {}. Creating defaults.", orgNumber);
-                    return createDefaultSettings(orgNumber);
-                });
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
+                        "Organization settings not found for org: " + orgNumber));
     }
 
     @Override
@@ -39,28 +37,39 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     @Audited(action = ActionType.UPDATE, entityType = "OrganizationSettings")
     public OrganizationSettingsResponse updateSettings(Integer orgNumber, OrganizationSettingsRequest request, Long userId) {
         OrganizationSettings settings = settingsRepository.findById(orgNumber)
-                .orElseGet(() -> {
-                    log.info("No settings found for org: {}. Creating defaults before update.", orgNumber);
-                    return OrganizationSettings.builder()
-                            .orgNumber(orgNumber)
-                            .timezoneName("Europe/Oslo")
-                            .localeCode("nb-NO")
-                            .enableFoodModule(true)
-                            .enableAlcoholModule(true)
-                            .reminderEmailEnabled(true)
-                            .build();
-                });
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
+                        "Organization settings not found for org: " + orgNumber));
 
-        settings.setTimezoneName(request.getTimezoneName());
-        settings.setLocaleCode(request.getLocaleCode());
-        settings.setEnableFoodModule(request.getEnableFoodModule());
-        settings.setEnableAlcoholModule(request.getEnableAlcoholModule());
-        settings.setDefaultTempMinC(request.getDefaultTempMinC());
-        settings.setDefaultTempMaxC(request.getDefaultTempMaxC());
-        settings.setReminderEmailEnabled(request.getReminderEmailEnabled());
-        settings.setNotificationEmail(request.getNotificationEmail());
-        settings.setRetentionUserMonths(request.getRetentionUserMonths());
-        settings.setRetentionAuditMonths(request.getRetentionAuditMonths());
+        if (request.getTimezoneName() != null) {
+            settings.setTimezoneName(request.getTimezoneName());
+        }
+        if (request.getLocaleCode() != null) {
+            settings.setLocaleCode(request.getLocaleCode());
+        }
+        if (request.getEnableFoodModule() != null) {
+            settings.setEnableFoodModule(request.getEnableFoodModule());
+        }
+        if (request.getEnableAlcoholModule() != null) {
+            settings.setEnableAlcoholModule(request.getEnableAlcoholModule());
+        }
+        if (request.getDefaultTempMinC() != null || settings.getDefaultTempMinC() == null) {
+            settings.setDefaultTempMinC(request.getDefaultTempMinC());
+        }
+        if (request.getDefaultTempMaxC() != null || settings.getDefaultTempMaxC() == null) {
+            settings.setDefaultTempMaxC(request.getDefaultTempMaxC());
+        }
+        if (request.getReminderEmailEnabled() != null) {
+            settings.setReminderEmailEnabled(request.getReminderEmailEnabled());
+        }
+        if (request.getNotificationEmail() != null || settings.getNotificationEmail() == null) {
+            settings.setNotificationEmail(request.getNotificationEmail());
+        }
+        if (request.getRetentionUserMonths() != null) {
+            settings.setRetentionUserMonths(request.getRetentionUserMonths());
+        }
+        if (request.getRetentionAuditMonths() != null) {
+            settings.setRetentionAuditMonths(request.getRetentionAuditMonths());
+        }
 
         OrganizationSettings updated = settingsRepository.save(settings);
         log.info("Updated organization settings for org: {} by user: {}", orgNumber, userId);

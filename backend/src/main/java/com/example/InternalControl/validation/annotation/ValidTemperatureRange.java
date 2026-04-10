@@ -19,7 +19,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidTemperatureRange {
 
-    String message() default "Temperature must be between {min}°C and {max}°C";
+    String message() default "Temperature must be between -50.0°C and 100.0°C";
 
     Class<?>[] groups() default {};
 

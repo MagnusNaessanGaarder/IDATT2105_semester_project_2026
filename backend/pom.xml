@@ -289,6 +289,13 @@
                     <argLine>
                         -javaagent:${settings.localRepository}/org/projectlombok/lombok/${lombok.version}/lombok-${lombok.version}.jar=ECJ
                     </argLine>
+                    <excludes>
+                        <exclude>**/*IntegrationTest.java</exclude>
+                        <exclude>**/InternalControlApplicationTests.java</exclude>
+                        <exclude>**/repository/*Test.java</exclude>
+                        <exclude>**/controller/**/*Test.java</exclude>
+                        <exclude>**/config/*Test.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>
