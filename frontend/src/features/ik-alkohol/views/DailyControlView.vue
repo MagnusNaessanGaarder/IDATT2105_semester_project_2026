@@ -472,7 +472,7 @@ const filteredControls = computed(() => {
 .modal-btn {
   border: 1px solid var(--ik-alkohol-primary);
   background: var(--ik-alkohol-primary);
-  color: #fff;
+  color: var(--color-secondary-foreground);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.8rem;
 }

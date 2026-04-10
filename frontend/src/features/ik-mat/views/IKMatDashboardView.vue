@@ -19,6 +19,24 @@ const temperatureAlerts = computed(() => {
   return temperatureRecords.filter((record) => !isTemperatureInRange(record))
 })
 
+const organizationName = computed(() => {
+  if (typeof window === 'undefined') {
+    return 'Organisasjon'
+  }
+
+  const fromStorage = localStorage.getItem('organizations') ?? sessionStorage.getItem('organizations')
+  if (!fromStorage) {
+    return 'Organisasjon'
+  }
+
+  try {
+    const organizations = JSON.parse(fromStorage) as Array<{ orgName?: string }>
+    return organizations[0]?.orgName?.trim() || 'Organisasjon'
+  } catch {
+    return 'Organisasjon'
+  }
+})
+
 const cardTone = (color: 'success' | 'warning' | 'info') => {
   if (color === 'success') {
     return 'stat-card--success'
@@ -36,7 +54,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   <div class="view-page ik-mat-dashboard">
     <header class="page-header">
       <h1>Ik-mat</h1>
-      <p class="subtitle">Everest Sushi &amp; Fusion - internkontroll for matsikkerhet og hygiene</p>
+      <p class="subtitle">{{ organizationName }} - internkontroll for matsikkerhet og hygiene</p>
     </header>
 
     <section class="stats-grid" aria-label="Nøkkeltall for IK-MAT">
@@ -159,52 +177,53 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   color: var(--color-foreground);
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: 0;
+}
+
 .stat-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 7rem;
-  border: none;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 1rem 1.1rem;
+  padding: 1rem;
   box-shadow: var(--shadow-sm);
-  color: var(--color-primary-foreground);
-  background: var(--color-secondary);
 }
 
 .stat-card--success {
-  background: var(--color-primary);
+  background: var(--color-card);
 }
 
 .stat-card--warning {
-  background: var(--color-cta);
-  color: var(--color-cta-foreground);
+  background: var(--color-card);
 }
 
 .stat-card--info {
-  background: var(--color-secondary);
+  background: var(--color-card);
 }
 
 .stat-card__label {
   margin: 0;
-  color: color-mix(in srgb, currentColor 82%, transparent);
+  color: var(--color-gray-600);
   font-size: var(--font-size-xs);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   font-weight: var(--font-weight-semibold);
 }
 
 .stat-card__value {
-  margin: 0.45rem 0 0;
-  color: currentColor;
-  font-size: 1.6rem;
-  font-weight: var(--font-weight-bold);
+  margin: 8px 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-foreground);
 }
 
 .stat-card__unit {
   margin-left: 0.2rem;
   font-size: var(--font-size-sm);
-  color: color-mix(in srgb, currentColor 82%, transparent);
+  color: var(--color-gray-500);
 }
 
 .quick-actions {

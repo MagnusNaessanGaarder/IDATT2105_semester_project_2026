@@ -664,7 +664,7 @@ td {
 .modal-btn {
   border: 1px solid var(--ik-mat-primary);
   background: var(--ik-mat-primary);
-  color: #fff;
+  color: var(--color-primary-foreground);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.8rem;
 }

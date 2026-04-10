@@ -855,11 +855,11 @@ function handleSubmit() {
   white-space: nowrap;
 }
 
-.items-list__badge--boolean   { background: #dbeafe; color: #1e40af; }
-.items-list__badge--text      { background: #ede9fe; color: #5b21b6; }
-.items-list__badge--number    { background: #fef3c7; color: #92400e; }
-.items-list__badge--temperature { background: #ffedd5; color: #9a3412; }
-.items-list__badge--choice    { background: #d1fae5; color: #065f46; }
+.items-list__badge--boolean   { background: var(--color-info-bg); color: var(--color-info); }
+.items-list__badge--text      { background: var(--color-brand-soft-violet); color: var(--color-brand-near-black-violet); }
+.items-list__badge--number    { background: var(--color-cta); color: var(--color-cta-foreground); }
+.items-list__badge--temperature { background: var(--color-danger-bg); color: var(--color-danger); }
+.items-list__badge--choice    { background: var(--color-success-bg); color: var(--color-success); }
 
 .items-list__optional {
   font-size: var(--font-size-xs);
@@ -938,15 +938,15 @@ function handleSubmit() {
   font-weight: var(--font-weight-bold);
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-sm);
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-cta);
+  color: var(--color-cta-foreground);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .guide-block__badge--csv {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .guide-block__filename {

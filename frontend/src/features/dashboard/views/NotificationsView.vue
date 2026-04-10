@@ -210,9 +210,9 @@ const hasActionable = computed(() => filtered.value.some((n) => relatedEntityRou
   border-radius: 999px; background: var(--color-gray-200);
   color: var(--color-gray-700); font-size: 10px; font-weight: 700;
 }
-.filter-btn--active .filter-count { background: rgba(255,255,255,0.2); color: #fff; }
-.filter-count--unread { background: var(--color-danger); color: #fff; }
-.filter-btn--active .filter-count--unread { background: rgba(255,255,255,0.3); }
+.filter-btn--active .filter-count { background: color-mix(in srgb, var(--color-primary-foreground) 20%, transparent); color: var(--color-primary-foreground); }
+.filter-count--unread { background: var(--color-danger); color: var(--color-danger-fg); }
+.filter-btn--active .filter-count--unread { background: color-mix(in srgb, var(--color-primary-foreground) 30%, transparent); }
 
 /* Skeleton */
 .skeleton-list { display: grid; gap: 0.55rem; }

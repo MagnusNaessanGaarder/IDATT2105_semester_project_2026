@@ -399,16 +399,16 @@ function onKeydown(e: KeyboardEvent) {
 <style scoped>
 .overlay {
   position: fixed; inset: 0; z-index: 200;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(0, 39, 43, 0.58);
   display: flex; align-items: center; justify-content: center;
-  padding: 1.5rem;
-  backdrop-filter: blur(3px);
+  padding: var(--spacing-lg);
 }
 
 .modal {
-  background: var(--color-card);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-surface-raised);
+  border: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
   width: min(560px, 100%);
   max-height: 90vh;
   overflow-y: auto;
@@ -419,12 +419,12 @@ function onKeydown(e: KeyboardEvent) {
 /* Header */
 .modal__header {
   display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 1rem; padding: 1.25rem 1.5rem 1rem;
+  gap: 1rem; padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border); flex-shrink: 0;
 }
 .modal__title {
   margin: 0; font-size: var(--font-size-lg); font-weight: 700;
-  color: var(--color-gray-900);
+  color: var(--color-foreground);
   /* long titles from succeedsDocument should wrap not overflow */
   overflow-wrap: break-word; max-width: 36ch;
 }
@@ -435,14 +435,15 @@ function onKeydown(e: KeyboardEvent) {
   display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0; width: 2rem; height: 2rem;
   border-radius: var(--radius-sm); background: transparent;
-  border: 1px solid var(--color-border); color: var(--color-gray-500);
+  border: none; color: var(--color-foreground);
   cursor: pointer; transition: all var(--transition-fast);
+  padding: 0;
 }
-.modal__close:hover { background: var(--color-gray-100); color: var(--color-gray-900); }
+.modal__close:hover { background: var(--color-info-bg); color: var(--color-primary); }
 
 /* Body */
 .modal__body {
-  padding: 1.25rem 1.5rem;
+  padding: var(--spacing-lg);
   display: flex; flex-direction: column; gap: 1.1rem; flex: 1;
 }
 
@@ -548,7 +549,7 @@ function onKeydown(e: KeyboardEvent) {
 .btn--primary:hover:not(:disabled) { opacity: 0.85; }
 .btn--primary:disabled { opacity: 0.45; cursor: not-allowed; }
 /* Version mode — teal accent to visually distinguish from a plain upload */
-.btn--version { background: var(--ik-mat-primary, #0d7377); }
+.btn--version { background: var(--ik-mat-primary); }
 
 /* Transitions */
 .modal-enter-active, .modal-leave-active { transition: opacity var(--transition-fast); }

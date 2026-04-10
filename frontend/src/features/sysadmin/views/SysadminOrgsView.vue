@@ -601,17 +601,17 @@ tr:last-child td { border-bottom: none; }
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 39, 43, 0.58);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 1rem;
+  padding: var(--spacing-lg);
 }
 .modal {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  background: var(--color-surface-raised);
+  border: none;
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-md);
   width: 100%;
   max-width: 28rem;
@@ -626,22 +626,22 @@ tr:last-child td { border-bottom: none; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem 0.85rem;
+  padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
 }
 .modal__header h2 { margin: 0; font-size: var(--font-size-base); font-weight: 600; }
 .modal__close {
   width: 1.75rem; height: 1.75rem;
   border: none; background: none;
-  color: var(--color-gray-400);
+  color: var(--color-foreground);
   border-radius: var(--radius-sm);
   cursor: pointer; font-size: 0.9rem;
   display: flex; align-items: center; justify-content: center;
 }
-.modal__close:hover { background: var(--color-gray-100); color: var(--color-foreground); }
+.modal__close:hover { background: var(--color-info-bg); color: var(--color-primary); }
 
 .modal__body {
-  padding: 1rem 1.25rem;
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -649,8 +649,8 @@ tr:last-child td { border-bottom: none; }
 .modal__footer {
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
   border-top: 1px solid var(--color-border);
 }
 
@@ -738,14 +738,14 @@ tr:last-child td { border-bottom: none; }
   padding: 0.4rem 1.25rem;
   border: none;
   border-radius: var(--radius-md);
-  background: #dc2626;
-  color: #fff;
+  background: var(--color-danger);
+  color: var(--color-danger-fg);
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
 }
 .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-danger:not(:disabled):hover { background: #b91c1c; }
+.btn-danger:not(:disabled):hover { background: var(--color-danger-hover); }
 
 /*  Responsive  */
 @media (max-width: 48rem) {

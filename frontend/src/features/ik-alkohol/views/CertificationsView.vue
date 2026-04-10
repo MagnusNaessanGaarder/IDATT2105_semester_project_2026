@@ -698,7 +698,7 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 .catalog-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--color-card) 94%, #f8fafc);
+  background: color-mix(in srgb, var(--color-card) 94%, var(--color-background-soft));
   padding: 0.9rem;
   display: flex;
   flex-direction: column;
@@ -774,8 +774,8 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
   display: inline-block;
   padding: 2px 8px;
   border-radius: var(--radius-sm);
-  background: #e0f2fe;
-  color: #0369a1;
+  background: var(--color-info-bg);
+  color: var(--color-info);
   font-size: var(--font-size-xs);
   font-weight: 500;
 }
@@ -826,23 +826,23 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 }
 
 .action-btn--edit {
-  background: #e0f2fe;
-  color: #0369a1;
-  border-color: #bae6fd;
+  background: var(--color-info-bg);
+  color: var(--color-info);
+  border-color: color-mix(in srgb, var(--color-info) 22%, var(--color-border));
 }
 
 .action-btn--edit:hover {
-  background: #bae6fd;
+  background: color-mix(in srgb, var(--color-info-bg) 78%, var(--color-info) 22%);
 }
 
 .action-btn--delete {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fecaca;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
 }
 
 .action-btn--delete:hover {
-  background: #fecaca;
+  background: color-mix(in srgb, var(--color-danger-bg) 80%, var(--color-danger) 20%);
 }
 
 .text-muted {
@@ -862,9 +862,9 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 .error-alert {
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
-  background: var(--color-error-bg, #fef2f2);
-  color: var(--color-error, #dc2626);
-  border: 1px solid var(--color-error-border, #fecaca);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
 }
@@ -932,7 +932,7 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 .modal-btn {
   border: 1px solid var(--ik-alkohol-primary);
   background: var(--ik-alkohol-primary);
-  color: #fff;
+  color: var(--color-secondary-foreground);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.8rem;
   cursor: pointer;
@@ -959,10 +959,10 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 }
 
 .debug-info {
-  background: #f0f0f0;
+  background: var(--color-gray-100);
   padding: 10px;
   margin: 10px 0;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }
 

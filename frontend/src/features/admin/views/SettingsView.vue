@@ -1098,21 +1098,22 @@ watch(currentOrgNumber, () => {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 39, 43, 0.58);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
+  padding: var(--spacing-lg);
 }
 
 .modal {
-  background: var(--color-card);
-  border-radius: var(--radius-md);
-  padding: 1.5rem;
+  background: var(--color-surface-raised);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-lg);
   max-width: 28rem;
   width: 100%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 .modal h3 {
@@ -1164,7 +1165,7 @@ watch(currentOrgNumber, () => {
 }
 
 .btn--danger:hover {
-  background: var(--color-danger-hover, #dc2626);
+  background: var(--color-danger-hover);
 }
 
 .btn:disabled {

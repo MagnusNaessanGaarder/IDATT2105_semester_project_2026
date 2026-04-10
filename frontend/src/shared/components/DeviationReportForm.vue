@@ -411,20 +411,19 @@ function resetForm() {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(0, 39, 43, 0.58);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 1rem;
-  padding-inline: clamp(1rem, 4vw, 2.5rem);
+  padding: var(--spacing-lg);
 }
 
 .dialog {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-surface-raised);
+  border: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
@@ -438,7 +437,7 @@ function resetForm() {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.1rem 1.25rem 0.9rem;
+  padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }

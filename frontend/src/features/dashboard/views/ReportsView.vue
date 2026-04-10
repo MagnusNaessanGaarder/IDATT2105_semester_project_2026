@@ -532,24 +532,24 @@ onBeforeUnmount(() => resetActiveJob())
 /* Preview modal */
 .preview-overlay {
   position: fixed; inset: 0; z-index: 200;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(0, 39, 43, 0.58);
   display: flex; align-items: center; justify-content: center;
-  padding: 1.5rem; backdrop-filter: blur(2px);
+  padding: var(--spacing-lg);
 }
 .preview-modal {
-  background: var(--color-card); border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-surface-raised); border: none; border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
   width: min(900px, 100%); height: min(88vh, 860px);
   display: flex; flex-direction: column; overflow: hidden;
 }
 .preview-header {
   display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 1rem; padding: 1rem 1.25rem;
+  gap: 1rem; padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-border); flex-shrink: 0;
 }
 .preview-title {
   margin: 0; font-size: var(--font-size-base); font-weight: 700;
-  color: var(--color-gray-900);
+  color: var(--color-foreground);
 }
 .preview-meta {
   display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem;
@@ -559,10 +559,10 @@ onBeforeUnmount(() => resetActiveJob())
 .close-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 2rem; height: 2rem; border-radius: var(--radius-sm);
-  background: transparent; border: 1px solid var(--color-border);
-  color: var(--color-gray-600); cursor: pointer; transition: background var(--transition-fast);
+  background: transparent; border: none;
+  color: var(--color-foreground); cursor: pointer; transition: background var(--transition-fast);
 }
-.close-btn:hover { background: var(--color-gray-100); }
+.close-btn:hover { background: var(--color-info-bg); }
 .preview-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 .preview-iframe { width: 100%; height: 100%; border: none; flex: 1; }
 .preview-json {

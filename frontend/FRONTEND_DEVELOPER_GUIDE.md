@@ -1,430 +1,643 @@
 # Frontend Developer Guide
 
-This guide is for developers who are new to the frontend in this repository.
-It explains the ecosystem, architecture, feature sections, coding patterns, and how to safely extend the project.
+This guide documents the entire frontend application and is the primary onboarding and maintenance reference for contributors.
+
+It covers:
+- architecture and folder ownership
+- routing and access control
+- state, API, and data patterns
+- UI system and styleguide compliance
+- testing and quality gates
+- feature-level behavior and extension workflows
 
 ---
 
-## 1. Project Snapshot
+## 1. Frontend Snapshot
 
 - Framework: Vue 3 + TypeScript
-- Build tool: Vite
-- Routing: Vue Router
-- State management: Pinia
+- Build: Vite
+- Router: Vue Router
+- Global state: Pinia
 - HTTP client: Axios
-- Animations: @vueuse/motion (plus motion libraries installed)
-- Testing: Vitest (unit), Cypress (e2e)
-- Styling: custom CSS with design tokens and component-level scoped styles
+- Motion: @vueuse/motion
+- Unit tests: Vitest
+- E2E tests: Cypress
+- Styling: base styles + design tokens + scoped feature styles
 
-Core goals of this frontend:
-
-- Feature-first code organization
-- Predictable data flow
-- Strong TypeScript support
-- Good accessibility baseline
-- Fast onboarding for new contributors
+Frontend goals:
+- predictable feature-first structure
+- strong typing and explicit data contracts
+- consistent UI language across modules
+- accessibility-safe defaults
+- easy migration between dummy data and API-backed data
 
 ---
 
-## 2. Quick Start
+## 2. Getting Started
 
-## 2.1 Requirements
+### 2.1 Requirements
 
 - Node: `^20.19.0 || >=22.12.0`
 - npm (or compatible package manager)
 
-## 2.2 Install
+### 2.2 Install and Run
 
 ```bash
 npm install
-```
-
-## 2.3 Run locally
-
-```bash
 npm run dev
 ```
 
-## 2.4 Build and verify
+### 2.3 Build and Validate
 
 ```bash
 npm run type-check
 npm run build
 ```
 
-## 2.5 Test
+### 2.4 Test
 
 ```bash
 npm run test:unit
 npm run test:e2e
 ```
 
----
+### 2.5 Useful Scripts
 
-## 3. Ecosystem and Tooling
-
-## 3.1 Vue 3 + Composition API
-
-The codebase uses script setup and composables for logic extraction.
-This means most business logic should live in composables, while views are responsible for page orchestration and rendering.
-
-## 3.2 TypeScript
-
-Type safety is used heavily in:
-
-- route metadata and auth rules
-- shared domain models under src/types
-- feature-level composables for dummy data and transformation helpers
-
-## 3.3 Vite
-
-Vite is used for fast dev server startup and efficient bundling in production.
-The build script runs type-check and build in parallel for fast validation.
-
-## 3.4 Vue Router
-
-Routing is centralized in src/router/index.ts.
-Access control is handled with a global beforeEach guard that:
-
-- sets document title from route meta
-- verifies auth state
-- enforces role-based access
-- redirects unauthenticated users to login
-
-## 3.5 Pinia
-
-Pinia is currently used primarily for auth state in src/stores/auth.ts.
-Use Pinia for truly global state, not for local page state.
-
-## 3.6 Axios client + interceptors
-
-The shared Axios client in src/api/client.ts:
-
-- reads JWT token from sessionStorage
-- attaches Authorization header
-- handles 401 globally by clearing session and redirecting to login
-- normalizes `VITE_API_URL` to a versioned base (`.../api/v1`) so feature API calls can use consistent relative paths (for example `/users`, `/organizations/{orgNumber}/settings`)
+- `npm run preview` runs production preview on port 5173
+- `npm run coverage` runs unit tests with coverage
+- `npm run lint` runs oxlint + eslint fixes
+- `npm run format` runs Prettier over `src/`
 
 ---
 
-## 4. Frontend Architecture
+## 3. Application Boot and Runtime Flow
 
-The frontend follows a feature-first structure under src/features.
-Each feature is a domain module with views, local components, and optional composables/api files.
+### 3.1 Entry Point
+
+`src/main.ts` bootstraps:
+- `createPinia()`
+- `router`
+- `MotionPlugin`
+- global style layers:
+  - `src/assets/styles/variables.css`
+  - `src/assets/styles/base.css`
+  - `src/assets/styles/components.css`
+  - `src/assets/css/main.css`
+
+### 3.2 Root Component
+
+`src/App.vue` is intentionally thin and renders router output.
+
+### 3.3 Authenticated Shell
+
+`src/layouts/AppShell.vue` provides:
+- sidebar and mobile navigation shell
+- top-level route outlet for authenticated sections
+- shared layout behavior (including responsive concerns)
+
+### 3.4 Sysadmin Shell
+
+`src/layouts/SysadminLayout.vue` is a dedicated shell for sysadmin-only routes.
+
+---
+
+## 4. Source Tree and Ownership
 
 ```text
 src/
-  features/
-    auth/
-    felles/
-    ik-mat/
-    ik-alkohol/
-    admin/
-  layouts/
-  router/
-  shared/
-  stores/
-  api/
-  data/
-  types/
+  api/                # Shared API client and low-level HTTP configuration
+  assets/             # Global style tokens and base styles
+  components/         # App-level reusable components
+  data/               # Dummy data sources for feature iteration
+  features/           # Feature-first modules (auth, admin, ik-mat, ik-alkohol, etc.)
+  layouts/            # Route layout shells
+  router/             # Route table and navigation guards
+  shared/             # Cross-feature components, composables, utils
+  stores/             # Pinia stores (auth is primary)
+  types/              # Shared TypeScript contracts
 ```
 
----
-
-## 5. App Entry and Boot Flow
-
-## 5.1 Entry point
-
-`src/main.ts` bootstraps the app and registers:
-
-- Pinia
-- Router
-- Motion plugin
-- Global CSS layers:
-  - variables.css
-  - base.css
-  - components.css
-
-## 5.2 Root component
-
-`src/App.vue` is intentionally minimal and renders RouterView only.
-
-## 5.3 Shell layout
-
-`src/layouts/AppShell.vue` provides shared app chrome:
-
-- sidebar + mobile backdrop
-- skip link for accessibility
-- animated route transitions in main content
-
-This is where all authenticated pages are rendered via nested routes.
+Ownership rule:
+- Keep domain logic inside `src/features/<feature>`.
+- Move only truly cross-feature behavior to `src/shared`.
 
 ---
 
-## 6. Routing and Access Control
+## 5. Routing, Roles, and Access Control
 
-Routes are grouped under:
+Routing is centralized in `src/router/index.ts`.
 
-- Public route: /login
-- Protected app shell: /
-  - felles routes (dashboard, reports, documents, notifications)
-  - ik-mat routes
-  - ik-alkohol routes
-  - admin routes
+### 5.1 Route Groups
 
-Role restrictions are declared in route meta.allowedRoles.
+- Public:
+  - `/login`
+  - `/register`
+- Sysadmin:
+  - `/sysadmin`
+- Authenticated app shell:
+  - `/` dashboard and domain modules
 
-Current role model in the router:
+### 5.2 Guards and Meta Contract
 
-- ADMIN
-- MANAGER
-- EMPLOYEE
+The global `beforeEach` guard handles:
+- document title from `meta.title`
+- auth recheck on cold start
+- sysadmin vs non-sysadmin access separation
+- inactive/no-organization routing
+- role checks via `meta.allowedRoles`
+- module gating via organization settings (`meta.moduleKey`)
 
-Important: Some dummy JSON files still use STAFF in feature-level data models.
-When extending auth and API integration, keep role naming consistent across router, store, backend, and feature data models.
-
----
-
-## 7. State Management and Session Model
-
-## 7.1 Global auth state
-
-`src/stores/auth.ts` controls:
-
-- current user
-- authentication flag
-- role helper getters
-- login/logout/checkAuth lifecycle
-
-Session persistence uses sessionStorage keys:
-
-- jwt_token
-- user
-
-## 7.2 Local page state
-
-Most views use local `ref`/`computed` state for filters, search, tabs, and UI toggles.
-Keep local state local unless multiple distant screens need the same data.
+Supported role model in routes:
+- `ADMIN`
+- `MANAGER`
+- `EMPLOYEE`
 
 ---
 
-## 8. Data Sources and Dummy Data Pattern
+## 6. Authentication and Session Model
 
-Dummy data files are under src/data.
-Features often use composables that wrap these files and expose:
+Primary store: `src/stores/auth.ts`.
 
-- typed interfaces
-- sorted lists
-- label mapping helpers
-- formatting helpers
+### 6.1 Store Responsibilities
 
-Examples:
+- login/register/logout lifecycle
+- token and user session persistence in `sessionStorage`
+- role helpers (`hasRole`, `isAdmin`, `isSysadmin`)
+- token expiry check + refresh flow
 
-- felles: useFellesData
-- admin: useAdminData
-- ik-mat: useIkMatData
-- ik-alkohol: useAlkoholData
+### 6.2 Session Keys
 
-### Recommended pattern when adding new dummy-data-backed sections
+Current storage keys include:
+- `accessToken`
+- `refreshToken`
+- `email`
+- `role`
+- `organizations`
+- `orgNumber`
+- `selectedOrgNumber`
+- `currentOrgNumber`
 
-1. Define interfaces in a feature composable.
-2. Cast raw JSON once in the composable.
-3. Expose precomputed derivations (counts, sorted lists, labels).
-4. Keep views mostly presentational.
+### 6.3 Auth API
+
+`src/features/auth/api` handles backend auth endpoints.
+Keep store interface stable if auth payloads evolve.
 
 ---
 
-## 9. How Each Feature Section Works
+## 7. API Layer and Error Handling
 
-## 9.1 Auth (src/features/auth)
+Shared client: `src/api/client.ts`.
 
-Responsibility:
+Expected behavior:
+- attach auth token to requests
+- centralize response/error handling
+- keep endpoint paths feature-relative
 
-- login flow
-- auth API calls
-- integration with auth store
+Recommended practice:
+- wrap asynchronous UI actions with shared loading/error patterns
+- convert backend errors to user-readable messages at feature boundaries
+- avoid repeating raw axios calls directly in views
 
-Typical flow:
+---
 
-- user submits credentials
-- auth API returns token + user
-- store saves session data
-- router guard allows protected routes
+## 8. Data Strategy: Dummy Data and Migration
 
-## 9.2 Felles (src/features/felles)
+Dummy data under `src/data` supports fast feature iteration.
 
-Responsibility:
+Feature composables should:
+- cast source data once
+- expose typed models
+- provide derived values (`computed`) and helper formatters
+- hide source details from views
 
-- cross-domain operational overview
-- reports/documents/notifications
-- general dashboard and shared operational cards
+Migration path from dummy to backend:
+1. preserve composable public interface
+2. swap internal source from JSON to API calls
+3. keep view template contracts unchanged
+4. add loading and error states without redesigning page structure
 
-Current architecture:
+---
 
-- views are page-level orchestration
-- useFellesData provides typed dummy data and display helpers
+## 9. Feature Documentation
 
-## 9.3 IK-Mat (src/features/ik-mat)
+### 9.1 Auth (`src/features/auth`)
 
-Responsibility:
+Contains authentication views and auth API integration.
+Responsibilities:
+- sign-in/register UX
+- handoff to auth store
+- error display and session transition
 
+### 9.2 Dashboard/Felles (`src/features/dashboard`)
+
+Contains shared operational pages:
+- dashboard
+- reports
+- documents
+- notifications
+- forbidden/not-found fallback views
+
+Responsibilities:
+- cross-domain overview screens
+- high-level list/table interactions
+- non-module-specific user workflows
+
+### 9.3 IK-Mat (`src/features/ik-mat`)
+
+Contains food-compliance flows:
 - checklists
-- temperature control
+- temperature logging
 - deviations
-- HACCP-related views
+- HACCP
 
-Data access:
+Responsibilities:
+- operational compliance interactions
+- status/badge-heavy data presentation
+- mobile + desktop task flows
 
-- useIkMatData composable provides reusable typed data and helper functions
+### 9.4 IK-Alkohol (`src/features/ik-alkohol`)
 
-## 9.4 IK-Alkohol (src/features/ik-alkohol)
-
-Responsibility:
-
+Contains alcohol-compliance flows:
+- dashboard
 - daily control
 - certifications
 - regulations
 
-Data access:
+Responsibilities:
+- module-specific process views
+- compliance documentation workflows
+- role-aware action paths
 
-- useAlkoholData composable exposes normalized data and helpers
+### 9.5 Admin (`src/features/admin`)
 
-## 9.5 Admin (src/features/admin)
+Contains admin and manager operations:
+- users
+- locations
+- settings
+- audit log interactions
 
-Responsibility:
+Role policy highlights:
+- users page: ADMIN only
+- settings/locations: ADMIN + MANAGER
 
-- users management views
-- settings panels
-- audit log visibility
+### 9.6 Sysadmin (`src/features/sysadmin`)
 
-Data access:
-
-- `useUsers` handles user CRUD from backend API
-- `useAdminData` handles settings mapping/persistence (backend + local preferences)
-- `useAuditLog` handles audit-log retrieval from backend API
-
-Role policy:
-- `Users` route is ADMIN-only.
-- `Settings` route is ADMIN + MANAGER.
-- Unauthorized access is routed to the `Forbidden` page to provide explicit feedback instead of silent redirects.
+Contains cross-organization operational control for sysadmin users.
 
 ---
 
-## 10. Shared Layer
+## 10. Shared Layer Documentation
 
-## 10.1 Shared components
+### 10.1 Shared Components (`src/shared/components`)
 
-`src/shared/components` contains generic, reusable building blocks:
+Use for domain-agnostic primitives and reusable flows:
+- base modal/input/button/spinner
+- shared form sections
+- shared error and state widgets
 
-- inputs/buttons/modal/spinner/error components
+### 10.2 Shared Composables (`src/shared/composables`)
 
-Use shared components when behavior is domain-agnostic.
+Use for behavior that is reused across features, e.g.:
+- API request wrappers
+- common form-state logic
+- permission checks
 
-## 10.2 Shared composables
+### 10.3 Shared Utils (`src/shared/utils`)
 
-Examples:
-
-- useApi: loading/error wrapper for async calls
-- useForm: validation and submit flow
-- usePermissions, useErrorHandler
-
-Use shared composables for cross-feature patterns.
-
-## 10.3 Shared utils
-
-Common constants and validators live in shared utils.
-Keep this layer framework-light where possible.
+Use for pure helpers and mappers:
+- organization settings resolution and cache handling
+- formatters and constants
 
 ---
 
-## 11. Styling System
+## 11. UI System and Styleguide Compliance
 
-Styling is built with custom CSS tokens and scoped component styles.
+The frontend must follow both:
+- base style tokens and utilities in `src/assets/styles`
+- IK brand/styleguide rules from project docs
 
-Main layers:
+### 11.1 Base Style Layers
 
-- variables.css: design tokens (colors, spacing, typography, shadows)
-- base.css: reset, global element styles, focus behavior
-- components.css: shared page-level utility classes
+- `variables.css`: tokens (color, spacing, typography, shadow, radius)
+- `base.css`: global reset + native element baseline
+- `components.css`: shared component-level utility classes
 
-### Current style direction
+### 11.2 Required Styling Rules
 
-Recent work aligns multiple views with a dense admin/wireframe-inspired design language:
+- use token variables, avoid hardcoded hex values in feature styles
+- use semantic tokens for state (`--color-danger`, `--color-success-bg`, `--color-focus`)
+- preserve contrast-safe foreground/background pairings
+- preserve focus-visible outlines on all interactive elements
+- keep spacing aligned to 8px rhythm (`--spacing-*` and compatible rem values)
 
-- compact cards
-- toolbar + filter controls
-- table-first data presentation
-- semantic status pills
+### 11.3 Typography Rules
 
-When adding new pages, follow these established UI patterns for consistency.
+- headings and UI labels: `var(--font-family-display)` / `var(--font-family-ui)`
+- body text and long-form content: `var(--font-family)`
+- avoid introducing ad hoc font stacks in feature files
 
----
+### 11.4 Buttons and Inputs
 
-## 12. Data Flow Guidelines
-
-Preferred flow:
-
-1. source data (API or dummy JSON)
-2. composable transforms and computes display-ready models
-3. view composes sections and handles user interactions
-4. reusable components render small parts
-
-Avoid:
-
-- heavy logic directly in templates
-- repeating role/status/date mapping in each view
-- mutating raw imported JSON directly
+Prefer base/shared variants:
+- primary actions use primary token backgrounds
+- danger actions use danger tokens
+- ghost/secondary actions use border + neutral surfaces
+- focus ring must remain visible and tokenized
 
 ---
 
-## 13. Working With Backend Integration
+## 12. Accessibility Baseline
 
-Current frontend supports dummy data and API-based flows.
-When migrating a section from dummy data to backend:
+Minimum expectations for all new UI:
+- keyboard navigable interactive controls
+- visible `:focus-visible` styles
+- clear text contrast against surface color
+- logical heading order and semantic structure
+- touch targets appropriate for mobile interaction
 
-1. Keep existing composable interfaces stable.
-2. Replace JSON source with API calls inside composable or feature api.ts.
-3. Preserve field mapping helpers so views stay unchanged.
-4. Handle loading and error states with useApi.
-5. Add optimistic updates only when needed.
-
-This minimizes churn and keeps UI stable during integration.
+When changing existing views, do not regress accessibility behavior.
 
 ---
 
-## 14. Adding a New Feature Section
+## 13. Testing Strategy
 
-Use this checklist:
+### 13.1 Unit Tests (Vitest)
+
+Use unit tests for:
+- composables
+- helper utilities
+- data transformations
+- edge-case formatting and mapping logic
+
+### 13.2 E2E Tests (Cypress)
+
+Use e2e for:
+- auth and navigation flow
+- route guard behavior
+- high-value user journeys (forms/tables/modals)
+- regressions in cross-feature workflows
+
+### 13.3 Recommended Local Verification Before PR
+
+```bash
+npm run type-check
+npm run lint
+npm run test:unit
+npm run build
+```
+
+Run e2e when your change affects end-to-end behavior.
+
+---
+
+## 14. Contribution Workflow
+
+### 14.1 Adding a New Feature
 
 1. Create `src/features/<new-feature>/`
-2. Add:
-   - views/
-   - components/
-   - composables/
-   - api/ (optional)
-3. Add route entries in router/index.ts with proper meta.
-4. Add navigation entry in layout/sidebar structures.
-5. Create or extend dummy JSON in src/data during early iteration.
-6. Add typed composable to normalize data and expose helpers.
-7. Add unit tests for core logic.
-8. Validate with `npm run type-check` and `npm run build`.
+2. Add `views`, `components`, `composables`, optional `api`
+3. Register routes and `meta` rules in router
+4. Add navigation entry where relevant
+5. Define typed data contracts
+6. Use tokenized styling and shared components first
+7. Add tests for critical behavior
+
+### 14.2 Extending Existing Features
+
+- preserve public composable signatures where possible
+- avoid mixing domain logic into presentational components
+- keep role checks explicit in route meta and UI behavior
+- document new assumptions and edge cases in this guide
 
 ---
 
-## 15. Coding and Review Conventions
+## 15. Review Checklist (Frontend)
 
-- Use script setup + TypeScript.
-- Prefer computed properties for derived values.
-- Keep template conditions simple and expressive.
-- Keep component styles scoped unless intentionally global.
-- Use explicit emits for component events.
-- Keep naming in Norwegian where the existing feature uses Norwegian UI text.
-
-For code reviews, prioritize:
-
-- behavioral regressions
-- auth/role leaks
-- accessibility and focus behavior
-- data consistency between router/store/types/backend
+Before merging, verify:
+- no route guard regressions
+- no role access leakage
+- no hardcoded style drift from tokens
+- no inaccessible focus/contrast regressions
+- no duplicated business logic already available in shared/composables
+- no breaking of existing API/composable contracts
 
 ---
+
+## 16. Troubleshooting
+
+### 16.1 Router Redirect Loops
+
+Check:
+- `meta.requiresAuth`
+- `meta.allowedRoles`
+- `isSysadmin` and organization status conditions
+
+### 16.2 Auth Appears Logged Out After Refresh
+
+Check:
+- storage keys are written correctly in auth store
+- `checkAuth` refresh flow
+- backend refresh token validity
+
+### 16.3 Style Inconsistency Between Pages
+
+Check:
+- token usage vs hardcoded values
+- local scoped style collisions
+- whether a shared component already exists for that UI pattern
+
+### 16.4 API Works in Postman but Not in UI
+
+Check:
+- base URL/env configuration
+- auth header interceptor
+- route-level org/module requirements
+
+---
+
+## 17. Definition of Done for Frontend Changes
+
+A frontend change is done when:
+- behavior is implemented and role-safe
+- UI follows tokenized base styling and styleguide rules
+- focus/contrast accessibility is preserved
+- affected tests and validation commands pass
+- documentation in this guide remains accurate
+
+---
+
+## 18. Living Document Policy
+
+This document is intentionally maintained as a living guide.
+When architecture, routing, shared patterns, or style rules change, update this file in the same PR.
+
+---
+
+## 19. Composable Index
+
+Use this section as the canonical index of existing composables before creating new ones.
+
+### 19.1 Shared Composables (`src/shared/composables`)
+
+| Composable | Path | Primary responsibility |
+|---|---|---|
+| `useApi` | `src/shared/composables/useApi.ts` | Shared async loading/error wrapper pattern |
+| `useErrorHandler` | `src/shared/composables/useErrorHandler.ts` | Normalize and present errors consistently |
+| `useForm` | `src/shared/composables/useForm.ts` | Common form state and validation flow |
+| `usePermissions` | `src/shared/composables/usePermissions.ts` | Permission helper checks across views |
+
+### 19.2 Feature Composables
+
+| Feature | Composable | Path | Primary responsibility |
+|---|---|---|---|
+| Auth | `useAuth` | `src/features/auth/composables/useAuth.ts` | Auth-specific page helper logic |
+| Dashboard | `useFellesData` | `src/features/dashboard/composables/useFellesData.ts` | Dashboard shared data mapping |
+| Dashboard | `useDocuments` | `src/features/dashboard/composables/useDocuments.ts` | Documents feature state, filtering, API flow |
+| Dashboard | `useNotifications` | `src/features/dashboard/composables/useNotifications.ts` | Notifications state/actions |
+| Admin | `useAdminData` | `src/features/admin/composables/useAdminData.ts` | Admin settings and management data composition |
+| Admin | `useAuditLog` | `src/features/admin/composables/useAuditLog.ts` | Audit log retrieval/formatting |
+| Admin | `useSettingsValidation` | `src/features/admin/composables/useSettingsValidation.ts` | Settings form validation rules |
+| Admin | `useUsers` | `src/features/admin/composables/useUsers.ts` | Users data CRUD and UI state |
+| IK-Mat | `useIkMatData` | `src/features/ik-mat/composables/useIkMatData.ts` | Primary IK-Mat data orchestration |
+| IK-Mat | `useChecklists` | `src/features/ik-mat/composables/useChecklists.ts` | Checklist-specific state/actions |
+| IK-Mat | `useChecklistViewState` | `src/features/ik-mat/composables/useChecklistViewState.ts` | Checklist view-mode/UI state |
+| IK-Mat | `useIkMatFormatters` | `src/features/ik-mat/composables/useIkMatFormatters.ts` | IK-Mat formatting helpers |
+| IK-Alkohol | `useAlkoholData` | `src/features/ik-alkohol/composables/useAlkoholData.ts` | Main IK-Alkohol data mapping |
+| IK-Alkohol | `useCertifications` | `src/features/ik-alkohol/composables/useCertifications.ts` | Certification-specific flow/state |
+| Export | `useExport` | `src/features/export/composables/useExport.ts` | Export payload and flow orchestration |
+
+### 19.3 Composable Design Rules
+
+Before adding a new composable:
+1. Check this index and reuse existing composables where possible.
+2. Keep composables focused on state and logic, not template concerns.
+3. Keep side effects explicit (`fetch`, `save`, `submit` actions).
+4. Expose typed interfaces and computed derivations.
+5. Keep feature composables feature-local unless reused cross-feature.
+
+Naming convention:
+- use `useXxx` with domain nouns (`useUsers`, `useDocuments`)
+- for view-only state, include `ViewState` suffix
+- for pure formatting/mapping helpers, include `Formatters` suffix
+
+---
+
+## 20. API Endpoint-to-Feature Matrix
+
+Use this matrix to quickly find where frontend endpoint calls are owned.
+
+### 20.1 Auth Endpoints
+
+| Endpoint | Method | Frontend owner |
+|---|---|---|
+| `/auth/login` | POST | `src/features/auth/api.ts` |
+| `/auth/register` | POST | `src/features/auth/api.ts` |
+| `/auth/refresh` | POST | `src/features/auth/api.ts` |
+| `/auth/logout` | POST | `src/features/auth/api.ts` |
+| `/auth/me` | GET | `src/features/auth/api.ts` |
+
+### 20.2 User and Admin Endpoints
+
+| Endpoint | Method | Frontend owner |
+|---|---|---|
+| `/users` | GET | `src/features/admin/api/users.ts` |
+| `/users/{id}` | GET | `src/features/admin/api/users.ts` |
+| `/users` | POST | `src/features/admin/api/users.ts` |
+| `/users/{id}` | PUT | `src/features/admin/api/users.ts` |
+| `/users/{id}` | DELETE | `src/features/admin/api/users.ts` |
+| `/organizations/{orgNumber}/settings` | GET | `src/features/admin/api/settingsApi.ts` |
+| `/organizations/{orgNumber}/settings` | PUT | `src/features/admin/api/settingsApi.ts` |
+| `/admin/audit-log` | GET | `src/features/admin/api/auditLogApi.ts` |
+| `/admin/audit-log/action/{actionType}` | GET | `src/features/admin/api/auditLogApi.ts` |
+| `/admin/audit-log/date-range` | GET | `src/features/admin/api/auditLogApi.ts` |
+| `/admin/audit-log/entity/{entityType}/{entityId}` | GET | `src/features/admin/api/auditLogApi.ts` |
+
+### 20.3 IK-Mat Endpoints
+
+| Endpoint | Method | Frontend owner |
+|---|---|---|
+| `/locations/{id}` | DELETE | `src/features/ik-mat/api/ikMatApi.ts`, `src/features/admin/views/LocationsView.vue` |
+| `/checklists/templates/{id}` | DELETE | `src/features/ik-mat/api/ikMatApi.ts` |
+| `/temperature/points/{pointId}` | DELETE | `src/features/ik-mat/api/ikMatApi.ts` |
+| `/temperature/points/{pointId}/entries` | DELETE | `src/features/ik-mat/api/ikMatApi.ts` |
+| `/deviations/{id}` | DELETE | `src/features/ik-mat/api/ikMatApi.ts` |
+| `/deviations` | POST | `src/features/ik-mat/views/TemperatureView.vue`, `src/features/ik-mat/views/DeviationsView.vue` |
+| `/files/upload` | POST | `src/features/ik-mat/api/ikMatApi.ts` |
+| `/files/{documentId}` | DELETE | `src/features/ik-mat/api/ikMatApi.ts` |
+| `/api/v1/checklists/templates` | GET/POST | `src/features/ik-mat/api/checklists.ts` |
+| `/api/v1/checklists/templates/{templateId}` | GET/PUT/DELETE | `src/features/ik-mat/api/checklists.ts` |
+| `/api/v1/checklists/runs` | GET/POST | `src/features/ik-mat/api/checklists.ts` |
+| `/api/v1/checklists/runs/{runId}/complete` | PUT | `src/features/ik-mat/api/checklists.ts` |
+| `/api/v1/checklists/runs/{runId}/items/{itemId}` | PUT | `src/features/ik-mat/api/checklists.ts` |
+
+### 20.4 IK-Alkohol Endpoints
+
+| Endpoint | Method | Frontend owner |
+|---|---|---|
+| `/training/{id}` | DELETE | `src/features/ik-alkohol/api/certifications.ts` |
+
+### 20.5 Dashboard and Shared Endpoints
+
+| Endpoint | Method | Frontend owner |
+|---|---|---|
+| `/notifications/{notificationId}/read` | PUT | `src/features/dashboard/composables/useFellesData.ts` |
+| `/notifications/read-all` | PUT | `src/features/dashboard/composables/useFellesData.ts` |
+| `/notifications/{notificationId}` | DELETE | `src/features/dashboard/composables/useFellesData.ts` |
+| `/sysadmin/organizations/{orgNumber}` | DELETE | `src/features/sysadmin/views/SysadminOrgsView.vue` |
+
+### 20.6 Endpoint Documentation Rules
+
+When adding or changing API calls:
+1. Update this matrix in the same PR.
+2. Prefer endpoint wrappers in feature `api` modules over calling `client` directly in views.
+3. Keep endpoint paths relative to shared client base config.
+4. For temporary direct calls in views, add a TODO and migrate to an `api` module.
+
+---
+
+## 19. Composable Index
+
+Use this section as the canonical index of existing composables before creating new ones.
+
+### 19.1 Shared Composables (`src/shared/composables`)
+
+| Composable | Path | Primary responsibility |
+|---|---|---|
+| `useApi` | `src/shared/composables/useApi.ts` | shared async loading/error wrapper pattern |
+| `useErrorHandler` | `src/shared/composables/useErrorHandler.ts` | normalize and present errors consistently |
+| `useForm` | `src/shared/composables/useForm.ts` | common form state and validation flow |
+| `usePermissions` | `src/shared/composables/usePermissions.ts` | permission helper checks across views |
+
+### 19.2 Feature Composables
+
+| Feature | Composable | Path | Primary responsibility |
+|---|---|---|---|
+| Auth | `useAuth` | `src/features/auth/composables/useAuth.ts` | auth-specific page helper logic |
+| Dashboard | `useFellesData` | `src/features/dashboard/composables/useFellesData.ts` | dashboard shared data mapping |
+| Dashboard | `useDocuments` | `src/features/dashboard/composables/useDocuments.ts` | documents feature state, filtering, API flow |
+| Dashboard | `useNotifications` | `src/features/dashboard/composables/useNotifications.ts` | notifications state/actions |
+| Admin | `useAdminData` | `src/features/admin/composables/useAdminData.ts` | admin settings and management data composition |
+| Admin | `useAuditLog` | `src/features/admin/composables/useAuditLog.ts` | audit log retrieval/formatting |
+| Admin | `useSettingsValidation` | `src/features/admin/composables/useSettingsValidation.ts` | settings form validation rules |
+| Admin | `useUsers` | `src/features/admin/composables/useUsers.ts` | users data CRUD and UI state |
+| IK-Mat | `useIkMatData` | `src/features/ik-mat/composables/useIkMatData.ts` | primary IK-Mat data orchestration |
+| IK-Mat | `useChecklists` | `src/features/ik-mat/composables/useChecklists.ts` | checklist-specific state/actions |
+| IK-Mat | `useChecklistViewState` | `src/features/ik-mat/composables/useChecklistViewState.ts` | checklist view-mode/UI state |
+| IK-Mat | `useIkMatFormatters` | `src/features/ik-mat/composables/useIkMatFormatters.ts` | IK-Mat formatting helpers |
+| IK-Alkohol | `useAlkoholData` | `src/features/ik-alkohol/composables/useAlkoholData.ts` | main IK-Alkohol data mapping |
+| IK-Alkohol | `useCertifications` | `src/features/ik-alkohol/composables/useCertifications.ts` | certification-specific flow/state |
+| Export | `useExport` | `src/features/export/composables/useExport.ts` | export payload and flow orchestration |
+
+### 19.3 Composable Design Rules
+
+Before adding a new composable:
+1. Check this index and reuse existing composables where possible.
+2. Keep composables focused on state and logic, not template concerns.
+3. Keep side effects explicit (`fetch`, `save`, `submit` actions).
+4. Expose typed interfaces and computed derivations.
+5. Keep feature composables feature-local unless reused cross-feature.
+
+Naming convention:
+- use `useXxx` with domain nouns (`useUsers`, `useDocuments`).
+- for view-only state, include `ViewState` suffix.
+- for pure formatting/mapping helpers, include `Formatters` suffix.
