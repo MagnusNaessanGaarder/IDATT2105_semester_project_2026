@@ -33,16 +33,28 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     public OrganizationSettingsResponse getSettings(Integer orgNumber) {
         return settingsRepository.findById(orgNumber)
                 .map(this::mapToResponse)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
-                        "Organization settings not found for org: " + orgNumber));
+                .orElseGet(() -> {
+                    log.info("No settings found for org: {}. Creating defaults.", orgNumber);
+                    return createDefaultSettings(orgNumber);
+                });
     }
 
     @Override
     @Transactional
     public OrganizationSettingsResponse updateSettings(Integer orgNumber, OrganizationSettingsRequest request, Long userId) {
+        // Create default settings if they don't exist
         OrganizationSettings settings = settingsRepository.findById(orgNumber)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
-                        "Organization settings not found for org: " + orgNumber));
+                .orElseGet(() -> {
+                    OrganizationSettings newSettings = OrganizationSettings.builder()
+                            .orgNumber(orgNumber)
+                            .timezoneName("Europe/Oslo")
+                            .localeCode("nb-NO")
+                            .enableFoodModule(true)
+                            .enableAlcoholModule(true)
+                            .reminderEmailEnabled(true)
+                            .build();
+                    return settingsRepository.save(newSettings);
+                });
         OrganizationSettingsResponse oldValues = mapToResponse(settings);
 
         if (request.getTimezoneName() != null) {
@@ -57,30 +69,16 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
         if (request.getEnableAlcoholModule() != null) {
             settings.setEnableAlcoholModule(request.getEnableAlcoholModule());
         }
-        if (request.getDefaultTempMinC() != null) {
-            settings.setDefaultTempMinC(request.getDefaultTempMinC());
-        }
-        if (request.getDefaultTempMaxC() != null) {
-            settings.setDefaultTempMaxC(request.getDefaultTempMaxC());
-        }
+        settings.setDefaultTempMinC(request.getDefaultTempMinC());
+        settings.setDefaultTempMaxC(request.getDefaultTempMaxC());
         if (request.getReminderEmailEnabled() != null) {
             settings.setReminderEmailEnabled(request.getReminderEmailEnabled());
         }
-        if (request.getNotificationEmail() != null) {
-            settings.setNotificationEmail(request.getNotificationEmail());
-        }
-        if (request.getDisplayName() != null) {
-            settings.setDisplayName(request.getDisplayName());
-        }
-        if (request.getLegalName() != null) {
-            settings.setLegalName(request.getLegalName());
-        }
-        if (request.getContactEmail() != null) {
-            settings.setContactEmail(request.getContactEmail());
-        }
-        if (request.getContactPhone() != null) {
-            settings.setContactPhone(request.getContactPhone());
-        }
+        settings.setNotificationEmail(request.getNotificationEmail());
+        settings.setDisplayName(request.getDisplayName());
+        settings.setLegalName(request.getLegalName());
+        settings.setContactEmail(request.getContactEmail());
+        settings.setContactPhone(request.getContactPhone());
         if (request.getRetentionUserMonths() != null) {
             settings.setRetentionUserMonths(request.getRetentionUserMonths());
         }
