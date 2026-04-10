@@ -55,7 +55,7 @@ const usersError     = computed(() => usersComposable.error.value)
 const filteredUsers = computed(() => {
   const q = query.value.trim().toLowerCase()
   return usersList.value.filter((u) => {
-    const role = usersComposable.getUserRole(u)
+    const role = userRole(u)
     const matchRole  = roleFilter.value === 'all' || role === roleFilter.value
     const matchQuery = !q || u.displayName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
     return matchRole && matchQuery
@@ -63,9 +63,9 @@ const filteredUsers = computed(() => {
 })
 
 const roleCounts = computed(() => ({
-  ADMIN:    usersList.value.filter((u) => usersComposable.getUserRole(u) === 'ADMIN').length,
-  MANAGER:  usersList.value.filter((u) => usersComposable.getUserRole(u) === 'MANAGER').length,
-  EMPLOYEE: usersList.value.filter((u) => usersComposable.getUserRole(u) === 'EMPLOYEE').length,
+  ADMIN:    usersList.value.filter((u) => userRole(u) === 'ADMIN').length,
+  MANAGER:  usersList.value.filter((u) => userRole(u) === 'MANAGER').length,
+  EMPLOYEE: usersList.value.filter((u) => userRole(u) === 'EMPLOYEE').length,
 }))
 
 onMounted(loadUsers)
@@ -85,6 +85,19 @@ function roleLabel(role: string) {
 function roleTone(role: string): 'red' | 'amber' | 'blue' {
   return role === 'ADMIN' ? 'red' : role === 'MANAGER' ? 'amber' : 'blue'
 }
+
+function normalizeRole(role: string): 'ADMIN' | 'MANAGER' | 'EMPLOYEE' {
+  const key = role.trim().toUpperCase().replace(/^ROLE_/, '')
+  if (key === 'ADMIN') return 'ADMIN'
+  if (key === 'MANAGER' || key === 'LEADER' || key === 'LEDER') return 'MANAGER'
+  if (key === 'EMPLOYEE' || key === 'EMPLOYER' || key === 'ANSATT') return 'EMPLOYEE'
+  return 'EMPLOYEE'
+}
+
+function userRole(user: import('../api/users').User): 'ADMIN' | 'MANAGER' | 'EMPLOYEE' {
+  return normalizeRole(usersComposable.getUserRole(user))
+}
+
 function initials(name: string) {
   return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
 }
@@ -326,7 +339,7 @@ const availableRoles = [
           >
             <td>
               <div class="user-cell">
-                  <span class="avatar" :class="`avatar--${roleTone(usersComposable.getUserRole(user))}`">
+                  <span class="avatar" :class="`avatar--${roleTone(userRole(user))}`">
                     {{ initials(user.displayName) }}
                   </span>
                 <div>
@@ -340,8 +353,8 @@ const availableRoles = [
             </td>
             <td class="td-email">{{ user.email }}</td>
             <td>
-                <span class="role-pill" :class="`role-pill--${roleTone(usersComposable.getUserRole(user))}`">
-                  {{ roleLabel(usersComposable.getUserRole(user)) }}
+                <span class="role-pill" :class="`role-pill--${roleTone(userRole(user))}`">
+                  {{ roleLabel(userRole(user)) }}
                 </span>
             </td>
             <td>
@@ -528,17 +541,22 @@ const availableRoles = [
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-card);
+  box-shadow: var(--shadow-sm);
   color: var(--color-gray-600);
   font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
-.role-chip:hover { border-color: var(--color-foreground); }
+.role-chip:hover {
+  border-color: var(--color-foreground);
+  box-shadow: var(--shadow-md);
+}
 .role-chip--active {
   background: var(--color-foreground);
   color: var(--color-primary-foreground);
   border-color: var(--color-foreground);
+  box-shadow: var(--shadow-md);
 }
 
 .chip-count {
@@ -570,6 +588,7 @@ const availableRoles = [
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
+  box-shadow: var(--shadow-sm);
   font-size: var(--font-size-sm);
   color: var(--color-foreground);
   min-height: var(--touch-target);
@@ -632,7 +651,7 @@ tr:last-child td { border-bottom: none; }
   font-size: var(--font-size-xs);
   font-weight: 700;
 }
-.avatar--red  { background: var(--color-danger-bg); color: var(--color-danger-fg); }
+.avatar--red  { background: var(--color-danger); color: var(--color-danger-fg); }
 .avatar--amber{ background: var(--color-warning-bg); color: var(--color-warning); }
 .avatar--blue { background: var(--color-info-bg); color: var(--color-info); }
 
@@ -661,7 +680,7 @@ tr:last-child td { border-bottom: none; }
   font-size: var(--font-size-xs);
   font-weight: 600;
 }
-.role-pill--red   { background: var(--color-danger-bg);  color: var(--color-danger-fg); }
+.role-pill--red   { background: var(--color-danger);     color: var(--color-danger-fg); }
 .role-pill--amber { background: var(--color-warning-bg); color: var(--color-warning);   }
 .role-pill--blue  { background: var(--color-info-bg);    color: var(--color-info);      }
 
@@ -746,22 +765,23 @@ tr:last-child td { border-bottom: none; }
 .form-group label {
   font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--color-gray-700);
+  color: var(--color-gray-800);
 }
 .form-group input,
 .form-group select {
   min-height: 2.5rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
-  background: var(--color-card);
+  background: var(--color-surface-muted);
   color: var(--color-foreground);
   box-sizing: border-box;
   width: 100%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 .form-group input:focus,
-.form-group select:focus { outline: none; border-color: var(--color-focus); box-shadow: var(--shadow-focus); }
+.form-group select:focus { outline: none; border-color: var(--color-focus); background: var(--color-surface-raised); box-shadow: var(--shadow-focus); }
 .form-group select[multiple] { min-height: 6rem; padding: 0.5rem; }
 
 .add-error {

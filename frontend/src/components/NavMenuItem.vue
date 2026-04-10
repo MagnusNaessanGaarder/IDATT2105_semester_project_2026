@@ -53,19 +53,20 @@ const handleSelect = () => {
       </span>
       <span class="menu-item__label">{{ props.label }}</span>
       <span v-if="props.badge" class="menu-item__badge">{{ props.badge }}</span>
-      <svg
+      <motion.svg
         v-if="props.variant === 'main'"
-        width="14"
-        height="14"
+        width="18"
+        height="18"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
+        stroke-width="2.4"
         class="menu-item__chevron"
-        :class="{ 'menu-item__chevron--open': props.expanded }"
+        :animate="{ rotate: props.expanded ? 90 : 0 }"
+        :transition="{ duration: 0.2, ease: 'easeOut' }"
       >
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
+        <polyline points="9 6 15 12 9 18" />
+      </motion.svg>
     </motion.button>
   </motion.div>
 </template>
@@ -73,11 +74,12 @@ const handleSelect = () => {
 <style scoped>
 .menu-item {
   width: 100%;
+  margin: 0;
 }
 
 .menu-item__button {
   width: 100%;
-  min-height: 3rem;
+  min-height: 3.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -87,16 +89,15 @@ const handleSelect = () => {
   text-align: left;
   font-family: var(--font-family-ui);
   border-radius: 0;
-  border-left: 0.25rem solid transparent;
-  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .menu-item__button--main {
-  padding: 0.85rem calc(var(--spacing-md) - 0.25rem) 0.85rem var(--spacing-md);
+  padding: 1.15rem var(--spacing-xl);
 }
 
 .menu-item__button--sub {
-  padding: 0.7rem calc(var(--spacing-md) - 0.25rem) 0.7rem var(--spacing-md);
+  padding: 1rem var(--spacing-xl);
 }
 
 .menu-item__icon {
@@ -113,6 +114,7 @@ const handleSelect = () => {
   font-size: 0.875rem;
   font-weight: var(--font-weight-medium);
   color: color-mix(in srgb, white 92%, transparent);
+  flex: 1;
 }
 
 .menu-item--main .menu-item__label {
@@ -134,19 +136,15 @@ const handleSelect = () => {
   font-size: 0.6875rem;
   font-weight: 700;
   border-radius: 624.9375rem;
-  margin-left: auto;
+  margin: 0;
   box-shadow: 0 0.0625rem 0 rgba(0, 0, 0, 0.08);
 }
 
 .menu-item__chevron {
-  margin-left: 0.25rem;
+  margin: 0;
   color: color-mix(in srgb, white 72%, transparent);
-  transform: rotate(-90deg);
-  transition: transform var(--transition-base) ease, color var(--transition-fast);
-}
-
-.menu-item__chevron--open {
-  transform: rotate(0deg);
+  transform-origin: 50% 50%;
+  transition: color var(--transition-fast);
 }
 
 .menu-item__button:hover {
@@ -160,32 +158,31 @@ const handleSelect = () => {
 }
 
 .menu-item--active .menu-item__button {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-left-color: var(--color-cta);
-  color: var(--color-surface-raised);
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.14);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  box-shadow: none;
 }
 
 .menu-item--active .menu-item__label,
 .menu-item--active .menu-item__chevron {
-  color: var(--color-surface-raised);
+  color: var(--color-foreground);
 }
 
 .menu-item--active .menu-item__icon {
-  color: var(--color-cta);
+  color: var(--color-foreground);
 }
 
 .menu-item--active .menu-item__chevron {
-  color: var(--color-cta);
+  color: var(--color-foreground);
 }
 
 .menu-item--sub.menu-item--active .menu-item__label {
-  color: var(--color-cta);
+  color: var(--color-foreground);
   font-weight: 600;
 }
 
 .menu-item__button:focus-visible {
-  outline: 0.125rem solid var(--color-cta);
+  outline: 0.125rem solid var(--color-focus);
   outline-offset: 0.125rem;
 }
 

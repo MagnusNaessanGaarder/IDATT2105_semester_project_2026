@@ -146,8 +146,8 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 }
 
 .demands-section {
-  background: color-mix(in srgb, var(--color-brand-pale-lavender) 42%, var(--color-card));
-  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 22%, var(--color-border));
+  background: color-mix(in srgb, var(--color-brand-pale-lavender) 34%, var(--color-card));
+  border: 1px solid color-mix(in srgb, var(--color-brand-medium-violet) 20%, var(--color-border));
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
@@ -156,6 +156,8 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 .demands-section h2 {
   margin: 0 0 var(--spacing-md);
   font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-brand-deep-violet);
 }
 
 .demands-grid {
@@ -165,15 +167,16 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 }
 
 .demand-card {
-  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 18%, var(--color-border));
+  border: 1px solid color-mix(in srgb, var(--color-brand-medium-violet) 28%, var(--color-border));
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-brand-pale-lavender) 55%, var(--color-card));
+  background: color-mix(in srgb, var(--color-brand-soft-violet) 22%, var(--color-surface-raised));
   padding: var(--spacing-md);
 }
 
 .demand-card h3 {
   margin: 0 0 0.5rem;
   font-size: var(--font-size-base);
+  color: var(--color-brand-deep-violet);
 }
 
 .demand-card ul {
@@ -182,12 +185,13 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
   font-size: var(--font-size-sm);
   display: grid;
   gap: 0.35rem;
+  color: var(--color-gray-800);
 }
 
 .sanctions-card {
   margin-top: var(--spacing-sm);
-  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 26%, var(--color-border));
-  background: color-mix(in srgb, var(--color-brand-soft-violet) 32%, var(--color-card));
+  border: 1px solid color-mix(in srgb, var(--color-brand-medium-violet) 26%, var(--color-border));
+  background: color-mix(in srgb, var(--color-brand-pale-lavender) 30%, var(--color-surface-raised));
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
 }
@@ -196,6 +200,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
   margin: 0 0 0.5rem;
   font-size: var(--font-size-lg);
   color: var(--color-brand-deep-violet);
+  font-weight: var(--font-weight-bold);
 }
 
 .sanctions-card ul {
@@ -206,7 +211,7 @@ const { laws, demands, sectionsForLaw } = useAlkoholData()
 }
 
 .sanctions-card li {
-  color: var(--color-gray-700);
+  color: var(--color-gray-800);
   font-size: var(--font-size-sm);
 }
 

@@ -612,7 +612,7 @@ function handleSubmit() {
 .form-label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--color-gray-700);
+  color: var(--color-gray-800);
 }
 
 .form-label__required {
@@ -623,19 +623,21 @@ function handleSubmit() {
 .form-input {
   min-height: 2.5rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-family: inherit;
   color: var(--color-foreground);
-  background: var(--color-card);
-  transition: border-color var(--transition-fast);
+  background: var(--color-surface-muted);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-focus);
 }
 
 .form-input--error {
@@ -662,15 +664,21 @@ function handleSubmit() {
   align-items: center;
   gap: 0.5rem;
   font-size: var(--font-size-sm);
-  color: var(--color-gray-700);
+  color: var(--color-gray-800);
   cursor: pointer;
   min-height: 2.5rem;
 }
 
 .form-checkbox {
-  width: 1rem;
-  height: 1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  min-height: 0;
   cursor: pointer;
+  accent-color: var(--color-primary);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .drop-zone {

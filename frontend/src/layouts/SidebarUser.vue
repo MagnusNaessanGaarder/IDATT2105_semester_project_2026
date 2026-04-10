@@ -72,8 +72,8 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.875rem 1rem;
-  min-height: 60px;
+  padding: 1.15rem 1.25rem;
+  min-height: 76px;
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -125,9 +125,9 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 0.5rem;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0.65rem;
   background: transparent;
   border: none;
   border-radius: var(--radius-lg);

@@ -241,13 +241,13 @@ watch(currentScreen, (routeName) => {
 
 <style scoped>
 .sidebar {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
-  width: var(--sidebar-width);
+  width: min(84vw, var(--sidebar-width));
+  max-width: 20rem;
   height: 100vh;
   background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-  border-right: 0.0625rem solid color-mix(in srgb, white 12%, transparent);
   display: flex;
   flex-direction: column;
   z-index: 50;
@@ -261,11 +261,9 @@ watch(currentScreen, (routeName) => {
     width: var(--sidebar-width);
     height: 100vh;
     background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-    border-right: 0.0625rem solid color-mix(in srgb, white 12%, transparent);
     display: flex;
     flex-direction: column;
     z-index: 50;
-    box-shadow: var(--shadow-md);
   }
 }
 
@@ -273,8 +271,7 @@ watch(currentScreen, (routeName) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
-  border-bottom: 0.0625rem solid color-mix(in srgb, white 12%, transparent);
+  padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-lg);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
@@ -332,8 +329,6 @@ watch(currentScreen, (routeName) => {
   position: sticky;
   bottom: 0;
   background: rgba(255, 255, 255, 0.06);
-  border-top: 0.0625rem solid color-mix(in srgb, white 12%, transparent);
-  box-shadow: 0 -0.375rem 1rem rgba(0, 0, 0, 0.08);
   z-index: 10;
 }
 

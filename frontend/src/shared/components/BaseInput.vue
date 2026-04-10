@@ -58,6 +58,7 @@ withDefaults(defineProps<Props>(), {
       :value="modelValue"
       :placeholder="placeholder"
       :required="required"
+      :aria-required="required"
       :disabled="disabled"
       :aria-invalid="!!error"
       :aria-describedby="error ? `${id}-error` : undefined"
@@ -73,6 +74,7 @@ withDefaults(defineProps<Props>(), {
       :value="modelValue"
       :placeholder="placeholder"
       :required="required"
+      :aria-required="required"
       :disabled="disabled"
       :aria-invalid="!!error"
       :aria-describedby="error ? `${id}-error` : undefined"
@@ -109,22 +111,26 @@ withDefaults(defineProps<Props>(), {
   }
 
   .base-input__required {
-    color: var(--color-brand-deep-violet);
+    color: var(--color-danger);
   }
 
   .base-input__field {
     padding: var(--input-padding);
     font-size: var(--font-size-base);
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-gray-400);
     border-radius: var(--radius-md);
     background: var(--color-card);
     min-height: var(--touch-target);
+    color: var(--color-foreground);
+    box-shadow: var(--shadow-sm);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
   }
 
-  .base-input__field:focus {
-    border-color: var(--color-focus);
+  .base-input__field:focus,
+  .base-input__field:focus-visible {
     outline: none;
+    border-color: var(--color-focus);
+    background: var(--color-surface-raised);
     box-shadow: var(--shadow-focus);
   }
 
@@ -133,7 +139,8 @@ withDefaults(defineProps<Props>(), {
   }
 
   .base-input__field:disabled {
-    background: var(--color-background-soft);
+    background: color-mix(in srgb, var(--color-surface-muted) 72%, var(--color-gray-200));
+    color: var(--color-gray-500);
     cursor: not-allowed;
   }
 

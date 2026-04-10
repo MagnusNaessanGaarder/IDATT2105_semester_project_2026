@@ -417,73 +417,80 @@ onUnmounted(() => {
     <section v-else-if="actionError" class="inline-error">{{ actionError }}</section>
 
     <section v-if="!isMobile" class="desktop-list" aria-label="Temperaturpunkter">
-      <header class="desktop-list__header">
-        <span>Tittel</span>
-        <span>Temperatur</span>
-        <span>Gyldig omrade</span>
-        <span>Status</span>
-        <span>Handlinger</span>
-      </header>
+      <div class="desktop-list__scroller">
+        <header class="desktop-list__header">
+          <span>Tittel</span>
+          <span>Temperatur</span>
+          <span>Gyldig omrade</span>
+          <span>Status</span>
+          <span>Handlinger</span>
+        </header>
 
-      <article
-        v-for="instance in instances"
-        :key="instance.pointId"
-        class="desktop-row"
-        :class="{ 'desktop-row--alert': instance.isAlert }"
-      >
-        <div>
-          <p class="desktop-row__title">{{ instance.title }}</p>
-          <p class="desktop-row__meta">{{ instance.locationName }}</p>
-        </div>
+        <article
+          v-for="instance in instances"
+          :key="instance.pointId"
+          class="desktop-row"
+          :class="{ 'desktop-row--alert': instance.isAlert }"
+        >
+          <div>
+            <p class="desktop-row__title">{{ instance.title }}</p>
+            <p class="desktop-row__meta">{{ instance.locationName }}</p>
+          </div>
 
-        <div>
-          <p class="desktop-row__value">{{ instance.latestTemp === null ? '-' : `${instance.latestTemp}°C` }}</p>
-          <p class="desktop-row__meta">{{ instance.latestDate }} {{ instance.latestTime === '-' ? '' : `kl. ${instance.latestTime}` }}</p>
-        </div>
+          <div>
+            <p class="desktop-row__value">{{ instance.latestTemp === null ? '-' : `${instance.latestTemp}°C` }}</p>
+            <p class="desktop-row__meta">{{ instance.latestDate }} {{ instance.latestTime === '-' ? '' : `kl. ${instance.latestTime}` }}</p>
+          </div>
 
-        <p class="desktop-row__value">{{ instance.minTemp }}°C til {{ instance.maxTemp }}°C</p>
+          <p class="desktop-row__value">{{ instance.minTemp }}°C til {{ instance.maxTemp }}°C</p>
 
-        <span class="status-pill" :class="instance.isAlert ? 'status-pill--danger' : 'status-pill--good'">
-          {{ instance.isAlert ? 'Avvik' : instance.latestTemp === null ? 'Ikke malt' : 'OK' }}
-        </span>
-
-        <div class="desktop-actions">
-          <button
-            type="button"
-            class="action-btn"
-            :class="instance.isAlert ? 'action-btn--danger' : ''"
-            @click="instance.isAlert ? openDeviationFlow(instance) : openMeasurementModal(instance.pointId)"
+          <span
+            class="status-pill"
+            :class="instance.isAlert ? 'status-pill--danger' : instance.latestTemp === null ? 'status-pill--idle' : 'status-pill--good'"
           >
-            {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger maling' : 'Registrer maling' }}
-          </button>
+            {{ instance.isAlert ? 'Avvik' : instance.latestTemp === null ? 'Ikke malt' : 'OK' }}
+          </span>
 
-          <div v-if="canManage" class="options-menu">
+          <div class="desktop-actions">
             <button
-              class="options-menu__trigger"
               type="button"
-              aria-label="Apne handlinger"
-              :aria-expanded="desktopMenuPointId === instance.pointId"
-              @click="toggleDesktopMenu(instance.pointId)"
+              class="action-btn"
+              :class="instance.isAlert ? 'action-btn--danger' : ''"
+              @click="instance.isAlert ? openDeviationFlow(instance) : openMeasurementModal(instance.pointId)"
             >
-              <span class="dot" />
-              <span class="dot" />
-              <span class="dot" />
+              {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger maling' : 'Registrer maling' }}
             </button>
 
-            <div v-if="desktopMenuPointId === instance.pointId" class="options-menu__list" role="menu">
-              <button type="button" role="menuitem" class="options-menu__item" @click="openEditPointModal(instance.pointId)">Rediger</button>
-              <button type="button" role="menuitem" class="options-menu__item options-menu__item--danger" @click="removePoint(instance.pointId)">Slett</button>
+            <div v-if="canManage" class="options-menu">
+              <button
+                class="options-menu__trigger"
+                type="button"
+                aria-label="Apne handlinger"
+                :aria-expanded="desktopMenuPointId === instance.pointId"
+                @click="toggleDesktopMenu(instance.pointId)"
+              >
+                <span class="dot" />
+                <span class="dot" />
+                <span class="dot" />
+              </button>
+
+              <div v-if="desktopMenuPointId === instance.pointId" class="options-menu__list" role="menu">
+                <button type="button" role="menuitem" class="options-menu__item" @click="openEditPointModal(instance.pointId)">Rediger</button>
+                <button type="button" role="menuitem" class="options-menu__item options-menu__item--danger" @click="removePoint(instance.pointId)">Slett</button>
+              </div>
             </div>
           </div>
-        </div>
-      </article>
+        </article>
 
-      <p v-if="instances.length === 0 && !isLoading" class="empty-state">Ingen temperaturpunkter registrert.</p>
+        <p v-if="instances.length === 0 && !isLoading" class="empty-state">Ingen temperaturpunkter registrert.</p>
+      </div>
+    </section>
 
-      <button v-if="canManage" type="button" class="add-item-btn" @click="openAddPointModal">
+    <div v-if="canManage && !isMobile" class="desktop-list__actions">
+      <button type="button" class="add-item-btn" @click="openAddPointModal">
         + Legg til temperaturpunkt
       </button>
-    </section>
+    </div>
 
     <section v-else class="mobile-cards" aria-label="Temperaturkort">
       <article
@@ -500,7 +507,7 @@ onUnmounted(() => {
 
         <header class="mobile-card__header">
           <h2>{{ instance.title }}</h2>
-          <span class="status-pill" :class="instance.isAlert ? 'status-pill--danger' : 'status-pill--good'">
+          <span class="status-pill" :class="instance.isAlert ? 'status-pill--danger' : instance.latestTemp === null ? 'status-pill--idle' : 'status-pill--good'">
             {{ instance.isAlert ? 'Avvik' : instance.latestTemp === null ? 'Ikke malt' : 'OK' }}
           </span>
         </header>
@@ -639,9 +646,9 @@ onUnmounted(() => {
 }
 
 .alert-banner {
-  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
-  background: var(--color-danger-bg);
-  color: color-mix(in srgb, var(--color-danger) 70%, var(--color-foreground));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 70%, black);
+  background: var(--color-danger);
+  color: var(--color-primary-foreground);
   border-radius: var(--radius-md);
   padding: 0.75rem 0.9rem;
   display: flex;
@@ -656,10 +663,17 @@ onUnmounted(() => {
 }
 
 .alert-banner a {
-  color: inherit;
-  text-decoration: underline;
+  color: var(--color-primary-foreground);
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
+}
+
+.alert-banner a:hover {
+  opacity: 0.9;
 }
 
 .summary-grid {
@@ -674,6 +688,7 @@ onUnmounted(() => {
   background: var(--color-card);
   border-radius: var(--radius-md);
   padding: 0.8rem;
+  text-align: center;
 }
 
 .summary-card p {
@@ -687,6 +702,7 @@ onUnmounted(() => {
   margin-top: 0.35rem;
   color: var(--color-foreground);
   font-size: 1.45rem;
+  text-align: center;
 }
 
 .summary-card--good {
@@ -694,14 +710,23 @@ onUnmounted(() => {
 }
 
 .summary-card--warn {
-  border-left: 0.25rem solid var(--color-warning);
+  border-color: var(--color-danger-hover);
+  border-left: 0.25rem solid var(--color-danger-hover);
+  background: var(--color-danger);
+}
+
+.summary-card--warn p,
+.summary-card--warn strong {
+  color: var(--color-danger-fg);
 }
 
 .inline-error {
+  display: flex;
+  align-items: center;
   margin-bottom: 0.85rem;
-  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, var(--color-border));
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 70%, black);
+  background: var(--color-danger);
+  color: var(--color-primary-foreground);
   border-radius: var(--radius-md);
   padding: 0.65rem 0.75rem;
   font-size: var(--font-size-sm);
@@ -714,6 +739,21 @@ onUnmounted(() => {
   background: var(--color-card);
 }
 
+.desktop-list__scroller {
+  overflow-x: auto;
+}
+
+.desktop-list__actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.desktop-list__actions .add-item-btn {
+  margin-top: 0;
+}
+
 .desktop-list__header,
 .desktop-row {
   display: grid;
@@ -721,6 +761,7 @@ onUnmounted(() => {
   gap: 0.75rem;
   align-items: center;
   padding: 0.75rem 0.85rem;
+  min-width: 58rem;
 }
 
 .desktop-list__header {
@@ -778,14 +819,28 @@ onUnmounted(() => {
   color: var(--ik-mat-primary);
   border-radius: var(--radius-sm);
   padding: 0.35rem 0.6rem;
+  min-height: var(--touch-target);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
 }
 
+.desktop-actions > .action-btn {
+  width: 10.5rem;
+  min-height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
 .action-btn--danger {
-  border-color: var(--color-danger);
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 75%, black);
+  background: color-mix(in srgb, var(--color-danger) 78%, black);
+  color: var(--color-primary-foreground);
+}
+
+.action-btn--danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 86%, black);
 }
 
 .options-menu {
@@ -794,6 +849,10 @@ onUnmounted(() => {
 
 .options-menu__trigger {
   aspect-ratio: 1 / 1;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
   border: 1px solid var(--color-border);
   background: var(--color-card);
   border-radius: var(--radius-sm);
@@ -802,7 +861,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 0.15rem;
   cursor: pointer;
-  width: 2rem;
+  padding: 0;
 }
 
 .dot {
@@ -866,8 +925,9 @@ onUnmounted(() => {
 }
 
 .mobile-card__manage {
-  display: flex;
+  display: grid;
   gap: 0.45rem;
+  width: 100%;
   margin-bottom: 0.7rem;
 }
 
@@ -878,11 +938,17 @@ onUnmounted(() => {
   color: var(--color-foreground);
   padding: 0.35rem 0.55rem;
   font-size: var(--font-size-xs);
+  width: 100%;
 }
 
 .mobile-card__manage-btn--danger {
-  border-color: color-mix(in srgb, var(--color-danger) 40%, var(--color-border));
-  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 70%, black);
+  background: color-mix(in srgb, var(--color-danger) 80%, black);
+  color: var(--color-primary-foreground);
+}
+
+.mobile-card__manage-btn--danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 88%, black);
 }
 
 .mobile-card__header {
@@ -919,11 +985,18 @@ onUnmounted(() => {
 .status-pill {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  padding: 0.2rem 0.45rem;
-  font-size: var(--font-size-xs);
+  padding: 0.35rem 0.75rem;
+  min-width: 6.2rem;
+  min-height: var(--touch-target);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
+  text-align: center;
+  justify-self: center;
+  align-self: center;
+  white-space: nowrap;
 }
 
 .status-pill--good {
@@ -933,19 +1006,38 @@ onUnmounted(() => {
 }
 
 .status-pill--danger {
-  color: var(--color-danger);
-  background: var(--color-danger-bg);
-  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+  color: color-mix(in srgb, var(--color-danger) 82%, black);
+  background: color-mix(in srgb, var(--color-danger) 26%, var(--color-card));
+  border-color: color-mix(in srgb, var(--color-danger) 58%, var(--color-border));
+}
+
+.status-pill--idle {
+  color: var(--color-gray-700);
+  background: var(--color-background-soft);
+  border-color: var(--color-border);
 }
 
 .add-item-btn {
   margin-top: 1rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   padding: 0.65rem 1rem;
   border: 1px solid var(--ik-mat-primary);
   background: color-mix(in srgb, var(--ik-mat-primary) 7%, var(--color-card));
   color: var(--ik-mat-primary);
   font-weight: var(--font-weight-semibold);
   border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.add-item-btn:hover {
+  background: color-mix(in srgb, var(--ik-mat-primary) 14%, var(--color-card));
+  border-color: color-mix(in srgb, var(--ik-mat-primary) 80%, black);
+  color: color-mix(in srgb, var(--ik-mat-primary) 75%, black);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .empty-state {

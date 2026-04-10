@@ -38,6 +38,14 @@ const sorted = computed(() => {
   return [...filtered.value].sort((a, b) => completionForChecklist(a) - completionForChecklist(b))
 })
 
+const completionTone = (percentage: number): 'level-1' | 'level-2' | 'level-3' | 'level-4' | 'level-5' => {
+  if (percentage >= 100) return 'level-5'
+  if (percentage >= 75) return 'level-4'
+  if (percentage >= 50) return 'level-3'
+  if (percentage >= 25) return 'level-2'
+  return 'level-1'
+}
+
 const toggleExpanded = (id: number) => {
   expandedId.value = expandedId.value === id ? null : id
   optionsOpenId.value = null
@@ -147,11 +155,11 @@ const toggleTask = (checklistId: number, itemId: number) => {
               <p class="checklist-header__meta">{{ checklist.frequency }} · {{ checklist.law_unit }}</p>
             </div>
 
-            <div class="checklist-header__progress">
+            <div class="checklist-header__progress" :class="`checklist-header__progress--${completionTone(completionForChecklist(checklist))}`">
               <div class="progress-track" role="progressbar" :aria-valuenow="completionForChecklist(checklist)" aria-valuemin="0" aria-valuemax="100">
                 <div class="progress-track__fill" :style="{ width: `${completionForChecklist(checklist)}%` }" />
               </div>
-              <span>{{ completionForChecklist(checklist) }}%</span>
+              <span class="checklist-header__status-tag">{{ completionForChecklist(checklist) }}%</span>
             </div>
           </div>
 
@@ -332,18 +340,84 @@ const toggleTask = (checklistId: number, itemId: number) => {
   text-align: right;
 }
 
+.checklist-header__status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  min-height: 1.8rem;
+  padding: 0 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+}
+
 .progress-track {
   height: 0.4rem;
   flex: 1;
   background: var(--color-gray-200);
   border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 60%, var(--color-border));
+  box-shadow: inset 0 1px 1px rgba(0, 39, 43, 0.12), 0 1px 1px rgba(255, 255, 255, 0.8);
   overflow: hidden;
 }
 
 .progress-track__fill {
   height: 100%;
-  background: var(--ik-mat-primary);
+  background: var(--color-success-scale-2);
   transition: width var(--transition-base);
+}
+
+.checklist-header__progress--level-1 .progress-track__fill {
+  background: var(--color-success-scale-1);
+}
+
+.checklist-header__progress--level-2 .progress-track__fill {
+  background: var(--color-success-scale-2);
+}
+
+.checklist-header__progress--level-3 .progress-track__fill {
+  background: var(--color-success-scale-3);
+}
+
+.checklist-header__progress--level-4 .progress-track__fill {
+  background: var(--color-success-scale-4);
+}
+
+.checklist-header__progress--level-5 .progress-track__fill {
+  background: var(--color-success-scale-5);
+}
+
+.checklist-header__progress--level-1 .checklist-header__status-tag {
+  background: color-mix(in srgb, var(--color-success-scale-1) 35%, var(--color-card));
+  color: var(--color-foreground);
+  border-color: color-mix(in srgb, var(--color-success-scale-2) 45%, var(--color-border));
+}
+
+.checklist-header__progress--level-2 .checklist-header__status-tag {
+  background: color-mix(in srgb, var(--color-success-scale-2) 45%, var(--color-card));
+  color: var(--color-foreground);
+  border-color: color-mix(in srgb, var(--color-success-scale-3) 50%, var(--color-border));
+}
+
+.checklist-header__progress--level-3 .checklist-header__status-tag {
+  background: color-mix(in srgb, var(--color-success-scale-3) 55%, var(--color-card));
+  color: var(--color-foreground);
+  border-color: color-mix(in srgb, var(--color-success-scale-4) 55%, var(--color-border));
+}
+
+.checklist-header__progress--level-4 .checklist-header__status-tag {
+  background: var(--color-success-scale-4);
+  color: var(--color-primary-foreground);
+  border-color: color-mix(in srgb, var(--color-success-scale-5) 55%, black);
+}
+
+.checklist-header__progress--level-5 .checklist-header__status-tag {
+  background: var(--color-success-scale-5);
+  color: var(--color-primary-foreground);
+  border-color: color-mix(in srgb, var(--color-success-scale-5) 70%, black);
 }
 
 /* Options menu - now outside the button */
@@ -354,7 +428,10 @@ const toggleTask = (checklistId: number, itemId: number) => {
 
 .options-menu__trigger {
   aspect-ratio: 1 / 1;
-  min-height: 2rem;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
   border: 1px solid var(--color-border);
   background: var(--color-card);
   border-radius: var(--radius-sm);
@@ -363,7 +440,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
   justify-content: center;
   gap: 0.15rem;
   cursor: pointer;
-  padding: 0 0.5rem;
+  padding: 0;
 }
 
 .options-menu__trigger:hover {
@@ -496,6 +573,7 @@ const toggleTask = (checklistId: number, itemId: number) => {
   min-height: 2.5rem;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--color-border);
+  background: var(--color-background-soft);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-family: inherit;
