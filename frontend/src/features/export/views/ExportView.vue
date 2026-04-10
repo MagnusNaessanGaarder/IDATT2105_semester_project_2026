@@ -8,6 +8,8 @@ import {
   exportStatusTone,
 } from '../composables/useExport.ts'
 import type { ExportType, ExportFormat } from '../api.ts'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateTimeForOrganization } from '@/shared/utils/orgSettings'
 
 const {
   exports,
@@ -53,7 +55,7 @@ async function handleSubmit() {
 
 function formatDate(iso: string | null | undefined) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('nb-NO', {
+  return formatDateTimeForOrganization(iso, getOrgNumber(), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

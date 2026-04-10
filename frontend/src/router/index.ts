@@ -1,10 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { ensureOrganizationSettings, isModuleEnabled } from '@/shared/utils/orgSettings'
 
 declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean
+    requiresSysadmin?: boolean
     allowedRoles?: ('ADMIN' | 'MANAGER' | 'EMPLOYEE')[]
+    moduleKey?: 'food' | 'alcohol'
     title?: string
   }
 }
@@ -19,16 +22,35 @@ const router = createRouter({
       meta: { requiresAuth: false, title: 'Innlogging' },
     },
     {
-      path: '/registrer',
+      path: '/register',
       name: 'Register',
       component: () => import('@/features/auth/views/RegisterView.vue'),
-      meta: { requiresAuth: false, title: 'Registrer konto' },
+      meta: { requiresAuth: false, title: 'Registrering' },
+    },
+    {
+      path: '/sysadmin',
+      component: () => import('@/layouts/SysadminLayout.vue'),
+      meta: { requiresAuth: true, requiresSysadmin: true },
+      children: [
+        {
+          path: '',
+          name: 'SysadminOrgs',
+          component: () => import('@/features/sysadmin/views/SysadminOrgsView.vue'),
+          meta: { title: 'Organisasjoner – Systemadmin' },
+        },
+      ],
     },
     {
       path: '/ingen-organisasjon',
       name: 'NoOrganization',
       component: () => import('@/features/auth/views/NoOrganizationView.vue'),
       meta: { requiresAuth: true, title: 'Venter på tilgang' },
+    },
+    {
+      path: '/organisasjon-inaktiv',
+      name: 'OrgInactive',
+      component: () => import('@/features/auth/views/OrgInactiveView.vue'),
+      meta: { requiresAuth: true, title: 'Organisasjon inaktiv' },
     },
     {
       path: '/',
@@ -45,55 +67,55 @@ const router = createRouter({
           path: 'ikmat',
           name: 'IKMatDashboard',
           component: () => import('@/features/ik-mat/views/IKMatDashboardView.vue'),
-          meta: { title: 'IK-Mat Dashboard' },
+          meta: { title: 'IK-Mat Dashboard', moduleKey: 'food' },
         },
         {
           path: 'ikmat/sjekklister',
           name: 'Checklists',
           component: () => import('@/features/ik-mat/views/ChecklistsView.vue'),
-          meta: { title: 'Sjekklister' },
+          meta: { title: 'Sjekklister', moduleKey: 'food' },
         },
         {
           path: 'ikmat/temperatur',
           name: 'Temperature',
           component: () => import('@/features/ik-mat/views/TemperatureView.vue'),
-          meta: { title: 'Temperaturlogging' },
+          meta: { title: 'Temperaturlogging', moduleKey: 'food' },
         },
         {
           path: 'ikmat/avvik',
           name: 'Deviations',
           component: () => import('@/features/ik-mat/views/DeviationsView.vue'),
-          meta: { title: 'Avvikshåndtering' },
+          meta: { title: 'Avvikshåndtering', moduleKey: 'food' },
         },
         {
           path: 'ikmat/haccp',
           name: 'HACCP',
           component: () => import('@/features/ik-mat/views/HACCPView.vue'),
-          meta: { title: 'HACCP-plan' },
+          meta: { title: 'HACCP-plan', moduleKey: 'food' },
         },
         {
           path: 'alkohol',
           name: 'AlkoholDashboard',
           component: () => import('@/features/ik-alkohol/views/AlkoholDashboardView.vue'),
-          meta: { title: 'IK-Alkohol Dashboard' },
+          meta: { title: 'IK-Alkohol Dashboard', moduleKey: 'alcohol' },
         },
         {
           path: 'alkohol/daglig-kontroll',
           name: 'DailyControl',
           component: () => import('@/features/ik-alkohol/views/DailyControlView.vue'),
-          meta: { title: 'Daglig kontroll' },
+          meta: { title: 'Daglig kontroll', moduleKey: 'alcohol' },
         },
         {
           path: 'alkohol/sertifiseringer',
           name: 'Certifications',
           component: () => import('@/features/ik-alkohol/views/CertificationsView.vue'),
-          meta: { title: 'Sertifiseringer' },
+          meta: { title: 'Sertifiseringer', moduleKey: 'alcohol' },
         },
         {
           path: 'alkohol/regelverk',
           name: 'Regulations',
           component: () => import('@/features/ik-alkohol/views/RegulationsView.vue'),
-          meta: { title: 'Regelverk' },
+          meta: { title: 'Regelverk', moduleKey: 'alcohol' },
         },
         {
           path: 'rapporter',
@@ -125,6 +147,12 @@ const router = createRouter({
           component: () => import('@/features/admin/views/UsersView.vue'),
           // Role policy: user administration is restricted to ADMIN.
           meta: { title: 'Brukere', allowedRoles: ['ADMIN'] },
+        },
+        {
+          path: 'admin/lokasjoner',
+          name: 'Locations',
+          component: () => import('@/features/admin/views/LocationsView.vue'),
+          meta: { title: 'Lokasjoner', allowedRoles: ['ADMIN', 'MANAGER'] },
         },
         {
           path: 'admin/innstillinger',
@@ -166,10 +194,34 @@ router.beforeEach(async (to) => {
       return { name: 'Login', query: { redirect: to.fullPath } }
     }
 
-    // Redirect to no-org page if user has no organisations yet,
-    // but allow them to stay on the no-org page itself
-    if (to.name !== 'NoOrganization' && (authStore.organizations?.length ?? 0) === 0) {
+    // Sysadmin users only see the sysadmin area
+    if (authStore.isSysadmin && !to.meta.requiresSysadmin) {
+      return { name: 'SysadminOrgs' }
+    }
+
+    // Non-sysadmin users cannot access the sysadmin area
+    if (to.meta.requiresSysadmin && !authStore.isSysadmin) {
+      return { name: 'Forbidden' }
+    }
+
+    // Users with no org see the waiting screen
+    if (
+        to.name !== 'NoOrganization' &&
+        to.name !== 'OrgInactive' &&
+        !authStore.isSysadmin &&
+        (authStore.organizations?.length ?? 0) === 0
+    ) {
       return { name: 'NoOrganization' }
+    }
+
+    // Users whose org has been deactivated by sysadmin see the inactive screen
+    if (
+        to.name !== 'OrgInactive' &&
+        to.name !== 'NoOrganization' &&
+        !authStore.isSysadmin &&
+        authStore.currentOrg?.isActive === false
+    ) {
+      return { name: 'OrgInactive' }
     }
 
     if (to.meta.allowedRoles && to.meta.allowedRoles.length > 0) {
@@ -178,10 +230,18 @@ router.beforeEach(async (to) => {
         return { name: 'Forbidden' }
       }
     }
+
+    const currentOrgNumber = authStore.currentOrg?.orgNumber
+    if (currentOrgNumber) {
+      await ensureOrganizationSettings(currentOrgNumber)
+      if (to.meta.moduleKey && !isModuleEnabled(to.meta.moduleKey, currentOrgNumber)) {
+        return { name: 'Forbidden' }
+      }
+    }
   }
 
   if ((to.name === 'Login' || to.name === 'Register') && authStore.isAuthenticated) {
-    return { name: 'Dashboard' }
+    return authStore.isSysadmin ? { name: 'SysadminOrgs' } : { name: 'Dashboard' }
   }
 
 })

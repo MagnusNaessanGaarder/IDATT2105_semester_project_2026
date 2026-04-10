@@ -58,6 +58,18 @@ public class OrganizationSettings {
   @Column(name = "notification_email")
   private String notificationEmail;
 
+  @Column(name = "display_name")
+  private String displayName;
+
+  @Column(name = "legal_name")
+  private String legalName;
+
+  @Column(name = "contact_email")
+  private String contactEmail;
+
+  @Column(name = "contact_phone")
+  private String contactPhone;
+
   @Column(name = "retention_user_months")
   private long retentionUserMonths;
 

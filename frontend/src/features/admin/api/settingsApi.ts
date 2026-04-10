@@ -10,12 +10,16 @@ export interface BackendSettings {
   localeCode: string
   enableFoodModule: boolean
   enableAlcoholModule: boolean
-  defaultTempMinC: number
-  defaultTempMaxC: number
+  defaultTempMinC: number | null
+  defaultTempMaxC: number | null
   reminderEmailEnabled: boolean
-  notificationEmail: string
-  retentionUserMonths: number
-  retentionAuditMonths: number
+  notificationEmail: string | null
+  displayName: string | null
+  legalName: string | null
+  contactEmail: string | null
+  contactPhone: string | null
+  retentionUserMonths: number | null
+  retentionAuditMonths: number | null
   createdAt: string
   updatedAt: string
 }
@@ -28,12 +32,16 @@ export interface BackendSettingsRequest {
   localeCode: string
   enableFoodModule: boolean
   enableAlcoholModule: boolean
-  defaultTempMinC?: number
-  defaultTempMaxC?: number
+  defaultTempMinC?: number | null
+  defaultTempMaxC?: number | null
   reminderEmailEnabled: boolean
-  notificationEmail: string
-  retentionUserMonths?: number
-  retentionAuditMonths?: number
+  notificationEmail: string | null
+  displayName?: string | null
+  legalName?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  retentionUserMonths?: number | null
+  retentionAuditMonths?: number | null
 }
 
 /**

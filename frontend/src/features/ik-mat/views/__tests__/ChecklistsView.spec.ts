@@ -57,10 +57,10 @@ describe('ChecklistsView', () => {
     const buttons = wrapper.findAll('.filter-chip')
 
     expect(buttons).toHaveLength(4)
-    expect(buttons[0].text()).toBe('Alle')
-    expect(buttons[1].text()).toBe('Daglig')
-    expect(buttons[2].text()).toBe('Ukentlig')
-    expect(buttons[3].text()).toBe('Månedlig')
+    expect(buttons[0]?.text()).toBe('Alle')
+    expect(buttons[1]?.text()).toBe('Daglig')
+    expect(buttons[2]?.text()).toBe('Ukentlig')
+    expect(buttons[3]?.text()).toBe('Månedlig')
   })
 
   it('renders checklist cards', () => {
@@ -116,7 +116,7 @@ describe('ChecklistsView', () => {
 
     // Find the first checklist card (Weekly Inspection - 0% completion)
     const cards = wrapper.findAll('.checklist-card')
-    const firstCard = cards[0]
+    const firstCard = cards[0]!
     const header = firstCard.find('.checklist-header__content')
 
     // Expand
@@ -133,7 +133,7 @@ describe('ChecklistsView', () => {
 
     // Find the first checklist card (Weekly Inspection - 0% completion, comes first)
     const cards = wrapper.findAll('.checklist-card')
-    const firstCard = cards[0]
+    const firstCard = cards[0]!
     const header = firstCard.find('.checklist-header__content')
 
     // Expand first checklist
@@ -141,12 +141,12 @@ describe('ChecklistsView', () => {
 
     // Find first checkbox within the expanded card and toggle it
     const checkbox = firstCard.find('input[type="checkbox"]')
-    expect(checkbox.element.checked).toBe(false)
+    expect((checkbox.element as HTMLInputElement).checked).toBe(false)
 
     await checkbox.trigger('change')
 
     // After toggle, checkbox should be checked
-    expect(checkbox.element.checked).toBe(true)
+    expect((checkbox.element as HTMLInputElement).checked).toBe(true)
   })
 
   it('filters checklists by frequency', async () => {
@@ -156,7 +156,7 @@ describe('ChecklistsView', () => {
     expect(wrapper.findAll('.checklist-card')).toHaveLength(2)
 
     // Click 'Daglig' filter
-    const dagligButton = wrapper.findAll('.filter-chip')[1]
+    const dagligButton = wrapper.findAll('.filter-chip')[1]!
     await dagligButton.trigger('click')
 
     // Should only show daily checklists
@@ -169,7 +169,7 @@ describe('ChecklistsView', () => {
     const wrapper = mount(ChecklistsView)
 
     // Click 'Månedlig' filter (no monthly checklists in mock)
-    const monthlyButton = wrapper.findAll('.filter-chip')[3]
+    const monthlyButton = wrapper.findAll('.filter-chip')[3]!
     await monthlyButton.trigger('click')
 
     expect(wrapper.find('.empty-state').exists()).toBe(true)
@@ -182,8 +182,8 @@ describe('ChecklistsView', () => {
 
     // Second checklist has 0% completion, should come first
     // First checklist has 50% completion, should come second
-    expect(cards[0].text()).toContain('Weekly Inspection') // 0%
-    expect(cards[1].text()).toContain('Daily Cleaning') // 50%
+    expect(cards[0]?.text()).toContain('Weekly Inspection') // 0%
+    expect(cards[1]?.text()).toContain('Daily Cleaning') // 50%
   })
 
   it('applies strikethrough to completed tasks', async () => {
@@ -202,11 +202,13 @@ describe('ChecklistsView', () => {
     expect(taskRows.length).toBe(2)
 
     // Check first task (not completed)
-    const firstTaskSpan = taskRows[0].find('span')
+    const firstTaskRow = taskRows[0]!
+    const secondTaskRow = taskRows[1]!
+    const firstTaskSpan = firstTaskRow.find('span')
     expect(firstTaskSpan.classes()).not.toContain('task-done')
 
     // Check second task (completed)
-    const secondTaskSpan = taskRows[1].find('span')
+    const secondTaskSpan = secondTaskRow.find('span')
     expect(secondTaskSpan.classes()).toContain('task-done')
   })
 
@@ -238,14 +240,14 @@ describe('ChecklistsView', () => {
     expect(headers.length).toBe(2)
 
     // Expand first checklist
-    await headers[0].trigger('click')
-    expect(headers[0].attributes('aria-expanded')).toBe('true')
-    expect(headers[1].attributes('aria-expanded')).toBe('false')
+    await headers[0]!.trigger('click')
+    expect(headers[0]?.attributes('aria-expanded')).toBe('true')
+    expect(headers[1]?.attributes('aria-expanded')).toBe('false')
 
     // Expand second checklist (first should collapse)
-    await headers[1].trigger('click')
-    expect(headers[0].attributes('aria-expanded')).toBe('false')
-    expect(headers[1].attributes('aria-expanded')).toBe('true')
+    await headers[1]!.trigger('click')
+    expect(headers[0]?.attributes('aria-expanded')).toBe('false')
+    expect(headers[1]?.attributes('aria-expanded')).toBe('true')
   })
 
   it('options menu is not visible for non-admin users', () => {

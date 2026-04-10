@@ -42,7 +42,18 @@ interface DeviationReportCreateRequest {
   reportedToName?: string
 }
 
-const props = defineProps<{ open: boolean }>()
+interface Prefill {
+  reportType?: 'INCIDENT' | 'DISCREPANCY'
+  severity?: 'MINOR' | 'MAJOR' | 'CRITICAL'
+  title?: string
+  description?: string
+  locationId?: number
+  occurredDate?: string
+  occurredTime?: string
+  discoveredByUserId?: number
+}
+
+const props = defineProps<{ open: boolean; prefill?: Prefill }>()
 
 const emit = defineEmits<{
   submit: [payload: DeviationReportCreateRequest]
@@ -100,6 +111,18 @@ watch(() => props.open, (isOpen) => {
   if (isOpen) {
     if (locations.value.length === 0) fetchLocations()
     if (employees.value.length === 0 && !employeesFallback.value) fetchEmployees()
+    // Apply prefill values when modal opens
+    if (props.prefill) {
+      const p = props.prefill
+      if (p.reportType)          form.value.reportType = p.reportType
+      if (p.severity)            form.value.severity = p.severity
+      if (p.title)               form.value.title = p.title
+      if (p.description)         form.value.description = p.description
+      if (p.locationId != null)  form.value.locationId = p.locationId
+      if (p.occurredDate)        form.value.occurredDate = p.occurredDate
+      if (p.occurredTime)        form.value.occurredTime = p.occurredTime
+      if (p.discoveredByUserId != null) form.value.discoveredByUserId = p.discoveredByUserId
+    }
   }
 })
 

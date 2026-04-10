@@ -1,414 +1,350 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import BaseModal from '@/shared/components/BaseModal.vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useIkMatData } from '../composables/useIkMatData'
+import { getOrganizationTempDefaults } from '@/shared/utils/orgSettings'
+import { getUsers } from '@/features/admin/api/users'
+import type { TemperatureRecord } from '../types/domain'
+import DeviationReportForm from '@/shared/components/DeviationReportForm.vue'
+import { client } from '@/api/client'
 
-type PointModalMode = 'add' | 'edit'
-
-interface TemperatureInstance {
-  pointId: number
-  title: string
-  locationId: number
-  locationName: string
-  minTemp: number
-  maxTemp: number
-  latestEntryId: number | null
-  latestTemp: number | null
-  latestRecordedBy: string
-  latestDate: string
-  latestTime: string
-  isAlert: boolean
-}
-
-const router = useRouter()
-const authStore = useAuthStore()
-
+//  composable
 const {
   temperatureRecords,
   temperaturePoints,
   locations,
-  orgUsers,
   isTemperatureInRange,
-  createTemperaturePointWithLocation,
-  updateTemperaturePointAndLocation,
-  deleteTemperaturePoint,
-  clearTemperatureMeasurementsForPoint,
   createTemperatureMeasurement,
   updateTemperatureMeasurement,
   isLoading,
   error,
 } = useIkMatData()
 
-const isMobile = ref(false)
-const actionError = ref<string | null>(null)
-const isSubmitting = ref(false)
+const authStore = useAuthStore()
 
-const desktopMenuPointId = ref<number | null>(null)
-const selectedMobileCardId = ref<number | null>(null)
+// Fetch employees directly - orgUsers in useIkMatData is never populated
+interface Employee { id: number; label: string; email: string }
+const employees = ref<Employee[]>([])
 
-const pointModalOpen = ref(false)
-const pointModalMode = ref<PointModalMode>('add')
-const editingPointId = ref<number | null>(null)
-const editingLocationId = ref<number | null>(null)
-const originalRange = ref<{ min: number | null; max: number | null }>({ min: null, max: null })
-const pointForm = reactive({
-  name: '',
-  locationName: '',
-  minTempC: '',
-  maxTempC: '',
+onMounted(async () => {
+  const orgNumber = authStore.currentOrg?.orgNumber
+  if (!orgNumber) return
+  try {
+    const users = await getUsers(orgNumber)
+    employees.value = users
+        .filter((u) => u.isActive)
+        .map((u) => ({ id: u.userId, label: u.displayName || u.email, email: u.email }))
+  } catch {
+    // non-critical - dropdown just stays empty
+  }
 })
 
-const measurementModalOpen = ref(false)
-const measurementPointId = ref<number | null>(null)
-const editingMeasurementEntryId = ref<number | null>(null)
-const measurementForm = reactive({
-  temperatureC: '',
-  measuredDate: '',
-  measuredTime: '',
-  employeeId: null as number | null,
-  employeeName: '',
-})
+//  tabs
+type Tab = 'locations' | 'logs'
+const activeTab = ref<Tab>('locations')
 
+//  derived data
 const canManage = computed(() => authStore.hasRole('ADMIN', 'MANAGER'))
 
-const alerts = computed(() => instances.value.filter((item) => item.isAlert))
-const okCount = computed(() => instances.value.filter((item) => !item.isAlert && item.latestTemp !== null).length)
+const activePoints = computed(() =>
+    temperaturePoints.filter((p) => p.isActive !== false)
+)
 
-const locationById = computed(() => {
-  return new Map(locations.map((location) => [location.locationId, location]))
-})
+const locationById = computed(() =>
+    new Map(locations.map((l) => [l.locationId, l]))
+)
 
-const latestRecordByPoint = computed(() => {
-  const map = new Map<number, (typeof temperatureRecords)[number]>()
-
-  for (const record of temperatureRecords) {
-    if (!map.has(record.log_point_id)) {
-      map.set(record.log_point_id, record)
-    }
+// Latest record per log point
+const latestByPoint = computed(() => {
+  const map = new Map<number, TemperatureRecord>()
+  for (const r of temperatureRecords) {
+    if (!map.has(r.log_point_id)) map.set(r.log_point_id, r)
   }
-
   return map
 })
 
-const instances = computed<TemperatureInstance[]>(() => {
-  return temperaturePoints
-    .filter((point) => point.isActive !== false)
-    .map((point) => {
-      const latest = latestRecordByPoint.value.get(point.logPointId)
-      const location = locationById.value.get(point.locationId)
+// Location rows: one row per active point, showing latest log
+interface LocationRow {
+  pointId: number
+  pointName: string
+  locationId: number
+  locationName: string
+  minTemp: number | null
+  maxTemp: number | null
+  latest: TemperatureRecord | null
+  isAlert: boolean
+}
 
-      const minTemp = Number(location?.tempMinC ?? 0)
-      const maxTemp = Number(location?.tempMaxC ?? 4)
+const locationRows = computed<LocationRow[]>(() =>
+    activePoints.value.map((point) => {
+      const loc  = locationById.value.get(point.locationId)
+      const latest = latestByPoint.value.get(point.logPointId) ?? null
       const isAlert = latest ? !isTemperatureInRange(latest) : false
-
       return {
-        pointId: point.logPointId,
-        title: point.name,
-        locationId: point.locationId,
-        locationName: point.locationName ?? location?.name ?? 'Ukjent lokasjon',
-        minTemp,
-        maxTemp,
-        latestEntryId: latest?.id ?? null,
-        latestTemp: latest ? latest.temperature_c : null,
-        latestRecordedBy: latest?.recorded_by ?? '-',
-        latestDate: latest?.recorded_date ?? '-',
-        latestTime: latest?.recorded_time ?? '-',
+        pointId:      point.logPointId,
+        pointName:    point.name,
+        locationId:   point.locationId,
+        locationName: point.locationName ?? loc?.name ?? '-',
+        minTemp:      loc?.tempMinC ?? null,
+        maxTemp:      loc?.tempMaxC ?? null,
+        latest,
         isAlert,
       }
+    }).sort((a, b) => {
+      if (a.isAlert !== b.isAlert) return a.isAlert ? -1 : 1
+      return a.locationName.localeCompare(b.locationName, 'nb')
     })
-    .sort((a, b) => {
-      if (a.isAlert !== b.isAlert) {
-        return a.isAlert ? -1 : 1
+)
+
+// All logs sorted newest first
+const allLogs = computed<TemperatureRecord[]>(() =>
+    [...temperatureRecords].sort((a, b) => {
+      const da = `${a.recorded_date}T${a.recorded_time}`
+      const db = `${b.recorded_date}T${b.recorded_time}`
+      return db.localeCompare(da)
+    })
+)
+
+const alerts = computed(() => locationRows.value.filter((r) => r.isAlert))
+const okCount = computed(() => locationRows.value.filter((r) => !r.isAlert && r.latest).length)
+
+const employeeOptions = computed(() => employees.value)
+
+// Match logged-in user by email against fetched employees
+const selfEmployeeId = computed(() => {
+  const me = authStore.email?.toLowerCase()
+  return employees.value.find((e) => e.email.toLowerCase() === me)?.id ?? null
+})
+
+const pointOptions = computed(() =>
+    activePoints.value.map((p) => {
+      const locName = p.locationName ?? locationById.value.get(p.locationId)?.name
+      return {
+        id: p.logPointId,
+        label: locName ? `${p.name} - ${locName}` : p.name,
       }
-      return a.title.localeCompare(b.title, 'nb')
     })
-})
-
-const currentMeasurementPoint = computed(() => {
-  return instances.value.find((item) => item.pointId === measurementPointId.value) ?? null
-})
-
-const selectedLocationLabel = computed(() => {
-  if (!pointForm.locationName.trim()) {
-    return null
-  }
-  return `${pointForm.locationName.trim()} (${pointForm.minTempC || '-'} til ${pointForm.maxTempC || '-'}°C)`
-})
-
-const employeeOptions = computed(() => {
-  return orgUsers
-    .filter((user) => user.isActive)
-    .map((user) => ({
-      id: user.userId,
-      label: user.displayName || user.email,
-    }))
-})
-
-const updateViewport = () => {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  isMobile.value = window.matchMedia('(max-width: 47.99rem)').matches
-}
+)
 
 const resetPointForm = () => {
+  const defaults = getOrganizationTempDefaults(authStore.currentOrg?.orgNumber)
   pointForm.name = ''
   pointForm.locationName = ''
-  pointForm.minTempC = ''
-  pointForm.maxTempC = ''
+  pointForm.minTempC = defaults.min != null ? String(defaults.min) : ''
+  pointForm.maxTempC = defaults.max != null ? String(defaults.max) : ''
   editingLocationId.value = null
-  originalRange.value = { min: null, max: null }
+  originalRange.value = { min: defaults.min, max: defaults.max }
+}
+//  log modal
+const modalOpen   = ref(false)
+const isSubmitting = ref(false)
+const actionError  = ref<string | null>(null)
+const editingEntryId = ref<number | null>(null)
+
+const form = reactive({
+  pointId:     null as number | null,
+  temperatureC: '',
+  useNow:      true,
+  date:        todayStr(),
+  time:        nowTimeStr(),
+  employeeId:  null as number | null,
+})
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10)
+}
+function nowTimeStr() {
+  return new Date().toTimeString().slice(0, 5)
 }
 
-const openAddPointModal = () => {
-  pointModalMode.value = 'add'
-  editingPointId.value = null
-  resetPointForm()
+function openModal(pointId?: number, existing?: TemperatureRecord | null) {
   actionError.value = null
-  pointModalOpen.value = true
+  editingEntryId.value = existing?.id ?? null
+
+  form.pointId      = pointId ?? null
+  form.temperatureC = existing ? String(existing.temperature_c) : ''
+  form.useNow       = !existing
+  form.date         = existing?.recorded_date ?? todayStr()
+  form.time         = existing?.recorded_time?.slice(0, 5) ?? nowTimeStr()
+
+  // Employee: when editing keep whoever recorded it, otherwise default to self
+  if (existing?.recorded_by) {
+    const match = employeeOptions.value.find((e) => e.label === existing.recorded_by)
+    form.employeeId = match?.id ?? selfEmployeeId.value
+  } else {
+    form.employeeId = selfEmployeeId.value
+  }
+
+  modalOpen.value = true
 }
 
-const openEditPointModal = (pointId: number) => {
-  const point = temperaturePoints.find((item) => item.logPointId === pointId)
-  if (!point) {
-    return
-  }
-  const location = locationById.value.get(point.locationId)
-
-  pointModalMode.value = 'edit'
-  editingPointId.value = pointId
-  pointForm.name = point.name
-  pointForm.locationName = location?.name ?? point.locationName ?? ''
-  pointForm.minTempC = location?.tempMinC != null ? String(location.tempMinC) : ''
-  pointForm.maxTempC = location?.tempMaxC != null ? String(location.tempMaxC) : ''
-  originalRange.value = {
-    min: location?.tempMinC != null ? Number(location.tempMinC) : null,
-    max: location?.tempMaxC != null ? Number(location.tempMaxC) : null,
-  }
-  editingLocationId.value = point.locationId
-  actionError.value = null
-  pointModalOpen.value = true
-  desktopMenuPointId.value = null
-  selectedMobileCardId.value = null
+function closeModal() {
+  modalOpen.value = false
 }
 
-const closePointModal = () => {
-  pointModalOpen.value = false
+function measuredAt(): string {
+  if (form.useNow) return new Date().toISOString()
+  return new Date(`${form.date}T${form.time}:00`).toISOString()
 }
 
-const savePoint = async () => {
-  const minTemp = Number(pointForm.minTempC)
-  const maxTemp = Number(pointForm.maxTempC)
+const currentRange = computed(() => {
+  if (form.pointId === null) return null
+  const point = activePoints.value.find((p) => p.logPointId === form.pointId)
+  if (!point) return null
+  const loc = locationById.value.get(point.locationId)
+  if (!loc) return null
+  return { min: loc.tempMinC, max: loc.tempMaxC, name: point.name }
+})
 
-  if (!canManage.value || !pointForm.name.trim() || !pointForm.locationName.trim()) {
-    return
-  }
+const isValidTemp = computed(() => {
+  const s = form.temperatureC.trim()
+  if (!s) return false
+  const t = Number(s)
+  return Number.isFinite(t)
+})
 
-  if (!Number.isFinite(minTemp) || !Number.isFinite(maxTemp)) {
-    return
-  }
+const tempOutOfRange = computed(() => {
+  if (!isValidTemp.value || !currentRange.value) return false
+  const t = Number(form.temperatureC.trim())
+  const { min, max } = currentRange.value
+  return (min != null && t < min) || (max != null && t > max)
+})
 
-  actionError.value = null
+function onPointChange(e: Event) {
+  const val = (e.target as HTMLSelectElement).value
+  form.pointId = val ? Number(val) : null
+}
+
+function onEmployeeChange(e: Event) {
+  const val = (e.target as HTMLSelectElement).value
+  form.employeeId = val ? Number(val) : null
+}
+
+async function submit() {
+  if (form.pointId === null || !isValidTemp.value) return
+  const t = Number(form.temperatureC.trim())
+
   isSubmitting.value = true
+  actionError.value  = null
 
   try {
-    const locationPayload = {
-      name: pointForm.locationName.trim(),
-      locationType: 'OTHER' as const,
-      tempMinC: minTemp,
-      tempMaxC: maxTemp,
-      isActive: true,
-    }
-
-    const pointPayload = {
-      name: pointForm.name.trim(),
-      isActive: true,
-    }
-
-    if (pointModalMode.value === 'add') {
-      await createTemperaturePointWithLocation(locationPayload, pointPayload)
-    } else if (editingPointId.value !== null && editingLocationId.value !== null) {
-      const didChangeRange = originalRange.value.min !== minTemp || originalRange.value.max !== maxTemp
-
-      await updateTemperaturePointAndLocation(editingPointId.value, editingLocationId.value, locationPayload, {
-        ...pointPayload,
-        locationId: editingLocationId.value,
-      })
-
-      if (didChangeRange) {
-        await clearTemperatureMeasurementsForPoint(editingPointId.value)
-      }
-    }
-
-    pointModalOpen.value = false
-  } catch {
-    actionError.value = 'Kunne ikke lagre temperaturpunkt. Prov igjen.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-const removePoint = async (pointId: number) => {
-  if (!canManage.value) {
-    return
-  }
-
-  const shouldDelete = window.confirm('Slette temperaturpunktet?')
-  if (!shouldDelete) {
-    return
-  }
-
-  actionError.value = null
-  isSubmitting.value = true
-
-  try {
-    await deleteTemperaturePoint(pointId)
-    desktopMenuPointId.value = null
-    selectedMobileCardId.value = null
-  } catch {
-    actionError.value = 'Kunne ikke slette temperaturpunkt. Prov igjen.'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-const openMeasurementModal = (pointId: number) => {
-  measurementPointId.value = pointId
-  const instance = instances.value.find((item) => item.pointId === pointId)
-  const now = new Date()
-  const defaultDate = now.toISOString().slice(0, 10)
-  const defaultTime = now.toISOString().slice(11, 16)
-
-  measurementForm.temperatureC = instance?.latestTemp != null ? String(instance.latestTemp) : ''
-  measurementForm.measuredDate = instance?.latestDate && instance.latestDate !== '-' ? instance.latestDate : defaultDate
-  measurementForm.measuredTime = instance?.latestTime && instance.latestTime !== '-' ? instance.latestTime : defaultTime
-  measurementForm.employeeName = instance?.latestRecordedBy && instance.latestRecordedBy !== '-' ? instance.latestRecordedBy : (authStore.user?.name ?? '')
-
-  const matchedEmployee = employeeOptions.value.find((employee) => employee.label === measurementForm.employeeName)
-  measurementForm.employeeId = matchedEmployee?.id ?? null
-  editingMeasurementEntryId.value = instance?.latestEntryId ?? null
-
-  actionError.value = null
-  measurementModalOpen.value = true
-  desktopMenuPointId.value = null
-}
-
-const closeMeasurementModal = () => {
-  measurementModalOpen.value = false
-  editingMeasurementEntryId.value = null
-}
-
-const combinedMeasuredAt = () => {
-  if (!measurementForm.measuredDate || !measurementForm.measuredTime) {
-    return new Date().toISOString()
-  }
-  return new Date(`${measurementForm.measuredDate}T${measurementForm.measuredTime}:00`).toISOString()
-}
-
-const submitMeasurement = async () => {
-  if (measurementPointId.value === null) {
-    return
-  }
-
-  const numericTemp = Number(measurementForm.temperatureC)
-  if (!Number.isFinite(numericTemp)) {
-    return
-  }
-
-  actionError.value = null
-  isSubmitting.value = true
-
-  try {
-    const selectedEmployee = measurementForm.employeeId != null
-      ? employeeOptions.value.find((employee) => employee.id === measurementForm.employeeId)
-      : null
-    const measuredBy = selectedEmployee?.label ?? measurementForm.employeeName.trim()
+    const emp = employeeOptions.value.find((e) => e.id === form.employeeId)
     const payload = {
-      logPointId: measurementPointId.value,
-      temperatureC: numericTemp,
-      measuredAt: combinedMeasuredAt(),
-      noteText: measuredBy ? `Malt av: ${measuredBy}` : undefined,
-      recordedByUserId: measurementForm.employeeId ?? undefined,
+      logPointId:        form.pointId,
+      temperatureC:      t,
+      measuredAt:        measuredAt(),
+      noteText:          emp ? `Malt av: ${emp.label}` : undefined,
+      recordedByUserId:  form.employeeId ?? undefined,
     }
 
-    if (editingMeasurementEntryId.value) {
-      await updateTemperatureMeasurement(editingMeasurementEntryId.value, payload)
+    if (editingEntryId.value) {
+      await updateTemperatureMeasurement(editingEntryId.value, payload)
     } else {
       await createTemperatureMeasurement(payload)
     }
-
-    measurementModalOpen.value = false
-    selectedMobileCardId.value = null
+    modalOpen.value = false
   } catch {
-    actionError.value = 'Kunne ikke registrere temperaturmaling. Prov igjen.'
+    actionError.value = 'Kunne ikke registrere temperaturmåling. Prøv igjen.'
   } finally {
     isSubmitting.value = false
   }
 }
 
-const openDeviationFlow = (instance: TemperatureInstance) => {
-  const measuredLabel = instance.latestTemp === null ? 'ukjent temperatur' : `${instance.latestTemp}°C`
-  const description = `Temperatur ved ${instance.title} (${instance.locationName}) ble malt til ${measuredLabel}. Gyldig omrade er ${instance.minTemp}°C til ${instance.maxTemp}°C.`
+//  deviation flow
+// ─── deviation modal ──────────────────────────────────────────────────────────
+const deviationOpen = ref(false)
+const deviationPrefill = ref<{
+  reportType?: 'INCIDENT' | 'DISCREPANCY'
+  severity?: 'MINOR' | 'MAJOR' | 'CRITICAL'
+  title?: string
+  description?: string
+  locationId?: number
+  occurredDate?: string
+  occurredTime?: string
+  discoveredByUserId?: number
+} | undefined>(undefined)
+const deviationSubmitting = ref(false)
 
-  void router.push({
-    name: 'Deviations',
-    query: {
-      openCreate: '1',
-      source: 'temperature',
-      title: `Temperaturavvik - ${instance.title}`,
-      location: instance.locationName,
-      description,
-      severity: 'MAJOR',
-      discoverer: authStore.user?.name ?? '',
-      sourceEntryId: instance.latestEntryId != null ? String(instance.latestEntryId) : undefined,
-    },
-  })
+function openDeviationModal(row: LocationRow) {
+  const temp = row.latest ? `${row.latest.temperature_c}°C` : 'ukjent temperatur'
+  const range = `${row.minTemp ?? '?'}°C til ${row.maxTemp ?? '?'}°C`
+
+  deviationPrefill.value = {
+    reportType:   'INCIDENT',
+    severity:     'MAJOR',
+    title:        `Temperaturavvik – ${row.locationName}`,
+    description:  `Temperatur ved ${row.locationName} ble målt til ${temp}. Gyldig område: ${range}.`,
+    locationId:   row.locationId ?? undefined,
+    occurredDate: row.latest?.recorded_date ?? undefined,
+    occurredTime: row.latest?.recorded_time?.slice(0, 5) ?? undefined,
+    discoveredByUserId: selfEmployeeId.value ?? undefined,
+  }
+  deviationOpen.value = true
 }
 
-const toggleDesktopMenu = (pointId: number) => {
-  desktopMenuPointId.value = desktopMenuPointId.value === pointId ? null : pointId
+async function submitDeviation(payload: { reportType: string; severity: string; title: string; description: string; [key: string]: unknown }) {
+  const orgNumber = authStore.currentOrg?.orgNumber
+  if (!orgNumber) return
+  deviationSubmitting.value = true
+  try {
+    await client.post('/deviations', { ...payload, orgNumber })
+    deviationOpen.value = false
+  } catch {
+    // DeviationReportForm handles its own error display; re-throw so it knows
+  } finally {
+    deviationSubmitting.value = false
+  }
 }
 
-const toggleMobileActions = (pointId: number) => {
-  selectedMobileCardId.value = selectedMobileCardId.value === pointId ? null : pointId
+//  helpers
+function fmtTemp(t: number | null | undefined) {
+  return t == null ? '-' : `${t}°C`
 }
-
-onMounted(() => {
-  updateViewport()
-  window.addEventListener('resize', updateViewport)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateViewport)
-})
+function fmtRange(min: number | null, max: number | null) {
+  if (min == null && max == null) return '-'
+  return `${min ?? '?'}°C - ${max ?? '?'}°C`
+}
+function fmtDateTime(date: string, time: string) {
+  if (!date || date === '-') return '-'
+  return time && time !== '-' ? `${date} ${time.slice(0, 5)}` : date
+}
+function statusTone(row: LocationRow) {
+  if (!row.latest) return 'none'
+  return row.isAlert ? 'danger' : 'ok'
+}
 </script>
 
 <template>
   <div class="temperature-page">
+
+    <!-- Header -->
     <header class="page-header">
-      <h1>Temperaturkontroll</h1>
-      <p class="subtitle">Kontinuerlig overvaking av kjol, frys og varmholding</p>
+      <div>
+        <h1>Temperaturkontroll</h1>
+        <p class="subtitle">Kontinuerlig overvåking av kjøl, frys og varmholding</p>
+      </div>
+      <button class="log-btn" type="button" @click="openModal()">
+        + Registrer måling
+      </button>
     </header>
 
-    <section v-if="alerts.length > 0" class="alert-banner" role="alert">
-      <p><strong>{{ alerts.length }}</strong> malepunkter har temperaturavvik og trenger oppfolging.</p>
-      <router-link :to="{ name: 'Deviations' }">Se avvik</router-link>
-    </section>
+    <!-- Alert banner -->
+    <div v-if="alerts.length > 0" class="alert-banner" role="alert">
+      <span><strong>{{ alerts.length }}</strong> lokasjon{{ alerts.length > 1 ? 'er' : '' }} har temperaturavvik.</span>
+      <router-link :to="{ name: 'Deviations' }">Se avvik →</router-link>
+    </div>
 
-    <section class="summary-grid" aria-label="Temperaturstatus">
-      <article class="summary-card">
-        <p>Temperaturpunkter</p>
-        <strong>{{ instances.length }}</strong>
-      </article>
-      <article class="summary-card summary-card--good">
-        <p>Innenfor grense</p>
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat">
+        <strong>{{ locationRows.length }}</strong>
+        <span>Punkter</span>
+      </div>
+      <div class="stat stat--ok">
         <strong>{{ okCount }}</strong>
-      </article>
-      <article class="summary-card summary-card--warn">
-        <p>Avvik</p>
+        <span>OK</span>
+      </div>
+      <div class="stat stat--warn">
         <strong>{{ alerts.length }}</strong>
       </article>
     </section>
@@ -460,6 +396,7 @@ onUnmounted(() => {
             >
               {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger maling' : 'Registrer maling' }}
             </button>
+          </footer>
 
             <div v-if="canManage" class="options-menu">
               <button
@@ -625,22 +562,28 @@ onUnmounted(() => {
 
 <style scoped>
 .temperature-page {
-  max-width: 1200px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
 }
 
+/*  Header  */
 .page-header {
-  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: var(--font-size-2xl);
-  color: var(--ik-mat-primary);
+  font-size: clamp(1.5rem, 2.4vw, var(--font-size-2xl));
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
 .subtitle {
-  margin: 0.35rem 0 0;
+  margin: 0.3rem 0 0;
   color: var(--color-gray-500);
   font-size: var(--font-size-sm);
 }
@@ -650,17 +593,13 @@ onUnmounted(() => {
   background: var(--color-danger);
   color: var(--color-primary-foreground);
   border-radius: var(--radius-md);
-  padding: 0.75rem 0.9rem;
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.95rem;
-}
-
-.alert-banner p {
-  margin: 0;
   font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
+.log-btn:hover { opacity: 0.88; }
 
 .alert-banner a {
   color: var(--color-primary-foreground);
@@ -671,6 +610,7 @@ onUnmounted(() => {
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;
 }
+.alert-banner a { color: inherit; font-weight: 600; text-decoration: none; }
 
 .alert-banner a:hover {
   opacity: 0.9;
@@ -678,23 +618,29 @@ onUnmounted(() => {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
-  margin-bottom: 1rem;
 }
 
-.summary-card {
+.stat {
   border: 1px solid var(--color-border);
-  background: var(--color-card);
   border-radius: var(--radius-md);
   padding: 0.8rem;
   text-align: center;
 }
+.stat strong { font-size: 1.6rem; font-weight: 700; color: var(--color-foreground); }
+.stat span   { font-size: var(--font-size-xs); color: var(--color-gray-500); }
+.stat--ok    { border-left: 3px solid var(--color-success); }
+.stat--warn  { border-left: 3px solid var(--color-danger); }
 
-.summary-card p {
-  margin: 0;
-  color: var(--color-gray-600);
-  font-size: var(--font-size-xs);
+/*  Error  */
+.inline-error {
+  padding: 0.65rem 0.9rem;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
 }
 
 .summary-card strong {
@@ -705,8 +651,17 @@ onUnmounted(() => {
   text-align: center;
 }
 
-.summary-card--good {
-  border-left: 0.25rem solid var(--color-success);
+.tab {
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .summary-card--warn {
@@ -732,11 +687,12 @@ onUnmounted(() => {
   font-size: var(--font-size-sm);
 }
 
-.desktop-list {
+.table-wrap {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
+  border-radius: var(--radius-lg);
   background: var(--color-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .desktop-list__scroller {
@@ -764,64 +720,56 @@ onUnmounted(() => {
   min-width: 58rem;
 }
 
-.desktop-list__header {
-  background: color-mix(in srgb, var(--ik-mat-bg) 55%, var(--color-card));
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-gray-600);
+th, td {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-gray-100);
+  vertical-align: middle;
+}
+th {
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
+  color: var(--color-gray-500);
+  background: var(--color-gray-50);
 }
+tr:last-child td { border-bottom: none; }
 
-.desktop-row {
-  border-bottom: 1px solid var(--color-border);
-}
+.tr--alert { background: color-mix(in srgb, var(--color-danger-bg) 60%, var(--color-card)); }
 
-.desktop-row:last-of-type {
-  border-bottom: none;
-}
+.cell-title { font-size: var(--font-size-sm); font-weight: 500; color: var(--color-foreground); margin: 0; }
+.cell-sub   { font-size: var(--font-size-xs); color: var(--color-gray-500); margin: 0.1rem 0 0; }
 
-.desktop-row--alert {
-  background: color-mix(in srgb, var(--color-danger-bg) 70%, var(--color-card));
-}
+.td-meta    { font-size: var(--font-size-sm); color: var(--color-gray-600); }
+.td-actions { white-space: nowrap; text-align: right; }
 
-.desktop-row__title {
-  margin: 0;
-  color: var(--color-foreground);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-}
+.temp-val { font-size: var(--font-size-base); font-weight: 600; }
+.temp-val--ok     { color: var(--color-success); }
+.temp-val--danger { color: var(--color-danger); }
 
-.desktop-row__meta {
-  margin: 0.2rem 0 0;
-  color: var(--color-gray-600);
+.status-pill {
+  display: inline-flex;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
   font-size: var(--font-size-xs);
+  font-weight: 600;
 }
+.status-pill--ok     { background: var(--color-success-bg); color: var(--color-success); }
+.status-pill--danger { background: var(--color-danger-bg);  color: var(--color-danger);  }
+.status-pill--none   { background: var(--color-gray-100);   color: var(--color-gray-500); }
 
-.desktop-row__value {
-  margin: 0;
-  color: var(--color-foreground);
-  font-size: var(--font-size-sm);
-}
-
-.desktop-actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.5rem;
-  position: relative;
-}
-
-.action-btn {
-  border: 1px solid var(--ik-mat-primary);
-  background: color-mix(in srgb, var(--ik-mat-primary) 10%, var(--color-card));
-  color: var(--ik-mat-primary);
+.row-btn {
+  min-height: 2rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 0.35rem 0.6rem;
   min-height: var(--touch-target);
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 0.3rem;
 }
 
 .desktop-actions > .action-btn {
@@ -871,57 +819,17 @@ onUnmounted(() => {
   border-radius: 100%;
 }
 
-.options-menu__list {
-  position: absolute;
-  top: calc(100% + 0.25rem);
-  right: 0;
-  z-index: 20;
-  min-width: 9rem;
+.modal {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-.options-menu__item {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  padding: 0.6rem 0.8rem;
-  text-align: left;
-  color: var(--color-foreground);
-  font-size: var(--font-size-sm);
-}
-
-.options-menu__item:hover {
-  background: var(--color-accent);
-}
-
-.options-menu__item--danger {
-  color: var(--color-danger);
-}
-
-.mobile-cards {
-  display: grid;
-  gap: 0.85rem;
-}
-
-.mobile-card {
-  position: relative;
-  border: 1px solid var(--color-border);
-  background: var(--color-card);
-  border-radius: var(--radius-md);
-  padding: 0.85rem;
-}
-
-.mobile-card--alert {
-  border-left: 0.25rem solid var(--color-danger);
-  background: var(--color-danger-bg);
-}
-
-.mobile-card--active {
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
+  width: 100%;
+  max-width: 26rem;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .mobile-card__manage {
@@ -930,11 +838,10 @@ onUnmounted(() => {
   width: 100%;
   margin-bottom: 0.7rem;
 }
-
-.mobile-card__manage-btn {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-card);
+.modal__header h2 {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
   color: var(--color-foreground);
   padding: 0.35rem 0.55rem;
   font-size: var(--font-size-xs);
@@ -950,36 +857,50 @@ onUnmounted(() => {
 .mobile-card__manage-btn--danger:hover {
   background: color-mix(in srgb, var(--color-danger) 88%, black);
 }
+.modal__close:hover { background: var(--color-gray-100); color: var(--color-foreground); }
 
-.mobile-card__header {
+.modal__body {
+  padding: 1rem 1.25rem;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.6rem;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
-.mobile-card__header h2 {
-  margin: 0;
-  color: var(--color-foreground);
-  font-size: var(--font-size-base);
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--color-border);
 }
 
-.mobile-card__temperature {
-  margin: 0.4rem 0;
-  color: var(--color-foreground);
-  font-size: 1.7rem;
-  font-weight: var(--font-weight-bold);
+/*  Form fields  */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
-
-.mobile-card__meta {
-  margin: 0.25rem 0 0;
-  color: var(--color-gray-600);
+.field label {
   font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-gray-500);
 }
-
-.mobile-card__action {
-  margin-top: 0.65rem;
+.field select,
+.field input {
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  box-sizing: border-box;
   width: 100%;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .status-pill {
@@ -998,11 +919,13 @@ onUnmounted(() => {
   align-self: center;
   white-space: nowrap;
 }
-
-.status-pill--good {
-  color: var(--color-success);
-  background: var(--color-success-bg);
-  border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border));
+.field select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  cursor: pointer;
 }
 
 .status-pill--danger {
@@ -1040,72 +963,102 @@ onUnmounted(() => {
   transform: translateY(-1px);
 }
 
-.empty-state {
-  margin-top: 0.9rem;
-  text-align: center;
-  color: var(--color-gray-600);
-  font-size: var(--font-size-sm);
-}
-
-.modal-form {
-  display: grid;
-  gap: 0.8rem;
-}
-
-.modal-form label {
-  display: grid;
-  gap: 0.3rem;
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-700);
-}
-
-.modal-form input,
-.modal-form select {
+.range-hint {
+  padding: 0.5rem 0.7rem;
+  background: var(--color-gray-50);
   border: 1px solid var(--color-border);
-  padding: 0.55rem 0.7rem;
-  border-radius: var(--radius-sm);
-  background: var(--color-card);
-}
-
-.modal-form__hint {
-  margin: 0;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
   color: var(--color-gray-600);
-  font-size: var(--font-size-xs);
+  line-height: 1.5;
 }
 
-.modal-form__row {
+/*  Time toggle  */
+.time-row {
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
 }
-
-.modal-form__error {
-  margin: 0;
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
+.now-btn {
+  min-height: 2.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
-
-.modal-btn {
-  border: 1px solid var(--ik-mat-primary);
-  background: var(--ik-mat-primary);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  padding: 0.45rem 0.8rem;
-}
-
-.modal-btn--ghost {
-  border-color: var(--color-border);
-  background: transparent;
+.now-btn:hover:not(.now-btn--active) {
+  border-color: var(--color-gray-400);
   color: var(--color-foreground);
 }
+.now-btn--active {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 600;
+}
+.now-label {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-400);
+}
+.time-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
 
-@media (max-width: 47.99rem) {
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.form-error {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 25%, var(--color-border));
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
 
-  .modal-form__row {
-    grid-template-columns: 1fr;
-  }
+/*  Buttons  */
+.btn-ghost {
+  min-height: 2.25rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.btn-ghost:hover { background: var(--color-gray-50); }
+
+.btn-primary {
+  min-height: 2.25rem;
+  padding: 0.4rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+.btn-primary:not(:disabled):hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/*  Responsive  */
+@media (max-width: 48rem) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .log-btn { width: 100%; text-align: center; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  th:nth-child(3), td:nth-child(3),
+  th:nth-child(4), td:nth-child(4) { display: none; }
 }
 </style>

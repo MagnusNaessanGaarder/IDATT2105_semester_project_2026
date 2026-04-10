@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 import {
   useExport,
   exportTypeLabels,
@@ -9,9 +8,12 @@ import {
   exportStatusLabels,
   exportStatusTone,
 } from '@/features/export/composables/useExport.ts'
+import { client } from '@/api/client'
 import { exportApi } from '@/features/export/api.ts'
 import { useAuthStore } from '@/stores/auth.ts'
 import type { ExportResponse } from '@/features/export/api.ts'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateTimeForOrganization } from '@/shared/utils/orgSettings'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -42,13 +44,13 @@ async function openPreview(job: ExportResponse) {
 
   try {
     const path = await exportApi.getDownloadUrl(orgNumber.value, job.exportJobId)
-    const pathWithOrg = `${path}?orgNumber=${orgNumber.value}`
-    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace('/api/v1', '')
+    const documentId = Number(path.split('/').pop())
+    if (!documentId) throw new Error('Could not parse document ID from path: ' + path)
 
     const mimeType = job.format === 'JSON' ? 'application/json' : 'application/pdf'
-    const response = await axios.get(baseUrl + pathWithOrg, {
+    const response = await client.get<Blob>(`/files/download/${documentId}`, {
+      headers: { 'X-Org-Number': String(orgNumber.value) },
       responseType: 'blob',
-      headers: { Authorization: `Bearer ${sessionStorage.getItem('accessToken')}` },
     })
 
     const blob = new Blob([response.data], { type: mimeType })
@@ -105,7 +107,7 @@ const failedCount    = computed(() => exports.value.filter((e) => e.status === '
 
 function formatDate(iso: string | null | undefined) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('nb-NO', {
+  return formatDateTimeForOrganization(iso, getOrgNumber(), {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })

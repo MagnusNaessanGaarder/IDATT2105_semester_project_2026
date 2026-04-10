@@ -14,15 +14,19 @@ vi.mock('../../api/settingsApi', () => ({
 const buildBackendSettings = (overrides: Partial<BackendSettings> = {}): BackendSettings => ({
   orgNumber: 999,
   timezoneName: 'Europe/Oslo',
-  localeCode: 'nb_NO',
+  localeCode: 'nb-NO',
   enableFoodModule: true,
   enableAlcoholModule: false,
   defaultTempMinC: 2,
   defaultTempMaxC: 8,
   reminderEmailEnabled: true,
   notificationEmail: 'alerts@example.com',
+  displayName: 'Test Organization',
+  legalName: 'Test Organization AS',
+  contactEmail: 'contact@example.com',
+  contactPhone: '+47 123 45 678',
   retentionUserMonths: 12,
-  retentionAuditMonths: 3,
+  retentionAuditMonths: 6,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-02T00:00:00.000Z',
   ...overrides,
@@ -30,277 +34,115 @@ const buildBackendSettings = (overrides: Partial<BackendSettings> = {}): Backend
 
 const findItem = (state: SettingsState, id: string): SettingItem => {
   const item = Object.values(state)
-    .flatMap(section => section.items)
-    .find(entry => entry.id === id)
+    .flatMap((section) => section.items)
+    .find((entry) => entry.id === id)
   if (!item) {
     throw new Error(`Missing setting item: ${id}`)
   }
   return item
 }
 
-const createMockLocalStorage = (): Storage => {
-  const store = new Map<string, string>()
-
-  return {
-    get length() {
-      return store.size
-    },
-    clear: () => {
-      store.clear()
-    },
-    getItem: (key: string) => {
-      return store.has(key) ? store.get(key)! : null
-    },
-    key: (index: number) => {
-      return Array.from(store.keys())[index] ?? null
-    },
-    removeItem: (key: string) => {
-      store.delete(key)
-    },
-    setItem: (key: string, value: string) => {
-      store.set(key, value)
-    },
-  }
-}
-
-describe('useAdminData settings persistence', () => {
+describe('useAdminData settings mapping', () => {
   beforeEach(() => {
-    vi.stubGlobal('localStorage', createMockLocalStorage())
-    localStorage.clear()
     vi.clearAllMocks()
     const data = useAdminData()
     data.error.value = null
     data.isLoading.value = false
   })
 
-  it('maps backend locale codes to language options', () => {
+  it('maps backend settings to organization-settings fields', () => {
     const data = useAdminData()
-
-    const english = data.mapBackendSettingsToFrontend(
-      buildBackendSettings({ localeCode: 'en_US' })
-    )
-    const swedish = data.mapBackendSettingsToFrontend(
-      buildBackendSettings({ localeCode: 'sv_SE' })
-    )
-    const fallback = data.mapBackendSettingsToFrontend(
-      buildBackendSettings({ localeCode: 'xx_XX' })
-    )
-
-    expect(findItem(english, 'language').current_value).toBe('English')
-    expect(findItem(swedish, 'language').current_value).toBe('Swedish')
-    expect(findItem(fallback, 'language').current_value).toBe('Norwegian')
-  })
-
-  it('maps frontend language values back to locale codes and handles fallback', () => {
-    const data = useAdminData()
-    const backend = buildBackendSettings({ retentionAuditMonths: 7 })
-    const state = data.mapBackendSettingsToFrontend(backend)
-
-    findItem(state, 'language').current_value = 'en_US'
-    findItem(state, 'timezone').current_value = 'UTC'
-    findItem(state, 'email_critical').current_value = false
-    findItem(state, 'backup_retention').current_value = 'invalid'
-
-    const request = data.mapFrontendSettingsToBackend(state, backend)
-
-    expect(request.localeCode).toBe('en_US')
-    expect(request.timezoneName).toBe('UTC')
-    expect(request.reminderEmailEnabled).toBe(false)
-    expect(request.retentionAuditMonths).toBe(7)
-  })
-
-  it('applies only local settings from localStorage', () => {
-    const data = useAdminData()
-    const orgNumber = 123456789
-    const state = data.mapBackendSettingsToFrontend(buildBackendSettings())
-
-    localStorage.setItem(
-      'admin_settings_local_123456789',
-      JSON.stringify({
-        date_format: 'yyyy-MM-dd',
-        email_updates: true,
-        timezone: 'UTC',
+    const state = data.mapBackendSettingsToFrontend(
+      buildBackendSettings({
+        localeCode: 'en_US',
+        defaultTempMinC: null,
+        notificationEmail: null,
       })
     )
 
-    const applied = data.applyLocalSettings(state, orgNumber)
-
-    expect(findItem(applied, 'date_format').current_value).toBe('yyyy-MM-dd')
-    expect(findItem(applied, 'email_updates').current_value).toBe(true)
-    expect(findItem(applied, 'timezone').current_value).toBe('Europe/Oslo')
+    expect(findItem(state, 'locale_code').current_value).toBe('en-US')
+    expect(findItem(state, 'timezone_name').current_value).toBe('Europe/Oslo')
+    expect(findItem(state, 'enable_food_module').current_value).toBe(true)
+    expect(findItem(state, 'enable_alcohol_module').current_value).toBe(false)
+    expect(findItem(state, 'default_temp_min_c').current_value).toBeNull()
+    expect(findItem(state, 'notification_email').current_value).toBe('')
+    expect(findItem(state, 'retention_audit_months').current_value).toBe(6)
   })
 
-  it('handles malformed localStorage settings', () => {
+  it('maps frontend state back to canonical backend payload', () => {
     const data = useAdminData()
-    const orgNumber = 123456789
     const state = data.mapBackendSettingsToFrontend(buildBackendSettings())
 
-    localStorage.setItem('admin_settings_local_123456789', '{invalid-json')
-    const applied = data.applyLocalSettings(state, orgNumber)
+    findItem(state, 'locale_code').current_value = 'sv-SE'
+    findItem(state, 'timezone_name').current_value = 'UTC'
+    findItem(state, 'enable_food_module').current_value = false
+    findItem(state, 'enable_alcohol_module').current_value = true
+    findItem(state, 'default_temp_min_c').current_value = '1.5'
+    findItem(state, 'default_temp_max_c').current_value = '6.8'
+    findItem(state, 'reminder_email_enabled').current_value = false
+    findItem(state, 'notification_email').current_value = ''
+    findItem(state, 'retention_user_months').current_value = '11'
+    findItem(state, 'retention_audit_months').current_value = 9.4
 
-    expect(applied).toBeTruthy()
-    expect(data.error.value).toBeTruthy()
-  })
+    const request = data.mapFrontendSettingsToBackend(state)
 
-  it('returns unchanged settings when localStorage has no entry', () => {
-    const data = useAdminData()
-    const orgNumber = 111222333
-    const state = data.mapBackendSettingsToFrontend(buildBackendSettings())
-
-    const applied = data.applyLocalSettings(state, orgNumber)
-
-    expect(findItem(applied, 'date_format').current_value).toBe('dd.MM.yyyy')
-  })
-
-  it('handles missing localStorage environment gracefully', async () => {
-    const data = useAdminData()
-    const backend = buildBackendSettings({ orgNumber: 404 })
-    const state = data.mapBackendSettingsToFrontend(backend)
-
-    vi.stubGlobal('localStorage', undefined)
-    vi.mocked(settingsApi.updateSettings).mockResolvedValueOnce(backend)
-
-    const applied = data.applyLocalSettings(state, 404)
-    const saved = await data.saveSettings(state, backend, 404)
-
-    expect(findItem(applied, 'date_format').current_value).toBe('dd.MM.yyyy')
-    expect(saved).toEqual(backend)
-  })
-
-  it('fetches backend settings and exposes loading/error state', async () => {
-    const data = useAdminData()
-    const backend = buildBackendSettings({ orgNumber: 42 })
-
-    vi.mocked(settingsApi.getSettings).mockResolvedValueOnce(backend)
-    const loaded = await data.fetchSettingsFromBackend(42)
-
-    expect(loaded).toEqual(backend)
-    expect(data.isLoading.value).toBe(false)
-    expect(data.error.value).toBeNull()
-
-    vi.mocked(settingsApi.getSettings).mockRejectedValueOnce(new Error('fetch failed'))
-    const failed = await data.fetchSettingsFromBackend(42)
-
-    expect(failed).toBeNull()
-    expect(data.error.value).toBe('fetch failed')
-    expect(data.isLoading.value).toBe(false)
-  })
-
-  it('saves backend settings and persists only local preferences', async () => {
-    const data = useAdminData()
-    const backend = buildBackendSettings({
-      orgNumber: 555,
-      retentionAuditMonths: 2,
+    expect(request).toEqual({
+      timezoneName: 'UTC',
+      localeCode: 'sv-SE',
+      enableFoodModule: false,
+      enableAlcoholModule: true,
+      defaultTempMinC: 1.5,
+      defaultTempMaxC: 6.8,
+      reminderEmailEnabled: false,
+      notificationEmail: null,
+      displayName: 'Test Organization',
+      legalName: 'Test Organization AS',
+      contactEmail: 'contact@example.com',
+      contactPhone: '+47 123 45 678',
+      retentionUserMonths: 11,
+      retentionAuditMonths: 9,
     })
+  })
+
+  it('saves settings using organization settings endpoint payload', async () => {
+    const data = useAdminData()
+    const current = buildBackendSettings({ orgNumber: 555 })
+    const state = data.mapBackendSettingsToFrontend(current)
     const updated = buildBackendSettings({
       orgNumber: 555,
-      localeCode: 'en_US',
       timezoneName: 'UTC',
-      reminderEmailEnabled: false,
-      retentionAuditMonths: 4,
+      localeCode: 'en-US',
     })
-    const state = data.mapBackendSettingsToFrontend(backend)
 
-    findItem(state, 'language').current_value = 'English'
-    findItem(state, 'timezone').current_value = 'UTC'
-    findItem(state, 'email_critical').current_value = false
-    findItem(state, 'email_updates').current_value = true
-    findItem(state, 'in_app_notifications').current_value = false
-    findItem(state, 'backup_retention').current_value = 120
-    findItem(state, 'password_expires').current_value = false
+    findItem(state, 'timezone_name').current_value = 'UTC'
+    findItem(state, 'locale_code').current_value = 'en-US'
 
     vi.mocked(settingsApi.updateSettings).mockResolvedValueOnce(updated)
-
-    const result = await data.saveSettings(state, backend, 555)
+    const result = await data.saveSettings(state, 555)
 
     expect(result).toEqual(updated)
     expect(settingsApi.updateSettings).toHaveBeenCalledWith(
       555,
       expect.objectContaining({
-        localeCode: 'en_US',
         timezoneName: 'UTC',
-        reminderEmailEnabled: false,
-        retentionAuditMonths: 4,
+        localeCode: 'en-US',
       })
     )
-
-    const stored = JSON.parse(localStorage.getItem('admin_settings_local_555') || '{}')
-    expect(stored).toEqual({
-      date_format: 'dd.MM.yyyy',
-      email_updates: true,
-      in_app_notifications: false,
-    })
-    expect(stored).not.toHaveProperty('email_critical')
-    expect(stored).not.toHaveProperty('password_expires')
   })
 
-  it('returns null and sets error when saving fails', async () => {
+  it('fetches backend settings and reports errors on failure', async () => {
     const data = useAdminData()
-    const backend = buildBackendSettings({ orgNumber: 888 })
-    const state = data.mapBackendSettingsToFrontend(backend)
+    const backend = buildBackendSettings({ orgNumber: 42 })
 
-    vi.mocked(settingsApi.updateSettings).mockRejectedValueOnce(new Error('save failed'))
-    const result = await data.saveSettings(state, backend, 888)
+    vi.mocked(settingsApi.getSettings).mockResolvedValueOnce(backend)
+    const loaded = await data.fetchSettingsFromBackend(42)
+    expect(loaded).toEqual(backend)
+    expect(data.error.value).toBeNull()
 
-    expect(result).toBeNull()
-    expect(data.error.value).toBe('save failed')
-    expect(data.isLoading.value).toBe(false)
-  })
-
-  it('exports settings with persistence metadata and snapshots', async () => {
-    const data = useAdminData()
-    const backend = buildBackendSettings({ orgNumber: 321 })
-    const state = data.mapBackendSettingsToFrontend(backend)
-    findItem(state, 'language').current_value = 'Swedish'
-    findItem(state, 'backup_retention').current_value = 90
-
-    localStorage.setItem(
-      'admin_settings_local_321',
-      JSON.stringify({ date_format: 'yyyy-MM-dd', in_app_notifications: false })
-    )
-
-    const originalCreateElement = document.createElement.bind(document)
-    const mockAnchor = originalCreateElement('a')
-    const clickSpy = vi.spyOn(mockAnchor, 'click').mockImplementation(() => undefined)
-    const createElementSpy = vi
-      .spyOn(document, 'createElement')
-      .mockImplementation(((tagName: string) => {
-        if (tagName.toLowerCase() === 'a') {
-          return mockAnchor
-        }
-        return originalCreateElement(tagName)
-      }) as typeof document.createElement)
-
-    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:settings')
-    const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
-
-    data.exportSettings(state, backend, 321)
-
-    expect(createObjectURLSpy).toHaveBeenCalledTimes(1)
-    const exportedBlob = createObjectURLSpy.mock.calls[0]?.[0]
-    expect(exportedBlob).toBeInstanceOf(Blob)
-
-    const text = await (exportedBlob as Blob).text()
-    const parsed = JSON.parse(text)
-
-    expect(parsed.organization).toBe(321)
-    expect(parsed.persistenceStrategy.backend).toContain('language')
-    expect(parsed.persistenceStrategy.local).toContain('date_format')
-    expect(parsed.persistenceStrategy.readonly).toContain('session_timeout')
-    expect(parsed.backendSettings.localeCode).toBe('sv_SE')
-    expect(parsed.localSettings).toEqual({
-      date_format: 'yyyy-MM-dd',
-      in_app_notifications: false,
-    })
-    expect(parsed.readonlySnapshot).toHaveProperty('password_expires')
-
-    expect(clickSpy).toHaveBeenCalledTimes(1)
-    expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:settings')
-
-    clickSpy.mockRestore()
-    createElementSpy.mockRestore()
-    createObjectURLSpy.mockRestore()
-    revokeObjectURLSpy.mockRestore()
+    vi.mocked(settingsApi.getSettings).mockRejectedValueOnce(new Error('fetch failed'))
+    const failed = await data.fetchSettingsFromBackend(42)
+    expect(failed).toBeNull()
+    expect(data.error.value).toBe('Kunne ikke laste inn innstillinger. Sjekk nettverksforbindelsen og prøv igjen.')
   })
 
   it('formats role/status labels and date values', () => {

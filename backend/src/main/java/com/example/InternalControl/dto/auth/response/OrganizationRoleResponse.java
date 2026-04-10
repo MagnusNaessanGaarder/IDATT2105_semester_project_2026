@@ -9,8 +9,11 @@ import java.time.LocalDateTime;
  */
 @Builder
 public record OrganizationRoleResponse(
-    Integer orgNumber,
-    String orgName,
-    String role,
-    LocalDateTime joinedAt) {
+        Integer orgNumber,
+        String orgName,
+        String contactEmail,
+        String contactPhone,
+        String role,
+        Boolean isActive,
+        LocalDateTime joinedAt) {
 }

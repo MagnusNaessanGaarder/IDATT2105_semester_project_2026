@@ -5,6 +5,8 @@
  */
 import { ref, computed } from 'vue'
 import { useApi } from '@/shared/composables/useApi'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 import * as checklistsApi from '../api/checklists'
 import type {
   ChecklistTemplate,
@@ -125,7 +127,10 @@ export function useChecklists() {
     // Mark as inactive in local state
     const index = templates.value.findIndex((t) => t.templateId === templateId)
     if (index !== -1) {
-      templates.value[index].isActive = false
+      const template = templates.value[index]
+      if (template) {
+        template.isActive = false
+      }
     }
   }
 
@@ -215,7 +220,7 @@ export function useChecklists() {
     if (!dateString) return '-'
     const date = new Date(dateString)
     if (Number.isNaN(date.getTime())) return dateString
-    return date.toLocaleDateString('nb-NO', {
+    return formatDateForOrganization(date, getOrgNumber(), {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

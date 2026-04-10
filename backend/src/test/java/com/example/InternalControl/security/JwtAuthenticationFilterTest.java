@@ -7,9 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -40,12 +40,16 @@ class JwtAuthenticationFilterTest {
     @Mock
     private FilterChain filterChain;
 
-    @InjectMocks
+    @Mock
+    private ObjectProvider<JwtService> jwtServiceProvider;
+
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @BeforeEach
     void setUp() {
         SecurityContextHolder.clearContext();
+        when(jwtServiceProvider.getIfAvailable()).thenReturn(jwtService);
+        jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtServiceProvider, userDetailsService);
     }
 
     @Test

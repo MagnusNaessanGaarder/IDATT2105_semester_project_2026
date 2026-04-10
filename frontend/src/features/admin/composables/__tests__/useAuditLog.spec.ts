@@ -23,6 +23,7 @@ describe('useAuditLog', () => {
     data.filters.value.toDate = ''
     data.filters.value.entityType = ''
     data.filters.value.entityId = ''
+    data.resetPagination()
   })
 
   it('loads and maps audit logs from backend', async () => {
@@ -53,8 +54,8 @@ describe('useAuditLog', () => {
       expect.objectContaining({
         id: 1,
         user: 'Admin User',
-        action: 'UPDATE_USER',
-        resource: 'AppUser',
+        action: 'Endret',
+        resource: 'Bruker',
         result: 'SUCCESS',
       })
     )
@@ -67,7 +68,7 @@ describe('useAuditLog', () => {
     await data.fetchAuditLog(123)
 
     expect(data.auditLog.value).toEqual([])
-    expect(data.error.value).toBe('audit failed')
+    expect(data.error.value).toBe('Kunne ikke hente revisjonslogg')
     expect(data.isLoading.value).toBe(false)
   })
 
@@ -116,5 +117,137 @@ describe('useAuditLog', () => {
     await data.fetchAuditLog(123)
 
     expect(data.error.value).toBe('Du har ikke tilgang til revisjonslogg.')
+  })
+
+  it('paginates audit log entries', async () => {
+    const mockEntries = Array.from({ length: 25 }, (_, i) => ({
+      auditLogId: i + 1,
+      orgNumber: 123,
+      actionType: 'UPDATE',
+      entityType: 'AppUser',
+      entityId: i + 1,
+      oldValuesJson: null,
+      newValuesJson: null,
+      createdAt: '2026-01-01T10:00:00Z',
+      actedByUser: { displayName: `User ${i + 1}`, email: `user${i + 1}@example.com` },
+    }))
+
+    vi.mocked(auditLogApi.getAuditLogs).mockResolvedValueOnce(mockEntries)
+
+    const data = useAuditLog()
+    await data.fetchAuditLog(123)
+
+    expect(data.totalEntries.value).toBe(25)
+    expect(data.totalPages.value).toBe(3)
+    expect(data.paginatedAuditLog.value).toHaveLength(10) // Default page size
+    expect(data.paginationInfo.value).toEqual({ start: 1, end: 10, total: 25 })
+  })
+
+  it('navigates between pages', async () => {
+    const mockEntries = Array.from({ length: 25 }, (_, i) => ({
+      auditLogId: i + 1,
+      orgNumber: 123,
+      actionType: 'UPDATE',
+      entityType: 'AppUser',
+      entityId: i + 1,
+      oldValuesJson: null,
+      newValuesJson: null,
+      createdAt: '2026-01-01T10:00:00Z',
+      actedByUser: { displayName: `User ${i + 1}`, email: `user${i + 1}@example.com` },
+    }))
+
+    vi.mocked(auditLogApi.getAuditLogs).mockResolvedValueOnce(mockEntries)
+
+    const data = useAuditLog()
+    await data.fetchAuditLog(123)
+
+    data.goToPage(2)
+    expect(data.currentPage.value).toBe(2)
+    expect(data.paginatedAuditLog.value[0]?.id).toBe(11)
+
+    data.goToNextPage()
+    expect(data.currentPage.value).toBe(3)
+
+    data.goToPreviousPage()
+    expect(data.currentPage.value).toBe(2)
+
+    data.goToFirstPage()
+    expect(data.currentPage.value).toBe(1)
+
+    data.goToLastPage()
+    expect(data.currentPage.value).toBe(3)
+  })
+
+  it('changes page size and resets to first page', async () => {
+    const mockEntries = Array.from({ length: 25 }, (_, i) => ({
+      auditLogId: i + 1,
+      orgNumber: 123,
+      actionType: 'UPDATE',
+      entityType: 'AppUser',
+      entityId: i + 1,
+      oldValuesJson: null,
+      newValuesJson: null,
+      createdAt: '2026-01-01T10:00:00Z',
+      actedByUser: { displayName: `User ${i + 1}`, email: `user${i + 1}@example.com` },
+    }))
+
+    vi.mocked(auditLogApi.getAuditLogs).mockResolvedValueOnce(mockEntries)
+
+    const data = useAuditLog()
+    await data.fetchAuditLog(123)
+
+    data.goToPage(3)
+    expect(data.currentPage.value).toBe(3)
+
+    data.setPageSize(25)
+    expect(data.pageSize.value).toBe(25)
+    expect(data.currentPage.value).toBe(1) // Reset to first page
+  })
+
+  it('validates date range', () => {
+    const data = useAuditLog()
+
+    data.filters.value.fromDate = '2026-01-15'
+    data.filters.value.toDate = '2026-01-10'
+
+    const validation = data.validateDateRange()
+    expect(validation.valid).toBe(false)
+    expect(validation.error).toBe('Fra-dato kan ikke være etter til-dato')
+  })
+
+  it('accepts valid date range', () => {
+    const data = useAuditLog()
+
+    data.filters.value.fromDate = '2026-01-10'
+    data.filters.value.toDate = '2026-01-15'
+
+    const validation = data.validateDateRange()
+    expect(validation.valid).toBe(true)
+  })
+
+  it('exports audit log to CSV', async () => {
+    const mockEntries = [
+      {
+        auditLogId: 1,
+        orgNumber: 123,
+        actionType: 'CREATE',
+        entityType: 'AppUser',
+        entityId: 1,
+        oldValuesJson: null,
+        newValuesJson: '{"name":"Test"}',
+        createdAt: '2026-01-01T10:00:00Z',
+        actedByUser: { displayName: 'Admin', email: 'admin@example.com' },
+      },
+    ]
+
+    vi.mocked(auditLogApi.getAuditLogs).mockResolvedValueOnce(mockEntries)
+
+    const data = useAuditLog()
+    await data.fetchAuditLog(123)
+
+    const csv = data.exportToCsv('test.csv')
+    expect(csv).toContain('Tid;Bruker;Handling;Ressurs;Detaljer;Resultat')
+    expect(csv).toContain('La til')
+    expect(csv).toContain('Admin')
   })
 })

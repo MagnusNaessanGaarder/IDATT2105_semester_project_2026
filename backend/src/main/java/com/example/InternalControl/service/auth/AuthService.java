@@ -133,13 +133,13 @@ public class AuthService {
                 user.getLocalCredential().recordFailedAttempt();
                 int attempts = user.getLocalCredential().getFailedAttempts();
                 LOGGER.warn("Failed login attempt {} for {}", attempts, request.getEmail());
-                
+
                 if (user.isLocked()) {
                     LOGGER.warn("User {} is now locked", request.getEmail());
                     throw new LockedException("Account is temporarily locked after 5 failed attempts. Try again in 30 minutes.");
                 }
             }
-            
+
             throw new BadCredentialsException("Invalid email or password");
         }
     }
@@ -151,13 +151,13 @@ public class AuthService {
             LOGGER.warn("Refresh token is null or empty");
             throw new IllegalArgumentException("Refresh token is required");
         }
-        
+
         // Check if token has valid JWT format (should have 2 periods)
         if (refreshToken.chars().filter(ch -> ch == '.').count() != 2) {
             LOGGER.warn("Invalid refresh token format");
             throw new IllegalArgumentException("Invalid refresh token format");
         }
-        
+
         String email;
         try {
             email = jwtService.extractUsername(refreshToken);
@@ -165,14 +165,14 @@ public class AuthService {
             LOGGER.warn("Failed to extract username from refresh token: {}", e.getMessage());
             throw new IllegalArgumentException("Invalid refresh token");
         }
-        
+
         LOGGER.info("Token refresh for {}", email);
 
         AppUser user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        
+
         if (!jwtService.isTokenValid(refreshToken, userDetails)) {
             LOGGER.warn("Invalid refresh token for {}", email);
             throw new IllegalArgumentException("Invalid refresh token");
@@ -207,21 +207,24 @@ public class AuthService {
     @Transactional(readOnly = true)
     public List<OrganizationRoleResponse> fetchUserOrganizationsAndRoles(Long userId) {
         List<UserOrganization> userOrgs = userOrgRepository.findActiveOrganizationsByUserId(userId);
-        
+
         return userOrgs.stream()
                 .map(userOrg -> {
                     List<UserOrganizationRole> roles = userOrgRoleRepository.findByUserOrganization(
                             userOrg.getUser().getUserId(),
                             userOrg.getOrganization().getOrgNumber()
                     );
-                    
-                    String roleName = roles.isEmpty() ? "EMPLOYEE" 
+
+                    String roleName = roles.isEmpty() ? "EMPLOYEE"
                             : roles.get(0).getRole().getRoleName();
-                    
+
                     return OrganizationRoleResponse.builder()
                             .orgNumber(userOrg.getOrganization().getOrgNumber())
                             .orgName(userOrg.getOrganization().getDisplayName())
+                            .contactEmail(userOrg.getOrganization().getContactEmail())
+                            .contactPhone(userOrg.getOrganization().getContactPhone())
                             .role(roleName)
+                            .isActive(userOrg.getOrganization().getIsActive())
                             .joinedAt(userOrg.getJoinedAt())
                             .build();
                 })

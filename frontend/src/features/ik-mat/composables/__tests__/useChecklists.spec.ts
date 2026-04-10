@@ -179,7 +179,7 @@ describe('useChecklists composable', () => {
 
       const result = await composable.updateTemplate(1, 123456789, updateData)
 
-      expect(composable.templates.value[0].title).toBe('Updated Name')
+      expect(composable.templates.value[0]?.title).toBe('Updated Name')
       expect(result.title).toBe('Updated Name')
     })
 
@@ -210,7 +210,7 @@ describe('useChecklists composable', () => {
 
       await composable.deleteTemplate(1, 123456789)
 
-      expect(composable.templates.value[0].isActive).toBe(false)
+      expect(composable.templates.value[0]?.isActive).toBe(false)
     })
 
     it('exposes isDeleting state', async () => {
@@ -262,7 +262,7 @@ describe('useChecklists composable', () => {
 
       await composable.completeRun(1, 123456789)
 
-      expect(composable.runs.value[0].status).toBe('COMPLETED')
+      expect(composable.runs.value[0]?.status).toBe('COMPLETED')
     })
   })
 
@@ -324,7 +324,7 @@ describe('useChecklists composable', () => {
       await composable.fetchRuns(123456789)
 
       expect(composable.completedRuns.value).toHaveLength(1)
-      expect(composable.completedRuns.value[0].status).toBe('COMPLETED')
+      expect(composable.completedRuns.value[0]?.status).toBe('COMPLETED')
     })
   })
 

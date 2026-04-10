@@ -59,7 +59,7 @@ dev:
 	@echo "[3/3] Starting frontend..."
 	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
 	@for i in $$(seq 1 30); do \
-		ss -ltnp 2>/dev/null | grep -q ':5173' && break; \
+		lsof -ti:5173 >/dev/null 2>&1 && break; \
 		if [ $$i -eq 30 ]; then \
 			echo "  ERROR: Frontend failed to start (see /tmp/frontend.log)"; \
 			exit 1; \

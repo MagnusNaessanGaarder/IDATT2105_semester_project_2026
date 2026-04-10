@@ -7,6 +7,7 @@ import com.example.InternalControl.model.enums.Severity;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.deviation.DeviationReportService;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +58,9 @@ class DeviationReportControllerTest {
 
     @MockBean
     private JwtService jwtService;
+
+    @MockBean
+    private OrganizationModuleAccessService moduleAccessService;
 
     private CustomUserDetails userDetails;
 

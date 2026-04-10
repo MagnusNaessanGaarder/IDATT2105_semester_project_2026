@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useFellesData } from '../composables/useFellesData'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -41,12 +43,12 @@ const reportCompletion = computed(() => {
 })
 
 const currentDate = computed(() => {
-  return new Intl.DateTimeFormat('nb-NO', {
+  return formatDateForOrganization(new Date(), getOrgNumber(), {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
     year: 'numeric',
-  }).format(new Date())
+  })
 })
 
 const getWelcomeMessage = () => {

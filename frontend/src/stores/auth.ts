@@ -4,6 +4,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi, type OrganizationRole } from '@/features/auth/api'
+import { clearOrganizationSettingsCache } from '@/shared/utils/orgSettings'
 
 interface AuthError {
   message: string
@@ -73,6 +74,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!accessToken.value)
   const isAdmin = computed(() => role.value === 'ADMIN')
+  const isSysadmin = computed(() => role.value === 'SYSADMIN')
   const currentOrg = computed(() => organizations.value[0] || null)
   const userDisplayName = computed(() => {
     if (email.value) {
@@ -141,6 +143,7 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('orgNumber')
     sessionStorage.removeItem('selectedOrgNumber')
     sessionStorage.removeItem('currentOrgNumber')
+    clearOrganizationSettingsCache()
   }
 
   async function checkAuth() {
@@ -264,6 +267,7 @@ export const useAuthStore = defineStore('auth', () => {
     hasCheckedAuth,
     isAuthenticated,
     isAdmin,
+    isSysadmin,
     currentOrg,
     userDisplayName,
     user,
