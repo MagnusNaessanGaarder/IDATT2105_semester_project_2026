@@ -74,9 +74,86 @@ const useSettingsValidation = () => {
     validationErrors.value = {}
   }
 
+  // Validate a single field in real-time
+  const validateField = (itemId: string, value: unknown, settingsState: SettingsState): boolean => {
+    // Clear previous error for this field
+    clearError(itemId)
+
+    switch (itemId) {
+      case 'notification_email':
+        return validateNotificationEmail(value, settingsState)
+      case 'contact_email':
+        return validateContactEmail(value)
+      case 'default_temp_min_c':
+      case 'default_temp_max_c':
+        return validateTemperature(itemId, value, settingsState)
+      case 'enable_food_module':
+      case 'enable_alcohol_module':
+        return validateModules(settingsState)
+      default:
+        return true
+    }
+  }
+
+  const validateNotificationEmail = (value: unknown, settingsState: SettingsState): boolean => {
+    const reminderEnabled = settingsState.alerts_retention.items.find(
+      (item) => item.id === 'reminder_email_enabled'
+    )?.current_value === true
+    const email = String(value ?? '').trim()
+
+    if (reminderEnabled && email.length === 0) {
+      validationErrors.value.notification_email = 'E-post er påkrevd når e-postpåminnelser er aktivert.'
+      return false
+    } else if (email.length > 0 && !validateEmail(email)) {
+      validationErrors.value.notification_email = 'Ugyldig e-postformat.'
+      return false
+    }
+    return true
+  }
+
+  const validateContactEmail = (value: unknown): boolean => {
+    const email = String(value ?? '').trim()
+    if (email.length > 0 && !validateEmail(email)) {
+      validationErrors.value.contact_email = 'Ugyldig e-postformat.'
+      return false
+    }
+    return true
+  }
+
+  const validateTemperature = (itemId: string, value: unknown, settingsState: SettingsState): boolean => {
+    const minTemp = toNumber(
+      settingsState.temperature.items.find((item) => item.id === 'default_temp_min_c')?.current_value
+    )
+    const maxTemp = toNumber(
+      settingsState.temperature.items.find((item) => item.id === 'default_temp_max_c')?.current_value
+    )
+
+    if (minTemp !== null && maxTemp !== null && minTemp > maxTemp) {
+      if (itemId === 'default_temp_min_c') {
+        validationErrors.value.default_temp_min_c = 'Min temperatur må være mindre enn eller lik maks temperatur.'
+      } else {
+        validationErrors.value.default_temp_max_c = 'Maks temperatur må være større enn eller lik min temperatur.'
+      }
+      return false
+    }
+    return true
+  }
+
+  const validateModules = (settingsState: SettingsState): boolean => {
+    const foodEnabled = settingsState.modules.items.find((item) => item.id === 'enable_food_module')?.current_value === true
+    const alcoholEnabled = settingsState.modules.items.find((item) => item.id === 'enable_alcohol_module')?.current_value === true
+
+    if (!foodEnabled && !alcoholEnabled) {
+      validationErrors.value.enable_alcohol_module = 'Minst én modul må være aktivert.'
+      return false
+    }
+    return true
+  }
+
   return {
     validationErrors,
     validateSettings,
+    validateField,
     clearError,
     getError,
     clearAllErrors,

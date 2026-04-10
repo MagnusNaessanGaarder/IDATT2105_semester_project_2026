@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import {
   type SettingItem,
@@ -47,9 +47,6 @@ const settingsState = ref<SettingsState>(data.mapBackendSettingsToFrontend({
 }))
 
 const hasChanges = ref(false)
-const showSuccessMessage = ref(false)
-const successMessage = ref('')
-const successTimeoutId = ref<number | null>(null)
 const showResetConfirm = ref(false)
 const showDefaultsConfirm = ref(false)
 const showUnsavedDialog = ref(false)
@@ -300,16 +297,6 @@ const handleSave = async () => {
 
   // Refresh audit log immediately to show the save action
   await loadAuditLog(currentOrgNumber.value)
-
-  successMessage.value = 'Innstillinger lagret'
-  showSuccessMessage.value = true
-  if (successTimeoutId.value !== null) {
-    window.clearTimeout(successTimeoutId.value)
-  }
-  successTimeoutId.value = window.setTimeout(() => {
-    showSuccessMessage.value = false
-    successTimeoutId.value = null
-  }, 3000)
 }
 
 const confirmReset = () => {
@@ -381,12 +368,6 @@ onMounted(() => {
 watch(currentOrgNumber, () => {
   loadBackendSettings()
 })
-
-onUnmounted(() => {
-  if (successTimeoutId.value !== null) {
-    window.clearTimeout(successTimeoutId.value)
-  }
-})
 </script>
 
 <template>
@@ -427,11 +408,6 @@ onUnmounted(() => {
       </div>
     </header>
 
-    <p v-if="updatedAtLabel" class="meta-line">Sist oppdatert: {{ updatedAtLabel }}</p>
-
-    <div v-if="showSuccessMessage" class="success-message" role="status" aria-live="polite">
-      ✓ {{ successMessage }}
-    </div>
     <div v-if="data.error.value" class="error-message" role="alert" aria-live="assertive">
       ⚠ {{ data.error.value }}
     </div>
@@ -480,6 +456,7 @@ onUnmounted(() => {
                   v-if="item.type === 'select'"
                   :id="item.id"
                   class="setting-select"
+                  :class="{ 'setting-select--error': validation.getError(item.id) }"
                   :value="String(item.current_value)"
                   :disabled="data.isLoading.value"
                   @change="updateSetting(section.id, item.id, ($event.target as HTMLSelectElement).value)"
@@ -495,7 +472,7 @@ onUnmounted(() => {
                   </option>
                 </select>
 
-                <label v-else-if="item.type === 'toggle'" class="toggle-wrap">
+                <label v-else-if="item.type === 'toggle'" class="toggle-wrap" :class="{ 'toggle-wrap--error': validation.getError(item.id) }">
                   <input
                     :id="item.id"
                     type="checkbox"
@@ -528,11 +505,12 @@ onUnmounted(() => {
                   <input
                     :id="item.id"
                     class="setting-input email-input"
+                    :class="{ 'setting-input--error': validation.getError(item.id) }"
                     type="email"
                     :value="String(item.current_value ?? '')"
                     :placeholder="item.placeholder || ''"
                     :disabled="data.isLoading.value"
-                    @change="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).value)"
+                    @input="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).value)"
                   >
                 </div>
 
@@ -544,7 +522,7 @@ onUnmounted(() => {
                   :value="String(item.current_value ?? '')"
                   :placeholder="item.placeholder || ''"
                   :disabled="data.isLoading.value"
-                  @change="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).value)"
+                  @input="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).value)"
                 >
 
                 <input
@@ -554,7 +532,7 @@ onUnmounted(() => {
                   type="text"
                   :value="String(item.current_value ?? '')"
                   :disabled="data.isLoading.value"
-                  @change="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).value)"
+                  @input="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).value)"
                 >
               </div>
               <p v-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
@@ -697,13 +675,9 @@ onUnmounted(() => {
 .settings-grid {
   display: grid;
   grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  grid-auto-flow: row;
   gap: 0.75rem;
-}
-
-@media (min-width: 768px) {
-  .settings-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 .settings-section {
@@ -711,6 +685,25 @@ onUnmounted(() => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.9rem;
+}
+
+/* Tablet: 2 columns with stable placement */
+@media (min-width: 768px) {
+  .settings-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, auto);
+    align-items: start; /* Prevents card stretching */
+    align-content: start; /* Keeps cards at top, no extra space */
+  }
+
+  /* Better balance: 2 cards in col 1, 3 cards in col 2 based on content size */
+  /* profile (4 fields) + alerts_retention (4 fields) = bigger cards in col 1 */
+  /* organization (2) + modules (2) + temperature (2) = smaller cards in col 2 */
+  .settings-section:nth-child(1) { grid-column: 1; grid-row: 1; } /* profile */
+  .settings-section:nth-child(5) { grid-column: 1; grid-row: 2; } /* alerts_retention */
+  .settings-section:nth-child(2) { grid-column: 2; grid-row: 1; } /* organization */
+  .settings-section:nth-child(3) { grid-column: 2; grid-row: 2; } /* modules */
+  .settings-section:nth-child(4) { grid-column: 2; grid-row: 3; } /* temperature */
 }
 
 .settings-title {
@@ -889,6 +882,15 @@ onUnmounted(() => {
   background: var(--color-danger-bg) !important;
 }
 
+.setting-select--error {
+  border-color: var(--color-danger) !important;
+  background: var(--color-danger-bg) !important;
+}
+
+.toggle-wrap--error {
+  color: var(--color-danger);
+}
+
 .input-error-msg {
   font-size: var(--font-size-xs);
   color: var(--color-danger);
@@ -992,16 +994,6 @@ onUnmounted(() => {
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.success-message {
-  padding: 0.75rem 0.95rem;
-  border-radius: var(--radius-md);
-  background: var(--color-success-bg);
-  color: var(--color-success);
-  border: 1px solid var(--color-success);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
 }
 
 .error-message {
