@@ -345,7 +345,7 @@ const filteredControls = computed(() => {
 
 .filter-btn--active {
   background: var(--ik-alkohol-primary);
-  color: #ffffff;
+  color: var(--color-primary-foreground);
   border-color: var(--ik-alkohol-primary);
 }
 
@@ -421,8 +421,8 @@ const filteredControls = computed(() => {
 }
 
 .modal-btn--ghost {
-  background: var(--color-card);
-  color: var(--color-gray-700);
+  background: transparent;
+  color: var(--color-brand-medium-violet);
   border-color: var(--color-border);
 }
 
@@ -439,8 +439,8 @@ const filteredControls = computed(() => {
 
 .attachment-btn {
   margin-top: 0.6rem;
-  border: 1px solid var(--ik-alkohol-primary);
-  color: var(--ik-alkohol-primary);
+  border: 1px solid var(--color-brand-medium-violet);
+  color: var(--color-brand-medium-violet);
   background: transparent;
   padding: 0.5rem 0.7rem;
   border-radius: var(--radius-sm);

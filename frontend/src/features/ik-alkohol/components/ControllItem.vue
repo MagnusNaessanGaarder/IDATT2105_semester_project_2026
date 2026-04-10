@@ -147,8 +147,8 @@
         border-radius: var(--radius-sm);
         border: 1px solid var(--color-gray-300);
         height: 100%;
-        background: #ffffff;
-        color: #ffffff;
+        background: var(--color-card);
+        color: var(--color-foreground);
         display: inline-flex;
         padding: 0.75rem;
         justify-content: center;
@@ -170,8 +170,9 @@
     }
 
     .control-card__checkbox--checked {
-        background: var(--color-success);
-        border-color: var(--color-success);
+        background: var(--color-cta);
+        border-color: var(--color-cta);
+        color: var(--color-cta-foreground);
     }
 
     .control-card__main {
@@ -186,18 +187,18 @@
 
     .control-card__status {
         font-size: var(--font-size-xs);
-        color: var(--color-success);
-        background: var(--color-success-bg);
-        border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+        color: var(--color-primary);
+        background: var(--color-brand-ice-teal);
+        border: 1px solid color-mix(in srgb, var(--color-brand-mid-teal) 30%, var(--color-border));
         padding: 0.25rem 0.5rem;
         border-radius: var(--radius-sm);
         white-space: nowrap;
     }
 
     .control-card__status--pending {
-        color: var(--color-warning);
-        background: var(--color-warning-bg);
-        border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+        color: var(--color-brand-deep-violet);
+        background: var(--color-brand-soft-violet);
+        border-color: color-mix(in srgb, var(--color-brand-soft-violet) 35%, var(--color-border));
     }
 
     .control-item__actions {
@@ -224,7 +225,7 @@
     }
 
     .options-menu__trigger:hover {
-        background: var(--color-accent);
+        background: var(--color-info-bg);
     }
 
     .dot {
@@ -258,7 +259,7 @@
     }
 
     .options-menu__item:hover {
-        background: var(--color-accent);
+        background: var(--color-info-bg);
     }
 
     .options-menu__item--danger {
@@ -293,7 +294,7 @@
         align-self: flex-start;
         border: 0;
         background: transparent;
-        color: var(--ik-alkohol-primary);
+        color: var(--color-brand-medium-violet);
         font-size: var(--font-size-xs);
         font-weight: var(--font-weight-semibold);
         text-decoration: underline;

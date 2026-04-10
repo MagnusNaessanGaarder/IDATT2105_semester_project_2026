@@ -118,44 +118,47 @@ const rows = computed(() => {
 
 <style scoped>
 .certifications-page {
-  max-width: 1200px;
+  width: min(100%, 1200px);
   margin: 0 auto;
+  display: grid;
+  gap: var(--spacing-lg);
 }
 
 .page-header {
-  margin-bottom: 32px;
+  display: grid;
+  gap: var(--spacing-xs);
 }
 
 .page-header h1 {
-  font-size: var(--font-size-2xl);
+  font-size: clamp(2rem, 2.5vw, var(--font-size-3xl));
   font-weight: var(--font-weight-bold);
-  color: var(--ik-alkohol-primary);
-  margin-bottom: 8px;
+  color: var(--color-brand-medium-violet);
+  margin: 0;
 }
 
 .subtitle {
   font-size: var(--font-size-sm);
-  color: var(--color-gray-500);
+  color: var(--color-gray-600);
 }
 
 .status-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--spacing-md);
 }
 
 .status-box {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 20%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
   background: var(--color-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .status-box__label {
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-600);
+  font-size: 0.6875rem;
+  color: var(--color-brand-medium-violet);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -173,19 +176,18 @@ const rows = computed(() => {
 }
 
 .status-box--valid {
-  border-left: 0.25rem solid var(--color-success);
+  border-left: 4px solid var(--color-cta);
 }
 
 .status-box--soon {
-  border-left: 0.25rem solid var(--color-warning);
+  border-left: 4px solid var(--color-brand-soft-violet);
 }
 
 .status-box--expired {
-  border-left: 0.25rem solid var(--color-danger);
+  border-left: 4px solid var(--color-danger);
 }
 
 .type-strip {
-  margin-bottom: 12px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -206,18 +208,19 @@ const rows = computed(() => {
 
 .type-strip li {
   padding: 4px 8px;
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 18%, var(--color-border));
   border-radius: 999px;
-  background: #f8fafc;
+  background: color-mix(in srgb, var(--color-brand-pale-lavender) 40%, var(--color-card));
   font-size: var(--font-size-xs);
-  color: var(--color-gray-600);
+  color: var(--color-brand-deep-violet);
 }
 
 .matrix-section {
   background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 20%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .matrix-title {
@@ -239,7 +242,7 @@ const rows = computed(() => {
   text-align: left;
   padding: 12px 8px;
   border-bottom: 1px solid var(--color-border);
-  color: var(--color-gray-600);
+  color: var(--color-brand-deep-violet);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: var(--font-size-xs);
@@ -264,9 +267,9 @@ const rows = computed(() => {
 }
 
 .status-pill--soon {
-  color: var(--color-warning);
-  background: var(--color-warning-bg);
-  border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+  color: var(--color-brand-deep-violet);
+  background: var(--color-brand-soft-violet);
+  border-color: color-mix(in srgb, var(--color-brand-soft-violet) 40%, var(--color-border));
 }
 
 .status-pill--expired {
@@ -283,20 +286,20 @@ const rows = computed(() => {
 
 .info-box {
   padding: 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid #bfdbfe;
-  background: #eff6ff;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 18%, var(--color-border));
+  background: color-mix(in srgb, var(--color-brand-pale-lavender) 46%, var(--color-card));
 }
 
 .info-box h3 {
   margin: 0 0 4px;
   font-size: var(--font-size-base);
-  color: #1e3a8a;
+  color: var(--color-brand-deep-violet);
 }
 
 .info-box p {
   margin: 0;
-  color: #1e3a8a;
+  color: var(--color-gray-600);
   font-size: var(--font-size-sm);
 }
 
