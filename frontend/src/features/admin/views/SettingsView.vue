@@ -593,7 +593,7 @@ watch(currentOrgNumber, () => {
 
           <article class="settings-section">
             <h2 class="settings-title">{{ settingsState.temperature.section_title }}</h2>
-            <p v-if="tempRangeError" class="section-error">⚠ {{ tempRangeError }}</p>
+            <p v-if="tempRangeError" class="section-error">{{ tempRangeError }}</p>
             <div class="settings-items">
               <div
                 v-for="item in settingsState.temperature.items"
@@ -614,15 +614,19 @@ watch(currentOrgNumber, () => {
                   <input
                     :id="item.id"
                     class="setting-input"
+                    :class="{ 'setting-input--error': isInvalidInput(item.id) || validation.getError(item.id) }"
                     type="number"
                     :value="item.current_value ?? ''"
                     :min="item.min"
                     :max="item.max"
                     :step="item.step"
                     :disabled="data.isLoading.value"
+                    @input="invalidInputs.delete(item.id); validation.clearError(item.id)"
                     @blur="validateAndUpdateNumber('temperature', item.id, ($event.target as HTMLInputElement), item.min, item.max)"
                   >
                 </div>
+                <p v-if="isInvalidInput(item.id)" class="field-error">Ugyldig tall</p>
+                <p v-else-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
               </div>
             </div>
           </article>
@@ -823,10 +827,12 @@ watch(currentOrgNumber, () => {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.8rem;
-  align-items: center;
-  padding: 0.6rem 0;
+  align-items: start;
+  padding: 0.75rem 0 1.5rem; /* Extra bottom padding for error message */
   border-bottom: 1px solid var(--color-border);
   transition: background-color 0.2s;
+  min-height: 4rem; /* Fixed height to prevent layout shifts */
+  position: relative; /* For absolute positioned error messages */
 }
 
 .setting-item:last-child {
@@ -834,10 +840,21 @@ watch(currentOrgNumber, () => {
 }
 
 .setting-item--modified {
-  background: var(--color-warning-bg);
-  margin: -0.6rem -0.9rem;
-  padding: 0.6rem 0.9rem;
-  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+.setting-item--modified::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(251, 191, 36, 0.12); /* Subtle yellow tint */
+  pointer-events: none;
+  z-index: 0;
+}
+
+.setting-item--modified > * {
+  position: relative;
+  z-index: 1;
 }
 
 .setting-header {
@@ -960,22 +977,26 @@ watch(currentOrgNumber, () => {
 }
 
 .field-error {
-  grid-column: 1 / -1;
-  margin: -0.35rem 0 0;
+  position: absolute;
+  bottom: 0.25rem;
+  left: 0;
   color: var(--color-danger);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 500;
+  white-space: nowrap;
+  background: none;
+  padding: 0;
 }
 
 .section-error {
-  margin: -0.5rem 0 0.75rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--color-danger-bg);
+  margin: 0 0 0.25rem;
+  padding: 0;
   color: var(--color-danger);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-danger);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  background: none;
+  border: none;
+  min-height: 1rem;
 }
 
 .number-input-wrap {
