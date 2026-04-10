@@ -40,19 +40,9 @@ const readStoredOrgNumber = (): number | null => {
 }
 
 export const getOrgNumber = (): number => {
-  const fromExplicitSession = readSessionOrgNumber()
-  if (fromExplicitSession) {
-    return fromExplicitSession
-  }
-
   const fromSession = readStoredOrgNumber()
   if (fromSession) {
     return fromSession
-  }
-
-  const fromToken = readOrgNumberFromToken()
-  if (fromToken) {
-    return fromToken
   }
 
   const fromEnv = parseOrgNumber(import.meta.env.VITE_ORG_NUMBER)
@@ -60,7 +50,6 @@ export const getOrgNumber = (): number => {
     return fromEnv
   }
 
-  // Fallback org number for development - should be set in production
   return FALLBACK_ORG_NUMBER
 }
 
