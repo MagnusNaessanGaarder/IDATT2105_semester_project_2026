@@ -1,205 +1,298 @@
-# Internal Control System - foreløpig README for at dåkk skal kun å kjør applikasjonen
+# Internal Control System (Internkontroll)
 
-Hvis nånn andre gruppa ser på REPOET og kopiere koden e dåkk støgg - det kan få oss utvist (æ satt inn script som sir
-github bruker te kæm som skjer repoet og sett at flere av dåkk homsa har sett på repoet)
-Semester project for IDATT2105 - Fullstack application for internal control in service businesses.
+A full-stack web application for managing internal control systems in service businesses, with specialized modules for food safety (IK-Mat) and alcohol service compliance (IK-Alkohol).
 
-## Quick Start (dev)
+> **IDATT2105 Fullstack Development - Semester Project**
 
-1. **Setup environment:**
+## Features
 
-```bash
-# Copy environment file (ask Tri for .env values)
-cp backend/.env.example backend/.env
-```
+### Core Modules
 
-Remember to give perms to shell scripts using chmod +x
+- **Authentication & Authorization**
+  - JWT-based authentication with refresh tokens
+  - Role-based access control (RBAC)
+  - User management and permissions
 
-2. **Start all services:**
+- **Food Safety (IK-Mat)**
+  - Temperature logging with threshold monitoring
+  - HACCP checklist management
+  - Deviation reporting and tracking
+  - Daily control checklists
 
-```bash
-./start.sh
-```
+- **Alcohol Control (IK-Alkohol)**
+  - Daily alcohol service controls
+  - Staff certification tracking
+  - Regulation compliance monitoring
 
-3. **Access the application (dev):**
+- **Document Management**
+  - File upload to Azure Blob Storage
+  - Document versioning
+  - Organization-specific document organization
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8080
-- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- **Notifications & Audit**
+  - Email notifications
+  - Audit logging for compliance
+  - Scheduled tasks for reminders and reports
 
-**Test user:**
+- **Administration**
+  - Organization management
+  - System administrator panel
+  - Export functionality for reports
 
-- Email: `admin@everest-sushi.no`
-- Password: `Test1234!`
+## Tech Stack
 
-4. **Stop all services:**
+### Backend
+- **Java 21** with Spring Boot 3.3.5
+- **Spring Security** with JWT authentication
+- **Spring Data JPA** with MySQL
+- **Flyway** for database migrations
+- **Azure Blob Storage** for file storage
+- **OpenAPI/Swagger** for API documentation
+- **Maven** for build management
 
-```bash
-# Or press Ctrl+C in the terminal where start.sh is running
-```
+### Frontend
+- **Vue 3** with Composition API and TypeScript
+- **Vite** for build tooling
+- **Vue Router** for navigation
+- **Pinia** for state management
+- **Axios** for API communication
+- **Vitest** for unit testing
+- **Cypress** for E2E testing
 
----
+### Infrastructure
+- **Docker & Docker Compose** for containerization
+- **MySQL 8.4** database
+- **Nginx** for production frontend serving
 
-## Development
+## Quick Start
 
 ### Prerequisites
-
-- Java 25+
-- Node.js 22+
+- Java 21+
+- Node.js 20.19+ or 22.12+
 - Docker & Docker Compose
-- Maven (included via wrapper)
+- Maven (wrapper included)
 
-### Running Locally
+### Development Setup
 
-**Option 1: Using start.sh (Recommended)**
-
+1. **Clone and configure:**
 ```bash
+git clone <repository-url>
+cd IDATT2105_semester_project_2026
 
+# Copy environment file
+cp .env.example .env
+# Edit .env with your configuration values
+```
+
+2. **Start all services:**
+```bash
+make dev
 ```
 
 This starts:
+- MySQL database in Docker
+- Spring Boot backend on http://localhost:8080
+- Vite dev server on http://localhost:5173
 
-- MySQL in Docker (automatically managed by Spring Boot)
-- Spring Boot backend on port 8080
-- Vite frontend dev server on port 5173
+3. **Access the application:**
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8080
+- Swagger UI: http://localhost:8080/swagger-ui.html
 
-**Option 2: Manual start**
-
-Terminal 1 - Backend:
-
-```bash
-cd backend
-./mvnw spring-boot:run -DskipTests
-```
-
-Terminal 2 - Frontend:
-
-```bash
-cd frontend
-npm run dev
-```
+**Default test user:**
+- Email: `admin@everest-sushi.no`
+- Password: `Test1234!`
 
 ### VPN Configuration
 
-If you use VPN edit `compose-dev.yaml`:
-
+If using VPN, edit `compose-dev.yaml`:
 ```yaml
-# VPN mode (uncomment this):
+# Uncomment for VPN mode:
 network_mode: host
 
-# Standard mode (comment out):
+# Comment out standard mode:
 # ports:
-#   - '3306:3306'
+#   - "3306:3306"
 ```
 
-Then restart with `./stop.sh && ./start.sh`
+## Development Commands
 
----
+### Using Make
+
+```bash
+make dev          # Start all services
+make stop         # Stop all services
+make status       # Check service status
+make logs         # View logs
+make test         # Run backend tests
+make clean        # Reset everything
+make install      # Install dependencies
+```
+
+### Manual Commands
+
+**Backend:**
+```bash
+cd backend
+./mvnw spring-boot:run -DskipTests          # Start server
+./mvnw test -Dcheckstyle.skip=true          # Run tests
+./mvnw jacoco:report -Dcheckstyle.skip=true # Coverage report
+./mvnw checkstyle:checkstyle                # Code style check
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install          # Install dependencies
+npm run dev          # Start dev server
+npm run test:unit    # Run unit tests
+npm run test:e2e     # Run E2E tests
+npm run lint         # Run linters
+npm run build        # Production build
+```
+
+## Project Structure
+
+```
+├── backend/                    # Spring Boot application
+│   ├── src/main/java/...
+│   │   ├── controller/        # REST API controllers
+│   │   ├── service/           # Business logic
+│   │   ├── repository/        # Data access layer
+│   │   ├── model/             # Entity models
+│   │   ├── dto/               # Data transfer objects
+│   │   ├── security/          # JWT & security config
+│   │   └── config/            # Application config
+│   └── src/main/resources/
+│       └── db/migration/      # Flyway migrations
+│
+├── frontend/                   # Vue 3 application
+│   ├── src/
+│   │   ├── features/          # Feature modules
+│   │   │   ├── auth/          # Authentication
+│   │   │   ├── dashboard/     # Main dashboard
+│   │   │   ├── ik-mat/        # Food safety module
+│   │   │   ├── ik-alkohol/    # Alcohol control module
+│   │   │   ├── admin/         # Admin panel
+│   │   │   └── sysadmin/      # System admin
+│   │   ├── shared/            # Shared components
+│   │   ├── router/            # Vue Router config
+│   │   └── stores/            # Pinia stores
+│   └── cypress/               # E2E tests
+│
+├── compose-dev.yaml           # Docker Compose for dev
+├── Makefile                   # Development commands
+└── .env.example               # Environment template
+```
 
 ## Testing
 
 ### Backend Tests
-
 ```bash
 cd backend
-
-# Run all tests
 ./mvnw test -Dcheckstyle.skip=true
-
-# Run with coverage report
-./mvnw jacoco:report -Dcheckstyle.skip=true
-# Open: backend/target/site/jacoco/index.html
-
-# Check code style
-./mvnw checkstyle:checkstyle
 ```
 
-### Frontend Tests
-
+### Frontend Unit Tests
 ```bash
 cd frontend
-
-# Unit tests
 npm run test:unit -- --run
+```
 
-# E2E tests
+### Frontend E2E Tests
+```bash
+cd frontend
 npm run test:e2e
 ```
 
----
-
-## API Documentation
-
-See Swagger UI at `http://localhost:8080/swagger-ui/index.html` for full API documentation.
-
-## API Testing
-
-### Automated API Tests
-
-**Option 1: Using curl (default - everyone has this)**
-
+### API Tests
 ```bash
+# Using curl
 cd backend
 ./test-api-curl.sh
-```
 
-**Option 2: Using HTTPie (more readable output, requires installation)**
-
-```bash
-# Install HTTPie first:
-# sudo pacman -S httpie
-
-cd backend
+# Using HTTPie (if installed)
 ./test-api-httpie.sh
 ```
 
-### Manual API Testing
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `SPRING_DATASOURCE_URL` | MySQL connection URL |
+| `SPRING_DATASOURCE_USERNAME` | Database username |
+| `SPRING_DATASOURCE_PASSWORD` | Database password |
+| `JWT_SECRET_KEY` | JWT signing key |
+| `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob Storage connection |
+| `SPRING_MAIL_HOST` | SMTP server host |
+| `USE_MOCK` | Enable mock mode (true/false) |
+
+See `.env.example` for complete list.
+
+## Production Deployment
+
+1. **Build production images:**
+```bash
+make prod-build
+```
+
+2. **Start production services:**
+```bash
+make prod-up
+```
+
+3. **View production logs:**
+```bash
+make prod-logs
+```
+
+4. **Stop production:**
+```bash
+make prod-down
+```
+
+## API Documentation
+
+Once the backend is running, view the full API documentation at:
+http://localhost:8080/swagger-ui.html
 
 ## Troubleshooting
 
-### Port already in use
-
+### Port Already in Use
 ```bash
-./stop.sh  # Stops all services
+make stop
 # Or manually:
 lsof -ti:8080 | xargs kill -9
 lsof -ti:5173 | xargs kill -9
 ```
 
-### Database issues
-
-````bash
-# Reset database (deletes all data!)
-docker stop backend-mysql-1
-docker rm backend-mysql-1
-
-### Check logs
-
+### Database Reset
 ```bash
-# Backend logs
-tail -f /tmp/backend.log
-
-# Frontend logs
-tail -f /tmp/frontend.log
-
-# MySQL logs
-docker logs backend-mysql-1
-````
-
-### Flyway migration errors
-
-If you get "checksum mismatch" errors after changing SQL files:
-
-```bash
-# Reset database completely
+# Warning: This deletes all data!
 docker stop backend-mysql-1
 docker rm backend-mysql-1
 docker volume rm idatt2105_semester_project_2026_mysql-dev-data
 ```
 
-_Note_: Once a migration has been performed, it is best practice to alter tables in further migrations, though this is
-most important once the app is in production.
+### Flyway Migration Errors
+If you get "checksum mismatch" after changing SQL files:
+```bash
+# Reset the database (see above)
+# Then restart with: make dev
+```
 
-The naming convention is ``Vx_y_z__migration_title.sql``. Note the double underscore after version. Flyway will throw an
-error if this convention is not followed.
-For minor changes, consider increasing `y` or `z` rather than the major version number `x`.
+### View Logs
+```bash
+# Backend
+tail -f /tmp/backend.log
+
+# Frontend
+tail -f /tmp/frontend.log
+
+# MySQL
+docker logs backend-mysql-1
+```
+
+## License
+
+This project is developed as part of the IDATT2105 Fullstack Development course at NTNU.
