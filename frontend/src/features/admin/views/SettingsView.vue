@@ -130,25 +130,22 @@ const invalidInputs = ref<Set<string>>(new Set())
 
 const tempRangeError = ref<string | null>(null)
 
-// Real-time validation for number inputs (temperature)
-const validateInputLive = (itemId: string, input: HTMLInputElement) => {
-  const value = input.value
-
-  // Check if empty (allow while typing)
-  if (value === '' || value === '-') {
-    invalidInputs.value.delete(itemId)
-    validation.clearError(itemId)
+// Real-time validation for number inputs
+const validateInputLive = (sectionId: string, itemId: string, input: HTMLInputElement, integerOnly = false) => {
+  if (input.validity.badInput) {
+    invalidInputs.value.add(itemId)
     return
   }
-
-  // Check if valid number
-  const numValue = parseFloat(value)
-  if (isNaN(numValue)) {
+  const numValue = parseFloat(input.value)
+  if (integerOnly && !Number.isInteger(numValue) && input.value !== '') {
     invalidInputs.value.add(itemId)
+    return
+  }
+  invalidInputs.value.delete(itemId)
+  if (!isNaN(numValue)) {
+    updateSetting(sectionId, itemId, numValue)
   } else {
-    invalidInputs.value.delete(itemId)
-    // Update the value and validate
-    updateSetting('temperature', itemId, numValue)
+    validation.clearError(itemId)
   }
 }
 
@@ -529,7 +526,8 @@ watch(currentOrgNumber, () => {
                     :step="item.step"
                     :placeholder="item.placeholder || ''"
                     :disabled="data.isLoading.value"
-                    @input="validateInputLive(item.id, $event.target as HTMLInputElement)"
+                    @keydown="(e) => ['e','E','+','.'].includes(e.key) && e.preventDefault()"
+                    @input="validateInputLive('alerts_retention', item.id, $event.target as HTMLInputElement, true)"
                     @blur="validateAndUpdateNumber('alerts_retention', item.id, ($event.target as HTMLInputElement), item.min, item.max)"
                   >
                   <input
@@ -543,7 +541,7 @@ watch(currentOrgNumber, () => {
                     :disabled="data.isLoading.value"
                     @input="updateSetting('alerts_retention', item.id, ($event.target as HTMLInputElement).value)"
                   >
-                  <p v-if="isInvalidInput(item.id)" class="field-error">Ugyldig tall</p>
+                  <p v-if="isInvalidInput(item.id)" class="field-error">Må være et heltall</p>
                   <p v-else-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
                 </div>
               </div>
@@ -667,12 +665,13 @@ watch(currentOrgNumber, () => {
                     :max="item.max"
                     :step="item.step"
                     :disabled="data.isLoading.value"
-                    @input="validateInputLive(item.id, $event.target as HTMLInputElement)"
+                    @keydown="(e) => ['e','E','+'].includes(e.key) && e.preventDefault()"
+                    @input="validateInputLive('temperature', item.id, $event.target as HTMLInputElement)"
                     @blur="validateAndUpdateNumber('temperature', item.id, ($event.target as HTMLInputElement), item.min, item.max)"
                   >
+                  <p v-if="isInvalidInput(item.id)" class="field-error">Må være et tall, f.eks. -18 eller 4</p>
+                  <p v-else-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
                 </div>
-                <p v-if="isInvalidInput(item.id)" class="field-error">Ugyldig tall</p>
-                <p v-else-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
               </div>
             </div>
           </article>
@@ -1026,18 +1025,14 @@ watch(currentOrgNumber, () => {
 
 .field-error {
   position: absolute;
-  bottom: 0.15rem;
-  left: 0;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  padding-right: 0.5rem;
   color: var(--color-danger);
   font-size: 0.7rem;
-  font-weight: 500;
   white-space: nowrap;
-  background: none;
-  padding: 0;
-  line-height: 1;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 0;
 }
 
 .section-error {

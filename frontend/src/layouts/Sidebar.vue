@@ -55,6 +55,20 @@ const businessLabel = computed(() => {
 })
 
 const sections = computed(() => [
+  {
+    key: 'dashboard',
+    label: 'DASHBOARD',
+    icon: 'FolderOpen',
+    dashboardRoute: 'Dashboard',
+    items: [
+      { id: 'reports', label: 'Rapporter', route: 'Reports' },
+      { id: 'documents', label: 'Dokumenter', route: 'Documents' },
+      { id: 'notifications', label: 'Varsler', route: 'Notifications' },
+      ...(user.value?.role === 'MANAGER' || user.value?.role === 'ADMIN'
+          ? [{ id: 'export', label: 'Eksport', route: 'Export' }]
+          : [])
+    ]
+  },
   ...(isModuleEnabled('food', currentOrgNumber.value) ? [{
     key: 'ikmat',
     label: 'IK-MAT',
@@ -78,20 +92,6 @@ const sections = computed(() => [
       { id: 'regulations', label: 'Regelverk', route: 'Regulations' }
     ]
   }] : []),
-  {
-    key: 'felles',
-    label: 'FELLES',
-    icon: 'FolderOpen',
-    dashboardRoute: 'Dashboard',
-    items: [
-      { id: 'reports', label: 'Rapporter', route: 'Reports' },
-      { id: 'documents', label: 'Dokumenter', route: 'Documents' },
-      { id: 'notifications', label: 'Varsler', route: 'Notifications' },
-      ...(user.value?.role === 'MANAGER' || user.value?.role === 'ADMIN'
-          ? [{ id: 'export', label: 'Eksport', route: 'Export' }]
-          : [])
-    ]
-  },
   ...((user.value?.role === 'ADMIN' || user.value?.role === 'MANAGER') ? [{
     key: 'admin',
     label: 'ADMIN',

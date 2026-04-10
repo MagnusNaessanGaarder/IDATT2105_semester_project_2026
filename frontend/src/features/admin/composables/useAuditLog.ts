@@ -121,10 +121,14 @@ const generateChangeSummary = (
   const hasOldValues = Object.keys(oldValues).length > 0
   const hasNewValues = Object.keys(newValues).length > 0
 
-  // Determine action type from the action string
-  const isCreate = actionType.includes('CREATE') || (!hasOldValues && hasNewValues)
-  const isDelete = actionType.includes('DELETE') || (hasOldValues && !hasNewValues)
-  const isUpdate = actionType.includes('UPDATE') || (hasOldValues && hasNewValues)
+  // Prefer explicit backend action type; only infer from payloads when missing.
+  const hasExplicitCreate = actionType.includes('CREATE')
+  const hasExplicitDelete = actionType.includes('DELETE')
+  const hasExplicitUpdate = actionType.includes('UPDATE')
+
+  const isCreate = hasExplicitCreate || (!hasExplicitDelete && !hasExplicitUpdate && !hasOldValues && hasNewValues)
+  const isDelete = hasExplicitDelete || (!hasExplicitCreate && !hasExplicitUpdate && hasOldValues && !hasNewValues)
+  const isUpdate = hasExplicitUpdate || (!hasExplicitCreate && !hasExplicitDelete && hasOldValues && hasNewValues)
 
   // Handle different actions
   if (isCreate) {
