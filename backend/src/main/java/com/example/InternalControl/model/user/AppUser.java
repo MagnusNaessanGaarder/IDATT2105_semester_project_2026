@@ -35,6 +35,10 @@ public class AppUser {
   @Builder.Default
   private Boolean isActive = true;
 
+  @Column(name = "is_sysadmin", nullable = false)
+  @Builder.Default
+  private Boolean isSysadmin = false;
+
   @Column(name = "phone")
   private String phone;
 

@@ -7,6 +7,7 @@ export interface OrganizationRole {
   contactEmail?: string | null
   contactPhone?: string | null
   role: string
+  isActive?: boolean
   joinedAt: string
 }
 
