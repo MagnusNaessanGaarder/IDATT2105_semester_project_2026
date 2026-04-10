@@ -103,18 +103,6 @@ This starts:
 - Email: `admin@everest-sushi.no`
 - Password: `Test1234!`
 
-### VPN Configuration
-
-If using VPN, edit `compose-dev.yaml`:
-```yaml
-# Uncomment for VPN mode:
-network_mode: host
-
-# Comment out standard mode:
-# ports:
-#   - "3306:3306"
-```
-
 ## Development Commands
 
 ### Using Make
@@ -292,7 +280,3 @@ tail -f /tmp/frontend.log
 # MySQL
 docker logs backend-mysql-1
 ```
-
-## License
-
-This project is developed as part of the IDATT2105 Fullstack Development course at NTNU.
