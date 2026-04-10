@@ -155,6 +155,12 @@ const router = createRouter({
           meta: { title: 'Brukere', allowedRoles: ['ADMIN'] },
         },
         {
+          path: 'admin/sjekklister',
+          name: 'MakeChecklists',
+          component: () => import('@/features/admin/views/ChecklistCreationView.vue'),
+          meta: { title: 'LageSjekkliste', allowedRoles: ['ADMIN', 'MANAGER'] },
+        },
+        {
           path: 'admin/opplaering',
           name: 'Training',
           component: () => import('@/features/admin/views/TrainingView.vue'),
