@@ -21,18 +21,6 @@ const router = createRouter({
       meta: { requiresAuth: false, title: 'Innlogging' },
     },
     {
-      path: '/registrer',
-      name: 'Register',
-      component: () => import('@/features/auth/views/RegisterView.vue'),
-      meta: { requiresAuth: false, title: 'Registrer konto' },
-    },
-    {
-      path: '/ingen-organisasjon',
-      name: 'NoOrganization',
-      component: () => import('@/features/auth/views/NoOrganizationView.vue'),
-      meta: { requiresAuth: true, title: 'Venter på tilgang' },
-    },
-    {
       path: '/',
       component: () => import('@/layouts/AppShell.vue'),
       meta: { requiresAuth: true },
@@ -129,6 +117,12 @@ const router = createRouter({
           meta: { title: 'Brukere', allowedRoles: ['ADMIN'] },
         },
         {
+          path: 'admin/lokasjoner',
+          name: 'Locations',
+          component: () => import('@/features/admin/views/LocationsView.vue'),
+          meta: { title: 'Lokasjoner', allowedRoles: ['ADMIN', 'MANAGER'] },
+        },
+        {
           path: 'admin/innstillinger',
           name: 'Settings',
           component: () => import('@/features/admin/views/SettingsView.vue'),
@@ -168,12 +162,6 @@ router.beforeEach(async (to) => {
       return { name: 'Login', query: { redirect: to.fullPath } }
     }
 
-    // Redirect to no-org page if user has no organisations yet,
-    // but allow them to stay on the no-org page itself
-    if (to.name !== 'NoOrganization' && (authStore.organizations?.length ?? 0) === 0) {
-      return { name: 'NoOrganization' }
-    }
-
     if (to.meta.allowedRoles && to.meta.allowedRoles.length > 0) {
       const userRole = authStore.user?.role
       if (!userRole || !to.meta.allowedRoles.includes(userRole as 'ADMIN' | 'MANAGER' | 'EMPLOYEE')) {
@@ -190,7 +178,7 @@ router.beforeEach(async (to) => {
     }
   }
 
-  if ((to.name === 'Login' || to.name === 'Register') && authStore.isAuthenticated) {
+  if (to.name === 'Login' && authStore.isAuthenticated) {
     return { name: 'Dashboard' }
   }
 
