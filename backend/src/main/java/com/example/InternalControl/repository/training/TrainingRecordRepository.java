@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for TrainingRecord entities.
@@ -27,6 +28,10 @@ public interface TrainingRecordRepository extends JpaRepository<TrainingRecord, 
     @EntityGraph(attributePaths = {"user"})
     @Query("SELECT tr FROM TrainingRecord tr WHERE tr.user.userId = :userId AND tr.orgNumber = :orgNumber")
     List<TrainingRecord> findByUserIdAndOrgNumber(@Param("userId") Long userId, @Param("orgNumber") Integer orgNumber);
+
+    @EntityGraph(attributePaths = {"user"})
+    @Query("SELECT tr FROM TrainingRecord tr WHERE tr.trainingRecordId = :id AND tr.orgNumber = :orgNumber")
+    Optional<TrainingRecord> findByTrainingRecordIdAndOrgNumber(@Param("id") Long id, @Param("orgNumber") Integer orgNumber);
 
     List<TrainingRecord> findByUser(AppUser user);
 

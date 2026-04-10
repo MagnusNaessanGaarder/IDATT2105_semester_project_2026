@@ -15,17 +15,20 @@ import BaseModal from '@/shared/components/BaseModal.vue'
 import BaseSpinner from '@/shared/components/BaseSpinner.vue'
 import type { CertificationRecord } from '../composables/useAlkoholData'
 
-interface MergedRow {
-  id: string | number
+interface UserCertificationGroup {
+  userId: number | null
   employee: string
-  type: string
-  trainingType: CertificationType | null
-  status: CertificateStatus | 'Mangler'
-  expires: string
-  completedAt: string
-  notes: string | null
-  source: 'api' | 'dummy'
-  raw: CertificationRecord | null
+  email: string | null
+  certifications: Array<{
+    id: number
+    title: string
+    trainingType: CertificationType
+    status: CertificateStatus | 'Mangler'
+    expires: string
+    completedAt: string
+    notes: string | null
+    raw: CertificationRecord
+  }>
 }
 
 const {
@@ -101,57 +104,52 @@ const statusCount = computed(() => {
   }
 })
 
-const mergedRows = computed<MergedRow[]>(() => {
-  const apiRows: MergedRow[] = certifications.value.map((cert) => {
-    const status: CertificateStatus | 'Mangler' = cert.expiresAt
-      ? certificateStatusForDate(cert.expiresAt.slice(0, 10))
-      : cert.status === 'COMPLETED'
-        ? 'Gyldig'
-        : 'Mangler'
+const userGroups = computed<UserCertificationGroup[]>(() => {
+  const certsByUser = new Map<number, UserCertificationGroup['certifications']>()
 
-    return {
+  certifications.value.forEach((cert) => {
+    const userId = cert.user?.userId
+    if (!userId) {
+      return
+    }
+
+    const list = certsByUser.get(userId) ?? []
+    list.push({
       id: cert.trainingRecordId,
-      employee: cert.user?.displayName ?? 'Ukjent bruker',
-      type: cert.title,
+      title: cert.title,
       trainingType: cert.trainingType,
-      status,
+      status: cert.expiresAt
+        ? certificateStatusForDate(cert.expiresAt.slice(0, 10))
+        : cert.status === 'COMPLETED'
+          ? 'Gyldig'
+          : 'Mangler',
       expires: cert.expiresAt ? formatDateValue(cert.expiresAt.slice(0, 10)) : '-',
       completedAt: cert.completedAt ? formatDateValue(cert.completedAt.slice(0, 10)) : '-',
       notes: cert.notes,
-      source: 'api',
       raw: cert,
-    }
+    })
+    certsByUser.set(userId, list)
   })
 
-  if (users.value.length > 0) {
-    const usersWithCertifications = new Set(
-      certifications.value
-        .map((cert) => cert.user?.userId)
-        .filter((userId): userId is number => userId !== null && userId !== undefined),
-    )
-    const missingCertificationRows = users.value
-      .filter((user) => user.isActive && !usersWithCertifications.has(user.userId))
+  const knownUsers = users.value.length > 0
+    ? users.value
+    : certifications.value
+      .map((cert) => cert.user)
+      .filter((user): user is NonNullable<CertificationRecord['user']> => user !== null)
       .map((user) => ({
-        id: `user-${user.userId}-missing`,
-        employee: user.displayName,
-        type: 'Ingen registrert',
-        trainingType: null,
-        status: 'Mangler' as const,
-        expires: '-',
-        completedAt: '-',
-        notes: null,
-        source: 'dummy' as const,
-        raw: null,
+        userId: user.userId,
+        displayName: user.displayName,
+        email: user.email,
+        isActive: true,
+        roles: [],
       }))
 
-    return [...apiRows, ...missingCertificationRows]
-  }
-
-  if (apiRows.length > 0) {
-    return apiRows
-  }
-
-  return apiRows
+  return knownUsers.map((user) => ({
+    userId: user.userId,
+    employee: user.displayName,
+    email: user.email ?? null,
+    certifications: (certsByUser.get(user.userId) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title)),
+  }))
 })
 
 const loadUsers = async (force = false) => {
@@ -191,6 +189,17 @@ const openAddModal = () => {
   resetForm()
   void loadUsers()
   showFormModal.value = true
+}
+
+const openAddModalForType = (trainingType: CertificationType) => {
+  openAddModal()
+  formState.value.trainingType = trainingType
+  formState.value.title = CERTIFICATION_TYPE_LABELS[trainingType]
+}
+
+const openAddModalForUser = (userId: number | null) => {
+  openAddModal()
+  formState.value.userId = userId
 }
 
 const openEditModal = (cert: CertificationRecord) => {
@@ -356,58 +365,67 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
         {{ certError }}
       </div>
 
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Ansatt</th>
-              <th>Sertifikat</th>
-              <th>Type</th>
-              <th>Gyldig til</th>
-              <th>Status</th>
-              <th v-if="canManageCertifications">Handlinger</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in mergedRows" :key="row.id">
-              <td>{{ row.employee }}</td>
-              <td>{{ row.type }}</td>
-              <td>
-                <span v-if="row.trainingType" class="type-badge">
-                  {{ CERTIFICATION_TYPE_LABELS[row.trainingType] }}
-                </span>
-                <span v-else>-</span>
-              </td>
-              <td>{{ row.expires }}</td>
-              <td>
-                <span class="status-pill" :class="getStatusClass(row.status)">
-                  {{ row.status }}
-                </span>
-              </td>
-              <td v-if="canManageCertifications">
-                <div v-if="row.source === 'api' && row.raw" class="action-buttons">
-                  <button
-                    type="button"
-                    class="action-btn action-btn--edit"
-                    @click="openEditModal(row.raw!)"
-                    title="Rediger"
-                  >
-                    Rediger
-                  </button>
-                  <button
-                    type="button"
-                    class="action-btn action-btn--delete"
-                    @click="deleteCertification(row.id as number)"
-                    title="Slett"
-                  >
-                    Slett
-                  </button>
+      <div class="user-cert-list">
+        <article v-for="group in userGroups" :key="group.userId ?? group.employee" class="user-cert-card">
+          <div class="user-cert-card__header">
+            <div>
+              <h3 class="user-cert-card__title">{{ group.employee }}</h3>
+              <p v-if="group.email" class="user-cert-card__meta">{{ group.email }}</p>
+            </div>
+            <button
+              v-if="canManageCertifications"
+              type="button"
+              class="action-btn action-btn--edit"
+              @click="openAddModalForUser(group.userId)"
+            >
+              + Nytt sertifikat
+            </button>
+          </div>
+
+          <div v-if="group.certifications.length > 0" class="user-cert-card__items">
+            <article
+              v-for="certification in group.certifications"
+              :key="certification.id"
+              class="user-cert-item"
+            >
+              <div class="user-cert-item__content">
+                <div>
+                  <p class="user-cert-item__title">{{ certification.title }}</p>
+                  <div class="user-cert-item__meta">
+                    <span class="type-badge">{{ CERTIFICATION_TYPE_LABELS[certification.trainingType] }}</span>
+                    <span>Gyldig til {{ certification.expires }}</span>
+                    <span>Fullført {{ certification.completedAt }}</span>
+                  </div>
+                  <p v-if="certification.notes" class="user-cert-item__notes">{{ certification.notes }}</p>
                 </div>
-                <span v-else class="text-muted">-</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <span class="status-pill" :class="getStatusClass(certification.status)">
+                  {{ certification.status }}
+                </span>
+              </div>
+
+              <div v-if="canManageCertifications" class="action-buttons">
+                <button
+                  type="button"
+                  class="action-btn action-btn--edit"
+                  @click="openEditModal(certification.raw)"
+                >
+                  Rediger
+                </button>
+                <button
+                  type="button"
+                  class="action-btn action-btn--delete"
+                  @click="deleteCertification(certification.id)"
+                >
+                  Slett
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="empty-state empty-state--compact">
+            <p>Ingen sertifikater registrert for denne brukeren.</p>
+          </div>
+        </article>
       </div>
 
       <div v-if="isLoadingCerts || isLoadingUsers" class="loading-indicator">
@@ -415,7 +433,7 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
         <span>Laster...</span>
       </div>
 
-      <div v-else-if="mergedRows.length === 0" class="empty-state">
+      <div v-else-if="userGroups.length === 0" class="empty-state">
         <p>Ingen sertifiseringer funnet.</p>
         <p v-if="canManageCertifications" class="empty-hint">Klikk "Legg til sertifisering" for å opprette den første.</p>
       </div>
@@ -426,6 +444,24 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
           Alle som selger, skjenker eller utleverer alkohol skal ha bestått kunnskapsprøve.
           Administrer sertifiseringer via tabellen ovenfor.
         </p>
+      </div>
+    </section>
+
+    <section class="catalog-section" aria-label="Mulige sertifikater">
+      <div class="section-header">
+        <h2 class="matrix-title">Mulige sertifikater</h2>
+        <button v-if="canManageCertifications" type="button" class="add-btn" @click="openAddModal">
+          + Opprett nytt sertifikat
+        </button>
+      </div>
+
+      <div class="catalog-grid">
+        <article v-for="type in availableCertTypes" :key="type.value" class="catalog-card">
+          <div>
+            <p class="catalog-card__title">{{ type.label }}</p>
+            <p class="catalog-card__meta">{{ type.value }}</p>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -614,6 +650,42 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
   padding: 1.25rem;
 }
 
+.catalog-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.catalog-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-card) 94%, #f8fafc);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.catalog-card__title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-foreground);
+}
+
+.catalog-card__meta {
+  margin: 0.35rem 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+}
+
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -643,32 +715,80 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
   background: color-mix(in srgb, var(--ik-alkohol-primary) 12%, var(--color-card));
 }
 
-.table-wrap {
-  overflow-x: auto;
-  margin-bottom: 14px;
+.user-cert-list {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.table-wrap table {
-  width: 100%;
-  border-collapse: collapse;
+.user-cert-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: color-mix(in srgb, var(--color-card) 94%, #f8fafc);
 }
 
-.table-wrap th {
-  text-align: left;
-  padding: 12px 8px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-gray-600);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
+.user-cert-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
 }
 
-.table-wrap td {
-  padding: 12px 8px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-gray-700);
+.user-cert-card__title {
+  margin: 0;
+  font-size: var(--font-size-base);
+}
+
+.user-cert-card__meta {
+  margin: 0.2rem 0 0;
   font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+
+.user-cert-card__items {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.user-cert-item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.user-cert-item__content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.user-cert-item__title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-foreground);
+}
+
+.user-cert-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.35rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+}
+
+.user-cert-item__notes {
+  margin: 0.45rem 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
 }
 
 .type-badge {
@@ -721,7 +841,9 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
   border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
   cursor: pointer;
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-gray-700);
 }
 
 .action-btn--edit {
@@ -879,6 +1001,11 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
   margin: 1rem 0;
 }
 
+.empty-state--compact {
+  margin: 0;
+  padding: 1rem;
+}
+
 .empty-state p {
   margin: 0.5rem 0;
 }
@@ -898,6 +1025,12 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
   }
 
   .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-cert-card__header,
+  .user-cert-item__content {
     flex-direction: column;
     align-items: flex-start;
   }
