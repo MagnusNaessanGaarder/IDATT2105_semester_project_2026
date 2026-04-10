@@ -121,7 +121,9 @@ const updateSetting = (sectionId: string, itemId: string, nextValue: unknown) =>
 
   item.current_value = nextValue
   hasChanges.value = true
-  validation.clearError(itemId)
+
+  // Real-time validation - validate immediately as user types/changes
+  validation.validateField(itemId, nextValue, settingsState.value)
 }
 
 const invalidInputs = ref<Set<string>>(new Set())
@@ -166,17 +168,15 @@ const validateAndUpdateNumber = (
   // Update the value first
   updateSetting(sectionId, itemId, constrainedValue)
 
-  // Check temperature cross-validation
+  // Check temperature cross-validation immediately
   if (itemId === 'default_temp_min_c' || itemId === 'default_temp_max_c') {
-    const minTempItem = findItemById('temperature', 'default_temp_min_c')
-    const maxTempItem = findItemById('temperature', 'default_temp_max_c')
-    const minTemp = (minTempItem?.current_value as number) ?? 0
-    const maxTemp = (maxTempItem?.current_value as number) ?? 0
+    validation.validateField(itemId, constrainedValue, settingsState.value)
 
-    if (minTemp > maxTemp) {
-      tempRangeError.value = 'Min temperatur kan ikke være høyere enn maks temperatur'
-    } else {
-      tempRangeError.value = null
+    // Also validate the other temperature field
+    const otherItemId = itemId === 'default_temp_min_c' ? 'default_temp_max_c' : 'default_temp_min_c'
+    const otherItem = findItemById('temperature', otherItemId)
+    if (otherItem) {
+      validation.validateField(otherItemId, otherItem.current_value, settingsState.value)
     }
   }
 
@@ -487,18 +487,19 @@ watch(currentOrgNumber, () => {
                   <input
                     :id="item.id"
                     class="setting-input"
-                    :class="{ 'setting-input--error': isInvalidInput(item.id) }"
+                    :class="{ 'setting-input--error': isInvalidInput(item.id) || validation.getError(item.id) }"
                     type="number"
                     :value="item.current_value ?? ''"
                     :min="item.min"
                     :max="item.max"
                     :step="item.step"
                     :disabled="data.isLoading.value"
+                    @input="validateAndUpdateNumber(section.id, item.id, ($event.target as HTMLInputElement), item.min, item.max)"
                     @blur="validateAndUpdateNumber(section.id, item.id, ($event.target as HTMLInputElement), item.min, item.max)"
                     @keydown.enter="validateAndUpdateNumber(section.id, item.id, ($event.target as HTMLInputElement), item.min, item.max)"
-                    @input="invalidInputs.delete(item.id)"
                   >
                   <span v-if="isInvalidInput(item.id)" class="input-error-msg">Ugyldig tall</span>
+                  <span v-else-if="validation.getError(item.id)" class="input-error-msg">{{ validation.getError(item.id) }}</span>
                 </div>
 
                 <div v-else-if="item.type === 'email'" class="email-input-wrap">
@@ -673,37 +674,27 @@ watch(currentOrgNumber, () => {
 }
 
 .settings-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto;
-  grid-auto-flow: row;
-  gap: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .settings-section {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 0.9rem;
+  padding: 0.75rem;
 }
 
-/* Tablet: 2 columns with stable placement */
+/* Tablet: 2 columns */
 @media (min-width: 768px) {
   .settings-grid {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(3, auto);
-    align-items: start; /* Prevents card stretching */
-    align-content: start; /* Keeps cards at top, no extra space */
+    grid-auto-rows: min-content; /* Cards sized by content, no extra space */
+    gap: 0.5rem;
+    align-items: start; /* Each card independent at top */
   }
-
-  /* Better balance: 2 cards in col 1, 3 cards in col 2 based on content size */
-  /* profile (4 fields) + alerts_retention (4 fields) = bigger cards in col 1 */
-  /* organization (2) + modules (2) + temperature (2) = smaller cards in col 2 */
-  .settings-section:nth-child(1) { grid-column: 1; grid-row: 1; } /* profile */
-  .settings-section:nth-child(5) { grid-column: 1; grid-row: 2; } /* alerts_retention */
-  .settings-section:nth-child(2) { grid-column: 2; grid-row: 1; } /* organization */
-  .settings-section:nth-child(3) { grid-column: 2; grid-row: 2; } /* modules */
-  .settings-section:nth-child(4) { grid-column: 2; grid-row: 3; } /* temperature */
 }
 
 .settings-title {
