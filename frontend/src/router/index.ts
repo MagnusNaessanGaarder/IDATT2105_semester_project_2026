@@ -118,6 +118,12 @@ const router = createRouter({
           meta: { title: 'Regelverk', moduleKey: 'alcohol' },
         },
         {
+          path: 'opplaering',
+          name: 'EmployeeTraining',
+          component: () => import('@/features/dashboard/views/EmployeeTrainingView.vue'),
+          meta: { title: 'Opplæringsregister' },
+        },
+        {
           path: 'rapporter',
           name: 'Reports',
           component: () => import('@/features/dashboard/views/ReportsView.vue'),
@@ -147,6 +153,13 @@ const router = createRouter({
           component: () => import('@/features/admin/views/UsersView.vue'),
           // Role policy: user administration is restricted to ADMIN.
           meta: { title: 'Brukere', allowedRoles: ['ADMIN'] },
+        },
+        {
+          path: 'admin/opplaering',
+          name: 'Training',
+          component: () => import('@/features/admin/views/TrainingView.vue'),
+          // Role policy: user administration is restricted to ADMIN.
+          meta: { title: 'Opplaering', allowedRoles: ['ADMIN'] },
         },
         {
           path: 'admin/lokasjoner',
