@@ -28,6 +28,7 @@ const goToDashboard = () => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .forbidden-view h1 {
@@ -44,10 +45,10 @@ const goToDashboard = () => {
   min-height: var(--touch-target);
   width: fit-content;
   padding: 0.45rem 0.95rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-primary);
   border-radius: var(--radius-md);
   background: var(--color-card);
-  color: var(--color-gray-700);
+  color: var(--color-primary);
   font-size: var(--font-size-sm);
   font-weight: 600;
 }

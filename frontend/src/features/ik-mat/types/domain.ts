@@ -17,24 +17,28 @@ export interface RecentCheck {
 
 export interface ChecklistItem {
   id: number
+  runItemId: number | null
   task: string
   required: boolean
   completed: boolean
+  isDeviation: boolean
   notes: string | null
 }
 
 export interface Checklist {
   id: number
+  runId: number | null
   name: string
   category: string
   frequency: 'Daglig' | 'Ukentlig' | 'Månedlig' | string
   description: string
-  created_date: string
-  law_unit: string
+  location: string | null
+  assignedTo: string | null
   items: ChecklistItem[]
   completed_by: string | null
   completion_date: string | null
   completion_time: string | null
+  due_date: string | null
   status: 'completed' | 'pending' | 'overdue'
   // Tracking fields for persistence
   run_id: number | null

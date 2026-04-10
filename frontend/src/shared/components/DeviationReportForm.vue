@@ -417,6 +417,7 @@ function resetForm() {
   justify-content: center;
   z-index: 100;
   padding: 1rem;
+  padding-inline: clamp(1rem, 4vw, 2.5rem);
 }
 
 .dialog {
@@ -506,7 +507,7 @@ function resetForm() {
 .label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--color-gray-700);
+  color: var(--color-gray-800);
 }
 
 .req {
@@ -516,19 +517,21 @@ function resetForm() {
 .input {
   min-height: 2.5rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-family: inherit;
   color: var(--color-foreground);
-  background: var(--color-card);
-  transition: border-color var(--transition-fast);
+  background: var(--color-surface-muted);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
 }
 
 .input:focus {
   outline: none;
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-focus);
 }
 
 .input--error {
@@ -543,7 +546,7 @@ function resetForm() {
 
 select.input {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23244145' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.6rem center;
   padding-right: 2rem;
@@ -551,7 +554,7 @@ select.input {
 }
 
 select.input:disabled {
-  color: var(--color-gray-400);
+  color: var(--color-gray-500);
   cursor: not-allowed;
 }
 

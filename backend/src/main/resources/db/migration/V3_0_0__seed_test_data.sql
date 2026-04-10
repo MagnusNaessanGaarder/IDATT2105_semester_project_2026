@@ -1,16 +1,9 @@
--- V3_0_0__seed_test_data.sql
-
--- Seeds application test data mapped from frontend/src/data/*.json
-
--- Target org: Everest Sushi & Fusion AS (org_number: 937219997)
+-- Test data for Everest Sushi - matches the frontend mock data
 
 SET NAMES utf8mb4;
 
 SET FOREIGN_KEY_CHECKS = 0;
--- ---------------------------------------------------------
-
 -- LOCATIONS
--- ---------------------------------------------------------
 INSERT INTO location (org_number, name, description, location_type, temp_min_c, temp_max_c, is_active, created_at,
                       updated_at)
 VALUES (937219997, 'Kjøleskap 1 (fersk fisk)', 'Kjøleskap for frisk fisk og sjømat', 'FRIDGE', 0, 4, 1, NOW(), NOW()),
@@ -19,10 +12,7 @@ VALUES (937219997, 'Kjøleskap 1 (fersk fisk)', 'Kjøleskap for frisk fisk og sj
        (937219997, 'Serveringsbuffet', 'Varmholdt serveringsbuffet', 'HOT_FOOD', 60, 70, 1, NOW(), NOW()),
        (937219997, 'Kjøkken', 'Hovedkjøkken', 'KITCHEN', NULL, NULL, 1, NOW(), NOW()),
        (937219997, 'Bar', 'Barområde', 'BAR', NULL, NULL, 1, NOW(), NOW());
--- ---------------------------------------------------------
 
--- TEMPERATURE LOG POINTS / ENTRIES (ik-mat.json)
--- ---------------------------------------------------------
 
 INSERT INTO temperature_log_point (org_number, location_id, name, is_active, created_at, updated_at)
 SELECT 937219997, l.location_id, l.name, 1, NOW(), NOW()

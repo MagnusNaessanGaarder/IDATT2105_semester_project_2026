@@ -63,6 +63,8 @@ const handleClick = () => {
   gap: var(--spacing-sm);
   font-family: var(--font-family-ui);
   font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   min-height: var(--touch-target);
@@ -75,7 +77,7 @@ const handleClick = () => {
   background: var(--color-primary);
   color: var(--color-primary-foreground);
   box-shadow: var(--shadow-sm);
-  border-color: color-mix(in srgb, var(--color-primary) 40%, black);
+  border-color: var(--color-primary);
 }
 
 .base-button--primary:hover:not(:disabled) {
@@ -87,13 +89,13 @@ const handleClick = () => {
 }
 
 .base-button--secondary {
-  background: var(--color-accent);
-  border-color: var(--color-border);
-  color: var(--color-foreground);
+  background: transparent;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .base-button--secondary:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-info-bg);
 }
 
 .base-button--danger {
@@ -107,12 +109,12 @@ const handleClick = () => {
 
 .base-button--ghost {
   background: transparent;
-  color: var(--color-gray-700);
+  color: var(--color-link);
 }
 
 .base-button--ghost:hover:not(:disabled) {
-  color: var(--color-foreground);
-  background: var(--color-accent);
+  color: var(--color-primary);
+  background: var(--color-info-bg);
 }
 
 .base-button--sm {

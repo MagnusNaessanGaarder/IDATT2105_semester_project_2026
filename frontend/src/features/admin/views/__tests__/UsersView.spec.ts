@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent, ref } from 'vue'
 import UsersView from '../UsersView.vue'
 
@@ -191,7 +191,7 @@ describe('UsersView', () => {
     await Promise.resolve()
 
     expect(wrapper.find('.modal-stub').exists()).toBe(false)
-    await wrapper.find('.add-btn').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     expect(wrapper.find('.modal-stub').exists()).toBe(true)
     expect(wrapper.find('.modal-stub h2').text()).toBe('Legg til teammedlem')
   })
@@ -201,10 +201,10 @@ describe('UsersView', () => {
     const wrapper = mountView()
     await Promise.resolve()
 
-    await wrapper.find('.add-btn').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     await wrapper.find('#addEmail').setValue('new.person@example.com')
-    await wrapper.find('.btn-primary').trigger('click')
-    await Promise.resolve()
+    await wrapper.find('.modal-stub .btn--primary').trigger('click')
+    await flushPromises()
 
     expect(client.post).toHaveBeenCalledWith(
         '/users/add-to-org',
@@ -224,10 +224,10 @@ describe('UsersView', () => {
     const wrapper = mountView()
     await Promise.resolve()
 
-    await wrapper.find('.add-btn').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     await wrapper.find('#addEmail').setValue('unknown@example.com')
-    await wrapper.find('.btn-primary').trigger('click')
-    await Promise.resolve()
+    await wrapper.find('.modal-stub .btn--primary').trigger('click')
+    await flushPromises()
 
     expect(wrapper.find('.add-error').exists()).toBe(true)
     expect(wrapper.find('.add-error').text()).toContain('Ingen konto')
@@ -242,10 +242,10 @@ describe('UsersView', () => {
     const wrapper = mountView()
     await Promise.resolve()
 
-    await wrapper.find('.add-btn').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     await wrapper.find('#addEmail').setValue('existing@example.com')
-    await wrapper.find('.btn-primary').trigger('click')
-    await Promise.resolve()
+    await wrapper.find('.modal-stub .btn--primary').trigger('click')
+    await flushPromises()
 
     expect(wrapper.find('.add-error').text()).toContain('allerede medlem')
   })

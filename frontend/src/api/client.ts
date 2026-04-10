@@ -143,6 +143,7 @@ client.interceptors.request.use(
     }
 
     if (!token) {
+      // Token refresh failed - redirect to login
       clearSessionTokens()
       window.location.href = '/login'
       return Promise.reject(new Error('Missing Bearer token for protected endpoint'))

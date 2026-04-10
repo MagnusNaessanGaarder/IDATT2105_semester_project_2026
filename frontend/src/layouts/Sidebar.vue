@@ -246,13 +246,13 @@ watch(currentScreen, (routeName) => {
 
 <style scoped>
 .sidebar {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
-  width: var(--sidebar-width);
+  width: min(84vw, var(--sidebar-width));
+  max-width: 20rem;
   height: 100vh;
-  background: var(--color-card);
-  border-right: 0.0625rem solid var(--color-border);
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   display: flex;
   flex-direction: column;
   z-index: 50;
@@ -265,12 +265,10 @@ watch(currentScreen, (routeName) => {
     left: 0;
     width: var(--sidebar-width);
     height: 100vh;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(251, 250, 247, 0.98) 100%);
-    border-right: 0.0625rem solid var(--color-border);
+    background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
     display: flex;
     flex-direction: column;
     z-index: 50;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5), var(--shadow-sm);
   }
 }
 
@@ -278,9 +276,8 @@ watch(currentScreen, (routeName) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
-  border-bottom: 0.0625rem solid var(--color-border);
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.02) 0%, rgba(15, 23, 42, 0) 100%);
+  padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-lg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 .brand-block {
@@ -293,7 +290,7 @@ watch(currentScreen, (routeName) => {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.02em;
-  color: var(--color-primary);
+  color: var(--color-surface-raised);
   margin: 0;
 }
 
@@ -302,7 +299,7 @@ watch(currentScreen, (routeName) => {
   font-size: var(--font-size-xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--color-gray-500);
+  color: color-mix(in srgb, white 72%, transparent);
   font-weight: var(--font-weight-medium);
 }
 
@@ -314,6 +311,7 @@ watch(currentScreen, (routeName) => {
   height: 2.5rem;
   background: transparent;
   border: none;
+  color: var(--color-surface-raised);
   cursor: pointer;
 }
 
@@ -335,9 +333,7 @@ watch(currentScreen, (routeName) => {
 .sidebar-footer {
   position: sticky;
   bottom: 0;
-  background: var(--color-card);
-  border-top: 0.0625rem solid var(--color-border);
-  box-shadow: 0 -0.375rem 1rem rgba(15, 23, 42, 0.04);
+  background: rgba(255, 255, 255, 0.06);
   z-index: 10;
 }
 

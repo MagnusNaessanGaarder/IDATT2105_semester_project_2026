@@ -442,11 +442,13 @@ defineExpose({
 </template>
 
 <style scoped>
+/* Revisjonslogg - WCAG-forbedret med tydeligere kanter */
 .audit-section {
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong, var(--color-gray-300));
   border-radius: var(--radius-md);
   background: var(--color-card);
   padding: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .audit-header {
@@ -485,10 +487,22 @@ defineExpose({
 .audit-search {
   min-height: 2.4rem;
   min-width: 14rem;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong, var(--color-gray-300));
   border-radius: var(--radius-md);
   background: var(--color-gray-50);
   padding: 0 0.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.audit-search:hover {
+  border-color: var(--color-gray-400);
+}
+
+.audit-search:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: var(--color-surface-raised);
 }
 
 .audit-table-wrap {
@@ -528,7 +542,7 @@ defineExpose({
   min-height: 2.3rem;
   padding: 0 0.7rem;
   background: white;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong, var(--color-gray-300));
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   color: var(--color-foreground);
@@ -618,7 +632,7 @@ td {
 .pagination__size select {
   min-height: 2rem;
   padding: 0 0.5rem;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong, var(--color-gray-300));
   border-radius: var(--radius-sm);
   background: var(--color-gray-50);
 }
@@ -661,7 +675,7 @@ td {
 .btn--secondary {
   background: var(--color-card);
   color: var(--color-gray-700);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong, var(--color-gray-300));
 }
 
 .btn:disabled {
@@ -818,7 +832,7 @@ td {
   padding: 0.5rem;
   background: white;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong, var(--color-gray-300));
 }
 
 .text-success {
@@ -841,7 +855,7 @@ td {
   background: white;
   border-radius: var(--radius-md);
   padding: 1rem;
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong, var(--color-gray-300));
 }
 
 .changes-section h5 {

@@ -1,6 +1,4 @@
--- Add profile fields to organization_settings table
--- These fields store organization profile information for display and contact purposes
-
+-- Add org profile fields (name, email, phone) to settings
 ALTER TABLE organization_settings
     ADD COLUMN display_name VARCHAR(255) NULL AFTER notification_email,
     ADD COLUMN legal_name VARCHAR(255) NULL AFTER display_name,

@@ -4,11 +4,8 @@ import { useIkMatData } from '../composables/useIkMatData'
 
 const {
   dashboardStats,
-  recentChecks,
-  checklists,
   temperatureRecords,
   deviations,
-  completionForChecklist,
   isTemperatureInRange,
   formatDate,
   isLoading,
@@ -17,15 +14,6 @@ const {
 } = useIkMatData()
 
 const openDeviations = computed(() => deviations.filter((item) => item.status !== 'resolved'))
-
-const checklistCompletion = computed(() => {
-  if (checklists.length === 0) {
-    return 0
-  }
-
-  const sum = checklists.reduce((acc, checklist) => acc + completionForChecklist(checklist), 0)
-  return Math.round(sum / checklists.length)
-})
 
 const temperatureAlerts = computed(() => {
   return temperatureRecords.filter((record) => !isTemperatureInRange(record))
@@ -47,7 +35,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 <template>
   <div class="view-page ik-mat-dashboard">
     <header class="page-header">
-      <h1>IK-MAT</h1>
+      <h1>Ik-mat</h1>
       <p class="subtitle">Everest Sushi &amp; Fusion - internkontroll for matsikkerhet og hygiene</p>
     </header>
 
@@ -60,58 +48,44 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
       </article>
     </section>
 
-    <section v-if="error" class="panel-card" aria-label="API-feil">
-      <header class="panel-card__header">
+    <section v-if="error" class="app-surface ik-mat-dashboard__panel" aria-label="API-feil">
+      <header class="ik-mat-dashboard__panel-header">
         <h2>Kunne ikke hente IK-MAT data</h2>
         <button type="button" class="status-chip status-chip--warn" @click="reload">Prøv igjen</button>
       </header>
       <p class="item-row__meta">{{ error }}</p>
     </section>
 
-    <section v-else-if="isLoading" class="panel-card" aria-label="Laster IK-MAT data">
+    <section v-else-if="isLoading" class="app-surface ik-mat-dashboard__panel" aria-label="Laster IK-MAT data">
       <p class="item-row__meta">Laster IK-MAT data...</p>
     </section>
 
     <section class="quick-actions" aria-label="Snarveier">
       <router-link :to="{ name: 'Checklists' }" class="action-card">
+        <p class="action-card__eyebrow">Daglig drift</p>
         <h2>Sjekklister</h2>
         <p>Følg daglige, ukentlige og manedlige kontroller med tydelig progresjon.</p>
       </router-link>
       <router-link :to="{ name: 'Temperature' }" class="action-card">
+        <p class="action-card__eyebrow">Overvåking</p>
         <h2>Temperatur</h2>
         <p>Hold oversikt over kjøle- og frysesoner med avvik i sanntid.</p>
       </router-link>
       <router-link :to="{ name: 'Deviations' }" class="action-card">
+        <p class="action-card__eyebrow">Oppfølging</p>
         <h2>Avvik</h2>
         <p>Prioriter åpne hendelser og dokumenter korrigerende tiltak.</p>
       </router-link>
       <router-link :to="{ name: 'HACCP' }" class="action-card">
+        <p class="action-card__eyebrow">Kritiske punkter</p>
         <h2>HACCP-plan</h2>
         <p>Se kritiske kontrollpunkter, grenser og ansvar fordelt i teamet.</p>
       </router-link>
     </section>
 
     <section class="details-grid" aria-label="Detaljoversikt">
-      <article class="panel-card">
-        <header class="panel-card__header">
-          <h2>Siste kontroller</h2>
-          <span class="status-chip status-chip--good">{{ checklistCompletion }}% ferdig</span>
-        </header>
-        <ul class="item-list">
-          <li v-for="check in recentChecks" :key="check.id" class="item-row">
-            <div>
-              <p class="item-row__title">{{ check.name }}</p>
-              <p class="item-row__meta">{{ check.completed_by }} · {{ formatDate(check.completed_date) }} kl. {{ check.completed_time }}</p>
-            </div>
-            <span class="status-chip" :class="check.status === 'completed' ? 'status-chip--good' : 'status-chip--warn'">
-              {{ check.status === 'completed' ? 'Fullført' : 'Mangler' }}
-            </span>
-          </li>
-        </ul>
-      </article>
-
-      <article class="panel-card">
-        <header class="panel-card__header">
+      <article class="app-surface ik-mat-dashboard__panel">
+        <header class="ik-mat-dashboard__panel-header">
           <h2>Operative varsler</h2>
           <span class="status-chip" :class="temperatureAlerts.length > 0 ? 'status-chip--danger' : 'status-chip--good'">
             {{ temperatureAlerts.length }} temperaturavvik
@@ -131,8 +105,8 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
         </ul>
       </article>
 
-      <article class="panel-card details-grid__span-2">
-        <header class="panel-card__header">
+      <article class="app-surface ik-mat-dashboard__panel">
+        <header class="ik-mat-dashboard__panel-header">
           <h2>Åpne avvik</h2>
           <span class="status-chip" :class="openDeviations.length > 0 ? 'status-chip--warn' : 'status-chip--good'">
             {{ openDeviations.length }} aktive
@@ -161,14 +135,16 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   gap: var(--spacing-lg);
 }
 
-.page-header {
-  margin-bottom: 0;
+.ik-mat-dashboard__panel {
+  padding: 1rem;
 }
 
-.page-header h1 {
-  margin: 0;
-  font-size: clamp(1.7rem, 2.2vw, var(--font-size-2xl));
-  color: var(--ik-mat-primary);
+.ik-mat-dashboard__panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .subtitle {
@@ -177,42 +153,50 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   font-size: var(--font-size-sm);
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: 0;
+.ik-mat-dashboard__panel-header h2 {
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-foreground);
 }
 
 .stat-card {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 7rem;
+  border: none;
   border-radius: var(--radius-lg);
-  padding: 1rem;
+  padding: 1rem 1.1rem;
   box-shadow: var(--shadow-sm);
+  color: var(--color-primary-foreground);
+  background: var(--color-secondary);
 }
 
 .stat-card--success {
-  border-left: 0.25rem solid var(--color-success);
+  background: var(--color-primary);
 }
 
 .stat-card--warning {
-  border-left: 0.25rem solid var(--color-warning);
+  background: var(--color-cta);
+  color: var(--color-cta-foreground);
 }
 
 .stat-card--info {
-  border-left: 0.25rem solid var(--color-info);
+  background: var(--color-secondary);
 }
 
 .stat-card__label {
   margin: 0;
-  color: var(--color-gray-600);
+  color: color-mix(in srgb, currentColor 82%, transparent);
   font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: var(--font-weight-semibold);
 }
 
 .stat-card__value {
   margin: 0.45rem 0 0;
-  color: var(--color-foreground);
+  color: currentColor;
   font-size: 1.6rem;
   font-weight: var(--font-weight-bold);
 }
@@ -220,12 +204,12 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 .stat-card__unit {
   margin-left: 0.2rem;
   font-size: var(--font-size-sm);
-  color: var(--color-gray-500);
+  color: color-mix(in srgb, currentColor 82%, transparent);
 }
 
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--spacing-md);
   margin-bottom: 0;
 }
@@ -235,27 +219,35 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1rem;
-  color: inherit;
-  text-decoration: none;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
   box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .action-card:hover {
-  border-color: color-mix(in srgb, var(--ik-mat-primary) 35%, var(--color-border));
-  background: color-mix(in srgb, var(--ik-mat-bg) 45%, var(--color-card));
+  border-color: var(--ik-mat-primary);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
-.action-card h2 {
+.action-card__eyebrow {
   margin: 0;
+  color: var(--ik-mat-primary);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: var(--font-weight-semibold);
+}
+
+.action-card h2 {
+  margin: 6px 0;
   font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
   color: var(--color-foreground);
 }
 
 .action-card p {
-  margin: 0.4rem 0 0;
+  margin: 0;
   font-size: var(--font-size-sm);
   color: var(--color-gray-600);
 }
@@ -264,32 +256,6 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-md);
-}
-
-.details-grid__span-2 {
-  grid-column: 1 / -1;
-}
-
-.panel-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
-  padding: 1rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.panel-card__header {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.panel-card__header h2 {
-  margin: 0;
-  font-size: var(--font-size-base);
-  color: var(--color-foreground);
 }
 
 .item-list {

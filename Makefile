@@ -1,51 +1,54 @@
-.PHONY: help dev stop restart status logs logs-backend logs-frontend test clean clean-db clean-full install wait-mysql
-
-# Java 21 Configuration (auto-detect from javac symlink)
 JAVA_HOME := $(shell dirname $$(dirname $$(readlink -f $$(command -v javac))))
 PATH := $(JAVA_HOME)/bin:$(PATH)
 export JAVA_HOME PATH
 
+.PHONY: help dev stop status logs test clean prod-build prod-up prod-down prod-logs
+
 help:
 	@echo ""
-	@echo "  make dev         - Start all services"
-	@echo "  make stop        - Stop all services"
-	@echo "  make restart     - Restart all services"
-	@echo "  make status      - Check service status"
-	@echo "  make wait-mysql  - Wait for MySQL to be ready (useful for VPN)"
-	@echo "  make logs        - Show all logs"
-	@echo "  make logs-backend - Show backend logs only"
-	@echo "  make logs-frontend - Show frontend logs only"
-	@echo "  make install     - Install dependencies"
-	@echo "  make test        - Run tests"
-	@echo "  make clean       - Clean build files"
-	@echo "  make clean-db    - Reset database"
-	@echo "  make clean-full  - Full cleanup"
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Development:"
+	@echo "  dev       Start all services (MySQL, backend, frontend)"
+	@echo "  stop      Stop all running services"
+	@echo "  status    Show which services are running"
+	@echo "  logs      Show logs from all services"
+	@echo ""
+	@echo "Testing:"
+	@echo "  test      Run backend tests"
+	@echo ""
+	@echo "Maintenance:"
+	@echo "  clean     Remove build artifacts and reset database"
+	@echo "  install   Install dependencies without starting services"
+	@echo ""
+	@echo "Production:"
+	@echo "  prod-build  Build production Docker images"
+	@echo "  prod-up     Start production services"
+	@echo "  prod-down   Stop production services"
+	@echo "  prod-logs   View production logs"
 	@echo ""
 
+# Start all services for local development
 dev:
-	@echo "========================================"
-	@echo "  Starting dev environment"
-	@echo "========================================"
-	@$(MAKE) stop 2>/dev/null || true
-	@if [ ! -d frontend/node_modules ]; then \
-		echo "Installing frontend dependencies..."; \
-		cd frontend && npm install; \
-	fi
+	@echo "Starting development environment..."
+	@$(MAKE) stop >/dev/null 2>&1 || true
 	@echo ""
-	@echo "[1/3] Starting MySQL (Docker)..."
+
+	@echo "[1/3] Starting MySQL..."
 	@docker compose -f compose-dev.yaml up -d mysql 2>/dev/null || docker start backend-mysql-1 2>/dev/null || true
 	@for i in $$(seq 1 30); do \
-		lsof -ti:3306 >/dev/null 2>&1 && break; \
+		docker exec backend-mysql-1 mysqladmin ping -h 127.0.0.1 -uik_root -pikroot >/dev/null 2>&1 && break; \
 		if [ $$i -eq 30 ]; then \
 			echo "  ERROR: MySQL did not become ready"; \
 			exit 1; \
 		fi; \
 		sleep 1; \
 	done
-	@echo "  MySQL started"
+	@echo "  MySQL ready"
 	@echo ""
+
 	@echo "[2/3] Starting backend..."
-	@(cd backend && nohup ./mvnw -Plocal-run spring-boot:run -Dmaven.test.skip=true -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
+	@cd backend && nohup ./mvnw -Plocal-run spring-boot:run -DskipTests -Dcheckstyle.skip > /tmp/backend.log 2>&1 &
 	@for i in $$(seq 1 60); do \
 		lsof -ti:8080 >/dev/null 2>&1 && break; \
 		if [ $$i -eq 60 ]; then \
@@ -54,8 +57,9 @@ dev:
 		fi; \
 		sleep 1; \
 	done
-	@echo "  Backend started"
+	@echo "  Backend started on http://localhost:8080"
 	@echo ""
+
 	@echo "[3/3] Starting frontend..."
 	@(cd frontend && nohup npm run dev -- --host 127.0.0.1 > /tmp/frontend.log 2>&1 &)
 	@for i in $$(seq 1 30); do \
@@ -66,116 +70,81 @@ dev:
 		fi; \
 		sleep 1; \
 	done
-	@echo "  Frontend started"
+	@echo "  Frontend started on http://localhost:5173"
 	@echo ""
-	@echo "========================================"
-	@echo "  Started!"
-	@echo "========================================"
-	@echo ""
+
+	@echo "All services started!"
 	@echo "  Backend:  http://localhost:8080"
 	@echo "  Frontend: http://localhost:5173"
-	@echo "  Swagger:  http://localhost:8080/swagger-ui/index.html"
+	@echo "  API docs: http://localhost:8080/swagger-ui.html"
 	@echo ""
-	@echo "  Logs:    make logs-backend"
-	@echo "           make logs-frontend"
-	@echo "  Stop:    make stop"
-	@echo ""
+	@echo "Logs: make logs"
+	@echo "Stop: make stop"
 
+# Stop all services
 stop:
-	@echo "========================================"
-	@echo "  Stopping dev environment"
-	@echo "========================================"
-	@echo ""
 	@echo "Stopping services..."
-	@# Kill by port
 	@-lsof -ti:8080 2>/dev/null | xargs -r kill -9 2>/dev/null || true
 	@-lsof -ti:5173 2>/dev/null | xargs -r kill -9 2>/dev/null || true
-	@# Kill all Java processes related to this project
 	@-jps -l 2>/dev/null | grep -E "(InternalControl|spring-boot)" | awk '{print $$1}' | xargs -r kill -9 2>/dev/null || true
-	@-pgrep -f "InternalControl" | xargs -r kill -9 2>/dev/null || true
-	@-pgrep -f "spring-boot" | xargs -r kill -9 2>/dev/null || true
 	@-pgrep -f "mvnw" | xargs -r kill -9 2>/dev/null || true
-	@-pgrep -f "vite" | xargs -r kill -9 2>/dev/null || true
-	@# Kill any hanging Java MySQL connections
-	@-lsof -i:3306 2>/dev/null | grep java | awk '{print $$2}' | sort -u | xargs -r kill -9 2>/dev/null || true
-	@# Stop Docker
+	@-docker compose -f compose-dev.yaml down 2>/dev/null || true
 	@-docker stop backend-mysql-1 2>/dev/null || true
 	@-docker rm backend-mysql-1 2>/dev/null || true
-	@-docker compose -f compose-dev.yaml down -v
-	@echo "  All services stopped"
-	@echo ""
+	@echo "  Done"
 
-restart: stop dev
-
+# Show service status
 status:
 	@echo ""
 	@echo "Service Status:"
 	@echo ""
-	@printf "Backend (port 8080):  "
-	@if lsof -ti:8080 > /dev/null 2>&1; then echo "Running"; else echo "Stopped"; fi
-	@printf "Frontend (port 5173): "
-	@if lsof -ti:5173 > /dev/null 2>&1; then echo "Running"; else echo "Stopped"; fi
-	@printf "MySQL (port 3306):    "
-	@if lsof -ti:3306 > /dev/null 2>&1 || (command -v docker > /dev/null 2>&1 && [ "$$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' backend-mysql-1 2>/dev/null)" = "healthy" ]); then echo "Running"; else echo "Stopped"; fi
-	@echo ""
-	@echo "URLs:"
-	@echo "  Backend:  http://localhost:8080"
-	@echo "  Frontend: http://localhost:5173"
-	@echo "  Swagger:  http://localhost:8080/swagger-ui/index.html"
+	@printf "  MySQL:    "
+	@if docker ps 2>/dev/null | grep -q backend-mysql-1; then echo "running"; else echo "stopped"; fi
+	@printf "  Backend:  "
+	@if lsof -ti:8080 >/dev/null 2>&1; then echo "running (port 8080)"; else echo "stopped"; fi
+	@printf "  Frontend: "
+	@if lsof -ti:5173 >/dev/null 2>&1; then echo "running (port 5173)"; else echo "stopped"; fi
 	@echo ""
 
+# Show logs
 logs:
-	@tail -f /tmp/backend.log /tmp/frontend.log 2>/dev/null || echo "No logs found"
+	@echo "=== Backend log ==="
+	@tail -50 /tmp/backend.log 2>/dev/null || echo "No backend log"
+	@echo ""
+	@echo "=== Frontend log ==="
+	@tail -20 /tmp/frontend.log 2>/dev/null || echo "No frontend log"
 
-logs-backend:
-	@tail -f /tmp/backend.log 2>/dev/null || echo "No backend log found"
+# Run backend tests
+test:
+	@cd backend && ./mvnw test
 
-logs-frontend:
-	@tail -f /tmp/frontend.log 2>/dev/null || echo "No frontend log found"
-
+# Install dependencies without starting
 install:
 	@echo "Installing backend dependencies..."
 	@cd backend && ./mvnw dependency:resolve -q
 	@echo "Installing frontend dependencies..."
 	@cd frontend && npm install
-	@echo "Done!"
+	@echo "Done"
 
-test:
-	@cd backend && ./mvnw test
-
+# Clean everything
 clean:
-	@echo "Cleaning build artifacts..."
-	@find . -type d -name "target" -exec rm -rf {} + 2>/dev/null || true
-	@find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
-	@find . -type d -name "dist" -exec rm -rf {} + 2>/dev/null || true
-	@find . -type f -name "*.log" -delete 2>/dev/null || true
+	@echo "Cleaning up..."
+	@$(MAKE) stop >/dev/null 2>&1 || true
+	@rm -rf backend/target frontend/dist 2>/dev/null || true
 	@rm -f /tmp/backend.log /tmp/frontend.log 2>/dev/null || true
-	@echo "Cleaned"
-
-clean-db:
-	@$(MAKE) stop 2>/dev/null || true
-	@docker stop backend-mysql-1 2>/dev/null || true
-	@docker rm -f backend-mysql-1 2>/dev/null || true
+	@docker compose -f compose-dev.yaml down -v 2>/dev/null || true
 	@docker volume rm -f backend_mysql-data 2>/dev/null || true
-	@docker system prune -f 2>/dev/null || true
-	@echo "Database reset - run 'make dev' to start fresh"
+	@echo "  Done"
 
-clean-full: clean clean-db
-	@docker compose down -v 2>/dev/null || true
-	@docker system prune -af --volumes 2>/dev/null || true
-	@find . -type d -name ".idea" -exec rm -rf {} + 2>/dev/null || true
-	@find . -type d -name ".vscode" -exec rm -rf {} + 2>/dev/null || true
-	@echo "Full cleanup completed"
+# Production commands
+prod-build:
+	@docker compose build
 
-wait-mysql:
-	@echo "Waiting for MySQL to be ready..."
-	@for i in 1 2 3 4 5 6 7 8 9 10; do \
-		if nc -z localhost 3306 2>/dev/null; then \
-			echo "MySQL is ready!"; \
-			exit 0; \
-		fi; \
-		echo "Attempt $$i: MySQL not ready yet..."; \
-		sleep 5; \
-	done; \
-	echo "MySQL failed to start within 50 seconds"; \
-	exit 1
+prod-up:
+	@docker compose up -d
+
+prod-down:
+	@docker compose down
+
+prod-logs:
+	@docker compose logs -f

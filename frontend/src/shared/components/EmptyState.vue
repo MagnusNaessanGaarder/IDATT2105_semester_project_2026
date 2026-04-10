@@ -44,24 +44,25 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 48px 24px;
+    padding: var(--spacing-3xl) var(--spacing-lg);
     text-align: center;
   }
 
   .empty-state__icon {
-    color: var(--color-gray-400);
-    margin-bottom: 16px;
+    color: var(--color-brand-light-teal);
+    margin-bottom: var(--spacing-md);
   }
 
   .empty-state__title {
-    font-size: 18px;
-    font-weight: 600;
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-foreground);
-    margin: 0 0 8px 0;
+    margin: 0 0 var(--spacing-xs) 0;
   }
 
   .empty-state__description {
-    font-size: 14px;
+    font-size: var(--font-size-sm);
     color: var(--color-gray-500);
     margin: 0;
   }

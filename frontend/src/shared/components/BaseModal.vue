@@ -2,8 +2,14 @@
   BaseModal - Gjenbrukbar modal/dialog-komponent
   
   Brukes for dialoger, bekreftelser og popup-vinduer.
-  Støtter Escape-tast for lukking, klikk utenfor for lukking
-  Har Teleport til body for riktig z-index
+  
+  Tilgjengelighetsfunksjoner:
+  - Trap focus: Tab-navigasjon holdes innenfor modalen
+  - Escape-tast lukker modalen
+  - Klikk utenfor lukker modalen
+  - Fokus gjenopprettes til trigger-element ved lukking
+  - ARIA-attributter for skjermlesere
+  - Teleport til body for riktig z-index
   
   Eksempel:
   <BaseModal :open="showModal" title="Bekreft sletting" @close="showModal = false">
@@ -14,7 +20,8 @@
   </BaseModal>
 -->
 <script setup lang="ts">
-  import { onMounted, onUnmounted } from 'vue'
+  import { onMounted, onUnmounted, watch } from 'vue'
+  import { useFocusTrap } from '../composables/useFocusTrap'
 
   interface Props {
     open: boolean
@@ -27,18 +34,40 @@
     close: []
   }>()
 
+  // Focus trap composable for keyboard accessibility
+  const { trapRef, activate, deactivate } = useFocusTrap()
+
   const handleKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape' && props.open) {
+    if (!props.open) {
+      return
+    }
+
+    if (event.key === 'Escape') {
       emit('close')
+      return
     }
   }
 
+  // Watch for modal open/close to activate/deactivate focus trap
+  watch(() => props.open, (isOpen) => {
+    if (isOpen) {
+      activate()
+    } else {
+      deactivate()
+    }
+  })
+
   onMounted(() => {
     document.addEventListener('keydown', handleKeydown)
+    // Activate immediately if modal is already open on mount
+    if (props.open) {
+      activate()
+    }
   })
 
   onUnmounted(() => {
     document.removeEventListener('keydown', handleKeydown)
+    deactivate()
   })
 </script>
 
@@ -50,9 +79,12 @@
       @click="emit('close')"
     >
       <div
+        ref="trapRef"
         class="modal"
         role="dialog"
         aria-modal="true"
+        tabindex="-1"
+        :aria-label="title"
         @click.stop
       >
         <div class="modal__header">
@@ -85,25 +117,26 @@
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(16, 38, 58, 0.45);
-    backdrop-filter: blur(2px);
+    background: var(--color-overlay-soft);
+    backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 100;
     padding: var(--spacing-md);
+    padding-inline: clamp(1rem, 4vw, 2.5rem);
   }
 
   .modal {
-    background: var(--color-card);
+    background: linear-gradient(180deg, var(--color-surface-raised) 0%, var(--color-surface-muted) 100%);
     width: 100%;
     max-width: 32rem;
     max-height: 90vh;
     overflow-y: auto;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    animation: modal-enter var(--transition-base) ease;
+    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    animation: modal-enter var(--transition-base) var(--ease-emphasized);
   }
 
   .modal__header {
@@ -111,12 +144,14 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--spacing-md);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border-strong);
+    background: color-mix(in srgb, var(--color-surface-muted) 70%, var(--color-surface-raised));
   }
 
   .modal__title {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
     margin: 0;
   }
 
@@ -135,8 +170,8 @@
   }
 
   .modal__close:hover {
-    background: var(--color-accent);
-    color: var(--color-foreground);
+    background: var(--color-info-bg);
+    color: var(--color-primary);
   }
 
   .modal__close:focus-visible {
@@ -146,6 +181,29 @@
 
   .modal__content {
     padding: var(--spacing-md);
+    background: var(--color-surface-raised);
+  }
+
+  .modal__content :deep(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden'])),
+  .modal__content :deep(select),
+  .modal__content :deep(textarea) {
+    border: 1px solid var(--color-gray-400);
+    border-radius: var(--radius-md);
+    background: var(--color-card);
+    color: var(--color-foreground);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .modal__content :deep(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):focus),
+  .modal__content :deep(select:focus),
+  .modal__content :deep(textarea:focus),
+  .modal__content :deep(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']):focus-visible),
+  .modal__content :deep(select:focus-visible),
+  .modal__content :deep(textarea:focus-visible) {
+    outline: none;
+    border-color: var(--color-focus);
+    box-shadow: var(--shadow-focus);
+    background: var(--color-surface-raised);
   }
 
   .modal__footer {
@@ -153,13 +211,14 @@
     justify-content: flex-end;
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-border-strong);
+    background: color-mix(in srgb, var(--color-surface-muted) 60%, var(--color-surface-raised));
   }
 
   @keyframes modal-enter {
     from {
       opacity: 0;
-      transform: translateY(8px) scale(0.99);
+      transform: translateY(8px) scale(0.97);
     }
     to {
       opacity: 1;

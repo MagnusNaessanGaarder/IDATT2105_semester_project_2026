@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import BaseModal from '@/shared/components/BaseModal.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useIkMatData } from '../composables/useIkMatData'
 import { getOrganizationTempDefaults } from '@/shared/utils/orgSettings'
@@ -14,12 +16,17 @@ const {
   temperaturePoints,
   locations,
   isTemperatureInRange,
+  createTemperaturePointWithLocation,
+  updateTemperaturePointAndLocation,
+  deleteTemperaturePoint,
+  clearTemperatureMeasurementsForPoint,
   createTemperatureMeasurement,
   updateTemperatureMeasurement,
   isLoading,
   error,
 } = useIkMatData()
 
+const router = useRouter()
 const authStore = useAuthStore()
 
 // Fetch employees directly - orgUsers in useIkMatData is never populated
@@ -43,8 +50,40 @@ onMounted(async () => {
 type Tab = 'locations' | 'logs'
 const activeTab = ref<Tab>('locations')
 
+type PointModalMode = 'add' | 'edit'
+
+interface TemperatureInstance {
+  pointId: number
+  title: string
+  locationId: number
+  locationName: string
+  minTemp: number
+  maxTemp: number
+  latestEntryId: number | null
+  latestTemp: number | null
+  latestRecordedBy: string
+  latestDate: string
+  latestTime: string
+  isAlert: boolean
+}
+
 //  derived data
 const canManage = computed(() => authStore.hasRole('ADMIN', 'MANAGER'))
+const isMobile = ref(false)
+const desktopMenuPointId = ref<number | null>(null)
+const selectedMobileCardId = ref<number | null>(null)
+
+const pointModalOpen = ref(false)
+const pointModalMode = ref<PointModalMode>('add')
+const editingPointId = ref<number | null>(null)
+const editingLocationId = ref<number | null>(null)
+const originalRange = ref<{ min: number | null; max: number | null }>({ min: null, max: null })
+const pointForm = reactive({
+  name: '',
+  locationName: '',
+  minTempC: '',
+  maxTempC: '',
+})
 
 const activePoints = computed(() =>
     temperaturePoints.filter((p) => p.isActive !== false)
@@ -135,11 +174,72 @@ const resetPointForm = () => {
   editingLocationId.value = null
   originalRange.value = { min: defaults.min, max: defaults.max }
 }
+
+const instances = computed<TemperatureInstance[]>(() => {
+  return locationRows.value.map((row) => ({
+    pointId: row.pointId,
+    title: row.pointName,
+    locationId: row.locationId,
+    locationName: row.locationName,
+    minTemp: row.minTemp ?? 0,
+    maxTemp: row.maxTemp ?? 4,
+    latestEntryId: row.latest?.id ?? null,
+    latestTemp: row.latest?.temperature_c ?? null,
+    latestRecordedBy: row.latest?.recorded_by ?? '-',
+    latestDate: row.latest?.recorded_date ?? '-',
+    latestTime: row.latest?.recorded_time ?? '-',
+    isAlert: row.isAlert,
+  }))
+})
+
+const selectedLocationLabel = computed(() => {
+  if (!pointForm.locationName.trim()) {
+    return null
+  }
+  return `${pointForm.locationName.trim()} (${pointForm.minTempC || '-'} til ${pointForm.maxTempC || '-'}°C)`
+})
 //  log modal
 const modalOpen   = ref(false)
 const isSubmitting = ref(false)
 const actionError  = ref<string | null>(null)
 const editingEntryId = ref<number | null>(null)
+
+const measurementModalOpen = modalOpen
+const editingMeasurementEntryId = editingEntryId
+const measurementForm = reactive({
+  get temperatureC() {
+    return form.temperatureC
+  },
+  set temperatureC(value: string) {
+    form.temperatureC = value
+  },
+  get measuredDate() {
+    return form.date
+  },
+  set measuredDate(value: string) {
+    form.date = value
+  },
+  get measuredTime() {
+    return form.time
+  },
+  set measuredTime(value: string) {
+    form.time = value
+  },
+  get employeeId() {
+    return form.employeeId
+  },
+  set employeeId(value: number | null) {
+    form.employeeId = value
+  },
+  get employeeName() {
+    const selected = employeeOptions.value.find((employee) => employee.id === form.employeeId)
+    return selected?.label ?? ''
+  },
+  set employeeName(value: string) {
+    const selected = employeeOptions.value.find((employee) => employee.label === value)
+    form.employeeId = selected?.id ?? null
+  },
+})
 
 const form = reactive({
   pointId:     null as number | null,
@@ -181,6 +281,22 @@ function openModal(pointId?: number, existing?: TemperatureRecord | null) {
 function closeModal() {
   modalOpen.value = false
 }
+
+const openMeasurementModal = (pointId: number) => {
+  openModal(pointId)
+  desktopMenuPointId.value = null
+}
+
+const closeMeasurementModal = () => {
+  closeModal()
+  selectedMobileCardId.value = null
+}
+
+const submitMeasurement = submit
+
+const currentMeasurementPoint = computed(() => {
+  return instances.value.find((item) => item.pointId === form.pointId) ?? null
+})
 
 function measuredAt(): string {
   if (form.useNow) return new Date().toISOString()
@@ -312,6 +428,162 @@ function statusTone(row: LocationRow) {
   if (!row.latest) return 'none'
   return row.isAlert ? 'danger' : 'ok'
 }
+
+const openDeviationFlow = (instance: TemperatureInstance) => {
+  const measuredLabel = instance.latestTemp === null ? 'ukjent temperatur' : `${instance.latestTemp}°C`
+  const description = `Temperatur ved ${instance.title} (${instance.locationName}) ble målt til ${measuredLabel}. Gyldig område er ${instance.minTemp}°C til ${instance.maxTemp}°C.`
+
+  void router.push({
+    name: 'Deviations',
+    query: {
+      openCreate: '1',
+      source: 'temperature',
+      title: `Temperaturavvik - ${instance.title}`,
+      location: instance.locationName,
+      description,
+      severity: 'MAJOR',
+      discoverer: authStore.user?.name ?? '',
+      sourceEntryId: instance.latestEntryId != null ? String(instance.latestEntryId) : undefined,
+    },
+  })
+}
+
+const toggleDesktopMenu = (pointId: number) => {
+  desktopMenuPointId.value = desktopMenuPointId.value === pointId ? null : pointId
+}
+
+const toggleMobileActions = (pointId: number) => {
+  selectedMobileCardId.value = selectedMobileCardId.value === pointId ? null : pointId
+}
+
+const openAddPointModal = () => {
+  pointModalMode.value = 'add'
+  editingPointId.value = null
+  resetPointForm()
+  actionError.value = null
+  pointModalOpen.value = true
+}
+
+const openEditPointModal = (pointId: number) => {
+  const point = temperaturePoints.find((item) => item.logPointId === pointId)
+  if (!point) {
+    return
+  }
+  const location = locationById.value.get(point.locationId)
+
+  pointModalMode.value = 'edit'
+  editingPointId.value = pointId
+  pointForm.name = point.name
+  pointForm.locationName = location?.name ?? point.locationName ?? ''
+  pointForm.minTempC = location?.tempMinC != null ? String(location.tempMinC) : ''
+  pointForm.maxTempC = location?.tempMaxC != null ? String(location.tempMaxC) : ''
+  originalRange.value = {
+    min: location?.tempMinC != null ? Number(location.tempMinC) : null,
+    max: location?.tempMaxC != null ? Number(location.tempMaxC) : null,
+  }
+  editingLocationId.value = point.locationId
+  actionError.value = null
+  pointModalOpen.value = true
+  desktopMenuPointId.value = null
+  selectedMobileCardId.value = null
+}
+
+const closePointModal = () => {
+  pointModalOpen.value = false
+}
+
+const savePoint = async () => {
+  const minTemp = Number(pointForm.minTempC)
+  const maxTemp = Number(pointForm.maxTempC)
+
+  if (!canManage.value || !pointForm.name.trim() || !pointForm.locationName.trim()) {
+    return
+  }
+
+  if (!Number.isFinite(minTemp) || !Number.isFinite(maxTemp)) {
+    return
+  }
+
+  actionError.value = null
+  isSubmitting.value = true
+
+  try {
+    const locationPayload = {
+      name: pointForm.locationName.trim(),
+      locationType: 'OTHER' as const,
+      tempMinC: minTemp,
+      tempMaxC: maxTemp,
+      isActive: true,
+    }
+
+    const pointPayload = {
+      name: pointForm.name.trim(),
+      isActive: true,
+    }
+
+    if (pointModalMode.value === 'add') {
+      await createTemperaturePointWithLocation(locationPayload, pointPayload)
+    } else if (editingPointId.value !== null && editingLocationId.value !== null) {
+      const didChangeRange = originalRange.value.min !== minTemp || originalRange.value.max !== maxTemp
+
+      await updateTemperaturePointAndLocation(editingPointId.value, editingLocationId.value, locationPayload, {
+        ...pointPayload,
+        locationId: editingLocationId.value,
+      })
+
+      if (didChangeRange) {
+        await clearTemperatureMeasurementsForPoint(editingPointId.value)
+      }
+    }
+
+    pointModalOpen.value = false
+  } catch {
+    actionError.value = 'Kunne ikke lagre temperaturpunkt. Prøv igjen.'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const removePoint = async (pointId: number) => {
+  if (!canManage.value) {
+    return
+  }
+
+  const shouldDelete = window.confirm('Slette temperaturpunktet?')
+  if (!shouldDelete) {
+    return
+  }
+
+  actionError.value = null
+  isSubmitting.value = true
+
+  try {
+    await deleteTemperaturePoint(pointId)
+    desktopMenuPointId.value = null
+    selectedMobileCardId.value = null
+  } catch {
+    actionError.value = 'Kunne ikke slette temperaturpunkt. Prøv igjen.'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const updateViewport = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  isMobile.value = window.matchMedia('(max-width: 47.99rem)').matches
+}
+
+onMounted(() => {
+  updateViewport()
+  window.addEventListener('resize', updateViewport)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateViewport)
+})
 </script>
 
 <template>
@@ -348,295 +620,217 @@ function statusTone(row: LocationRow) {
         <strong>{{ alerts.length }}</strong>
         <span>Avvik</span>
       </div>
-      <div class="stat">
-        <strong>{{ allLogs.length }}</strong>
-        <span>Målinger</span>
-      </div>
     </div>
 
-    <!-- Error -->
-    <div v-if="error" class="inline-error">{{ error }}</div>
+    <section v-if="error" class="inline-error">{{ error }}</section>
+    <section v-else-if="actionError" class="inline-error">{{ actionError }}</section>
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button
-          class="tab"
-          :class="{ 'tab--active': activeTab === 'locations' }"
-          @click="activeTab = 'locations'"
-      >
-        Lokasjoner
-      </button>
-      <button
-          class="tab"
-          :class="{ 'tab--active': activeTab === 'logs' }"
-          @click="activeTab = 'logs'"
-      >
-        Alle målinger
-      </button>
-    </div>
+    <section v-if="!isMobile" class="desktop-list" aria-label="Temperaturpunkter">
+      <div class="desktop-list__scroller">
+        <header class="desktop-list__header">
+          <span>Tittel</span>
+          <span>Temperatur</span>
+          <span>Gyldig omrade</span>
+          <span>Status</span>
+          <span>Handlinger</span>
+        </header>
 
-    <!--  Locations tab  -->
-    <div v-if="activeTab === 'locations'" class="tab-panel">
-      <div v-if="isLoading" class="loading">Laster…</div>
-      <div v-else-if="locationRows.length === 0" class="empty">
-        Ingen aktive temperaturpunkter.
-      </div>
-      <div v-else class="table-wrap">
-        <table>
-          <thead>
-          <tr>
-            <th>Lokasjon / Punkt</th>
-            <th>Siste måling</th>
-            <th>Tidspunkt</th>
-            <th>Gyldig område</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr
-              v-for="row in locationRows"
-              :key="row.pointId"
-              :class="{ 'tr--alert': row.isAlert }"
-          >
-            <td>
-              <p class="cell-title">{{ row.locationName }}</p>
-              <p class="cell-sub">{{ row.pointName }}</p>
-            </td>
-            <td>
-                <span
-                    class="temp-val"
-                    :class="{
-                    'temp-val--ok':     statusTone(row) === 'ok',
-                    'temp-val--danger': statusTone(row) === 'danger',
-                  }"
-                >
-                  {{ fmtTemp(row.latest?.temperature_c) }}
-                </span>
-            </td>
-            <td class="td-meta">
-              {{ row.latest ? fmtDateTime(row.latest.recorded_date, row.latest.recorded_time) : '-' }}
-            </td>
-            <td class="td-meta">{{ fmtRange(row.minTemp, row.maxTemp) }}</td>
-            <td>
-                <span
-                    v-if="row.latest"
-                    class="status-pill"
-                    :class="row.isAlert ? 'status-pill--danger' : 'status-pill--ok'"
-                >
-                  {{ row.isAlert ? 'Avvik' : 'OK' }}
-                </span>
-              <span v-else class="status-pill status-pill--none">Ikke målt</span>
-            </td>
-            <td class="td-actions">
-              <button
-                  v-if="row.isAlert"
-                  class="row-btn row-btn--danger"
-                  type="button"
-                  @click="openDeviationModal(row)"
-              >
-                Meld avvik
-              </button>
-              <button
-                  class="row-btn"
-                  type="button"
-                  @click="openModal(row.pointId)"
-              >
-                Registrer
-              </button>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!--  Logs tab  -->
-    <div v-else class="tab-panel">
-      <div v-if="isLoading" class="loading">Laster…</div>
-      <div v-else-if="allLogs.length === 0" class="empty">
-        Ingen målinger registrert ennå.
-      </div>
-      <div v-else class="table-wrap">
-        <table>
-          <thead>
-          <tr>
-            <th>Lokasjon / Punkt</th>
-            <th>Temperatur</th>
-            <th>Tidspunkt</th>
-            <th>Malt av</th>
-            <th>Status</th>
-            <th v-if="canManage"></th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr
-              v-for="log in allLogs"
-              :key="log.id"
-              :class="{ 'tr--alert': log.status !== 'ok' }"
-          >
-            <td>
-              <p class="cell-title">{{ log.location || '-' }}</p>
-              <p class="cell-sub">{{ log.log_point_name }}</p>
-            </td>
-            <td>
-                <span
-                    class="temp-val"
-                    :class="{
-                    'temp-val--ok':     log.status === 'ok',
-                    'temp-val--danger': log.status !== 'ok',
-                  }"
-                >
-                  {{ fmtTemp(log.temperature_c) }}
-                </span>
-            </td>
-            <td class="td-meta">{{ fmtDateTime(log.recorded_date, log.recorded_time) }}</td>
-            <td class="td-meta">{{ log.recorded_by || '-' }}</td>
-            <td>
-                <span
-                    class="status-pill"
-                    :class="log.status === 'ok' ? 'status-pill--ok' : 'status-pill--danger'"
-                >
-                  {{ log.status === 'ok' ? 'OK' : 'Avvik' }}
-                </span>
-            </td>
-            <td v-if="canManage" class="td-actions">
-              <button
-                  class="row-btn"
-                  type="button"
-                  @click="openModal(log.log_point_id, log)"
-              >
-                Rediger
-              </button>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!--  Log measurement modal  -->
-    <Teleport to="body">
-      <div v-if="modalOpen" class="overlay" @click.self="closeModal">
-        <div class="modal" role="dialog" aria-modal="true" aria-label="Registrer temperaturmåling">
-
-          <header class="modal__header">
-            <h2>{{ editingEntryId ? 'Rediger måling' : 'Registrer måling' }}</h2>
-            <button class="modal__close" type="button" aria-label="Lukk" @click="closeModal">✕</button>
-          </header>
-
-          <div class="modal__body">
-
-            <!-- Point selector -->
-            <div class="field">
-              <label for="m-point">Målested</label>
-              <select
-                  id="m-point"
-                  :value="form.pointId ?? ''"
-                  required
-                  @change="onPointChange($event)"
-              >
-                <option value="" disabled>- Velg punkt -</option>
-                <option v-for="opt in pointOptions" :key="opt.id" :value="opt.id">
-                  {{ opt.label }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Range hint -->
-            <p v-if="currentRange" class="range-hint">
-              Gyldig område for <strong>{{ currentRange.name }}</strong>:
-              {{ fmtRange(currentRange.min, currentRange.max) }}
-            </p>
-
-            <!-- Temperature -->
-            <div class="field">
-              <label for="m-temp">Temperatur (°C)</label>
-              <input
-                  id="m-temp"
-                  v-model="form.temperatureC"
-                  type="text"
-                  inputmode="decimal"
-                  placeholder="f.eks. 3.5 eller -18"
-                  autocomplete="off"
-                  :class="{ 'input--warn': tempOutOfRange }"
-              />
-              <p v-if="tempOutOfRange" class="field-warn">⚠ Utenfor gyldig område</p>
-            </div>
-
-            <!-- Time -->
-            <div class="field">
-              <label>Tidspunkt</label>
-              <div class="time-row">
-                <button
-                    class="now-btn"
-                    type="button"
-                    :class="{ 'now-btn--active': form.useNow }"
-                    @click="form.useNow = true"
-                >
-                  Nå
-                </button>
-                <button
-                    class="now-btn"
-                    type="button"
-                    :class="{ 'now-btn--active': !form.useNow }"
-                    @click="form.useNow = false"
-                >
-                  Velg tid
-                </button>
-              </div>
-              <div v-if="!form.useNow" class="time-inputs">
-                <input v-model="form.date" type="date" required />
-                <input v-model="form.time" type="time" required />
-              </div>
-              <p v-else class="now-label">Registreres med nåværende tidspunkt</p>
-            </div>
-
-            <!-- Employee -->
-            <div class="field">
-              <label for="m-emp">Malt av</label>
-              <select
-                  id="m-emp"
-                  :value="form.employeeId ?? ''"
-                  @change="onEmployeeChange($event)"
-              >
-                <option value="">- Velg ansatt -</option>
-                <option v-for="e in employeeOptions" :key="e.id" :value="e.id">
-                  {{ e.label }}
-                </option>
-              </select>
-            </div>
-
-            <p v-if="actionError" class="form-error">{{ actionError }}</p>
-
+        <article
+          v-for="instance in instances"
+          :key="instance.pointId"
+          class="desktop-row"
+          :class="{ 'desktop-row--alert': instance.isAlert }"
+        >
+          <div>
+            <p class="desktop-row__title">{{ instance.title }}</p>
+            <p class="desktop-row__meta">{{ instance.locationName }}</p>
           </div>
 
-          <footer class="modal__footer">
-            <button class="btn-ghost" type="button" @click="closeModal">Avbryt</button>
+          <div>
+            <p class="desktop-row__value">{{ instance.latestTemp === null ? '-' : `${instance.latestTemp}°C` }}</p>
+            <p class="desktop-row__meta">{{ instance.latestDate }} {{ instance.latestTime === '-' ? '' : `kl. ${instance.latestTime}` }}</p>
+          </div>
+
+          <p class="desktop-row__value">{{ instance.minTemp }}°C til {{ instance.maxTemp }}°C</p>
+
+          <span
+            class="status-pill"
+            :class="instance.isAlert ? 'status-pill--danger' : instance.latestTemp === null ? 'status-pill--idle' : 'status-pill--good'"
+          >
+            {{ instance.isAlert ? 'Avvik' : instance.latestTemp === null ? 'Ikke malt' : 'OK' }}
+          </span>
+
+          <div class="desktop-actions">
             <button
-                class="btn-primary"
-                type="button"
-                :disabled="isSubmitting || form.pointId === null || !isValidTemp"
-                @click="submit"
+              type="button"
+              class="action-btn"
+              :class="instance.isAlert ? 'action-btn--danger' : ''"
+              @click="instance.isAlert ? openDeviationFlow(instance) : openMeasurementModal(instance.pointId)"
             >
-              {{ isSubmitting ? 'Lagrer…' : editingEntryId ? 'Oppdater' : 'Lagre' }}
+              {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger maling' : 'Registrer maling' }}
             </button>
-          </footer>
+          
 
-        </div>
+            <div v-if="canManage" class="options-menu">
+              <button
+                class="options-menu__trigger"
+                type="button"
+                aria-label="Apne handlinger"
+                :aria-expanded="desktopMenuPointId === instance.pointId"
+                @click="toggleDesktopMenu(instance.pointId)"
+              >
+                <span class="dot" />
+                <span class="dot" />
+                <span class="dot" />
+              </button>
+
+              <div v-if="desktopMenuPointId === instance.pointId" class="options-menu__list" role="menu">
+                <button type="button" role="menuitem" class="options-menu__item" @click="openEditPointModal(instance.pointId)">Rediger</button>
+                <button type="button" role="menuitem" class="options-menu__item options-menu__item--danger" @click="removePoint(instance.pointId)">Slett</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <p v-if="instances.length === 0 && !isLoading" class="empty-state">Ingen temperaturpunkter registrert.</p>
       </div>
-    </Teleport>
+    </section>
 
+    <div v-if="canManage && !isMobile" class="desktop-list__actions">
+      <button type="button" class="add-item-btn" @click="openAddPointModal">
+        + Legg til temperaturpunkt
+      </button>
+    </div>
+
+    <section v-else class="mobile-cards" aria-label="Temperaturkort">
+      <article
+        v-for="instance in instances"
+        :key="instance.pointId"
+        class="mobile-card"
+        :class="{ 'mobile-card--alert': instance.isAlert, 'mobile-card--active': selectedMobileCardId === instance.pointId }"
+        @click="toggleMobileActions(instance.pointId)"
+      >
+        <div v-if="canManage && selectedMobileCardId === instance.pointId" class="mobile-card__manage" @click.stop>
+          <button type="button" class="mobile-card__manage-btn" @click="openEditPointModal(instance.pointId)">Rediger</button>
+          <button type="button" class="mobile-card__manage-btn mobile-card__manage-btn--danger" @click="removePoint(instance.pointId)">Slett</button>
+        </div>
+
+        <header class="mobile-card__header">
+          <h2>{{ instance.title }}</h2>
+          <span class="status-pill" :class="instance.isAlert ? 'status-pill--danger' : instance.latestTemp === null ? 'status-pill--idle' : 'status-pill--good'">
+            {{ instance.isAlert ? 'Avvik' : instance.latestTemp === null ? 'Ikke malt' : 'OK' }}
+          </span>
+        </header>
+
+        <p class="mobile-card__meta">{{ instance.locationName }}</p>
+        <p class="mobile-card__temperature">{{ instance.latestTemp === null ? '-' : `${instance.latestTemp}°C` }}</p>
+        <p class="mobile-card__meta">Gyldig: {{ instance.minTemp }}°C til {{ instance.maxTemp }}°C</p>
+        <p class="mobile-card__meta">{{ instance.latestDate }} {{ instance.latestTime === '-' ? '' : `kl. ${instance.latestTime}` }}</p>
+        <p class="mobile-card__meta">Malt av: {{ instance.latestRecordedBy }}</p>
+
+        <button
+          type="button"
+          class="action-btn mobile-card__action"
+          :class="instance.isAlert ? 'action-btn--danger' : ''"
+          @click.stop="instance.isAlert ? openDeviationFlow(instance) : openMeasurementModal(instance.pointId)"
+        >
+          {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger maling' : 'Registrer maling' }}
+        </button>
+      </article>
+
+      <p v-if="instances.length === 0 && !isLoading" class="empty-state">Ingen temperaturpunkter registrert.</p>
+
+      <button v-if="canManage" type="button" class="add-item-btn" @click="openAddPointModal">
+        + Legg til temperaturpunkt
+      </button>
+    </section>
+
+    <BaseModal
+      :open="pointModalOpen"
+      :title="pointModalMode === 'add' ? 'Legg til temperaturpunkt' : 'Rediger temperaturpunkt'"
+      @close="closePointModal"
+    >
+      <form class="modal-form" @submit.prevent="savePoint">
+        <label>
+          Kontrollpunkt
+          <input v-model="pointForm.name" type="text" required />
+        </label>
+
+        <label>
+          Lokasjonsnavn
+          <input v-model="pointForm.locationName" type="text" required />
+        </label>
+
+        <div class="modal-form__row">
+          <label>
+            Min temperatur (°C)
+            <input v-model="pointForm.minTempC" type="number" step="0.1" required />
+          </label>
+          <label>
+            Maks temperatur (°C)
+            <input v-model="pointForm.maxTempC" type="number" step="0.1" required />
+          </label>
+        </div>
+
+        <p v-if="Number(pointForm.minTempC) > Number(pointForm.maxTempC)" class="modal-form__error">
+          Min temperatur kan ikke være høyere enn maks temperatur.
+        </p>
+
+        <label>
+          Gyldig temperaturintervall
+          <input :value="`${pointForm.minTempC || '-'}°C til ${pointForm.maxTempC || '-'}°C`" type="text" disabled />
+        </label>
+
+        <p v-if="selectedLocationLabel" class="modal-form__hint">Gyldig temperatur: {{ selectedLocationLabel }}</p>
+      </form>
+
+      <template #footer>
+        <button type="button" class="modal-btn modal-btn--ghost" @click="closePointModal">Avbryt</button>
+        <button type="button" class="modal-btn" :disabled="isSubmitting || Number(pointForm.minTempC) > Number(pointForm.maxTempC)" @click="savePoint">Lagre</button>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :open="measurementModalOpen"
+      title="Registrer temperaturmaling"
+      @close="closeMeasurementModal"
+    >
+      <form class="modal-form" @submit.prevent="submitMeasurement">
+        <p v-if="currentMeasurementPoint" class="modal-form__hint">
+          {{ currentMeasurementPoint.title }}: {{ currentMeasurementPoint.minTemp }}°C til {{ currentMeasurementPoint.maxTemp }}°C
+        </p>
+
+        <label>
+          Malt temperatur (°C)
+          <input v-model="measurementForm.temperatureC" type="number" step="0.1" required />
+        </label>
+
+        <label>
+          Dato
+          <input v-model="measurementForm.measuredDate" type="date" required />
+        </label>
+
+        <label>
+          Tid
+          <input v-model="measurementForm.measuredTime" type="time" required />
+        </label>
+
+        <label>
+          Ansatt
+          <select v-if="employeeOptions.length > 0" v-model.number="measurementForm.employeeId">
+            <option :value="null">Velg ansatt</option>
+            <option v-for="employee in employeeOptions" :key="employee.id" :value="employee.id">{{ employee.label }}</option>
+          </select>
+          <input v-model="measurementForm.employeeName" type="text" :required="employeeOptions.length === 0" placeholder="Navn på ansatt" />
+        </label>
+      </form>
+
+      <template #footer>
+        <button type="button" class="modal-btn modal-btn--ghost" @click="closeMeasurementModal">Avbryt</button>
+        <button type="button" class="modal-btn" :disabled="isSubmitting" @click="submitMeasurement">{{ editingMeasurementEntryId ? 'Oppdater' : 'Send inn' }}</button>
+      </template>
+    </BaseModal>
   </div>
-
-  <!-- Deviation report modal -->
-  <DeviationReportForm
-      :open="deviationOpen"
-      :prefill="deviationPrefill"
-      @submit="submitDeviation"
-      @cancel="deviationOpen = false"
-  />
-
 </template>
 
 <style scoped>
@@ -667,12 +861,10 @@ function statusTone(row: LocationRow) {
   font-size: var(--font-size-sm);
 }
 
-.log-btn {
-  min-height: var(--touch-target);
-  padding: var(--button-padding-md);
-  background: var(--color-primary);
+.alert-banner {
+  border: 1px solid color-mix(in srgb, var(--color-danger) 70%, black);
+  background: var(--color-danger);
   color: var(--color-primary-foreground);
-  border: none;
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -682,23 +874,22 @@ function statusTone(row: LocationRow) {
 }
 .log-btn:hover { opacity: 0.88; }
 
-/*  Alert banner  */
-.alert-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.7rem 1rem;
-  background: var(--color-danger-bg);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
-  border-radius: var(--radius-md);
+.alert-banner a {
+  color: var(--color-primary-foreground);
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
   font-size: var(--font-size-sm);
-  color: var(--color-danger);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
 }
 .alert-banner a { color: inherit; font-weight: 600; text-decoration: none; }
 
-/*  Stats  */
-.stats-row {
+.alert-banner a:hover {
+  opacity: 0.9;
+}
+
+.summary-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
@@ -707,11 +898,8 @@ function statusTone(row: LocationRow) {
 .stat {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-card);
-  padding: 0.75rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  padding: 0.8rem;
+  text-align: center;
 }
 .stat strong { font-size: 1.6rem; font-weight: 700; color: var(--color-foreground); }
 .stat span   { font-size: var(--font-size-xs); color: var(--color-gray-500); }
@@ -728,11 +916,12 @@ function statusTone(row: LocationRow) {
   font-size: var(--font-size-sm);
 }
 
-/*  Tabs  */
-.tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 2px solid var(--color-border);
+.summary-card strong {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--color-foreground);
+  font-size: 1.45rem;
+  text-align: center;
 }
 
 .tab {
@@ -747,20 +936,27 @@ function statusTone(row: LocationRow) {
   cursor: pointer;
   transition: color var(--transition-fast), border-color var(--transition-fast);
 }
-.tab:hover { color: var(--color-foreground); }
-.tab--active {
-  color: var(--color-foreground);
-  border-bottom-color: var(--color-foreground);
-  font-weight: 600;
+
+.summary-card--warn {
+  border-color: var(--color-danger-hover);
+  border-left: 0.25rem solid var(--color-danger-hover);
+  background: var(--color-danger);
 }
 
-/*  Table  */
-.tab-panel { min-height: 8rem; }
+.summary-card--warn p,
+.summary-card--warn strong {
+  color: var(--color-danger-fg);
+}
 
-.loading, .empty {
-  padding: 3rem 1rem;
-  text-align: center;
-  color: var(--color-gray-400);
+.inline-error {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 70%, black);
+  background: var(--color-danger);
+  color: var(--color-primary-foreground);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.75rem;
   font-size: var(--font-size-sm);
 }
 
@@ -772,7 +968,30 @@ function statusTone(row: LocationRow) {
   overflow: hidden;
 }
 
-table { width: 100%; border-collapse: collapse; }
+.desktop-list__scroller {
+  overflow-x: auto;
+}
+
+.desktop-list__actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.desktop-list__actions .add-item-btn {
+  margin-top: 0;
+}
+
+.desktop-list__header,
+.desktop-row {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1.5fr) minmax(8rem, 1fr) minmax(8rem, 1fr) minmax(6rem, auto) minmax(12rem, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0.85rem;
+  min-width: 58rem;
+}
 
 th, td {
   text-align: left;
@@ -818,29 +1037,59 @@ tr:last-child td { border-bottom: none; }
   padding: 0.25rem 0.65rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: var(--color-card);
-  color: var(--color-gray-700);
+  padding: 0.35rem 0.6rem;
+  min-height: var(--touch-target);
   font-size: var(--font-size-xs);
   font-weight: 600;
   cursor: pointer;
   margin-left: 0.3rem;
 }
-.row-btn:hover { background: var(--color-gray-50); }
-.row-btn--danger {
-  color: var(--color-danger);
-  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
-}
 
-/*  Modal  */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
+.desktop-actions > .action-btn {
+  width: 10.5rem;
+  min-height: var(--touch-target);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
-  padding: 1rem;
+  text-align: center;
+}
+
+.action-btn--danger {
+  border-color: color-mix(in srgb, var(--color-danger) 75%, black);
+  background: color-mix(in srgb, var(--color-danger) 78%, black);
+  color: var(--color-primary-foreground);
+}
+
+.action-btn--danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 86%, black);
+}
+
+.options-menu {
+  position: relative;
+}
+
+.options-menu__trigger {
+  aspect-ratio: 1 / 1;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dot {
+  width: 0.2rem;
+  height: 0.2rem;
+  background: var(--color-gray-600);
+  border-radius: 100%;
 }
 
 .modal {
@@ -856,31 +1105,30 @@ tr:last-child td { border-bottom: none; }
   overflow-y: auto;
 }
 
-.modal__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.25rem 0.85rem;
-  border-bottom: 1px solid var(--color-border);
+.mobile-card__manage {
+  display: grid;
+  gap: 0.45rem;
+  width: 100%;
+  margin-bottom: 0.7rem;
 }
 .modal__header h2 {
   margin: 0;
   font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-foreground);
+  padding: 0.35rem 0.55rem;
+  font-size: var(--font-size-xs);
+  width: 100%;
 }
-.modal__close {
-  width: 1.75rem;
-  height: 1.75rem;
-  border: none;
-  background: none;
-  color: var(--color-gray-400);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+.mobile-card__manage-btn--danger {
+  border-color: color-mix(in srgb, var(--color-danger) 70%, black);
+  background: color-mix(in srgb, var(--color-danger) 80%, black);
+  color: var(--color-primary-foreground);
+}
+
+.mobile-card__manage-btn--danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 88%, black);
 }
 .modal__close:hover { background: var(--color-gray-100); color: var(--color-foreground); }
 
@@ -927,12 +1175,22 @@ tr:last-child td { border-bottom: none; }
   width: 100%;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
-.field select:focus,
-.field input:focus {
-  outline: none;
-  border-color: var(--color-focus);
-  box-shadow: var(--shadow-focus);
-  background: var(--color-card);
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.75rem;
+  min-width: 6.2rem;
+  min-height: var(--touch-target);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  justify-self: center;
+  align-self: center;
+  white-space: nowrap;
 }
 .field select {
   appearance: none;
@@ -942,15 +1200,40 @@ tr:last-child td { border-bottom: none; }
   padding-right: 2rem;
   cursor: pointer;
 }
-.input--warn {
-  border-color: var(--color-warning) !important;
-  background: color-mix(in srgb, var(--color-warning) 5%, var(--color-card));
+
+.status-pill--danger {
+  color: color-mix(in srgb, var(--color-danger) 82%, black);
+  background: color-mix(in srgb, var(--color-danger) 26%, var(--color-card));
+  border-color: color-mix(in srgb, var(--color-danger) 58%, var(--color-border));
 }
-.field-warn {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-warning);
-  font-weight: 500;
+
+.status-pill--idle {
+  color: var(--color-gray-700);
+  background: var(--color-background-soft);
+  border-color: var(--color-border);
+}
+
+.add-item-btn {
+  margin-top: 1rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--ik-mat-primary);
+  background: color-mix(in srgb, var(--ik-mat-primary) 7%, var(--color-card));
+  color: var(--ik-mat-primary);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.add-item-btn:hover {
+  background: color-mix(in srgb, var(--ik-mat-primary) 14%, var(--color-card));
+  border-color: color-mix(in srgb, var(--ik-mat-primary) 80%, black);
+  color: color-mix(in srgb, var(--ik-mat-primary) 75%, black);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .range-hint {

@@ -227,7 +227,7 @@ const hasActionable = computed(() => filtered.value.some((n) => relatedEntityRou
 .notification-list { display: grid; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
 
 .notification-item {
-  display: flex; align-items: flex-start; gap: 0.85rem;
+  display: flex; align-items: center; gap: 0.85rem;
   padding: 0.9rem 1rem;
   background: var(--color-card); border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -272,7 +272,7 @@ const hasActionable = computed(() => filtered.value.some((n) => relatedEntityRou
 
 /* Actions */
 .notification-item__actions {
-  display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; gap: 0.35rem; flex-shrink: 0;
 }
 
 /* Action buttons */
@@ -294,7 +294,12 @@ const hasActionable = computed(() => filtered.value.some((n) => relatedEntityRou
 .action-btn--danger {
   background: transparent; color: var(--color-danger);
   border: 1px solid var(--color-danger-bg);
-  padding: 0.3rem 0.45rem;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  padding: 0;
+  justify-content: center;
 }
 .action-btn--danger:hover { background: var(--color-danger-bg); }
 

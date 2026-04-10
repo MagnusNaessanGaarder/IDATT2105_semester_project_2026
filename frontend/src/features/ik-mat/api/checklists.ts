@@ -93,8 +93,9 @@ export interface ChecklistRunCreateRequest {
 }
 
 export interface ChecklistRunItemUpdateRequest {
-  answerValue?: string
-  notes?: string
+  booleanValue?: boolean
+  textValue?: string
+  commentText?: string
   isDeviation?: boolean
 }
 
@@ -104,7 +105,7 @@ export interface ChecklistRunItemUpdateRequest {
  * @returns Promise with array of checklist templates
  */
 export async function getTemplates(orgNumber: number): Promise<ChecklistTemplate[]> {
-  const response = await client.get('/api/v1/checklists/templates', {
+  const response = await client.get('/checklists/templates', {
     params: { orgNumber },
   })
   return response.data
@@ -117,7 +118,7 @@ export async function getTemplates(orgNumber: number): Promise<ChecklistTemplate
  * @returns Promise with checklist template data
  */
 export async function getTemplate(templateId: number, orgNumber: number): Promise<ChecklistTemplate> {
-  const response = await client.get(`/api/v1/checklists/templates/${templateId}`, {
+  const response = await client.get(`/checklists/templates/${templateId}`, {
     params: { orgNumber },
   })
   return response.data
@@ -134,7 +135,7 @@ export async function createTemplate(
   orgNumber: number,
   templateData: ChecklistTemplateCreateRequest
 ): Promise<ChecklistTemplate> {
-  const response = await client.post('/api/v1/checklists/templates', templateData, {
+  const response = await client.post('/checklists/templates', templateData, {
     params: { orgNumber },
   })
   return response.data
@@ -153,7 +154,7 @@ export async function updateTemplate(
   orgNumber: number,
   templateData: ChecklistTemplateUpdateRequest
 ): Promise<ChecklistTemplate> {
-  const response = await client.put(`/api/v1/checklists/templates/${templateId}`, templateData, {
+  const response = await client.put(`/checklists/templates/${templateId}`, templateData, {
     params: { orgNumber },
   })
   return response.data
@@ -166,7 +167,7 @@ export async function updateTemplate(
  * @returns Promise that resolves when deleted
  */
 export async function deleteTemplate(templateId: number, orgNumber: number): Promise<void> {
-  await client.delete(`/api/v1/checklists/templates/${templateId}`, {
+  await client.delete(`/checklists/templates/${templateId}`, {
     params: { orgNumber },
   })
 }
@@ -177,7 +178,7 @@ export async function deleteTemplate(templateId: number, orgNumber: number): Pro
  * @returns Promise with array of checklist runs
  */
 export async function getRuns(orgNumber: number): Promise<ChecklistRun[]> {
-  const response = await client.get('/api/v1/checklists/runs', {
+  const response = await client.get('/checklists/runs', {
     params: { orgNumber },
   })
   return response.data
@@ -194,7 +195,7 @@ export async function createRun(
   orgNumber: number,
   runData: ChecklistRunCreateRequest
 ): Promise<ChecklistRun> {
-  const response = await client.post('/api/v1/checklists/runs', runData, {
+  const response = await client.post('/checklists/runs', runData, {
     params: { orgNumber },
   })
   return response.data
@@ -207,7 +208,7 @@ export async function createRun(
  * @returns Promise with completed run
  */
 export async function completeRun(runId: number, orgNumber: number): Promise<ChecklistRun> {
-  const response = await client.put(`/api/v1/checklists/runs/${runId}/complete`, null, {
+  const response = await client.put(`/checklists/runs/${runId}/complete`, null, {
     params: { orgNumber },
   })
   return response.data
@@ -227,7 +228,7 @@ export async function updateRunItem(
   orgNumber: number,
   answerData: ChecklistRunItemUpdateRequest
 ): Promise<ChecklistRunItem> {
-  const response = await client.put(`/api/v1/checklists/runs/${runId}/items/${itemId}`, answerData, {
+  const response = await client.put(`/checklists/runs/${runId}/items/${itemId}`, answerData, {
     params: { orgNumber },
   })
   return response.data
