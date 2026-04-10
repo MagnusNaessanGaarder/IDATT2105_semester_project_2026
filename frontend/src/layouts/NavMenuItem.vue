@@ -80,7 +80,7 @@ const handleSelect = () => {
   border-left: 4px solid transparent;
   cursor: pointer;
   text-align: left;
-  font-family: inherit;
+  font-family: var(--font-family-ui);
   border-radius: 0;
   transition: background-color var(--transition-fast), border-color var(--transition-fast) ease, color var(--transition-fast);
 }
@@ -99,13 +99,13 @@ const handleSelect = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-gray-500);
+  color: color-mix(in srgb, white 72%, transparent);
 }
 
 .menu-item__label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-gray-600);
+  color: color-mix(in srgb, white 92%, transparent);
 }
 
 .menu-item--main .menu-item__label {
@@ -122,18 +122,18 @@ const handleSelect = () => {
   min-width: 18px;
   height: 18px;
   padding: 0 6px;
-  background-color: #DC2626;
-  color: #FFFFFF;
+  background-color: var(--color-danger);
+  color: var(--color-primary-foreground);
   font-size: 11px;
   font-weight: 700;
   border-radius: 9999px;
   margin-left: auto;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
 }
 
 .menu-item__chevron {
   margin-left: 6px;
-  color: var(--color-gray-500);
+  color: color-mix(in srgb, white 72%, transparent);
   transform: rotate(-90deg);
   transition: transform var(--transition-base) ease, color var(--transition-fast);
 }
@@ -143,32 +143,33 @@ const handleSelect = () => {
 }
 
 .menu-item__button:hover {
-  background-color: var(--color-accent);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .menu-item--sub .menu-item__button:hover {
   transition: background-color var(--transition-fast);
+  color: var(--color-surface-raised);
 }
 
 .menu-item--active .menu-item__button {
-  background-color: #eef3f8;
-  border-left-color: #0d7377;
-  border-color: var(--color-gray-200);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--color-cta);
+  border-color: transparent;
 }
 
 .menu-item--active .menu-item__label,
 .menu-item--active .menu-item__icon,
 .menu-item--active .menu-item__chevron {
-  color: var(--color-gray-900);
+  color: var(--color-surface-raised);
 }
 
 .menu-item--sub.menu-item--active .menu-item__label {
-  color: #0d7377;
+  color: var(--color-cta);
   font-weight: 600;
 }
 
 .menu-item__button:focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 2px solid var(--color-cta);
   outline-offset: -2px;
 }
 

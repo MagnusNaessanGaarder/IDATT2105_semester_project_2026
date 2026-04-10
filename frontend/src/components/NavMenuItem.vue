@@ -105,14 +105,14 @@ const handleSelect = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-gray-400);
+  color: color-mix(in srgb, white 72%, transparent);
   transition: color var(--transition-fast);
 }
 
 .menu-item__label {
   font-size: 0.875rem;
   font-weight: var(--font-weight-medium);
-  color: var(--color-gray-700);
+  color: color-mix(in srgb, white 92%, transparent);
 }
 
 .menu-item--main .menu-item__label {
@@ -140,7 +140,7 @@ const handleSelect = () => {
 
 .menu-item__chevron {
   margin-left: 0.25rem;
-  color: var(--color-gray-400);
+  color: color-mix(in srgb, white 72%, transparent);
   transform: rotate(-90deg);
   transition: transform var(--transition-base) ease, color var(--transition-fast);
 }
@@ -150,42 +150,42 @@ const handleSelect = () => {
 }
 
 .menu-item__button:hover {
-  background-color: var(--color-accent);
+  background-color: rgba(255, 255, 255, 0.08);
   transform: translateX(1px);
 }
 
 .menu-item--sub .menu-item__button:hover {
   transition: background-color var(--transition-fast);
-  color: var(--color-primary);
+  color: var(--color-surface-raised);
 }
 
 .menu-item--active .menu-item__button {
-  background-color: color-mix(in srgb, var(--color-accent-hover) 70%, var(--color-card));
-  border-left-color: var(--color-primary);
-  color: var(--color-primary);
-  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--color-primary) 12%, transparent);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--color-cta);
+  color: var(--color-surface-raised);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.14);
 }
 
 .menu-item--active .menu-item__label,
 .menu-item--active .menu-item__chevron {
-  color: var(--color-gray-900);
+  color: var(--color-surface-raised);
 }
 
 .menu-item--active .menu-item__icon {
-  color: var(--color-primary);
+  color: var(--color-cta);
 }
 
 .menu-item--active .menu-item__chevron {
-  color: var(--color-primary);
+  color: var(--color-cta);
 }
 
 .menu-item--sub.menu-item--active .menu-item__label {
-  color: var(--color-primary);
+  color: var(--color-cta);
   font-weight: 600;
 }
 
 .menu-item__button:focus-visible {
-  outline: 0.125rem solid var(--color-focus);
+  outline: 0.125rem solid var(--color-cta);
   outline-offset: 0.125rem;
 }
 
