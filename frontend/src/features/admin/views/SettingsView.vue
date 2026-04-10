@@ -126,6 +126,28 @@ const updateSetting = (sectionId: string, itemId: string, nextValue: unknown) =>
   validation.validateField(itemId, nextValue, settingsState.value)
 }
 
+// Real-time validation for number inputs (temperature)
+const validateInputLive = (itemId: string, input: HTMLInputElement) => {
+  const value = input.value
+
+  // Check if empty (allow while typing)
+  if (value === '' || value === '-') {
+    invalidInputs.value.delete(itemId)
+    validation.clearError(itemId)
+    return
+  }
+
+  // Check if valid number
+  const numValue = parseFloat(value)
+  if (isNaN(numValue)) {
+    invalidInputs.value.add(itemId)
+  } else {
+    invalidInputs.value.delete(itemId)
+    // Update the value and validate
+    updateSetting('temperature', itemId, numValue)
+  }
+}
+
 const invalidInputs = ref<Set<string>>(new Set())
 
 const tempRangeError = ref<string | null>(null)
@@ -621,7 +643,7 @@ watch(currentOrgNumber, () => {
                     :max="item.max"
                     :step="item.step"
                     :disabled="data.isLoading.value"
-                    @input="invalidInputs.delete(item.id); validation.clearError(item.id)"
+                    @input="validateInputLive(item.id, $event.target as HTMLInputElement)"
                     @blur="validateAndUpdateNumber('temperature', item.id, ($event.target as HTMLInputElement), item.min, item.max)"
                   >
                 </div>
