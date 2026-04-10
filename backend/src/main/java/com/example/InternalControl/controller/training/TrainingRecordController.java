@@ -1,10 +1,12 @@
 package com.example.InternalControl.controller.training;
 
+import com.example.InternalControl.dto.training.TrainingCatalogItemResponse;
 import com.example.InternalControl.dto.training.TrainingRecordRequest;
 import com.example.InternalControl.model.training.TrainingRecord;
 import com.example.InternalControl.model.training.TrainingStatus;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.training.TrainingRecordService;
+import com.example.InternalControl.service.training.TrainingCatalogService;
 import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,6 +45,7 @@ import java.util.Map;
 public class TrainingRecordController {
 
   private final TrainingRecordService trainingRecordService;
+  private final TrainingCatalogService trainingCatalogService;
   private final UserOrganizationService userOrgService;
   private final OrganizationModuleAccessService moduleAccessService;
 
@@ -59,6 +62,21 @@ public class TrainingRecordController {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
     return ResponseEntity.ok(trainingRecordService.getTrainingRecordsByOrg(orgNumber));
+  }
+
+  @Operation(summary = "Get training catalog")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved training catalog"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
+  @GetMapping("/catalog")
+  public ResponseEntity<List<TrainingCatalogItemResponse>> getTrainingCatalog(
+      @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    return ResponseEntity.ok(trainingCatalogService.getActiveCatalog());
   }
 
   @Operation(summary = "Get training record by ID")
