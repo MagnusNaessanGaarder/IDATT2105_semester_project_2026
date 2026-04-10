@@ -518,6 +518,21 @@ watch(currentOrgNumber, () => {
                     <span>{{ Boolean(item.current_value) ? 'På' : 'Av' }}</span>
                   </label>
                   <input
+                    v-else-if="item.type === 'number'"
+                    :id="item.id"
+                    class="setting-input"
+                    :class="{ 'setting-input--error': isInvalidInput(item.id) || validation.getError(item.id) }"
+                    type="number"
+                    :value="item.current_value ?? ''"
+                    :min="item.min"
+                    :max="item.max"
+                    :step="item.step"
+                    :placeholder="item.placeholder || ''"
+                    :disabled="data.isLoading.value"
+                    @input="validateInputLive(item.id, $event.target as HTMLInputElement)"
+                    @blur="validateAndUpdateNumber('alerts_retention', item.id, ($event.target as HTMLInputElement), item.min, item.max)"
+                  >
+                  <input
                     v-else
                     :id="item.id"
                     class="setting-input"
@@ -528,7 +543,8 @@ watch(currentOrgNumber, () => {
                     :disabled="data.isLoading.value"
                     @input="updateSetting('alerts_retention', item.id, ($event.target as HTMLInputElement).value)"
                   >
-                  <p v-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
+                  <p v-if="isInvalidInput(item.id)" class="field-error">Ugyldig tall</p>
+                  <p v-else-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
                 </div>
               </div>
             </div>
@@ -858,11 +874,10 @@ watch(currentOrgNumber, () => {
   grid-template-columns: 1fr auto;
   gap: 0.8rem;
   align-items: start;
-  padding: 0.75rem 0 1.5rem; /* Extra bottom padding for error message */
+  padding: 0.6rem 0;
   border-bottom: 1px solid var(--color-border);
   transition: background-color 0.2s;
-  min-height: 4rem; /* Fixed height to prevent layout shifts */
-  position: relative; /* For absolute positioned error messages */
+  min-height: 3.5rem;
 }
 
 .setting-item:last-child {
@@ -972,7 +987,10 @@ watch(currentOrgNumber, () => {
 
 .setting-control {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  padding-bottom: 0.9rem; /* Space for error message */
 }
 
 .setting-select,
@@ -1008,14 +1026,18 @@ watch(currentOrgNumber, () => {
 
 .field-error {
   position: absolute;
-  bottom: 0.25rem;
+  bottom: 0.15rem;
   left: 0;
   color: var(--color-danger);
-  font-size: var(--font-size-xs);
+  font-size: 0.7rem;
   font-weight: 500;
   white-space: nowrap;
   background: none;
   padding: 0;
+  line-height: 1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .section-error {
