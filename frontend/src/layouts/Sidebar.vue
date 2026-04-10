@@ -99,6 +99,7 @@ const sections = computed(() => [
       ...(user.value?.role === 'ADMIN'
           ? [{ id: 'users', label: 'Brukere', route: 'Users' }]
           : []),
+      { id: 'locations', label: 'Lokasjoner', route: 'Locations' },
       { id: 'settings', label: 'Innstillinger', route: 'Settings' }
     ]
   }] : [])
