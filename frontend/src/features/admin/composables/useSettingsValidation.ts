@@ -55,7 +55,8 @@ const useSettingsValidation = () => {
       return 'Ugyldig e-postformat'
     }
 
-    const [localPart, domain] = parts
+    const localPart = parts[0] ?? ''
+    const domain = parts[1] ?? ''
 
     if (localPart.length === 0) {
       return 'Mangler navn før @'
@@ -70,7 +71,8 @@ const useSettingsValidation = () => {
     }
 
     const domainParts = domain.split('.')
-    if (domainParts[domainParts.length - 1].length < 2) {
+    const tld = domainParts[domainParts.length - 1]
+    if (!tld || tld.length < 2) {
       return 'Ugyldig toppdomene (må være minst 2 tegn)'
     }
 
@@ -128,6 +130,10 @@ const useSettingsValidation = () => {
     }
   }
 
+  const setError = (itemId: string, message: string) => {
+    validationErrors.value[itemId] = message
+  }
+
   const getError = (itemId: string): string | null => {
     return validationErrors.value[itemId] ?? null
   }
@@ -155,6 +161,10 @@ const useSettingsValidation = () => {
       case 'default_temp_min_c':
       case 'default_temp_max_c':
         return validateTemperature(itemId, value, settingsState)
+      case 'retention_user_months':
+        return validateBoundedInteger(itemId, value, 1, 120, 'Må være mellom 1 og 120 måneder')
+      case 'retention_audit_months':
+        return validateBoundedInteger(itemId, value, 12, 120, 'Må være mellom 12 og 120 måneder (GDPR min. 5 år)')
       case 'enable_food_module':
       case 'enable_alcohol_module':
         return validateModules(settingsState)
@@ -194,8 +204,13 @@ const useSettingsValidation = () => {
 
   const validatePhone = (value: unknown): boolean => {
     const phone = String(value ?? '').trim()
-    // Allow empty or valid phone format (+ and numbers)
-    if (phone.length > 0 && !/^[+]?[\d\s-()]+$/.test(phone)) {
+    if (phone.length === 0) return true
+    if (phone.length > 20) {
+      validationErrors.value.contact_phone = 'Telefonnummer kan ikke være lengre enn 20 tegn.'
+      return false
+    }
+    // Allow valid phone format (+ and numbers)
+    if (!/^[+]?[\d\s-()]+$/.test(phone)) {
       validationErrors.value.contact_phone = 'Ugyldig telefonnummer. Bruk kun tall, +, og mellomrom.'
       return false
     }
@@ -216,6 +231,18 @@ const useSettingsValidation = () => {
   }
 
   const validateTemperature = (itemId: string, value: unknown, settingsState: SettingsState): boolean => {
+    const num = toNumber(value)
+    if (num !== null) {
+      if (num < -25) {
+        validationErrors.value[itemId] = 'Minimum er -25°C'
+        return false
+      }
+      if (num > 25) {
+        validationErrors.value[itemId] = 'Maksimum er 25°C'
+        return false
+      }
+    }
+
     const minTemp = toNumber(
       settingsState.temperature.items.find((item) => item.id === 'default_temp_min_c')?.current_value
     )
@@ -225,10 +252,20 @@ const useSettingsValidation = () => {
 
     if (minTemp !== null && maxTemp !== null && minTemp > maxTemp) {
       if (itemId === 'default_temp_min_c') {
-        validationErrors.value.default_temp_min_c = 'Min temperatur må være mindre enn eller lik maks temperatur.'
+        validationErrors.value.default_temp_min_c = 'Min må være lavere enn maks'
       } else {
-        validationErrors.value.default_temp_max_c = 'Maks temperatur må være større enn eller lik min temperatur.'
+        validationErrors.value.default_temp_max_c = 'Maks må være høyere enn min'
       }
+      return false
+    }
+    return true
+  }
+
+  const validateBoundedInteger = (itemId: string, value: unknown, min: number, max: number, message: string): boolean => {
+    const num = toNumber(value)
+    if (num === null) return true
+    if (num < min || num > max) {
+      validationErrors.value[itemId] = message
       return false
     }
     return true
