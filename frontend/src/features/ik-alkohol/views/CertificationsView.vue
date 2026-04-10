@@ -1,4 +1,4 @@
-<script setup lang="ts">
+3<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import {
   certificateStatusForDate,
@@ -579,44 +579,47 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 
 <style scoped>
 .certifications-page {
-  max-width: 1200px;
+  width: min(100%, 1200px);
   margin: 0 auto;
+  display: grid;
+  gap: var(--spacing-lg);
 }
 
 .page-header {
-  margin-bottom: 32px;
+  display: grid;
+  gap: var(--spacing-xs);
 }
 
 .page-header h1 {
-  font-size: var(--font-size-2xl);
+  font-size: clamp(2rem, 2.5vw, var(--font-size-3xl));
   font-weight: var(--font-weight-bold);
-  color: var(--ik-alkohol-primary);
-  margin-bottom: 8px;
+  color: var(--color-brand-medium-violet);
+  margin: 0;
 }
 
 .subtitle {
   font-size: var(--font-size-sm);
-  color: var(--color-gray-500);
+  color: var(--color-gray-600);
 }
 
 .status-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--spacing-md);
 }
 
 .status-box {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 20%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
   background: var(--color-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .status-box__label {
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-600);
+  font-size: 0.6875rem;
+  color: var(--color-brand-medium-violet);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -634,17 +637,18 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 }
 
 .status-box--valid {
-  border-left: 0.25rem solid var(--color-success);
+  border-left: 4px solid var(--color-cta);
 }
 
 .status-box--soon {
-  border-left: 0.25rem solid var(--color-warning);
+  border-left: 4px solid var(--color-brand-soft-violet);
 }
 
 .status-box--expired {
-  border-left: 0.25rem solid var(--color-danger);
+  border-left: 4px solid var(--color-danger);
 }
 
+.type-strip {
 .filter-strip {
   display: flex;
   flex-wrap: wrap;
@@ -669,6 +673,13 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
   font-weight: var(--font-weight-semibold);
 }
 
+.type-strip li {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 18%, var(--color-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-brand-pale-lavender) 40%, var(--color-card));
+  font-size: var(--font-size-xs);
+  color: var(--color-brand-deep-violet);
 .matrix-section {
   background: var(--color-card);
   border: 1px solid var(--color-border);
@@ -678,9 +689,48 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 
 .catalog-section {
   background: var(--color-card);
+  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 20%, var(--color-border));
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.catalog-card {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 1.25rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-card) 94%, #f8fafc);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.catalog-card__title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-foreground);
+}
+
+.catalog-card__meta {
+  margin: 0.35rem 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .catalog-grid {
@@ -839,9 +889,9 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 }
 
 .status-pill--soon {
-  color: var(--color-warning);
-  background: var(--color-warning-bg);
-  border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+  color: var(--color-brand-deep-violet);
+  background: var(--color-brand-soft-violet);
+  border-color: color-mix(in srgb, var(--color-brand-soft-violet) 40%, var(--color-border));
 }
 
 .status-pill--expired {
@@ -918,21 +968,127 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 
 .info-box {
   padding: 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid #bfdbfe;
-  background: #eff6ff;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--color-brand-soft-violet) 18%, var(--color-border));
+  background: color-mix(in srgb, var(--color-brand-pale-lavender) 46%, var(--color-card));
 }
 
 .info-box h3 {
   margin: 0 0 4px;
   font-size: var(--font-size-base);
-  color: #1e3a8a;
+  color: var(--color-brand-deep-violet);
 }
 
 .info-box p {
   margin: 0;
-  color: #1e3a8a;
+  color: var(--color-gray-600);
   font-size: var(--font-size-sm);
+}
+
+.cert-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.cert-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+}
+
+.cert-form input,
+.cert-form select,
+.cert-form textarea {
+  border: 1px solid var(--color-border);
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  font-size: var(--font-size-sm);
+}
+
+.cert-form input:focus,
+.cert-form select:focus,
+.cert-form textarea:focus {
+  outline: none;
+  border-color: var(--ik-alkohol-primary);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.field-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  font-style: italic;
+}
+
+.modal-btn {
+  border: 1px solid var(--ik-alkohol-primary);
+  background: var(--ik-alkohol-primary);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-sm);
+}
+
+.modal-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-btn--ghost {
+  background: var(--color-card);
+  color: var(--color-gray-700);
+  border-color: var(--color-border);
+}
+
+.debug-info {
+  background: #f0f0f0;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: var(--radius-sm);
+}
+
+.debug-info p {
+  margin: 4px 0;
+  font-size: var(--font-size-xs);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-gray-600);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  margin: 1rem 0;
+}
+
+.empty-state--compact {
+  margin: 0;
+  padding: 1rem;
+}
+
+.empty-state p {
+  margin: 0.5rem 0;
+}
+
+.empty-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
 }
 
 .cert-form {

@@ -91,25 +91,21 @@ const readOrgNumberFromToken = (): number | null => {
 export const getOrgNumber = (): number => {
   const fromExplicitSession = readSessionOrgNumber()
   if (fromExplicitSession) {
-    console.log('[OrgContext] ✅ Resolved orgNumber from explicit session storage:', fromExplicitSession)
     return fromExplicitSession
   }
 
   const fromSession = readStoredOrgNumber()
   if (fromSession) {
-    console.log('[OrgContext] ✅ Resolved orgNumber from organizations session:', fromSession)
     return fromSession
   }
 
   const fromToken = readOrgNumberFromToken()
   if (fromToken) {
-    console.log('[OrgContext] ✅ Resolved orgNumber from JWT token claims:', fromToken)
     return fromToken
   }
 
   const fromEnv = parseOrgNumber(import.meta.env.VITE_ORG_NUMBER)
   if (fromEnv) {
-    console.log('[OrgContext] ✅ Resolved orgNumber from VITE_ORG_NUMBER env:', fromEnv)
     return fromEnv
   }
 

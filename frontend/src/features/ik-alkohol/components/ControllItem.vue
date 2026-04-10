@@ -3,6 +3,7 @@
         <div class="control-item__top">
             <div class="control-card__left">
                 <button
+                    type="button"
                     class="control-card__checkbox"
                     :class="{ 'control-card__checkbox--checked': item.is_checked }"
                     :aria-label="props.item.is_checked ? `Marker ${props.item.name} som ikke fullført` : `Marker ${props.item.name} som fullført`"
@@ -144,11 +145,11 @@
     }
 
     .control-card__checkbox {
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--color-gray-300);
-        height: 100%;
-        background: #ffffff;
-        color: #ffffff;
+        border: 1px solid var(--color-border-strong);
+        border-radius: var(--radius-md);
+        min-height: var(--touch-target);
+        background: var(--color-background-soft);
+        color: var(--color-foreground);
         display: inline-flex;
         padding: 0.75rem;
         justify-content: center;
@@ -157,6 +158,18 @@
         flex-shrink: 0;
         overflow: hidden;
         cursor: pointer;
+        transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .control-card__checkbox:hover {
+        border-color: var(--color-border-strong);
+    }
+
+    .control-card__checkbox:focus,
+    .control-card__checkbox:focus-visible {
+        outline: none;
+        background: var(--color-surface-raised);
+        box-shadow: var(--shadow-focus);
     }
     
     .control-card__checkbox span {
@@ -170,8 +183,10 @@
     }
 
     .control-card__checkbox--checked {
-        background: var(--color-success);
-        border-color: var(--color-success);
+        background: var(--color-cta);
+        border-color: color-mix(in srgb, var(--color-cta-foreground) 28%, var(--color-border-strong));
+        color: var(--color-cta-foreground);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-cta-foreground) 18%, transparent);
     }
 
     .control-card__main {
@@ -186,18 +201,19 @@
 
     .control-card__status {
         font-size: var(--font-size-xs);
-        color: var(--color-success);
-        background: var(--color-success-bg);
-        border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+        color: var(--color-cta-foreground);
+        background: var(--color-cta);
+        border: 1px solid color-mix(in srgb, var(--color-cta-foreground) 28%, var(--color-border-strong));
         padding: 0.25rem 0.5rem;
         border-radius: var(--radius-sm);
         white-space: nowrap;
+        font-weight: var(--font-weight-semibold);
     }
 
     .control-card__status--pending {
-        color: var(--color-warning);
-        background: var(--color-warning-bg);
-        border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border));
+        color: var(--color-brand-near-black-violet);
+        background: color-mix(in srgb, var(--color-brand-soft-violet) 78%, var(--color-surface-raised));
+        border-color: color-mix(in srgb, var(--color-brand-deep-violet) 30%, var(--color-border));
     }
 
     .control-item__actions {
@@ -213,6 +229,10 @@
 
     .options-menu__trigger {
         aspect-ratio: 1 / 1;
+        width: var(--touch-target);
+        height: var(--touch-target);
+        min-width: var(--touch-target);
+        min-height: var(--touch-target);
         border: 1px solid var(--color-border);
         background: var(--color-card);
         border-radius: var(--radius-sm);
@@ -221,10 +241,11 @@
         justify-content: center;
         gap: 0.15rem;
         cursor: pointer;
+        padding: 0;
     }
 
     .options-menu__trigger:hover {
-        background: var(--color-accent);
+        background: var(--color-info-bg);
     }
 
     .dot {
@@ -258,7 +279,7 @@
     }
 
     .options-menu__item:hover {
-        background: var(--color-accent);
+        background: var(--color-info-bg);
     }
 
     .options-menu__item--danger {
@@ -293,7 +314,7 @@
         align-self: flex-start;
         border: 0;
         background: transparent;
-        color: var(--ik-alkohol-primary);
+        color: var(--color-brand-medium-violet);
         font-size: var(--font-size-xs);
         font-weight: var(--font-weight-semibold);
         text-decoration: underline;

@@ -8,26 +8,38 @@ import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const data = useFellesData()
+const {
+  dashboardStats,
+  quickActions,
+  reports,
+  documents,
+  notifications,
+  sortedNotifications,
+  sortedDocuments,
+  formatDate,
+  notificationTone,
+  isLoading,
+  error,
+  reload,
+} = useFellesData()
 
 const viewMode = ref<'oversikt' | 'analyse'>('oversikt')
 
 const user = computed(() => authStore.user)
-const stats = data.dashboardStats
-const quickActions = data.quickActions
+const stats = dashboardStats
 
-const unreadNotifications = computed(() => data.notifications.filter((item) => !item.read))
+const unreadNotifications = computed(() => notifications.filter((item) => !item.read))
 const highPriorityNotifications = computed(() => unreadNotifications.value.filter((item) => item.priority === 'high'))
-const latestNotifications = computed(() => data.sortedNotifications.slice(0, 3))
-const latestDocuments = computed(() => data.sortedDocuments.slice(0, 3))
+const latestNotifications = computed(() => sortedNotifications.slice(0, 3))
+const latestDocuments = computed(() => sortedDocuments.slice(0, 3))
 
 const reportCompletion = computed(() => {
-  if (data.reports.length === 0) {
+  if (reports.length === 0) {
     return 0
   }
 
-  const finalized = data.reports.filter((report) => report.status === 'finalized').length
-  return Math.round((finalized / data.reports.length) * 100)
+  const finalized = reports.filter((report) => report.status === 'finalized').length
+  return Math.round((finalized / reports.length) * 100)
 })
 
 const currentDate = computed(() => {
@@ -125,15 +137,15 @@ const goToNotificationAction = (actionUrl: string | null) => {
       <router-link class="alert-banner__link" :to="{ name: 'Notifications' }">Se varsler</router-link>
     </section>
 
-    <section v-if="data.error" class="alert-banner" aria-label="API-feil">
+    <section v-if="error" class="alert-banner" aria-label="API-feil">
       <div>
         <p class="alert-banner__title">Kunne ikke hente dashboard-data</p>
-        <p class="alert-banner__text">{{ data.error }}</p>
+        <p class="alert-banner__text">{{ error }}</p>
       </div>
-      <button class="alert-banner__link" type="button" @click="data.reload">Prøv igjen</button>
+      <button class="alert-banner__link" type="button" @click="reload">Prøv igjen</button>
     </section>
 
-    <section v-else-if="data.isLoading" class="alert-banner" aria-label="Laster dashboard-data">
+    <section v-else-if="isLoading" class="alert-banner" aria-label="Laster dashboard-data">
       <div>
         <p class="alert-banner__title">Laster dashboard-data...</p>
       </div>
@@ -159,11 +171,11 @@ const goToNotificationAction = (actionUrl: string | null) => {
           <ul class="panel__list">
             <li v-for="notification in latestNotifications" :key="notification.id" class="panel__item">
               <button class="panel__item-button" @click="goToNotificationAction(notification.action_url)">
-                <span class="panel__badge" :class="`panel__badge--${data.notificationTone(notification.type)}`">
+                <span class="panel__badge" :class="`panel__badge--${notificationTone(notification.type)}`">
                   {{ notificationTypeLabel(notification.type) }}
                 </span>
                 <span class="panel__item-title">{{ notification.title }}</span>
-                <span class="panel__item-meta">{{ data.formatDate(notification.created_date) }}</span>
+                <span class="panel__item-meta">{{ formatDate(notification.created_date) }}</span>
               </button>
             </li>
           </ul>
@@ -178,7 +190,7 @@ const goToNotificationAction = (actionUrl: string | null) => {
             <li v-for="document in latestDocuments" :key="document.id" class="panel__item panel__item--stacked">
               <p class="panel__item-title">{{ document.name }}</p>
               <p class="panel__item-description">{{ document.category }} · v{{ document.version }} · {{ document.size }}</p>
-              <p class="panel__item-meta">Lastet opp av {{ document.uploaded_by }} · {{ data.formatDate(document.uploaded_date) }}</p>
+              <p class="panel__item-meta">Lastet opp av {{ document.uploaded_by }} · {{ formatDate(document.uploaded_date) }}</p>
             </li>
           </ul>
         </article>
@@ -211,13 +223,13 @@ const goToNotificationAction = (actionUrl: string | null) => {
         <article class="analysis-card">
           <p>Rapporter ferdigstilt</p>
           <h2>{{ reportCompletion }}%</h2>
-          <span>{{ data.reports.filter((report) => report.status === 'finalized').length }} av {{ data.reports.length }}</span>
+          <span>{{ reports.filter((report) => report.status === 'finalized').length }} av {{ reports.length }}</span>
         </article>
 
         <article class="analysis-card">
           <p>Dokumentkategorier</p>
-          <h2>{{ new Set(data.documents.map((doc) => doc.category)).size }}</h2>
-          <span>{{ data.documents.length }} dokumenter totalt</span>
+          <h2>{{ new Set(documents.map((doc) => doc.category)).size }}</h2>
+          <span>{{ documents.length }} dokumenter totalt</span>
         </article>
       </section>
 
@@ -291,8 +303,8 @@ const goToNotificationAction = (actionUrl: string | null) => {
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-md);
-  border: 1px solid var(--color-danger-border);
-  background: var(--color-danger-bg);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 70%, black);
+  background: var(--color-danger);
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
   box-shadow: var(--shadow-sm);
@@ -300,19 +312,19 @@ const goToNotificationAction = (actionUrl: string | null) => {
 
 .alert-banner__title {
   margin: 0;
-  color: var(--color-danger-fg);
+  color: var(--color-primary-foreground);
   font-weight: 600;
 }
 
 .alert-banner__text {
   margin-top: 0.25rem;
-  color: var(--color-danger);
+  color: color-mix(in srgb, var(--color-primary-foreground) 92%, transparent);
   font-size: var(--font-size-sm);
 }
 
 .alert-banner__link {
-  background: var(--color-danger-fg);
-  color: var(--color-primary-foreground);
+  background: color-mix(in srgb, var(--color-primary-foreground) 92%, transparent);
+  color: var(--color-danger);
   border-radius: var(--radius-md);
   padding: 0.5rem 0.75rem;
   font-size: var(--font-size-sm);
@@ -514,6 +526,12 @@ const goToNotificationAction = (actionUrl: string | null) => {
 .quick-action-card:hover {
   border-color: var(--color-gray-400);
   background: var(--color-card);
+}
+
+.action-card:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-focus);
 }
 
 .quick-action-card__title {

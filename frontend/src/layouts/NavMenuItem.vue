@@ -1,23 +1,19 @@
 <script setup lang="ts">
 import { motion } from 'motion-v'
 
-const props = withDefaults(
-  defineProps<{
-    variant: 'main' | 'sub'
-    label: string
-    active?: boolean
-    badge?: number
-    icon?: string
-    expanded?: boolean
-  }> (), 
-  {
-    active: false,
-    badge: 0,
-    icon: '',
-    expanded: false,
-
-  }
-)
+const props = withDefaults(defineProps<{
+  variant: 'main' | 'sub'
+  label: string
+  active?: boolean
+  badge?: number
+  icon?: string
+  expanded?: boolean
+}>(), {
+  active: false,
+  badge: 0,
+  icon: '',
+  expanded: false,
+})
 
 const emit = defineEmits<{
   select: []
@@ -48,25 +44,22 @@ const handleSelect = () => {
       :while-tap="{ scale: 0.995 }"
       :transition="{ duration: 0.16 }"
     >
-      <span v-if="props.variant === 'main'" class="menu-item__icon" aria-hidden="true">
-        <slot name="icon">{{ props.icon }}</slot>
-      </span>
+      <span v-if="props.variant === 'main'" class="menu-item__icon" v-html="props.icon" />
       <span class="menu-item__label">{{ props.label }}</span>
       <span v-if="props.badge" class="menu-item__badge">{{ props.badge }}</span>
-      <motion.svg
+      <svg
         v-if="props.variant === 'main'"
-        width="18"
-        height="18"
+        width="14"
+        height="14"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2.4"
+        stroke-width="2"
         class="menu-item__chevron"
-        :animate="{ rotate: props.expanded ? 90 : 0 }"
-        :transition="{ duration: 0.2, ease: 'easeOut' }"
+        :class="{ 'menu-item__chevron--open': props.expanded }"
       >
-        <polyline points="9 6 15 12 9 18" />
-      </motion.svg>
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
     </motion.button>
   </motion.div>
 </template>
@@ -74,51 +67,49 @@ const handleSelect = () => {
 <style scoped>
 .menu-item {
   width: 100%;
-  margin: 0;
 }
 
 .menu-item__button {
   width: 100%;
-  min-height: 3.5rem;
+  min-height: 44px;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 10px;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
+  border-left: 4px solid transparent;
   cursor: pointer;
   text-align: left;
   font-family: var(--font-family-ui);
   border-radius: 0;
-  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast) ease, color var(--transition-fast);
 }
 
 .menu-item__button--main {
-  padding: 1.15rem var(--spacing-xl);
+  padding: 12px 16px;
 }
 
 .menu-item__button--sub {
-  padding: 1rem var(--spacing-xl);
+  padding: 10px 16px 10px 44px;
 }
 
 .menu-item__icon {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: color-mix(in srgb, white 72%, transparent);
-  transition: color var(--transition-fast);
 }
 
 .menu-item__label {
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-medium);
+  font-size: 13px;
+  font-weight: 500;
   color: color-mix(in srgb, white 92%, transparent);
-  flex: 1;
 }
 
 .menu-item--main .menu-item__label {
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -128,28 +119,31 @@ const handleSelect = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.4rem;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
   background-color: var(--color-danger);
   color: var(--color-primary-foreground);
-  font-size: 0.6875rem;
+  font-size: 11px;
   font-weight: 700;
-  border-radius: 624.9375rem;
-  margin: 0;
-  box-shadow: 0 0.0625rem 0 rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  margin-left: auto;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
 }
 
 .menu-item__chevron {
-  margin: 0;
+  margin-left: 6px;
   color: color-mix(in srgb, white 72%, transparent);
-  transform-origin: 50% 50%;
-  transition: color var(--transition-fast);
+  transform: rotate(-90deg);
+  transition: transform var(--transition-base) ease, color var(--transition-fast);
+}
+
+.menu-item__chevron--open {
+  transform: rotate(0deg);
 }
 
 .menu-item__button:hover {
   background-color: rgba(255, 255, 255, 0.08);
-  transform: translateX(1px);
 }
 
 .menu-item--sub .menu-item__button:hover {
@@ -158,32 +152,25 @@ const handleSelect = () => {
 }
 
 .menu-item--active .menu-item__button {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  box-shadow: none;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--color-cta);
+  border-color: transparent;
 }
 
 .menu-item--active .menu-item__label,
+.menu-item--active .menu-item__icon,
 .menu-item--active .menu-item__chevron {
-  color: var(--color-foreground);
-}
-
-.menu-item--active .menu-item__icon {
-  color: var(--color-foreground);
-}
-
-.menu-item--active .menu-item__chevron {
-  color: var(--color-foreground);
+  color: var(--color-surface-raised);
 }
 
 .menu-item--sub.menu-item--active .menu-item__label {
-  color: var(--color-foreground);
+  color: var(--color-cta);
   font-weight: 600;
 }
 
 .menu-item__button:focus-visible {
-  outline: 0.125rem solid var(--color-focus);
-  outline-offset: 0.125rem;
+  outline: 2px solid var(--color-cta);
+  outline-offset: -2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

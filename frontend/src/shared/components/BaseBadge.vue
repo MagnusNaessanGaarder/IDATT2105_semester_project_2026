@@ -28,11 +28,12 @@ withDefaults(defineProps<Props>(), {
 .base-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 8px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  font-family: var(--font-family-ui);
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   border-radius: 999px;
   border: 1px solid transparent;
 }
@@ -40,29 +41,29 @@ withDefaults(defineProps<Props>(), {
 .base-badge--success {
   background: var(--color-success-bg);
   color: var(--color-success);
-  border-color: rgba(5, 150, 105, 0.25);
+  border-color: color-mix(in srgb, var(--color-success) 24%, var(--color-border));
 }
 
 .base-badge--warning {
   background: var(--color-warning-bg);
   color: var(--color-warning);
-  border-color: rgba(217, 119, 6, 0.25);
+  border-color: color-mix(in srgb, var(--color-warning) 24%, var(--color-border));
 }
 
 .base-badge--danger {
   background: var(--color-danger-bg);
   color: var(--color-danger-fg);
-  border-color: rgba(220, 38, 38, 0.25);
+  border-color: color-mix(in srgb, var(--color-danger) 24%, var(--color-border));
 }
 
 .base-badge--info {
   background: var(--color-info-bg);
   color: var(--color-info);
-  border-color: rgba(2, 132, 199, 0.25);
+  border-color: color-mix(in srgb, var(--color-info) 24%, var(--color-border));
 }
 
 .base-badge--neutral {
-  background: var(--color-accent);
+  background: color-mix(in srgb, var(--color-card) 70%, var(--color-brand-ice-teal));
   color: var(--color-gray-700);
   border-color: var(--color-border);
 }

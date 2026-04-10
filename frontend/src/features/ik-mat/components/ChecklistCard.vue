@@ -99,6 +99,7 @@ const statusColor = computed(() => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
   transition: box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
@@ -223,6 +224,14 @@ const statusColor = computed(() => {
 .checklist-card__checkbox {
   margin-top: 0.25rem;
   cursor: pointer;
+  width: 1.1rem;
+  height: 1.1rem;
+  min-height: 0;
+  accent-color: var(--color-primary);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .checklist-card__item-label {

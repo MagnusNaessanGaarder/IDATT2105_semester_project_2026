@@ -72,9 +72,9 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.875rem 1rem;
-  min-height: 60px;
-  background: var(--color-card);
+  padding: 1.15rem 1.25rem;
+  min-height: 76px;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .user-info {
@@ -91,7 +91,7 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-info) 0%, var(--color-primary) 100%);
+  background: linear-gradient(135deg, var(--color-brand-medium-violet) 0%, var(--color-brand-deep-violet) 100%);
   color: var(--color-primary-foreground);
   font-weight: 600;
   font-size: 13px;
@@ -110,7 +110,7 @@ const handleLogout = async () => {
 .user-name {
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-foreground);
+  color: var(--color-surface-raised);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -118,33 +118,33 @@ const handleLogout = async () => {
 
 .user-role {
   font-size: 12px;
-  color: var(--color-gray-500);
+  color: color-mix(in srgb, white 72%, transparent);
 }
 
 .logout-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 0.5rem;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0.65rem;
   background: transparent;
   border: none;
   border-radius: var(--radius-lg);
-  color: var(--color-gray-500);
+  color: color-mix(in srgb, white 72%, transparent);
   cursor: pointer;
   transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
   flex-shrink: 0;
 }
 
 .logout-btn:hover {
-  background-color: var(--color-danger-bg);
+  background-color: rgba(255, 102, 102, 0.16);
   color: var(--color-danger);
 }
 
 .logout-btn:focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 2px solid var(--color-cta);
   outline-offset: -2px;
-  background-color: var(--color-danger-bg);
+  background-color: rgba(255, 102, 102, 0.16);
 }
 </style>

@@ -20,53 +20,52 @@ const authStore = useAuthStore()
 const usersComposable = useUsers()
 
 const currentOrg = computed(() => authStore.currentOrg)
-const isAdmin = computed(() => authStore.isAdmin)
+const isAdmin   = computed(() => authStore.isAdmin)
 const currentUserEmail = computed(() => authStore.email?.toLowerCase() ?? '')
 
-const query = ref('')
+const query      = ref('')
 const roleFilter = ref<'all' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE'>('all')
 
 const feedback = ref<{ type: 'success' | 'error'; message: string } | null>(null)
 
-const showAddModal = ref(false)
-const addEmail = ref('')
-const addRoleId = ref<number>(3) // default: EMPLOYEE
+const showAddModal    = ref(false)
+const addEmail        = ref('')
+const addRoleId       = ref<number>(3)      // default: EMPLOYEE
 const addLookupResult = ref<{ found: boolean; displayName?: string; email?: string } | null>(null)
 const addLookupLoading = ref(false)
 const addSubmitLoading = ref(false)
-const addError = ref<string | null>(null)
+const addError        = ref<string | null>(null)
 
 const showEditModal = ref(false)
-const selectedUser = ref<import('../api/users').User | null>(null)
+const selectedUser  = ref<import('../api/users').User | null>(null)
 const editForm = ref({ displayName: '', email: '', phone: '', roleIds: [] as number[] })
 const editError = ref<string | null>(null)
 const editLoading = ref(false)
 
-const showConfirm = ref(false)
-const confirmTitle = ref('')
-const confirmMsg = ref('')
+const showConfirm   = ref(false)
+const confirmTitle  = ref('')
+const confirmMsg    = ref('')
 const confirmAction = ref<(() => Promise<void>) | null>(null)
 const confirmLoading = ref(false)
 
-const usersList = computed(() => usersComposable.users.value)
-const isLoading = computed(() => usersComposable.isLoading.value)
-const usersError = computed(() => usersComposable.error.value)
+const usersList      = computed(() => usersComposable.users.value)
+const isLoading      = computed(() => usersComposable.isLoading.value)
+const usersError     = computed(() => usersComposable.error.value)
 
 const filteredUsers = computed(() => {
   const q = query.value.trim().toLowerCase()
   return usersList.value.filter((u) => {
-    const role = usersComposable.getUserRole(u)
-    const matchRole = roleFilter.value === 'all' || role === roleFilter.value
-    const matchQuery =
-      !q || u.displayName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    const role = userRole(u)
+    const matchRole  = roleFilter.value === 'all' || role === roleFilter.value
+    const matchQuery = !q || u.displayName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
     return matchRole && matchQuery
   })
 })
 
 const roleCounts = computed(() => ({
-  ADMIN: usersList.value.filter((u) => usersComposable.getUserRole(u) === 'ADMIN').length,
-  MANAGER: usersList.value.filter((u) => usersComposable.getUserRole(u) === 'MANAGER').length,
-  EMPLOYEE: usersList.value.filter((u) => usersComposable.getUserRole(u) === 'EMPLOYEE').length,
+  ADMIN:    usersList.value.filter((u) => userRole(u) === 'ADMIN').length,
+  MANAGER:  usersList.value.filter((u) => userRole(u) === 'MANAGER').length,
+  EMPLOYEE: usersList.value.filter((u) => userRole(u) === 'EMPLOYEE').length,
 }))
 
 onMounted(loadUsers)
@@ -74,11 +73,7 @@ watch(currentOrg, loadUsers)
 
 async function loadUsers() {
   if (currentOrg.value?.orgNumber) {
-    try {
-      await usersComposable.fetchUsers(currentOrg.value.orgNumber)
-    } catch {
-      /* handled */
-    }
+    try { await usersComposable.fetchUsers(currentOrg.value.orgNumber) } catch { /* handled */ }
   }
 }
 
@@ -90,29 +85,37 @@ function roleLabel(role: string) {
 function roleTone(role: string): 'red' | 'amber' | 'blue' {
   return role === 'ADMIN' ? 'red' : role === 'MANAGER' ? 'amber' : 'blue'
 }
+
+function normalizeRole(role: string): 'ADMIN' | 'MANAGER' | 'EMPLOYEE' {
+  const key = role.trim().toUpperCase().replace(/^ROLE_/, '')
+  if (key === 'ADMIN') return 'ADMIN'
+  if (key === 'MANAGER' || key === 'LEADER' || key === 'LEDER') return 'MANAGER'
+  if (key === 'EMPLOYEE' || key === 'EMPLOYER' || key === 'ANSATT') return 'EMPLOYEE'
+  return 'EMPLOYEE'
+}
+
+function userRole(user: import('../api/users').User): 'ADMIN' | 'MANAGER' | 'EMPLOYEE' {
+  return normalizeRole(usersComposable.getUserRole(user))
+}
+
 function initials(name: string) {
-  return name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
 function openAddModal() {
-  addEmail.value = ''
-  addRoleId.value = 3
+  addEmail.value        = ''
+  addRoleId.value       = 3
   addLookupResult.value = null
-  addError.value = null
-  showAddModal.value = true
+  addError.value        = null
+  showAddModal.value    = true
 }
 
 async function lookupEmail() {
   const email = addEmail.value.trim()
   if (!email) return
   addLookupLoading.value = true
-  addLookupResult.value = null
-  addError.value = null
+  addLookupResult.value  = null
+  addError.value         = null
   try {
     // Try to find the user via the add-to-org endpoint with a dry-run
     // We call GET /users and search locally (users already in org are there).
@@ -127,26 +130,22 @@ async function lookupEmail() {
 async function submitAddToOrg() {
   if (!currentOrg.value?.orgNumber || !addEmail.value.trim()) return
   addSubmitLoading.value = true
-  addError.value = null
+  addError.value         = null
   try {
     const { data } = await client.post<AddToOrgResponse>('/users/add-to-org', {
-      email: addEmail.value.trim(),
+      email:     addEmail.value.trim(),
       orgNumber: currentOrg.value.orgNumber,
-      roleIds: [addRoleId.value],
+      roleIds:   [addRoleId.value],
     })
     await loadUsers()
-    showAddModal.value = false
+    showAddModal.value    = false
     feedback.value = { type: 'success', message: `${data.displayName} er lagt til i teamet.` }
-    setTimeout(() => {
-      feedback.value = null
-    }, 5000)
+    setTimeout(() => { feedback.value = null }, 5000)
   } catch (err: unknown) {
-    const status = (err as { response?: { status?: number; data?: { message?: string } } })
-      ?.response?.status
-    const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+    const status = (err as { response?: { status?: number; data?: { message?: string } } })?.response?.status
+    const msg    = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
     if (status === 404) {
-      addError.value =
-        'Ingen konto er registrert med denne e-postadressen. Be personen registrere seg først.'
+      addError.value = 'Ingen konto er registrert med denne e-postadressen. Be personen registrere seg først.'
     } else if (status === 409) {
       addError.value = 'Brukeren er allerede medlem av denne organisasjonen.'
     } else {
@@ -161,11 +160,11 @@ function openEdit(user: import('../api/users').User) {
   selectedUser.value = user
   editForm.value = {
     displayName: user.displayName,
-    email: user.email,
-    phone: user.phone ?? '',
-    roleIds: user.roles?.map((r) => r.roleId) ?? [],
+    email:       user.email,
+    phone:       user.phone ?? '',
+    roleIds:     user.roles?.map((r) => r.roleId) ?? [],
   }
-  editError.value = null
+  editError.value   = null
   showEditModal.value = true
 }
 
@@ -176,23 +175,19 @@ async function submitEdit() {
     return
   }
   editLoading.value = true
-  editError.value = null
+  editError.value   = null
   try {
     await usersComposable.updateUser(selectedUser.value.userId, currentOrg.value.orgNumber, {
       displayName: editForm.value.displayName,
-      email: editForm.value.email,
-      phone: editForm.value.phone || undefined,
-      roleIds: editForm.value.roleIds,
+      email:       editForm.value.email,
+      phone:       editForm.value.phone || undefined,
+      roleIds:     editForm.value.roleIds,
     })
     showEditModal.value = false
     feedback.value = { type: 'success', message: 'Bruker oppdatert.' }
-    setTimeout(() => {
-      feedback.value = null
-    }, 4000)
+    setTimeout(() => { feedback.value = null }, 4000)
   } catch (err: unknown) {
-    editError.value =
-      (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-      'Oppdatering feilet.'
+    editError.value = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Oppdatering feilet.'
   } finally {
     editLoading.value = false
   }
@@ -203,19 +198,14 @@ function confirmToggle(user: import('../api/users').User) {
     feedback.value = { type: 'error', message: 'Du kan ikke deaktivere din egen bruker.' }
     return
   }
-  const action = user.isActive ? 'deaktivere' : 'aktivere'
+  const action   = user.isActive ? 'deaktivere' : 'aktivere'
   confirmTitle.value = user.isActive ? 'Bekreft deaktivering' : 'Bekreft aktivering'
-  confirmMsg.value = `Er du sikker på at du vil ${action} ${user.displayName}?`
+  confirmMsg.value   = `Er du sikker på at du vil ${action} ${user.displayName}?`
   confirmAction.value = async () => {
     if (!currentOrg.value?.orgNumber) return
     await usersComposable.toggleUserStatus(user.userId, currentOrg.value.orgNumber, user.isActive)
-    feedback.value = {
-      type: 'success',
-      message: user.isActive ? 'Bruker deaktivert.' : 'Bruker aktivert.',
-    }
-    setTimeout(() => {
-      feedback.value = null
-    }, 4000)
+    feedback.value = { type: 'success', message: user.isActive ? 'Bruker deaktivert.' : 'Bruker aktivert.' }
+    setTimeout(() => { feedback.value = null }, 4000)
   }
   showConfirm.value = true
 }
@@ -223,24 +213,23 @@ function confirmToggle(user: import('../api/users').User) {
 async function runConfirm() {
   if (!confirmAction.value) return
   confirmLoading.value = true
-  try {
-    await confirmAction.value()
-  } finally {
+  try { await confirmAction.value() } finally {
     confirmLoading.value = false
-    showConfirm.value = false
-    confirmAction.value = null
+    showConfirm.value    = false
+    confirmAction.value  = null
   }
 }
 
 const availableRoles = [
-  { id: 1, name: 'ADMIN', label: 'Admin' },
-  { id: 2, name: 'MANAGER', label: 'Leder' },
+  { id: 1, name: 'ADMIN',    label: 'Admin'  },
+  { id: 2, name: 'MANAGER',  label: 'Leder'  },
   { id: 3, name: 'EMPLOYEE', label: 'Ansatt' },
 ]
 </script>
 
 <template>
   <div class="users-view">
+
     <!-- Header -->
     <header class="page-header">
       <div>
@@ -248,18 +237,11 @@ const availableRoles = [
         <p class="subtitle">Administrer tilgang, roller og teammedlemmer</p>
       </div>
       <button v-if="isAdmin" class="add-btn" type="button" @click="openAddModal">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-        >
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <line x1="19" y1="8" x2="19" y2="14" />
-          <line x1="22" y1="11" x2="16" y2="11" />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/>
+          <line x1="22" y1="11" x2="16" y2="11"/>
         </svg>
         Legg til teammedlem
       </button>
@@ -280,33 +262,34 @@ const availableRoles = [
     <ErrorMessage v-else-if="usersError" :message="usersError" show-retry @retry="loadUsers" />
 
     <template v-else>
+
       <!-- Role summary chips -->
       <div class="role-summary">
         <button
-          class="role-chip"
-          :class="{ 'role-chip--active': roleFilter === 'all' }"
-          @click="roleFilter = 'all'"
+            class="role-chip"
+            :class="{ 'role-chip--active': roleFilter === 'all' }"
+            @click="roleFilter = 'all'"
         >
           Alle <span class="chip-count">{{ usersList.length }}</span>
         </button>
         <button
-          class="role-chip role-chip--admin"
-          :class="{ 'role-chip--active': roleFilter === 'ADMIN' }"
-          @click="roleFilter = roleFilter === 'ADMIN' ? 'all' : 'ADMIN'"
+            class="role-chip role-chip--admin"
+            :class="{ 'role-chip--active': roleFilter === 'ADMIN' }"
+            @click="roleFilter = roleFilter === 'ADMIN' ? 'all' : 'ADMIN'"
         >
           Admin <span class="chip-count">{{ roleCounts.ADMIN }}</span>
         </button>
         <button
-          class="role-chip role-chip--manager"
-          :class="{ 'role-chip--active': roleFilter === 'MANAGER' }"
-          @click="roleFilter = roleFilter === 'MANAGER' ? 'all' : 'MANAGER'"
+            class="role-chip role-chip--manager"
+            :class="{ 'role-chip--active': roleFilter === 'MANAGER' }"
+            @click="roleFilter = roleFilter === 'MANAGER' ? 'all' : 'MANAGER'"
         >
           Leder <span class="chip-count">{{ roleCounts.MANAGER }}</span>
         </button>
         <button
-          class="role-chip role-chip--employee"
-          :class="{ 'role-chip--active': roleFilter === 'EMPLOYEE' }"
-          @click="roleFilter = roleFilter === 'EMPLOYEE' ? 'all' : 'EMPLOYEE'"
+            class="role-chip role-chip--employee"
+            :class="{ 'role-chip--active': roleFilter === 'EMPLOYEE' }"
+            @click="roleFilter = roleFilter === 'EMPLOYEE' ? 'all' : 'EMPLOYEE'"
         >
           Ansatt <span class="chip-count">{{ roleCounts.EMPLOYEE }}</span>
         </button>
@@ -315,41 +298,23 @@ const availableRoles = [
       <!-- Search -->
       <div class="search-row">
         <div class="search-wrap">
-          <svg
-            class="search-icon"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
           <input
-            v-model="query"
-            type="search"
-            class="table-search"
-            placeholder="Søk etter navn eller e-post…"
+              v-model="query"
+              type="search"
+              class="table-search"
+              placeholder="Søk etter navn eller e-post…"
           />
         </div>
       </div>
 
       <!-- Empty state -->
       <div v-if="filteredUsers.length === 0" class="empty-state">
-        <svg
-          width="36"
-          height="36"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-        >
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
         <p>Ingen brukere funnet</p>
       </div>
@@ -358,90 +323,79 @@ const availableRoles = [
       <div v-else class="table-card">
         <table>
           <thead>
-            <tr>
-              <th>Bruker</th>
-              <th>E-post</th>
-              <th>Rolle</th>
-              <th>Status</th>
-              <th class="th-date">Opprettet</th>
-              <th v-if="isAdmin" class="th-actions">Handlinger</th>
-            </tr>
+          <tr>
+            <th>Bruker</th>
+            <th>E-post</th>
+            <th>Rolle</th>
+            <th>Status</th>
+            <th v-if="isAdmin" class="th-actions">Handlinger</th>
+          </tr>
           </thead>
           <tbody>
-            <tr
+          <tr
               v-for="user in filteredUsers"
               :key="user.userId"
               :class="{ 'tr--inactive': !user.isActive }"
-            >
-              <td>
-                <div class="user-cell">
-                  <span
-                    class="avatar"
-                    :class="`avatar--${roleTone(usersComposable.getUserRole(user))}`"
-                  >
+          >
+            <td>
+              <div class="user-cell">
+                  <span class="avatar" :class="`avatar--${roleTone(userRole(user))}`">
                     {{ initials(user.displayName) }}
                   </span>
-                  <div>
-                    <p class="user-name">
-                      {{ user.displayName }}
-                      <span v-if="isSelf(user.email)" class="you-badge">deg</span>
-                    </p>
-                    <p v-if="user.phone" class="user-sub">{{ user.phone }}</p>
-                  </div>
+                <div>
+                  <p class="user-name">
+                    {{ user.displayName }}
+                    <span v-if="isSelf(user.email)" class="you-badge">deg</span>
+                  </p>
+                  <p v-if="user.phone" class="user-sub">{{ user.phone }}</p>
                 </div>
-              </td>
-              <td class="td-email">{{ user.email }}</td>
-              <td>
-                <span
-                  class="role-pill"
-                  :class="`role-pill--${roleTone(usersComposable.getUserRole(user))}`"
-                >
-                  {{ roleLabel(usersComposable.getUserRole(user)) }}
+              </div>
+            </td>
+            <td class="td-email">{{ user.email }}</td>
+            <td>
+                <span class="role-pill" :class="`role-pill--${roleTone(userRole(user))}`">
+                  {{ roleLabel(userRole(user)) }}
                 </span>
-              </td>
-              <td>
-                <span
-                  class="status-pill"
-                  :class="user.isActive ? 'status-pill--active' : 'status-pill--inactive'"
-                >
+            </td>
+            <td>
+                <span class="status-pill" :class="user.isActive ? 'status-pill--active' : 'status-pill--inactive'">
                   {{ user.isActive ? 'Aktiv' : 'Inaktiv' }}
                 </span>
-              </td>
-              <td class="td-date">{{ usersComposable.formatDate(user.createdAt) }}</td>
-              <td v-if="isAdmin">
-                <div class="row-actions">
-                  <button class="btn-ghost" @click="openEdit(user)">Rediger</button>
-                  <button
+            </td>
+            <td v-if="isAdmin">
+              <div class="row-actions">
+                <button class="btn-ghost" @click="openEdit(user)">Rediger</button>
+                <button
                     class="btn-ghost"
                     :class="user.isActive ? 'btn-ghost--warn' : 'btn-ghost--ok'"
                     @click="confirmToggle(user)"
-                  >
-                    {{ user.isActive ? 'Deaktiver' : 'Aktiver' }}
-                  </button>
-                </div>
-              </td>
-            </tr>
+                >
+                  {{ user.isActive ? 'Deaktiver' : 'Aktiver' }}
+                </button>
+              </div>
+            </td>
+          </tr>
           </tbody>
         </table>
       </div>
+
     </template>
 
     <BaseModal :open="showAddModal" title="Legg til teammedlem" @close="showAddModal = false">
       <div class="add-form">
         <p class="add-intro">
-          Skriv inn e-postadressen til personen du vil legge til. De må allerede ha opprettet en
-          konto.
+          Skriv inn e-postadressen til personen du vil legge til. De må allerede ha opprettet en konto.
         </p>
 
         <div class="form-group">
           <label for="addEmail">E-postadresse</label>
           <input
-            id="addEmail"
-            v-model="addEmail"
-            type="email"
-            placeholder="ansatt@example.no"
-            autocomplete="off"
-            @keydown.enter.prevent="submitAddToOrg"
+              id="addEmail"
+              v-model="addEmail"
+              type="email"
+              placeholder="ansatt@example.no"
+              autocomplete="off"
+              @keydown.enter.prevent="submitAddToOrg"
           />
         </div>
 
@@ -453,17 +407,8 @@ const availableRoles = [
         </div>
 
         <div v-if="addError" class="add-error">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
           {{ addError }}
         </div>
@@ -472,9 +417,9 @@ const availableRoles = [
       <template #footer>
         <button class="btn-ghost" @click="showAddModal = false">Avbryt</button>
         <button
-          class="btn-primary"
-          :disabled="addSubmitLoading || !addEmail.trim()"
-          @click="submitAddToOrg"
+            class="btn-primary"
+            :disabled="addSubmitLoading || !addEmail.trim()"
+            @click="submitAddToOrg"
         >
           <BaseSpinner v-if="addSubmitLoading" size="sm" />
           <span v-else>Legg til</span>
@@ -523,6 +468,7 @@ const availableRoles = [
         </button>
       </template>
     </BaseModal>
+
   </div>
 </template>
 
@@ -567,17 +513,10 @@ const availableRoles = [
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
-  transition:
-    opacity var(--transition-fast),
-    transform var(--transition-fast);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
-.add-btn:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
-}
-.add-btn:active {
-  transform: none;
-}
+.add-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.add-btn:active { transform: none; }
 
 .feedback {
   padding: 0.7rem 1rem;
@@ -585,16 +524,8 @@ const availableRoles = [
   font-size: var(--font-size-sm);
   font-weight: 600;
 }
-.feedback--success {
-  background: var(--color-success-bg);
-  color: var(--color-success);
-  border: 1px solid var(--color-success);
-}
-.feedback--error {
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
-  border: 1px solid var(--color-danger);
-}
+.feedback--success { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success); }
+.feedback--error   { background: var(--color-danger-bg);  color: var(--color-danger);  border: 1px solid var(--color-danger);  }
 
 .role-summary {
   display: flex;
@@ -610,22 +541,22 @@ const availableRoles = [
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-card);
+  box-shadow: var(--shadow-sm);
   color: var(--color-gray-600);
   font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 .role-chip:hover {
   border-color: var(--color-foreground);
+  box-shadow: var(--shadow-md);
 }
 .role-chip--active {
   background: var(--color-foreground);
   color: var(--color-primary-foreground);
   border-color: var(--color-foreground);
+  box-shadow: var(--shadow-md);
 }
 
 .chip-count {
@@ -641,14 +572,8 @@ const availableRoles = [
   font-weight: 700;
 }
 
-.search-row {
-  display: flex;
-}
-.search-wrap {
-  position: relative;
-  flex: 1;
-  max-width: 28rem;
-}
+.search-row { display: flex; }
+.search-wrap { position: relative; flex: 1; max-width: 28rem; }
 .search-icon {
   position: absolute;
   left: 0.75rem;
@@ -663,16 +588,13 @@ const availableRoles = [
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-card);
+  box-shadow: var(--shadow-sm);
   font-size: var(--font-size-sm);
   color: var(--color-foreground);
   min-height: var(--touch-target);
   box-sizing: border-box;
 }
-.table-search:focus {
-  outline: none;
-  border-color: var(--color-focus);
-  box-shadow: var(--shadow-focus);
-}
+.table-search:focus { outline: none; border-color: var(--color-focus); box-shadow: var(--shadow-focus); }
 
 .empty-state {
   display: flex;
@@ -694,13 +616,9 @@ const availableRoles = [
   overflow: hidden;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+table { width: 100%; border-collapse: collapse; }
 
-th,
-td {
+th, td {
   text-align: left;
   padding: 0.8rem 1rem;
   border-bottom: 1px solid var(--color-gray-100);
@@ -715,30 +633,12 @@ th {
   color: var(--color-gray-500);
   background: var(--color-gray-50);
 }
-.th-actions {
-  text-align: right;
-}
-.th-date {
-  white-space: nowrap;
-}
-.td-date {
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-500);
-  white-space: nowrap;
-}
+.th-actions { text-align: right; }
 
-tr:last-child td {
-  border-bottom: none;
-}
-.tr--inactive td {
-  opacity: 0.55;
-}
+tr:last-child td { border-bottom: none; }
+.tr--inactive td { opacity: 0.55; }
 
-.user-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
+.user-cell { display: flex; align-items: center; gap: 0.65rem; }
 
 .avatar {
   flex-shrink: 0;
@@ -751,29 +651,12 @@ tr:last-child td {
   font-size: var(--font-size-xs);
   font-weight: 700;
 }
-.avatar--red {
-  background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
-}
-.avatar--amber {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
-}
-.avatar--blue {
-  background: var(--color-info-bg);
-  color: var(--color-info);
-}
+.avatar--red  { background: var(--color-danger); color: var(--color-danger-fg); }
+.avatar--amber{ background: var(--color-warning-bg); color: var(--color-warning); }
+.avatar--blue { background: var(--color-info-bg); color: var(--color-info); }
 
-.user-name {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-foreground);
-}
-.user-sub {
-  margin-top: 0.1rem;
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-500);
-}
+.user-name { font-size: var(--font-size-sm); font-weight: 500; color: var(--color-foreground); }
+.user-sub  { margin-top: 0.1rem; font-size: var(--font-size-xs); color: var(--color-gray-500); }
 
 .you-badge {
   margin-left: 0.4rem;
@@ -788,10 +671,7 @@ tr:last-child td {
   vertical-align: middle;
 }
 
-.td-email {
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-600);
-}
+.td-email { font-size: var(--font-size-sm); color: var(--color-gray-600); }
 
 .role-pill {
   display: inline-flex;
@@ -800,18 +680,9 @@ tr:last-child td {
   font-size: var(--font-size-xs);
   font-weight: 600;
 }
-.role-pill--red {
-  background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
-}
-.role-pill--amber {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
-}
-.role-pill--blue {
-  background: var(--color-info-bg);
-  color: var(--color-info);
-}
+.role-pill--red   { background: var(--color-danger);     color: var(--color-danger-fg); }
+.role-pill--amber { background: var(--color-warning-bg); color: var(--color-warning);   }
+.role-pill--blue  { background: var(--color-info-bg);    color: var(--color-info);      }
 
 .status-pill {
   display: inline-flex;
@@ -820,20 +691,10 @@ tr:last-child td {
   font-size: var(--font-size-xs);
   font-weight: 600;
 }
-.status-pill--active {
-  background: var(--color-success-bg);
-  color: var(--color-success);
-}
-.status-pill--inactive {
-  background: var(--color-gray-100);
-  color: var(--color-gray-500);
-}
+.status-pill--active   { background: var(--color-success-bg); color: var(--color-success); }
+.status-pill--inactive { background: var(--color-gray-100);   color: var(--color-gray-500); }
 
-.row-actions {
-  display: flex;
-  gap: 0.35rem;
-  justify-content: flex-end;
-}
+.row-actions { display: flex; gap: 0.35rem; justify-content: flex-end; }
 
 .btn-ghost {
   min-height: 2.1rem;
@@ -847,17 +708,9 @@ tr:last-child td {
   cursor: pointer;
   transition: background var(--transition-fast);
 }
-.btn-ghost:hover {
-  background: var(--color-gray-50);
-}
-.btn-ghost--warn {
-  color: var(--color-danger);
-  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
-}
-.btn-ghost--ok {
-  color: var(--color-success);
-  border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border));
-}
+.btn-ghost:hover { background: var(--color-gray-50); }
+.btn-ghost--warn { color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border)); }
+.btn-ghost--ok   { color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border)); }
 
 .btn-primary {
   display: inline-flex;
@@ -873,13 +726,8 @@ tr:last-child td {
   font-weight: 600;
   cursor: pointer;
 }
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.btn-primary:not(:disabled):hover {
-  opacity: 0.88;
-}
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-primary:not(:disabled):hover { opacity: 0.88; }
 
 .btn-danger {
   display: inline-flex;
@@ -887,33 +735,22 @@ tr:last-child td {
   gap: 0.4rem;
   min-height: 2.25rem;
   padding: 0.4rem 1rem;
-  background: #dc2626;
-  color: #fff;
+  background: var(--color-danger);
+  color: var(--color-primary-foreground);
   border: none;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
 }
-.btn-danger:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem;
-  color: var(--color-gray-500);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 1rem; padding: 3rem; color: var(--color-gray-500);
 }
 
-.add-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+.add-form { display: flex; flex-direction: column; gap: 1rem; }
 
 .add-intro {
   font-size: var(--font-size-sm);
@@ -922,44 +759,30 @@ tr:last-child td {
   margin: 0;
 }
 
-.user-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+.user-form { display: flex; flex-direction: column; gap: 1rem; }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
+.form-group { display: flex; flex-direction: column; gap: 0.3rem; }
 .form-group label {
   font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--color-gray-700);
+  color: var(--color-gray-800);
 }
 .form-group input,
 .form-group select {
   min-height: 2.5rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
-  background: var(--color-card);
+  background: var(--color-surface-muted);
   color: var(--color-foreground);
   box-sizing: border-box;
   width: 100%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 .form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: var(--color-focus);
-  box-shadow: var(--shadow-focus);
-}
-.form-group select[multiple] {
-  min-height: 6rem;
-  padding: 0.5rem;
-}
+.form-group select:focus { outline: none; border-color: var(--color-focus); background: var(--color-surface-raised); box-shadow: var(--shadow-focus); }
+.form-group select[multiple] { min-height: 6rem; padding: 0.5rem; }
 
 .add-error {
   display: flex;
@@ -967,40 +790,18 @@ tr:last-child td {
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
-  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 28%, var(--color-border));
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   line-height: 1.5;
 }
-.add-error svg {
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-}
+.add-error svg { flex-shrink: 0; margin-top: 0.1rem; }
 
 @media (max-width: 48rem) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .add-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  th:nth-child(5),
-  td:nth-child(5) {
-    display: none;
-  } /* hide date col */
-  th:nth-child(6),
-  td:nth-child(6) {
-    display: none;
-  } /* hide actions col */
-  .td-email {
-    max-width: 8rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .add-btn { width: 100%; justify-content: center; }
+  th:nth-child(5), td:nth-child(5) { display: none; }  /* hide phone col */
+  .td-email { max-width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 </style>
-

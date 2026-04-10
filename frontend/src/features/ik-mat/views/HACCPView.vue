@@ -264,7 +264,6 @@ const removeDocument = async (docId: number) => {
     <section class="table-card" aria-label="Kritiske kontrollpunkter">
       <div class="table-card__header">
         <h2>Kritiske kontrollpunkter</h2>
-        <button v-if="canAdmin" type="button" class="admin-btn" @click="openCreatePointModal">+ Nytt kontrollpunkt</button>
       </div>
       <table>
         <thead>
@@ -312,6 +311,10 @@ const removeDocument = async (docId: number) => {
         </tbody>
       </table>
     </section>
+
+    <div v-if="canAdmin" class="table-card__actions">
+      <button type="button" class="admin-btn" @click="openCreatePointModal">+ Nytt kontrollpunkt</button>
+    </div>
 
     <section class="docs-card" aria-label="Støttedokumenter">
       <div class="docs-header">
@@ -488,8 +491,20 @@ const removeDocument = async (docId: number) => {
 .docs-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.6rem;
+}
+
+.docs-header {
+  flex-direction: column;
+  margin-bottom: 0.75rem;
+}
+
+.table-card__actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.75rem;
+  margin-bottom: 0.95rem;
 }
 
 .admin-btn {
@@ -568,6 +583,10 @@ td {
 
 .options-menu__trigger {
   aspect-ratio: 1 / 1;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
   border: 1px solid var(--color-border);
   background: var(--color-card);
   border-radius: var(--radius-sm);
@@ -576,7 +595,7 @@ td {
   justify-content: center;
   gap: 0.15rem;
   cursor: pointer;
-  width: 2rem;
+  padding: 0;
 }
 
 .dot {

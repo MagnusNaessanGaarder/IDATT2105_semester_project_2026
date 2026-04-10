@@ -24,21 +24,12 @@ const toggleSidebar = () => {
     </a>
 
     <button
-      class="sidebar-toggle"
-      type="button"
-      aria-label="Åpne meny"
-      @click="openSidebar"
-    >
-      ☰
-    </button>
-    
-    <button
       class="menu-toggle"
       type="button"
-      aria-label="Aapne meny"
+      aria-label="Åpne meny"
       @click="toggleSidebar"
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <line x1="3" y1="6" x2="21" y2="6" />
         <line x1="3" y1="12" x2="21" y2="12" />
         <line x1="3" y1="18" x2="21" y2="18" />
@@ -80,8 +71,9 @@ const toggleSidebar = () => {
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(circle at top left, var(--color-surface-tint) 0%, transparent 30%),
-    linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
+    radial-gradient(circle at top left, var(--color-surface-tint) 0%, transparent 28%),
+    radial-gradient(circle at top right, var(--color-surface-tint-strong) 0%, transparent 24%),
+    linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
 }
 
 .skip-link {
@@ -105,15 +97,15 @@ const toggleSidebar = () => {
 
 .menu-toggle {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
+  top: 0.75rem;
+  left: 0.75rem;
   z-index: 45;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 3.5rem;
+  height: 3.5rem;
   border-radius: var(--radius-md);
-  background: var(--color-card);
+  background: var(--color-primary);
   border: 1px solid var(--color-border);
-  color: var(--color-primary);
+  color: var(--color-primary-foreground);
   box-shadow: var(--shadow-sm);
   display: inline-flex;
   align-items: center;
@@ -122,8 +114,8 @@ const toggleSidebar = () => {
 }
 
 .menu-toggle:hover {
-  background: var(--color-card-muted);
-  border-color: var(--color-border-strong);
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
@@ -132,24 +124,6 @@ const toggleSidebar = () => {
   .menu-toggle {
     display: none;
   }
-}
-
-.sidebar-toggle {
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: 60;
-  min-height: 44px;
-  min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: #fff;
-  color: var(--color-foreground);
-  font-size: 1.1rem;
-  font-weight: 700;
 }
 
 .sidebar-backdrop {
@@ -164,6 +138,7 @@ const toggleSidebar = () => {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
 }
 
 .main-content {
@@ -174,11 +149,14 @@ const toggleSidebar = () => {
   contain-intrinsic-size: 900px;
 }
 
-@media (min-width: 768px) {
-  .sidebar-toggle {
-    display: none;
+@media (max-width: 47.99rem) {
+  .main-content {
+    width: 100%;
+    padding: calc(var(--spacing-xl) + 3.5rem) var(--spacing-md) var(--spacing-lg);
   }
+}
 
+@media (min-width: 768px) {
   .main-content {
     padding: clamp(1.25rem, 2vw, 2rem) clamp(1.25rem, 2.2vw, 2.5rem);
   }

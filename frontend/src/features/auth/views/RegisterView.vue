@@ -198,9 +198,9 @@ const handleRegister = async () => {
   align-items: center;
   justify-content: center;
   background:
-      radial-gradient(circle at 8% 14%, var(--color-surface-tint), transparent 32%),
-      radial-gradient(circle at 90% 88%, var(--color-surface-tint-strong), transparent 35%),
-      linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
+      radial-gradient(circle at 8% 14%, var(--color-surface-tint), transparent 28%),
+      radial-gradient(circle at 90% 88%, var(--color-surface-tint-strong), transparent 28%),
+      linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
   padding: var(--content-padding);
 }
 
@@ -210,7 +210,7 @@ const handleRegister = async () => {
 }
 
 .register-form {
-  background: linear-gradient(180deg, var(--color-card) 0%, var(--color-card-muted) 100%);
+  background: linear-gradient(180deg, var(--color-card) 0%, var(--color-background-soft) 100%);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: clamp(1.75rem, 4vw, 2.25rem);
@@ -222,7 +222,7 @@ const handleRegister = async () => {
   font-size: var(--font-size-xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-gray-600);
+  color: var(--color-brand-dark-teal);
   font-weight: var(--font-weight-semibold);
 }
 
@@ -250,7 +250,7 @@ const handleRegister = async () => {
   padding: 0.75rem 1rem;
   margin-bottom: var(--spacing-md);
   background-color: var(--color-danger-bg);
-  color: var(--color-danger-fg);
+  color: var(--color-danger);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-danger-border);
   font-size: var(--font-size-sm);
@@ -262,19 +262,22 @@ const handleRegister = async () => {
 
 .form-group label {
   display: block;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-ui);
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-foreground);
   margin-bottom: 6px;
 }
 
 .required {
-  color: var(--color-danger);
+  color: var(--color-brand-deep-violet);
   margin-left: 2px;
 }
 
 .optional {
-  color: var(--color-gray-400);
+  color: var(--color-gray-500);
   font-weight: var(--font-weight-normal);
   font-size: var(--font-size-xs);
   margin-left: 2px;
@@ -300,7 +303,7 @@ const handleRegister = async () => {
 }
 
 .form-group input::placeholder {
-  color: var(--color-gray-400);
+  color: color-mix(in srgb, var(--color-foreground) 45%, transparent);
 }
 
 .input--mismatch {
@@ -329,7 +332,7 @@ const handleRegister = async () => {
 }
 
 .password-strength__fill--weak   { width: 33%; background: var(--color-danger); }
-.password-strength__fill--fair   { width: 66%; background: var(--color-warning); }
+.password-strength__fill--fair   { width: 66%; background: var(--color-warning-bg); }
 .password-strength__fill--strong { width: 100%; background: var(--color-success); }
 
 .password-strength__label {
@@ -392,7 +395,7 @@ const handleRegister = async () => {
 }
 
 .login-link a {
-  color: var(--color-foreground);
+  color: var(--color-link);
   font-weight: var(--font-weight-semibold);
   text-decoration: underline;
 }

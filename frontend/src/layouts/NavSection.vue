@@ -31,15 +31,7 @@ const emit = defineEmits<{
 }>()
 
 const isMainActive = computed(() => {
-  if (props.currentScreen === props.section.dashboardRoute) {
-    return true
-  }
-
-  return props.section.items.some(item => item.route === props.currentScreen)
-})
-
-const isAnyChildActive = computed(() => {
-  return props.section.items.some((item) => item.route === props.currentScreen)
+  return props.currentScreen === props.section.dashboardRoute
 })
 
 const sectionBadgeCount = computed(() => {
@@ -179,7 +171,7 @@ const navigateToScreen = (routeName: string) => {
   overflow: hidden;
   border-left: none;
   margin-left: 0;
-  margin-top: 0.15rem;
+  margin-top: 0;
   background: none;
 }
 

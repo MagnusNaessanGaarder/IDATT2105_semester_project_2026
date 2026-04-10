@@ -596,6 +596,14 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
   color: var(--color-gray-600);
   font-size: var(--font-size-sm);
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.filter-chip:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .filter-chip--active {
@@ -615,9 +623,9 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 }
 
 .state-msg--error {
-  color: var(--color-danger);
-  background: var(--color-danger-bg);
-  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+  color: var(--color-primary-foreground);
+  background: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 70%, black);
 }
 
 .deviations-layout {
@@ -678,8 +686,9 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 }
 
 .list-item--active {
-  border-color: var(--color-foreground);
-  background: var(--color-gray-50);
+  border: 2px solid var(--color-foreground);
+  background: var(--color-card);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-foreground) 20%, transparent);
 }
 
 .list-item__title {
@@ -713,7 +722,7 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 
 .chip--good    { background: var(--color-success-bg); color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border)); }
 .chip--warn    { background: var(--color-warning-bg); color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 30%, var(--color-border)); }
-.chip--danger  { background: var(--color-danger-bg);  color: var(--color-danger);  border-color: color-mix(in srgb, var(--color-danger)  30%, var(--color-border)); }
+.chip--danger  { background: var(--color-danger); color: var(--color-danger-fg); border-color: var(--color-danger-hover); }
 .chip--info    { background: var(--color-info-bg);    color: var(--color-info);    border-color: color-mix(in srgb, var(--color-info)    30%, var(--color-border)); }
 .chip--neutral { background: var(--color-gray-100);   color: var(--color-gray-600); border-color: var(--color-border); }
 
@@ -784,8 +793,8 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 }
 
 .workflow__step--done {
-  border-color: color-mix(in srgb, var(--color-success) 40%, var(--color-border));
-  background: var(--color-success-bg);
+  border-color: color-mix(in srgb, var(--color-success) 70%, black);
+  background: var(--color-success);
 }
 
 .workflow__label {
@@ -798,7 +807,15 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 }
 
 .workflow__step--done .workflow__label {
-  color: var(--color-success);
+  color: color-mix(in srgb, var(--color-primary-foreground) 92%, transparent);
+}
+
+.workflow__step--done .workflow__text {
+  color: var(--color-primary-foreground);
+}
+
+.workflow__step--done .workflow__empty {
+  color: color-mix(in srgb, var(--color-primary-foreground) 80%, transparent);
 }
 
 .workflow__text {
@@ -890,7 +907,11 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
 
 .action-error {
   font-size: var(--font-size-sm);
-  color: var(--color-danger);
+  color: var(--color-primary-foreground);
+  background: var(--color-danger);
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-md);
+  margin: 0;
 }
 
 .action-form {

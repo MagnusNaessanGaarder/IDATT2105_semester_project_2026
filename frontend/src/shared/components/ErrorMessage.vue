@@ -57,14 +57,14 @@
     align-items: flex-start;
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
-    background: var(--color-danger-bg);
-    border-left: 3px solid var(--color-danger);
+    background: var(--color-danger);
     border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
   }
 
   .error-message__icon {
     flex-shrink: 0;
-    color: var(--color-danger);
+    color: var(--color-danger-fg);
   }
 
   .error-message__content {
@@ -75,22 +75,24 @@
     margin: 0;
     color: var(--color-danger-fg);
     font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
   }
 
   .error-message__retry {
     margin-top: var(--spacing-sm);
     padding: var(--button-padding-sm);
     font-size: var(--font-size-sm);
-    background: var(--color-danger);
-    color: var(--color-primary-foreground);
+    background: var(--color-surface-raised);
+    color: var(--color-danger);
     border: none;
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
+    font-weight: var(--font-weight-semibold);
   }
 
   .error-message__retry:hover {
-    background: var(--color-danger-hover);
+    background: color-mix(in srgb, var(--color-surface-raised) 86%, var(--color-danger-bg));
   }
 
   .error-message__retry:focus-visible {
