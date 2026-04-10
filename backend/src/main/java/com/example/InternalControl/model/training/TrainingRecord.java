@@ -2,6 +2,7 @@ package com.example.InternalControl.model.training;
 
 import com.example.InternalControl.model.document.OrganizationDocument;
 import com.example.InternalControl.model.user.AppUser;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -32,6 +33,15 @@ public class TrainingRecord {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser user;
+
+    /**
+     * Exposes the FK value directly so JSON serialization never needs
+     * to initialize the lazy {@code user} proxy.
+     */
+    @JsonProperty("userId")
+    public Long getUserId() {
+        return user != null ? user.getUserId() : null;
+    }
 
     @Column(name = "org_number", nullable = false)
     private Integer orgNumber;

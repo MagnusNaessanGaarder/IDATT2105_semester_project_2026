@@ -1,16 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { reactive } from 'vue'
 import ChecklistsView from '../ChecklistsView.vue'
 
-// Mock the composables
-const mockChecklists = [
+const createMockChecklists = () => ([
   {
     id: 1,
     name: 'Daily Cleaning',
     frequency: 'Daglig',
     law_unit: 'HMS-1',
     description: 'Daily cleaning tasks',
+    run_id: null,
+    run_date: null,
     items: [
       { id: 1, task: 'Clean floor', completed: false, required: true, notes: null },
       { id: 2, task: 'Clean tables', completed: true, required: true, notes: null },
@@ -23,12 +25,16 @@ const mockChecklists = [
     frequency: 'Ukentlig',
     law_unit: 'HMS-2',
     description: 'Weekly inspection tasks',
+    run_id: null,
+    run_date: null,
     items: [
       { id: 3, task: 'Check fire extinguisher', completed: false, required: true, notes: null },
     ],
     status: 'pending',
   },
-]
+])
+
+const mockChecklists = reactive(createMockChecklists())
 
 vi.mock('@/features/ik-mat/composables/useIkMatData', () => ({
   useIkMatData: () => ({
@@ -37,12 +43,20 @@ vi.mock('@/features/ik-mat/composables/useIkMatData', () => ({
       const completed = checklist.items.filter((i) => i.completed).length
       return Math.round((completed / checklist.items.length) * 100)
     },
+    toggleChecklistItem: async (checklistId: number, itemId: number, completed: boolean) => {
+      const checklist = mockChecklists.find((entry) => entry.id === checklistId)
+      const item = checklist?.items.find((entry) => entry.id === itemId)
+      if (item) {
+        item.completed = completed
+      }
+    },
   }),
 }))
 
 describe('ChecklistsView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    mockChecklists.splice(0, mockChecklists.length, ...createMockChecklists())
   })
 
   it('renders the page title', () => {
@@ -144,6 +158,7 @@ describe('ChecklistsView', () => {
     expect((checkbox.element as HTMLInputElement).checked).toBe(false)
 
     await checkbox.trigger('change')
+    await wrapper.vm.$nextTick()
 
     // After toggle, checkbox should be checked
     expect((checkbox.element as HTMLInputElement).checked).toBe(true)

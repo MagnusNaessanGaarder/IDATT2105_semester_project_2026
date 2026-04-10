@@ -13,6 +13,8 @@ export interface BackendSettings {
   defaultTempMinC: number | null
   defaultTempMaxC: number | null
   reminderEmailEnabled: boolean
+  reminderRecipientScope?: string | null
+  reminderLeadHours?: number | null
   notificationEmail: string | null
   displayName: string | null
   legalName: string | null

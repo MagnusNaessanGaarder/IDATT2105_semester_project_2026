@@ -10,6 +10,7 @@ import {
 
 const props = defineProps<{
   open: boolean
+  fixedDocumentType?: DocumentTypeValue
   /**
    * When provided the modal operates in "new version" mode:
    * the document type selector is hidden, title/description are
@@ -27,6 +28,7 @@ const emit = defineEmits<{
 }>()
 
 const isVersionMode = computed(() => props.succeedsDocument != null)
+const hasFixedDocumentType = computed(() => !isVersionMode.value && Boolean(props.fixedDocumentType))
 
 const modalTitle = computed(() =>
   isVersionMode.value
@@ -187,7 +189,7 @@ watch(() => props.open, (isOpen) => {
       file.value        = null
       title.value       = ''
       description.value = ''
-      docType.value     = 'OTHER'
+      docType.value     = props.fixedDocumentType ?? 'OTHER'
       errors.value      = {}
       isDragging.value  = false
     }, 200)
@@ -195,6 +197,8 @@ watch(() => props.open, (isOpen) => {
     // Pre-fill metadata so the user only has to change what's actually new
     title.value       = props.succeedsDocument.title
     description.value = props.succeedsDocument.description ?? ''
+  } else if (isOpen && props.fixedDocumentType) {
+    docType.value = props.fixedDocumentType
   }
 })
 
@@ -300,7 +304,7 @@ function onKeydown(e: KeyboardEvent) {
 
             <p v-if="errors.file" class="field-error field-error--standalone" role="alert">{{ errors.file }}</p>
 
-            <div v-if="!isVersionMode" class="field">
+            <div v-if="!isVersionMode && !hasFixedDocumentType" class="field">
               <label for="doc-type" class="field__label">
                 Dokumenttype <span class="field__required" aria-hidden="true">*</span>
               </label>

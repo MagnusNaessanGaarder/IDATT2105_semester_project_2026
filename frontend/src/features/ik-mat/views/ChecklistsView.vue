@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import BaseModal from '@/shared/components/BaseModal.vue'
 
 const authStore = useAuthStore()
-const { checklists, completionForChecklist } = useIkMatData()
+const { checklists, completionForChecklist, toggleChecklistItem } = useIkMatData()
 
 const isAdmin = computed(() => authStore.isAdmin)
 
@@ -14,8 +14,7 @@ const expandedId = ref<number | null>(null)
 const optionsOpenId = ref<number | null>(null)
 const showEditModal = ref(false)
 const selectedChecklist = ref<Checklist | null>(null)
-
-const checklistState = ref<Checklist[]>(checklists.map((item) => ({ ...item, items: item.items.map((task) => ({ ...task })) })))
+const isSubmittingItemId = ref<string | null>(null)
 
 const formData = ref({
   name: '',
@@ -28,10 +27,10 @@ const frequencies = computed(() => ['Alle', 'Daglig', 'Ukentlig', 'Månedlig'] a
 
 const filtered = computed(() => {
   if (selectedFrequency.value === 'Alle') {
-    return checklistState.value
+    return checklists
   }
 
-  return checklistState.value.filter((item) => item.frequency === selectedFrequency.value)
+  return checklists.filter((item) => item.frequency === selectedFrequency.value)
 })
 
 const sorted = computed(() => {
@@ -77,45 +76,40 @@ const closeEditModal = () => {
 const handleUpdateChecklist = async () => {
   if (!selectedChecklist.value) return
 
-  checklistState.value = checklistState.value.map((checklist) => {
-    if (checklist.id !== selectedChecklist.value?.id) {
-      return checklist
-    }
-    return {
-      ...checklist,
-      name: formData.value.name,
-      description: formData.value.description,
-      frequency: formData.value.frequency,
-      law_unit: formData.value.law_unit,
-    }
-  })
+  const checklist = checklists.find((c) => c.id === selectedChecklist.value?.id)
+  if (checklist) {
+    checklist.name = formData.value.name
+    checklist.description = formData.value.description
+    checklist.frequency = formData.value.frequency
+    checklist.law_unit = formData.value.law_unit
+  }
 
   closeEditModal()
 }
 
-const toggleTask = (checklistId: number, itemId: number) => {
-  checklistState.value = checklistState.value.map((checklist) => {
-    if (checklist.id !== checklistId) {
-      return checklist
-    }
+const toggleTask = async (checklistId: number, itemId: number) => {
+  const itemKey = `${checklistId}-${itemId}`
 
-    const updatedItems = checklist.items.map((task) => {
-      if (task.id !== itemId) {
-        return task
-      }
+  if (isSubmittingItemId.value === itemKey) {
+    return
+  }
 
-      return {
-        ...task,
-        completed: !task.completed,
-      }
-    })
+  const checklist = checklists.find((c) => c.id === checklistId)
+  const item = checklist?.items.find((i) => i.id === itemId)
 
-    return {
-      ...checklist,
-      items: updatedItems,
-      status: updatedItems.every((task) => task.completed) ? 'completed' : 'pending',
-    }
-  })
+  if (!checklist || !item) {
+    return
+  }
+
+  isSubmittingItemId.value = itemKey
+
+  try {
+    await toggleChecklistItem(checklistId, itemId, !item.completed)
+  } catch (error) {
+    console.error('Failed to toggle checklist item:', error)
+  } finally {
+    isSubmittingItemId.value = null
+  }
 }
 </script>
 

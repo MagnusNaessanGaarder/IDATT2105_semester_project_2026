@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -95,6 +96,23 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse(
             "INVALID_ARGUMENT",
             ex.getMessage(),
+            LocalDateTime.now()));
+  }
+
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
+    HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+    HttpStatus resolvedStatus = status != null ? status : HttpStatus.INTERNAL_SERVER_ERROR;
+    if (resolvedStatus.is5xxServerError()) {
+      log.error("Response status exception: {}", ex.getReason(), ex);
+    } else {
+      log.warn("Response status exception: {}", ex.getReason());
+    }
+    return ResponseEntity
+        .status(resolvedStatus)
+        .body(new ErrorResponse(
+            resolvedStatus.name(),
+            ex.getReason() != null ? ex.getReason() : "Request failed",
             LocalDateTime.now()));
   }
 

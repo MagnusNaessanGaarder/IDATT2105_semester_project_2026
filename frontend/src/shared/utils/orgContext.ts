@@ -5,7 +5,7 @@ interface StoredOrganization {
   org_number?: number | string
 }
 
-interface JwtLikePayload {
+interface JwtPayload {
   orgNumber?: number | string
   org_number?: number | string
   organizationNumber?: number | string
@@ -47,10 +47,11 @@ const readStoredOrgNumber = (): number | null => {
 }
 
 const readSessionOrgNumber = (): number | null => {
-  const explicitKeys = ['orgNumber', 'selectedOrgNumber', 'currentOrgNumber']
+  const keys = ['selectedOrgNumber', 'currentOrgNumber', 'orgNumber']
 
-  for (const key of explicitKeys) {
-    const parsed = parseOrgNumber(sessionStorage.getItem(key))
+  for (const key of keys) {
+    const value = sessionStorage.getItem(key)
+    const parsed = parseOrgNumber(value)
     if (parsed) {
       return parsed
     }
@@ -67,21 +68,17 @@ const readOrgNumberFromToken = (): number | null => {
 
   try {
     const parts = token.split('.')
-    const payload = parts[1]
-    if (!payload) {
+    if (parts.length !== 3 || !parts[1]) {
       return null
     }
 
-    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
     const padding = '='.repeat((4 - (base64.length % 4)) % 4)
     const decoded = atob(base64 + padding)
-    const claims = JSON.parse(decoded) as JwtLikePayload
+    const payload = JSON.parse(decoded) as JwtPayload
 
-    return (
-      parseOrgNumber(claims.orgNumber) ??
-      parseOrgNumber(claims.org_number) ??
-      parseOrgNumber(claims.organizationNumber) ??
-      parseOrgNumber(claims.organization_number)
+    return parseOrgNumber(
+      payload.orgNumber ?? payload.org_number ?? payload.organizationNumber ?? payload.organization_number,
     )
   } catch {
     return null
@@ -109,7 +106,6 @@ export const getOrgNumber = (): number => {
     return fromEnv
   }
 
-  console.warn('[OrgContext] ⚠️  Using FALLBACK orgNumber:', FALLBACK_ORG_NUMBER)
   return FALLBACK_ORG_NUMBER
 }
 
