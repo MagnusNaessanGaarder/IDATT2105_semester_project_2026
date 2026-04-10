@@ -77,41 +77,63 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
     @Override
     @Transactional(readOnly = true)
     public ChecklistRun getRun(Long runId, Integer orgNumber) {
-        return runRepository.findByRunIdAndOrgNumber(runId, orgNumber)
+        return runRepository.findByRunIdAndOrgNumberWithDetails(runId, orgNumber)
+                .or(() -> runRepository.findByRunIdAndOrgNumber(runId, orgNumber))
                 .orElseThrow(() -> new EntityNotFoundException("Run not found: " + runId));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ChecklistRun> getRunsByOrg(Integer orgNumber) {
-        return runRepository.findByOrgNumber(orgNumber);
+        List<ChecklistRun> runs = runRepository.findByOrgNumberWithDetails(orgNumber);
+        return !runs.isEmpty() ? runs : runRepository.findByOrgNumber(orgNumber);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ChecklistRun> getRunsByStatus(Integer orgNumber, RunStatus status) {
-        return runRepository.findByOrgNumberAndStatus(orgNumber, status);
+        List<ChecklistRun> runs = runRepository.findByOrgNumberAndStatusWithDetails(orgNumber, status);
+        return !runs.isEmpty() ? runs : runRepository.findByOrgNumberAndStatus(orgNumber, status);
     }
 
     @Override
-    public ChecklistRun completeRun(Long runId, Integer orgNumber) {
+    public ChecklistRun completeRun(Long runId, Integer orgNumber, Long userId) {
         ChecklistRun run = getRun(runId, orgNumber);
 
         if (!run.isEditable()) {
             throw new IllegalStateException("Run cannot be completed: " + run.getStatus());
         }
 
+        run.setPerformedByUserId(userId);
         run.markAsCompleted();
         return runRepository.save(run);
     }
 
+    public ChecklistRun completeRun(Long runId, Integer orgNumber) {
+        return completeRun(runId, orgNumber, null);
+    }
+
     @Override
-    public ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber) {
+    public ChecklistRun uncompleteRun(Long runId, Integer orgNumber) {
+        ChecklistRun run = getRun(runId, orgNumber);
+
+        if (run.getStatus() != RunStatus.COMPLETED) {
+            throw new IllegalStateException("Run cannot be uncompleted: " + run.getStatus());
+        }
+
+        run.markAsIncomplete();
+        return runRepository.save(run);
+    }
+
+    @Override
+    public ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber, Long userId) {
         ChecklistRun run = getRun(runId, orgNumber);
 
         if (!run.isEditable()) {
             throw new IllegalStateException("Cannot update items for completed run");
         }
+
+        run.setPerformedByUserId(userId);
 
         ChecklistRunItem existing = runItemRepository
                 .findByRunRunIdAndTemplateItemId(runId, itemId)
@@ -137,6 +159,10 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
         }
 
         return runItemRepository.save(existing);
+    }
+
+    public ChecklistRunItem updateRunItem(Long runId, Long itemId, ChecklistRunItem item, Integer orgNumber) {
+        return updateRunItem(runId, itemId, item, orgNumber, null);
     }
 
     @Override

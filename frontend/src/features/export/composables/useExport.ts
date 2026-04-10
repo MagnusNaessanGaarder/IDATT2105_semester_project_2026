@@ -9,14 +9,13 @@ type ApiErrorShape = {
 }
 import { useAuthStore } from '@/stores/auth.ts'
 import { exportApi, type ExportRequest, type ExportResponse } from '../api.ts'
-import {client} from "@/api/client.ts";
+import { client } from '@/api/client.ts'
 
 
 const POLL_INTERVAL_RUNNING_MS = 3000
 const POLL_INTERVAL_PENDING_MS = 8000
 const PENDING_STALL_THRESHOLD = 5
 const MAX_POLL_ATTEMPTS = 30
-
 export function useExport() {
   const authStore = useAuthStore()
   const orgNumber = computed(() => authStore.currentOrg?.orgNumber ?? null)
@@ -128,15 +127,10 @@ export function useExport() {
     if (!orgNumber.value) return
 
     try {
-      // Get the path from the backend, e.g. "/api/files/download/42"
       const path = await exportApi.getDownloadUrl(orgNumber.value, exportJobId)
-
-      // Extract the document ID from the end of the path
       const documentId = Number(path.split('/').pop())
       if (!documentId) throw new Error('Could not parse document ID from download path: ' + path)
 
-      // Fetch the file through the authenticated client with the correct header.
-      // The backend endpoint is at /api/v1/files/download/{id} and reads X-Org-Number.
       const job = exports.value.find((e) => e.exportJobId === exportJobId) ?? activeJob.value
       const ext = job?.format === 'JSON' ? 'json' : 'pdf'
 
