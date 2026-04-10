@@ -1,6 +1,6 @@
 -- Organization
 INSERT INTO organization (org_number, legal_name, display_name, contact_email, is_active, created_at, updated_at)
-VALUES (937219997, 'Everest Sushi & Fusion AS', 'Everest Sushi', 'kari@everest-sushi.no', 1, NOW(), NOW());
+VALUES (937219997, 'Everest Sushi & Fusion AS', 'Everest Sushi', 'organization@everest-sushi.no', 1, NOW(), NOW());
 
 -- Roles
 INSERT INTO role (role_name, description, is_system_role) VALUES

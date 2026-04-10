@@ -76,14 +76,20 @@ class OrganizationSettingsServiceTest {
     }
 
     @Test
-    void shouldThrowWhenSettingsNotFound() {
+    void shouldCreateDefaultWhenSettingsNotFound() {
         // Given
         when(settingsRepository.findById(ORG_NUMBER)).thenReturn(Optional.empty());
+        when(settingsRepository.existsById(ORG_NUMBER)).thenReturn(false);
+        when(settingsRepository.save(any(OrganizationSettings.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // When/Then
-        assertThatThrownBy(() -> settingsService.getSettings(ORG_NUMBER))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Organization settings not found for org");
+        // When
+        OrganizationSettingsResponse result = settingsService.getSettings(ORG_NUMBER);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getOrgNumber()).isEqualTo(ORG_NUMBER);
+        assertThat(result.getTimezoneName()).isEqualTo("Europe/Oslo");
+        verify(settingsRepository).save(any(OrganizationSettings.class));
     }
 
     // ==================== UPDATE SETTINGS TESTS ====================
@@ -124,17 +130,19 @@ class OrganizationSettingsServiceTest {
     }
 
     @Test
-    void shouldThrowWhenUpdatingNonExistentSettings() {
+    void shouldCreateDefaultSettingsWhenUpdatingNonExistentSettings() {
         // Given
         OrganizationSettingsRequest request = createUpdateRequest();
         when(settingsRepository.findById(ORG_NUMBER)).thenReturn(Optional.empty());
+        when(settingsRepository.save(any(OrganizationSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // When/Then
-        assertThatThrownBy(() -> settingsService.updateSettings(ORG_NUMBER, request, USER_ID))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Organization settings not found for org");
+        // When
+        OrganizationSettingsResponse response = settingsService.updateSettings(ORG_NUMBER, request, USER_ID);
 
-        verify(settingsRepository, never()).save(any());
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getOrgNumber()).isEqualTo(ORG_NUMBER);
+        verify(settingsRepository, times(2)).save(any()); // Once for create, once for update
     }
 
     @Test
