@@ -72,6 +72,10 @@
 
     const firstElement = focusableElements[0]
     const lastElement = focusableElements[focusableElements.length - 1]
+    if (!firstElement || !lastElement) {
+      event.preventDefault()
+      return
+    }
     const activeElement = document.activeElement as HTMLElement | null
 
     if (event.shiftKey && activeElement === firstElement) {

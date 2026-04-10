@@ -275,3 +275,19 @@
   background: var(--color-surface-raised) !important;
   box-shadow: var(--shadow-sm);
 }
+
+/* Enforce bordered controls inside overlays/modals across all features */
+:where(.modal-overlay, .overlay, .preview-overlay, .modal, .dialog, [role='dialog'], [aria-modal='true'])
+  :is(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']), select, textarea) {
+  border: 1px solid var(--color-border-strong, var(--color-border)) !important;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-foreground);
+}
+
+:where(.modal-overlay, .overlay, .preview-overlay, .modal, .dialog, [role='dialog'], [aria-modal='true'])
+  :is(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']), select, textarea):focus,
+:where(.modal-overlay, .overlay, .preview-overlay, .modal, .dialog, [role='dialog'], [aria-modal='true'])
+  :is(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='hidden']), select, textarea):focus-visible {
+  border-color: var(--color-primary) !important;
+}
