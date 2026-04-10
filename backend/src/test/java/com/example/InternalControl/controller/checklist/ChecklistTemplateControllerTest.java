@@ -59,13 +59,25 @@ class ChecklistTemplateControllerTest {
 
     @BeforeEach
     void setUp() {
-        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password",
             Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
-        
+
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
-        
+
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+    }
+
+    private void authenticateAs(String role) {
+        CustomUserDetails userDetails = new CustomUserDetails(
+                1L,
+                "test@example.com",
+                "password",
+                Collections.singletonList(new SimpleGrantedAuthority(role))
+        );
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
     @Test
@@ -152,6 +164,7 @@ class ChecklistTemplateControllerTest {
     @Test
     void createTemplate_WithValidRequest_ReturnsCreatedTemplate() throws Exception {
         // Given
+        authenticateAs("ROLE_MANAGER");
         ChecklistTemplateCreateRequest request = ChecklistTemplateCreateRequest.builder()
                 .title("New Template")
                 .description("Test Description")
@@ -179,7 +192,7 @@ class ChecklistTemplateControllerTest {
     }
 
     @Test
-    void createTemplate_AsEmployee_ReturnsCreated() throws Exception {
+    void createTemplate_AsEmployee_ReturnsForbidden() throws Exception {
         // Given
         ChecklistTemplateCreateRequest request = ChecklistTemplateCreateRequest.builder()
                 .title("New Template")
@@ -194,15 +207,12 @@ class ChecklistTemplateControllerTest {
                 .orgNumber(123456789)
                 .build();
 
-        when(templateService.createTemplate(any(), anyInt(), anyLong()))
-                .thenReturn(created);
-
         // When & Then
         mockMvc.perform(post("/api/v1/checklists/templates")
                         .param("orgNumber", "123456789")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isForbidden());
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.example.InternalControl.model.audit.Audited;
 import com.example.InternalControl.model.organization.OrganizationSettings;
 import com.example.InternalControl.repository.organization.OrganizationSettingsRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,10 +29,7 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     public OrganizationSettingsResponse getSettings(Integer orgNumber) {
         return settingsRepository.findById(orgNumber)
                 .map(this::mapToResponse)
-                .orElseGet(() -> {
-                    log.info("No settings found for org: {}. Creating defaults.", orgNumber);
-                    return createDefaultSettings(orgNumber);
-                });
+                .orElseThrow(() -> new EntityNotFoundException("Organization settings not found for org: " + orgNumber));
     }
 
     @Override
@@ -39,17 +37,7 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     @Audited(action = ActionType.UPDATE, entityType = "OrganizationSettings")
     public OrganizationSettingsResponse updateSettings(Integer orgNumber, OrganizationSettingsRequest request, Long userId) {
         OrganizationSettings settings = settingsRepository.findById(orgNumber)
-                .orElseGet(() -> {
-                    log.info("No settings found for org: {}. Creating defaults before update.", orgNumber);
-                    return OrganizationSettings.builder()
-                            .orgNumber(orgNumber)
-                            .timezoneName("Europe/Oslo")
-                            .localeCode("nb-NO")
-                            .enableFoodModule(true)
-                            .enableAlcoholModule(true)
-                            .reminderEmailEnabled(true)
-                            .build();
-                });
+                .orElseThrow(() -> new EntityNotFoundException("Organization settings not found for org: " + orgNumber));
 
         settings.setTimezoneName(request.getTimezoneName());
         settings.setLocaleCode(request.getLocaleCode());
@@ -59,8 +47,12 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
         settings.setDefaultTempMaxC(request.getDefaultTempMaxC());
         settings.setReminderEmailEnabled(request.getReminderEmailEnabled());
         settings.setNotificationEmail(request.getNotificationEmail());
-        settings.setRetentionUserMonths(request.getRetentionUserMonths());
-        settings.setRetentionAuditMonths(request.getRetentionAuditMonths());
+        if (request.getRetentionUserMonths() != null) {
+            settings.setRetentionUserMonths(request.getRetentionUserMonths());
+        }
+        if (request.getRetentionAuditMonths() != null) {
+            settings.setRetentionAuditMonths(request.getRetentionAuditMonths());
+        }
 
         OrganizationSettings updated = settingsRepository.save(settings);
         log.info("Updated organization settings for org: {} by user: {}", orgNumber, userId);
@@ -104,8 +96,12 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
                 .defaultTempMaxC(settings.getDefaultTempMaxC())
                 .reminderEmailEnabled(settings.isReminderEmailEnabled())
                 .notificationEmail(settings.getNotificationEmail())
-                .retentionUserMonths(Math.toIntExact(settings.getRetentionUserMonths()))
-                .retentionAuditMonths(Math.toIntExact(settings.getRetentionAuditMonths()))
+                .retentionUserMonths(settings.getRetentionUserMonths() > 0
+                        ? Math.toIntExact(settings.getRetentionUserMonths())
+                        : null)
+                .retentionAuditMonths(settings.getRetentionAuditMonths() > 0
+                        ? Math.toIntExact(settings.getRetentionAuditMonths())
+                        : null)
                 .createdAt(settings.getCreatedAt())
                 .updatedAt(settings.getUpdatedAt())
                 .build();

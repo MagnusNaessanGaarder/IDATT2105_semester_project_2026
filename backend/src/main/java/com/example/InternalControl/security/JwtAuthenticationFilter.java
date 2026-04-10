@@ -28,7 +28,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
 
     public JwtAuthenticationFilter(ObjectProvider<JwtService> jwtServiceProvider, UserDetailsService userDetailsService) {
-        this.jwtService = jwtServiceProvider.getIfAvailable();
+        this(jwtServiceProvider != null ? jwtServiceProvider.getIfAvailable() : null, userDetailsService);
+    }
+
+    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+        this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
 

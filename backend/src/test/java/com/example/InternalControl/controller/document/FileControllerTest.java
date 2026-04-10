@@ -63,12 +63,12 @@ class FileControllerTest {
 
     @BeforeEach
     void setUp() {
-        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password", 
+        CustomUserDetails userDetails = new CustomUserDetails(1L, "test@example.com", "password",
             Collections.singletonList(new SimpleGrantedAuthority("ROLE_EMPLOYEE")));
-        
+
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
-        
+
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
     }
 
@@ -85,7 +85,7 @@ class FileControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/files")
-                        .param("orgNumber", "123456789"))
+                        .header("X-Org-Number", "123456789"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].documentId").value(1));
     }
@@ -103,7 +103,7 @@ class FileControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/files")
-                        .param("orgNumber", "123456789")
+                        .header("X-Org-Number", "123456789")
                         .param("category", "POLICY"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Policy Document"));
@@ -117,7 +117,7 @@ class FileControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/files")
-                        .param("orgNumber", "123456789"))
+                        .header("X-Org-Number", "123456789"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());

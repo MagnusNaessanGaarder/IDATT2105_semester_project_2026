@@ -8,8 +8,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Redirects non-versioned API calls to versioned endpoints.
@@ -38,7 +43,14 @@ public class ApiRedirectController {
 
         // Append query string if present
         String queryString = request.getQueryString();
-        if (queryString != null) {
+        if (queryString == null || queryString.isBlank()) {
+            queryString = request.getParameterMap().entrySet().stream()
+                    .flatMap(entry -> Arrays.stream(entry.getValue())
+                            .map(value -> UriUtils.encodeQueryParam(entry.getKey(), StandardCharsets.UTF_8)
+                                    + "=" + UriUtils.encodeQueryParam(value, StandardCharsets.UTF_8)))
+                    .collect(Collectors.joining("&"));
+        }
+        if (queryString != null && !queryString.isBlank()) {
             versionedUri += "?" + queryString;
         }
 
