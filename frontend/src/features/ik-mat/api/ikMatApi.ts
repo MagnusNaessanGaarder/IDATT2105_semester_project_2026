@@ -37,7 +37,7 @@ const toArrayPayload = <T>(payload: unknown, endpoint: string): T[] => {
       const parsed = JSON.parse(payload) as unknown
       return toArrayPayload<T>(parsed, endpoint)
     } catch {
-      console.warn(`[IkMatApi] ⚠️ ${endpoint} returned non-JSON string payload. Falling back to empty array.`)
+      // Non-JSON string payload - return empty array
       return []
     }
   }
@@ -58,7 +58,7 @@ const toArrayPayload = <T>(payload: unknown, endpoint: string): T[] => {
     }
   }
 
-  console.warn(`[IkMatApi] ⚠️ ${endpoint} returned unexpected payload shape. Falling back to empty array.`)
+  // Unexpected payload shape - return empty array
   return []
 }
 
@@ -70,6 +70,13 @@ const optionalEndpointUnavailable = {
   checklistRuns: false,
   locations: false,
   deviations: false,
+}
+
+/** Call before a forced reload so that previously-failed optional endpoints are retried. */
+export const resetOptionalEndpointFlags = () => {
+  optionalEndpointUnavailable.checklistRuns = false
+  optionalEndpointUnavailable.locations = false
+  optionalEndpointUnavailable.deviations = false
 }
 
 export const ikMatApi = {
@@ -85,19 +92,16 @@ export const ikMatApi = {
       return []
     }
 
-    console.log('[IkMatApi] 🔍 getLocations()')
     try {
       const response = await client.get<LocationApi[]>('/locations', {
         params: queryFromObject({}),
         skipGlobalErrorLog: true,
       })
       const locations = toArrayPayload<LocationApi>(response.data, 'getLocations')
-      console.log(`[IkMatApi] ✅ getLocations() -> ${locations.length} locations`)
       return locations
     } catch (err: unknown) {
       if (hasResponse(err) && err.response?.status === 500) {
         optionalEndpointUnavailable.locations = true
-        console.warn('[IkMatApi] ⚠️ getLocations() failed with 500. Skipping future calls this session.')
         return []
       }
       throw err
@@ -125,12 +129,10 @@ export const ikMatApi = {
   },
 
   async getChecklistTemplates(): Promise<ChecklistTemplateApi[]> {
-    console.log('[IkMatApi] 🔍 getChecklistTemplates()')
     const response = await client.get<ChecklistTemplateApi[]>('/checklists/templates/module/FOOD', {
       params: queryFromObject({}),
     })
     const templates = toArrayPayload<ChecklistTemplateApi>(response.data, 'getChecklistTemplates')
-    console.log(`[IkMatApi] ✅ getChecklistTemplates() -> ${templates.length} templates`)
     return templates
   },
 
@@ -187,19 +189,16 @@ export const ikMatApi = {
       return []
     }
 
-    console.log('[IkMatApi] 🔍 getChecklistRuns()', status ? `status=${status}` : '')
     try {
       const response = await client.get<ChecklistRunApi[]>('/checklists/runs', {
         params: queryFromObject(status ? { status } : {}),
         skipGlobalErrorLog: true,
       })
       const runs = toArrayPayload<ChecklistRunApi>(response.data, 'getChecklistRuns')
-      console.log(`[IkMatApi] ✅ getChecklistRuns() -> ${runs.length} runs`)
       return runs
     } catch (err: unknown) {
       if (hasResponse(err) && err.response?.status === 500) {
         optionalEndpointUnavailable.checklistRuns = true
-        console.warn('[IkMatApi] ⚠️ getChecklistRuns() failed with 500. Skipping future calls this session.')
         return []
       }
       throw err
@@ -242,12 +241,10 @@ export const ikMatApi = {
   },
 
   async getTemperatureEntries(): Promise<TemperatureEntryApi[]> {
-    console.log('[IkMatApi] 🔍 getTemperatureEntries()')
     const response = await client.get<TemperatureEntryApi[]>('/temperature/entries', {
       params: queryFromObject({}),
     })
     const entries = toArrayPayload<TemperatureEntryApi>(response.data, 'getTemperatureEntries')
-    console.log(`[IkMatApi] ✅ getTemperatureEntries() -> ${entries.length} entries`)
     return entries
   },
 
@@ -345,19 +342,16 @@ export const ikMatApi = {
       return []
     }
 
-    console.log('[IkMatApi] 🔍 getDeviations()')
     try {
       const response = await client.get<DeviationApi[]>('/deviations', {
         params: queryFromObject({}),
         skipGlobalErrorLog: true,
       })
       const deviations = toArrayPayload<DeviationApi>(response.data, 'getDeviations')
-      console.log(`[IkMatApi] ✅ getDeviations() -> ${deviations.length} deviations`)
       return deviations
     } catch (err: unknown) {
       if (hasResponse(err) && err.response?.status === 500) {
         optionalEndpointUnavailable.deviations = true
-        console.warn('[IkMatApi] ⚠️ getDeviations() failed with 500. Skipping future calls this session.')
         return []
       }
       throw err
@@ -427,13 +421,11 @@ export const ikMatApi = {
   },
 
   async getDocuments(category?: string): Promise<FileDocumentApi[]> {
-    console.log('[IkMatApi] 🔍 getDocuments()', category ? `category=${category}` : '')
     const response = await client.get<FileDocumentApi[]>('/files', {
       params: queryFromObject(category ? { category } : {}),
       headers: orgHeaders(),
     })
     const documents = toArrayPayload<FileDocumentApi>(response.data, 'getDocuments')
-    console.log(`[IkMatApi] ✅ getDocuments() -> ${documents.length} documents`)
     return documents
   },
 

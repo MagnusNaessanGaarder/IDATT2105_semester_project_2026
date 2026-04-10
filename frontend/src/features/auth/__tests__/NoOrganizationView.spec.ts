@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi, nextTick } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
+import { nextTick } from 'vue'
 import NoOrganizationView from '../views/NoOrganizationView.vue'
 import { useAuthStore } from '@/stores/auth'
 

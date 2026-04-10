@@ -1,6 +1,4 @@
--- Grant the MANAGER role to the manager account so it passes
--- hasAnyRole('MANAGER', 'ADMIN') checks on the temperature and other endpoints.
--- The V2 seed only assigned KITCHEN_MANAGER; this patch adds MANAGER as well.
+-- Give manager user the MANAGER role (V2 only gave them KITCHEN_MANAGER)
 INSERT INTO user_organization_role (user_id, org_number, role_id, assigned_at, assigned_by_user_id)
 SELECT u.user_id, 937219997, r.role_id, NOW(), u.user_id
 FROM app_user u

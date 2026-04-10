@@ -9,7 +9,6 @@ import com.example.InternalControl.repository.organization.OrganizationSettingsR
 import com.example.InternalControl.service.audit.AuditLogService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,18 +32,15 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     public OrganizationSettingsResponse getSettings(Integer orgNumber) {
         return settingsRepository.findById(orgNumber)
                 .map(this::mapToResponse)
-                .orElseGet(() -> {
-                    log.info("No settings found for org: {}. Creating defaults.", orgNumber);
-                    return createDefaultSettings(orgNumber);
-                });
+                .orElseGet(() -> createDefaultSettings(orgNumber));
     }
 
     @Override
     @Transactional
     public OrganizationSettingsResponse updateSettings(Integer orgNumber, OrganizationSettingsRequest request, Long userId) {
-        // Create default settings if they don't exist
         OrganizationSettings settings = settingsRepository.findById(orgNumber)
                 .orElseGet(() -> {
+                    log.info("No settings found for org: {}. Creating defaults before update.", orgNumber);
                     OrganizationSettings newSettings = OrganizationSettings.builder()
                             .orgNumber(orgNumber)
                             .timezoneName("Europe/Oslo")
@@ -55,6 +51,7 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
                             .build();
                     return settingsRepository.save(newSettings);
                 });
+
         OrganizationSettingsResponse oldValues = mapToResponse(settings);
 
         if (request.getTimezoneName() != null) {
@@ -98,10 +95,20 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     @Transactional
     @Audited(action = ActionType.CREATE, entityType = "OrganizationSettings")
     public OrganizationSettingsResponse createDefaultSettings(Integer orgNumber) {
-        // Check if settings already exist
         if (settingsRepository.existsById(orgNumber)) {
             log.debug("Settings already exist for org: {}", orgNumber);
-            return getSettings(orgNumber);
+            return settingsRepository.findById(orgNumber)
+                    .map(this::mapToResponse)
+                    .orElseGet(() -> mapToResponse(settingsRepository.save(
+                            OrganizationSettings.builder()
+                                    .orgNumber(orgNumber)
+                                    .timezoneName("Europe/Oslo")
+                                    .localeCode("nb-NO")
+                                    .enableFoodModule(true)
+                                    .enableAlcoholModule(true)
+                                    .reminderEmailEnabled(true)
+                                    .build()
+                    )));
         }
 
         OrganizationSettings settings = OrganizationSettings.builder()
@@ -134,8 +141,12 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
                 .legalName(settings.getLegalName())
                 .contactEmail(settings.getContactEmail())
                 .contactPhone(settings.getContactPhone())
-                .retentionUserMonths(Math.toIntExact(settings.getRetentionUserMonths()))
-                .retentionAuditMonths(Math.toIntExact(settings.getRetentionAuditMonths()))
+                .retentionUserMonths(settings.getRetentionUserMonths() > 0
+                        ? Math.toIntExact(settings.getRetentionUserMonths())
+                        : null)
+                .retentionAuditMonths(settings.getRetentionAuditMonths() > 0
+                        ? Math.toIntExact(settings.getRetentionAuditMonths())
+                        : null)
                 .createdAt(settings.getCreatedAt())
                 .updatedAt(settings.getUpdatedAt())
                 .build();

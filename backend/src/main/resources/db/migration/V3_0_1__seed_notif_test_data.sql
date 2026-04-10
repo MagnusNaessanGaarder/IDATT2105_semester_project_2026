@@ -1,9 +1,4 @@
--- V3_0_1__seed_notif_test_data.sql
-
--- Seeds representative notification test data for Everest Sushi & Fusion AS (org 937219997).
--- Covers every notification_type and related_entity_type so all code paths are exercisable
--- in the dev environment. A mix of read and unread notifications is included.
--- notification_delivery rows are added so the delivery table is never empty either.
+-- Sample notifications for testing - includes all types, both read and unread
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;

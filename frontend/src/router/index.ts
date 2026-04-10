@@ -5,6 +5,7 @@ import { ensureOrganizationSettings, isModuleEnabled } from '@/shared/utils/orgS
 declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean
+    requiresSysadmin?: boolean
     allowedRoles?: ('ADMIN' | 'MANAGER' | 'EMPLOYEE')[]
     moduleKey?: 'food' | 'alcohol'
     title?: string
@@ -25,6 +26,31 @@ const router = createRouter({
       name: 'Register',
       component: () => import('@/features/auth/views/RegisterView.vue'),
       meta: { requiresAuth: false, title: 'Registrering' },
+    },
+    {
+      path: '/sysadmin',
+      component: () => import('@/layouts/SysadminLayout.vue'),
+      meta: { requiresAuth: true, requiresSysadmin: true },
+      children: [
+        {
+          path: '',
+          name: 'SysadminOrgs',
+          component: () => import('@/features/sysadmin/views/SysadminOrgsView.vue'),
+          meta: { title: 'Organisasjoner – Systemadmin' },
+        },
+      ],
+    },
+    {
+      path: '/ingen-organisasjon',
+      name: 'NoOrganization',
+      component: () => import('@/features/auth/views/NoOrganizationView.vue'),
+      meta: { requiresAuth: true, title: 'Venter på tilgang' },
+    },
+    {
+      path: '/organisasjon-inaktiv',
+      name: 'OrgInactive',
+      component: () => import('@/features/auth/views/OrgInactiveView.vue'),
+      meta: { requiresAuth: true, title: 'Organisasjon inaktiv' },
     },
     {
       path: '/',
@@ -92,6 +118,12 @@ const router = createRouter({
           meta: { title: 'Regelverk', moduleKey: 'alcohol' },
         },
         {
+          path: 'opplaering',
+          name: 'EmployeeTraining',
+          component: () => import('@/features/dashboard/views/EmployeeTrainingView.vue'),
+          meta: { title: 'Opplæringsregister' },
+        },
+        {
           path: 'rapporter',
           name: 'Reports',
           component: () => import('@/features/dashboard/views/ReportsView.vue'),
@@ -121,6 +153,19 @@ const router = createRouter({
           component: () => import('@/features/admin/views/UsersView.vue'),
           // Role policy: user administration is restricted to ADMIN.
           meta: { title: 'Brukere', allowedRoles: ['ADMIN'] },
+        },
+        {
+          path: 'admin/sjekklister',
+          name: 'MakeChecklists',
+          component: () => import('@/features/admin/views/ChecklistCreationView.vue'),
+          meta: { title: 'LageSjekkliste', allowedRoles: ['ADMIN', 'MANAGER'] },
+        },
+        {
+          path: 'admin/opplaering',
+          name: 'Training',
+          component: () => import('@/features/admin/views/TrainingView.vue'),
+          // Role policy: user administration is restricted to ADMIN.
+          meta: { title: 'Opplaering', allowedRoles: ['ADMIN'] },
         },
         {
           path: 'admin/lokasjoner',
@@ -168,6 +213,36 @@ router.beforeEach(async (to) => {
       return { name: 'Login', query: { redirect: to.fullPath } }
     }
 
+    // Sysadmin users only see the sysadmin area
+    if (authStore.isSysadmin && !to.meta.requiresSysadmin) {
+      return { name: 'SysadminOrgs' }
+    }
+
+    // Non-sysadmin users cannot access the sysadmin area
+    if (to.meta.requiresSysadmin && !authStore.isSysadmin) {
+      return { name: 'Forbidden' }
+    }
+
+    // Users with no org see the waiting screen
+    if (
+        to.name !== 'NoOrganization' &&
+        to.name !== 'OrgInactive' &&
+        !authStore.isSysadmin &&
+        (authStore.organizations?.length ?? 0) === 0
+    ) {
+      return { name: 'NoOrganization' }
+    }
+
+    // Users whose org has been deactivated by sysadmin see the inactive screen
+    if (
+        to.name !== 'OrgInactive' &&
+        to.name !== 'NoOrganization' &&
+        !authStore.isSysadmin &&
+        authStore.currentOrg?.isActive === false
+    ) {
+      return { name: 'OrgInactive' }
+    }
+
     if (to.meta.allowedRoles && to.meta.allowedRoles.length > 0) {
       const userRole = authStore.user?.role
       if (!userRole || !to.meta.allowedRoles.includes(userRole as 'ADMIN' | 'MANAGER' | 'EMPLOYEE')) {
@@ -184,8 +259,8 @@ router.beforeEach(async (to) => {
     }
   }
 
-  if (to.name === 'Login' && authStore.isAuthenticated) {
-    return { name: 'Dashboard' }
+  if ((to.name === 'Login' || to.name === 'Register') && authStore.isAuthenticated) {
+    return authStore.isSysadmin ? { name: 'SysadminOrgs' } : { name: 'Dashboard' }
   }
 
 })

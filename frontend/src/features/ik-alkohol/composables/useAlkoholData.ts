@@ -1,175 +1,357 @@
-import { reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { client } from '@/api/client'
-import { withOrgNumber } from '@/shared/utils/orgContext'
+import { getOrgNumber } from '@/shared/utils/orgContext'
 import { formatDateForOrganization } from '@/shared/utils/orgSettings'
+import { getRuns } from '../api/checklistsRun'
+import type {
+  CertificateStatus,
+  ChecklistRunApi,
+  ChecklistRunItemApi,
+  ChecklistTemplateApi,
+  DailyControlItem,
+  DemandItem,
+  EmployeeCertification,
+  LawItem,
+  LawSection,
+  OrganizationDocumentApi,
+} from '../types'
+import { getKnownLegalSourceUrl } from '../utils/legalLinks'
+import { parseLawReference } from '../utils/lawReference'
 
-export interface DailyControlItem {
-  id: number
-  name: string
-  law_unit: string
-  employee: string
-  comment: string
-  completion_date: {
-    date: string
-    time: string
-  }
-  attachment: string | null
-  is_checked: boolean
+export type CertificationType = string
+
+export type TrainingStatus = 'ASSIGNED' | 'COMPLETED' | 'EXPIRED'
+
+export interface CertificationUser {
+  userId: number
+  displayName: string
+  email: string
 }
 
-export interface EmployeeCertificate {
-  name: string
-  expire_date: string
-}
-
-export interface EmployeeCertification {
-  name: string
-  certifications: EmployeeCertificate[]
-}
-
-export interface LawSection {
-  section: string
-  description: string
-}
-
-export interface LawItem {
-  name: string
-  type: string
-  short: string
-  description: string
-  link: string
-  last_updated_code: string
-  sub_sections?: LawSection[]
-  'sub-sections'?: LawSection[]
-}
-
-export interface DemandItem {
+export interface CertificationRecord {
+  trainingRecordId: number
+  userId: number | null
+  user: CertificationUser | null
+  orgNumber: number
+  trainingType: CertificationType
   title: string
-  bullet_points: string[]
-}
-
-export type CertificateStatus = 'Gyldig' | 'Utløper snart' | 'Utgått'
-
-interface ChecklistTemplateApi {
-  templateId: number
-  title: string
-  description: string | null
-  moduleType: string
-}
-
-interface ChecklistRunApi {
-  runId: number
-  templateId: number
-  templateTitle: string | null
-  performedByUserId: number | null
-  runDate: string | null
   completedAt: string | null
-  status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE' | string
+  expiresAt: string | null
+  status: TrainingStatus
   notes: string | null
+  createdAt: string
 }
+
+export interface CertificationError {
+  message: string
+  status: number | null
+  data: unknown
+}
+
+export interface CertificationSuccess {
+  ok: true
+  data: CertificationRecord | CertificationRecord[] | null
+}
+
+export interface CertificationFailure {
+  ok: false
+  error: CertificationError
+}
+
+export type CertificationResult = CertificationSuccess | CertificationFailure
 
 const SOON_DAYS = 120
 
-const dailyControls = reactive<DailyControlItem[]>([])
-const certificationTypes = reactive<string[]>([])
-const employees = reactive<EmployeeCertification[]>([])
-const laws = reactive<LawItem[]>([])
-const demands = reactive<DemandItem[]>([])
-let checklistRunsEndpointUnavailable = false
-
-let hasLoaded = false
-let loadInFlight: Promise<void> | null = null
+const dailyControls = ref<DailyControlItem[]>([])
+const certificationTypes = ref<string[]>([])
+const employees = ref<EmployeeCertification[]>([])
+const laws = ref<LawItem[]>([])
+const demands = ref<DemandItem[]>([])
 const isLoading = ref(false)
+const hasLoaded = ref(false)
 const error = ref<string | null>(null)
+const lastLoadedOrgNumber = ref<number | null>(null)
+let loadInFlight: Promise<void> | null = null
 
-const sectionsForLaw = (law: LawItem): LawSection[] => law.sub_sections ?? law['sub-sections'] ?? []
+const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
 
-const toDate = (dateValue: string): Date | null => {
-  const parsed = new Date(dateValue)
-  if (Number.isNaN(parsed.getTime())) {
-    return null
+const asBoolean = (value: unknown): boolean => value === true
+
+const toDisplayUserLabel = (userId: unknown): string => {
+  if (typeof userId === 'number' && Number.isFinite(userId)) {
+    return `Bruker ${userId}`
   }
 
-  parsed.setHours(0, 0, 0, 0)
-  return parsed
+  if (typeof userId === 'string' && userId.trim()) {
+    return userId
+  }
+
+  return 'Ukjent'
 }
 
-const certificateStatus = (expireDate: string): CertificateStatus => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const expiryDate = toDate(expireDate)
-  if (!expiryDate) {
-    return 'Utgått'
+const toDateOnlyString = (value: unknown): string => {
+  if (Array.isArray(value) && value.length >= 3) {
+    const [year, month, day] = value
+    if (
+      typeof year === 'number' &&
+      typeof month === 'number' &&
+      typeof day === 'number' &&
+      Number.isFinite(year) &&
+      Number.isFinite(month) &&
+      Number.isFinite(day)
+    ) {
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    }
   }
 
-  const daysUntilExpiry = Math.floor((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-
-  if (daysUntilExpiry < 0) {
-    return 'Utgått'
+  const dateTime = asString(value)
+  if (!dateTime) {
+    return ''
   }
 
-  if (daysUntilExpiry <= SOON_DAYS) {
-    return 'Utløper snart'
+  if (dateTime.includes('T')) {
+    return dateTime.split('T')[0] ?? ''
   }
 
-  return 'Gyldig'
+  return dateTime.slice(0, 10)
 }
 
-const formattedDate = (value: string): string => {
-  const parsedDate = toDate(value)
-  if (!parsedDate) {
-    return value
+const toCompletionDateParts = (value: unknown) => {
+  const dateTime = asString(value)
+  if (!dateTime) {
+    return {
+      date: '',
+      time: '',
+    }
   }
 
-  return formatDateForOrganization(parsedDate)
-}
-
-const totalCertificates = () => employees.reduce((sum: number, employee: EmployeeCertification) => sum + employee.certifications.length, 0)
-
-const certificateCounts = (): Record<CertificateStatus, number> => employees.reduce(
-  (counts: Record<CertificateStatus, number>, employee: EmployeeCertification) => {
-    employee.certifications.forEach((certification: EmployeeCertificate) => {
-      const status = certificateStatus(certification.expire_date)
-      counts[status] += 1
-    })
-    return counts
-  },
-  {
-    Gyldig: 0,
-    'Utløper snart': 0,
-    Utgått: 0,
-  } as Record<CertificateStatus, number>,
-)
-
-const staffWithExpired = () => employees
-  .filter((employee: EmployeeCertification) => employee.certifications.some((certification: EmployeeCertificate) => certificateStatus(certification.expire_date) === 'Utgått'))
-  .map((employee: EmployeeCertification) => employee.name)
-
-const completedControls = () => dailyControls.filter((item: DailyControlItem) => item.is_checked).length
-const pendingControls = () => dailyControls.length - completedControls()
-const completionRate = () => (dailyControls.length > 0 ? Math.round((completedControls() / dailyControls.length) * 100) : 0)
-
-const splitIsoDateTime = (value: string | null): { date: string; time: string } => {
-  if (!value) {
-    return { date: '', time: '' }
+  if (dateTime.includes('T')) {
+    const [date = '', time = ''] = dateTime.split('T')
+    return {
+      date,
+      time: time.replace('Z', '').slice(0, 8),
+    }
   }
-
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return { date: value.slice(0, 10), time: value.slice(11, 16) }
-  }
-
-  const toTwo = (part: number) => String(part).padStart(2, '0')
 
   return {
-    date: `${parsed.getFullYear()}-${toTwo(parsed.getMonth() + 1)}-${toTwo(parsed.getDate())}`,
-    time: `${toTwo(parsed.getHours())}:${toTwo(parsed.getMinutes())}`,
+    date: dateTime.slice(0, 10),
+    time: '',
   }
 }
 
-const loadData = async (): Promise<void> => {
-  if (hasLoaded) {
+const mapDocumentToLaw = (document: OrganizationDocumentApi): LawItem => ({
+  documentId: document.documentId,
+  name: document.title,
+  type: document.documentType === 'POLICY' ? 'Regelverk' : document.documentType,
+  short: document.title,
+  description: asString(document.description) || 'Dokumentert regelverk for alkoholservering.',
+  link: getKnownLegalSourceUrl(document.title, document.description) ?? '',
+  last_updated_code: `DOC-${document.documentId}`,
+  sub_sections: [],
+})
+
+const mapDocumentToDemand = (document: OrganizationDocumentApi): DemandItem => ({
+  title: document.title,
+  bullet_points: [asString(document.description) || 'Eksempeldokument tilgjengelig i dokumentarkivet.'],
+})
+
+const mergeLawItems = (documents: OrganizationDocumentApi[], runs: ChecklistRunApi[]): LawItem[] => {
+  const lawsByKey = new Map<string, LawItem>()
+
+  documents
+    .filter((document) => document.documentType === 'POLICY')
+    .map(mapDocumentToLaw)
+    .forEach((law) => {
+      lawsByKey.set(`doc:${law.documentId}`, law)
+    })
+
+  runs.forEach((run) => {
+    const parsedLaw = parseLawReference(run.templateDescription)
+    const normalizedTitle = parsedLaw.lawTitle?.trim()
+
+    if (parsedLaw.lawDocumentId != null) {
+      const existing = lawsByKey.get(`doc:${parsedLaw.lawDocumentId}`)
+      if (!existing) {
+        const link = getKnownLegalSourceUrl(normalizedTitle || `Lovverk ${parsedLaw.lawDocumentId}`)
+        if (!link) {
+          return
+        }
+
+        lawsByKey.set(`doc:${parsedLaw.lawDocumentId}`, {
+          documentId: parsedLaw.lawDocumentId,
+          name: normalizedTitle || `Lovverk ${parsedLaw.lawDocumentId}`,
+          type: 'Regelverk',
+          short: normalizedTitle || `Lovverk ${parsedLaw.lawDocumentId}`,
+          description: 'Lovverk lagret pa sjekkpunktet.',
+          link,
+          last_updated_code: `DOC-${parsedLaw.lawDocumentId}`,
+          sub_sections: [],
+        })
+      }
+      return
+    }
+
+    if (!normalizedTitle) {
+      return
+    }
+
+    const link = getKnownLegalSourceUrl(normalizedTitle)
+    if (!link) {
+      return
+    }
+
+    lawsByKey.set(`title:${normalizedTitle.toLowerCase()}`, {
+      documentId: -(lawsByKey.size + 1),
+      name: normalizedTitle,
+      type: 'Regelverk',
+      short: normalizedTitle,
+      description: 'Lovverk lagret pa sjekkpunktet.',
+      link,
+      last_updated_code: 'SAVED-RULE',
+      sub_sections: [],
+    })
+  })
+
+  return Array.from(lawsByKey.values()).sort((left, right) => left.name.localeCompare(right.name, 'nb'))
+}
+
+const todayDateString = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const latestRunByTemplateId = (runs: ChecklistRunApi[]): Map<number, ChecklistRunApi> => {
+  const runsByTemplateId = new Map<number, ChecklistRunApi>()
+
+  runs.forEach((run) => {
+    if (typeof run.templateId !== 'number') {
+      return
+    }
+
+    const current = runsByTemplateId.get(run.templateId)
+    if (!current) {
+      runsByTemplateId.set(run.templateId, run)
+      return
+    }
+
+    const candidateDate = toDateOnlyString(run.runDate) || asString(run.updatedAt) || asString(run.createdAt)
+    const currentDate = toDateOnlyString(current.runDate) || asString(current.updatedAt) || asString(current.createdAt)
+
+    if (candidateDate > currentDate) {
+      runsByTemplateId.set(run.templateId, run)
+    }
+  })
+
+  return runsByTemplateId
+}
+
+const mapRunItemToDailyControl = (
+  run: ChecklistRunApi,
+  item: ChecklistRunItemApi | null,
+  index: number,
+  lawsById: Map<number, LawItem>,
+): DailyControlItem => {
+  const completionDate = toCompletionDateParts(item?.updatedAt ?? item?.createdAt ?? run.runDate)
+  const parsedLaw = parseLawReference(run.templateDescription)
+  const selectedLaw = parsedLaw.lawDocumentId !== null ? lawsById.get(parsedLaw.lawDocumentId) : null
+  const templateDescription = asString(run.templateDescription)
+  const lawUnit =
+    selectedLaw?.name ??
+    parsedLaw.lawTitle ??
+    (templateDescription || null) ??
+    'Daglig alkoholkontroll'
+
+  return {
+    id: Number(item?.runItemId ?? `${run.runId ?? 0}${index + 1}`),
+    run_id: run.runId ?? null,
+    run_date: toDateOnlyString(run.runDate) || null,
+    template_id: run.templateId ?? null,
+    template_item_id: item?.templateItemId ?? null,
+    law_document_id: selectedLaw?.documentId ?? parsedLaw.lawDocumentId,
+    run_status: asString(run.status) || null,
+    name:
+      asString(item?.templateItemLabel) ||
+      asString(run.templateTitle) ||
+      (item?.templateItemId ? `Punkt ${item.templateItemId}` : '') ||
+      `Punkt ${index + 1}`,
+    law_unit: lawUnit,
+    employee: toDisplayUserLabel(run.performedByUserId ?? run.assignedToUserId),
+    comment: asString(item?.commentText),
+    completion_date: completionDate,
+    attachment: null,
+    is_checked: asString(run.status) === 'COMPLETED' || asBoolean(item?.booleanValue) || asBoolean(item?.hasAnswer),
+  }
+}
+
+const buildEmployeeCertifications = (
+  runs: ChecklistRunApi[],
+  templates: ChecklistTemplateApi[],
+): EmployeeCertification[] => {
+  const employeeMap = new Map<string, EmployeeCertification>()
+
+  runs.forEach((run) => {
+    const employeeName = toDisplayUserLabel(run.performedByUserId)
+    const current = employeeMap.get(employeeName) ?? { name: employeeName, certifications: [] }
+    const completedDate = toDateOnlyString(run.completedAt ?? run.runDate)
+    const base = completedDate ? new Date(completedDate) : new Date()
+    const expiry = new Date(base)
+    expiry.setFullYear(expiry.getFullYear() + 1)
+    const certName = asString(run.templateTitle) || 'Kunnskapsprove alkoholloven'
+
+    if (!current.certifications.some((certification) => certification.name === certName)) {
+      current.certifications.push({
+        name: certName,
+        expire_date: completedDate ? expiry.toISOString().slice(0, 10) : '',
+      })
+    }
+
+    employeeMap.set(employeeName, current)
+  })
+
+  if (employeeMap.size === 0 && templates.length > 0) {
+    employeeMap.set('Ikke registrert', {
+      name: 'Ikke registrert',
+      certifications: templates
+        .map((template) => asString(template.title))
+        .filter(Boolean)
+        .map((title) => ({
+          name: title,
+          expire_date: '',
+        })),
+    })
+  }
+
+  return Array.from(employeeMap.values()).sort((left, right) => left.name.localeCompare(right.name, 'nb'))
+}
+
+const buildCertificationTypes = (employeesList: EmployeeCertification[], templates: ChecklistTemplateApi[]): string[] => {
+  const typeSet = new Set<string>()
+
+  employeesList.forEach((employee) => {
+    employee.certifications.forEach((certification) => {
+      if (certification.name) {
+        typeSet.add(certification.name)
+      }
+    })
+  })
+
+  templates.forEach((template) => {
+    const title = asString(template.title)
+    if (title) {
+      typeSet.add(title)
+    }
+  })
+
+  return Array.from(typeSet).sort((left, right) => left.localeCompare(right, 'nb'))
+}
+
+const loadData = async () => {
+  const orgNumber = getOrgNumber()
+
+  if (hasLoaded.value && lastLoadedOrgNumber.value === orgNumber) {
     return
   }
 
@@ -182,164 +364,75 @@ const loadData = async (): Promise<void> => {
     error.value = null
 
     try {
-      const [templatesResponse, runsResponse] = await Promise.allSettled([
-        client.get<ChecklistTemplateApi[]>('/checklists/templates/module/ALCOHOL', {
-          params: withOrgNumber({}),
+      const [runsResult, documentsResult, templatesResult] = await Promise.allSettled([
+        getRuns(orgNumber),
+        client.get<OrganizationDocumentApi[]>('/files', {
+          params: { orgNumber },
         }),
-        checklistRunsEndpointUnavailable
-          ? Promise.resolve({ data: [] as ChecklistRunApi[] })
-          : client.get<ChecklistRunApi[]>('/checklists/runs', {
-            params: withOrgNumber({}),
-            skipGlobalErrorLog: true,
-          }).catch((err: unknown) => {
-            if (typeof err === 'object' && err !== null && 'response' in err) {
-              const response = (err as { response?: { status?: number } }).response
-              if (response?.status === 500) {
-                checklistRunsEndpointUnavailable = true
-                return { data: [] as ChecklistRunApi[] }
-              }
-            }
-            throw err
-          }),
+        client.get<ChecklistTemplateApi[]>('/checklists/templates/module/ALCOHOL', {
+          params: { orgNumber },
+          skipGlobalErrorLog: true,
+        }),
       ])
 
-      const templates = (templatesResponse.status === 'fulfilled' ? templatesResponse.value.data : []) as ChecklistTemplateApi[]
-      const allRuns = (runsResponse.status === 'fulfilled' ? runsResponse.value.data : []) as ChecklistRunApi[]
-      const alcoholTemplateIds = new Set(templates.map((template: ChecklistTemplateApi) => template.templateId))
-      const alcoholRuns = allRuns.filter((run: ChecklistRunApi) => alcoholTemplateIds.has(run.templateId))
+      const documents =
+        documentsResult.status === 'fulfilled' ? documentsResult.value.data.filter((doc) => doc.active) : []
+      const templates =
+        templatesResult.status === 'fulfilled'
+          ? templatesResult.value.data.filter((template) => template.isActive !== false)
+          : []
+      const runs =
+        runsResult.status === 'fulfilled' && runsResult.value.ok
+          ? (runsResult.value.data as ChecklistRunApi[])
+          : []
 
-      const mappedControlsFromRuns = alcoholRuns
-        .slice()
-        .sort((a: ChecklistRunApi, b: ChecklistRunApi) => new Date(b.completedAt ?? b.runDate ?? 0).getTime() - new Date(a.completedAt ?? a.runDate ?? 0).getTime())
-        .map((run: ChecklistRunApi) => {
-          const split = splitIsoDateTime(run.completedAt ?? run.runDate)
-          return {
-            id: run.runId,
-            name: run.templateTitle ?? `Kontroll ${run.templateId}`,
-            law_unit: 'ALKOHOLLOVEN',
-            employee: run.performedByUserId ? `Bruker ${run.performedByUserId}` : 'Ukjent',
-            comment: run.notes ?? '',
-            completion_date: {
-              date: split.date,
-              time: split.time,
-            },
-            attachment: null,
-            is_checked: run.status === 'COMPLETED',
-          } satisfies DailyControlItem
-        })
+      const alcoholTemplateIds = new Set(
+        templates
+          .map((template) => template.templateId)
+          .filter((templateId): templateId is number => typeof templateId === 'number'),
+      )
+      const alcoholRuns =
+        alcoholTemplateIds.size > 0
+          ? runs.filter((run) => typeof run.templateId === 'number' && alcoholTemplateIds.has(run.templateId))
+          : runs
 
-      const mappedControlsFromTemplates = templates.map((template: ChecklistTemplateApi) => ({
-        id: template.templateId,
-        name: template.title,
-        law_unit: 'ALKOHOLLOVEN',
-        employee: 'Ikke registrert',
-        comment: template.description ?? '',
-        completion_date: {
-          date: '',
-          time: '',
-        },
-        attachment: null,
-        is_checked: false,
-      } satisfies DailyControlItem))
+      laws.value = mergeLawItems(documents, alcoholRuns)
+      const lawsById = new Map(laws.value.map((law) => [law.documentId, law]))
 
-      const mappedControls = mappedControlsFromRuns.length > 0
-        ? mappedControlsFromRuns
-        : mappedControlsFromTemplates
+      const todaysRuns = alcoholRuns.filter((run) => toDateOnlyString(run.runDate) === todayDateString())
+      const runsToDisplay = todaysRuns.length > 0 ? todaysRuns : Array.from(latestRunByTemplateId(alcoholRuns).values())
 
-      const employeeMap = new Map<string, EmployeeCertification>()
-      alcoholRuns.forEach((run: ChecklistRunApi) => {
-        const employeeName = run.performedByUserId ? `Bruker ${run.performedByUserId}` : 'Ukjent'
-        const current = employeeMap.get(employeeName) ?? { name: employeeName, certifications: [] }
-        const completedDate = splitIsoDateTime(run.completedAt ?? run.runDate).date
-        const base = completedDate ? new Date(completedDate) : new Date()
-        const expiry = new Date(base)
-        expiry.setFullYear(expiry.getFullYear() + 1)
-        const certName = run.templateTitle ?? 'Kunnskapsprove alkoholloven'
-
-        if (!current.certifications.some((cert) => cert.name === certName)) {
-          current.certifications.push({
-            name: certName,
-            expire_date: expiry.toISOString().slice(0, 10),
-          })
-        }
-
-        employeeMap.set(employeeName, current)
+      dailyControls.value = runsToDisplay.flatMap((run) => {
+        const runItems = run.items && run.items.length > 0 ? run.items : [null]
+        return runItems.map((item, index) => mapRunItemToDailyControl(run, item, index, lawsById))
       })
 
-      const typeSet = new Set<string>()
-      employeeMap.forEach((employee) => {
-        employee.certifications.forEach((certification) => typeSet.add(certification.name))
-      })
+      demands.value = documents
+        .filter((document) => document.documentType === 'PROCEDURE' || document.documentType === 'TRAINING_MATERIAL')
+        .map(mapDocumentToDemand)
 
-      templates.forEach((template: ChecklistTemplateApi) => {
-        typeSet.add(template.title)
-      })
+      employees.value = buildEmployeeCertifications(alcoholRuns, templates)
+      certificationTypes.value = buildCertificationTypes(employees.value, templates)
 
-      if (employeeMap.size === 0 && templates.length > 0) {
-        employeeMap.set('Ikke registrert', {
-          name: 'Ikke registrert',
-          certifications: templates.map((template: ChecklistTemplateApi) => ({
-            name: template.title,
-            expire_date: '',
-          })),
-        })
+      if (
+        (runsResult.status === 'rejected' || (runsResult.status === 'fulfilled' && !runsResult.value.ok)) &&
+        documentsResult.status === 'rejected' &&
+        templatesResult.status === 'rejected'
+      ) {
+        error.value = 'Kunne ikke laste IK-Alkohol-data.'
+      } else {
+        error.value = null
       }
 
-      const mappedLaws: LawItem[] = templates.map((template: ChecklistTemplateApi) => ({
-        name: template.title,
-        type: 'Forskrift',
-        short: template.description ?? 'Operativ kontroll for ansvarlig servering',
-        description: template.description ?? 'Kontrollpunkt definert i internkontrollsystemet',
-        link: 'https://lovdata.no',
-        last_updated_code: 'Internkontroll',
-        sub_sections: [
-          {
-            section: 'Operativt krav',
-            description: 'Kontrollpunktet skal gjennomfores og dokumenteres i henhold til virksomhetens rutiner.',
-          },
-        ],
-      }))
-
-      const mappedDemands: DemandItem[] = [
-        {
-          title: 'Daglig etterlevelse',
-          bullet_points: [
-            'Alle alkoholrelaterte kontroller skal registreres med dato og ansvarlig person.',
-            'Manglende kontroll folges opp samme dag med korrigerende handling.',
-          ],
-        },
-        {
-          title: 'Kompetanse',
-          bullet_points: [
-            'Ansatte skal ha gyldig kunnskapsprove for sine oppgaver.',
-            'Leder skal planlegge fornyelse i god tid for utlopende sertifiseringer.',
-          ],
-        },
-      ]
-
-      dailyControls.splice(0, dailyControls.length, ...mappedControls)
-      employees.splice(0, employees.length, ...Array.from(employeeMap.values()))
-      certificationTypes.splice(0, certificationTypes.length, ...Array.from(typeSet).sort())
-      laws.splice(0, laws.length, ...mappedLaws)
-      demands.splice(0, demands.length, ...mappedDemands)
-
-      const failedCalls = [templatesResponse, runsResponse].filter((result) => result.status === 'rejected').length
-      const succeededCalls = 2 - failedCalls
-
-      if (succeededCalls === 0) {
-        error.value = 'Alle IK-Alkohol endepunkter feilet. Kontroller innlogging og prov igjen.'
-        return
-      }
-
-      error.value = null
-      hasLoaded = true
+      hasLoaded.value = true
+      lastLoadedOrgNumber.value = orgNumber
     } catch {
-      dailyControls.splice(0, dailyControls.length)
-      employees.splice(0, employees.length)
-      certificationTypes.splice(0, certificationTypes.length)
-      laws.splice(0, laws.length)
-      demands.splice(0, demands.length)
-      error.value = 'Kunne ikke laste IK-Alkohol data fra API.'
+      dailyControls.value = []
+      certificationTypes.value = []
+      employees.value = []
+      laws.value = []
+      demands.value = []
+      error.value = 'Kunne ikke laste IK-Alkohol-data.'
     } finally {
       isLoading.value = false
       loadInFlight = null
@@ -349,13 +442,92 @@ const loadData = async (): Promise<void> => {
   return loadInFlight
 }
 
-const reload = async () => {
-  hasLoaded = false
-  await loadData()
+const sectionsForLaw = (law: LawItem): LawSection[] => law.sub_sections ?? law['sub-sections'] ?? []
+
+export const toDateOnly = (dateValue: string): Date | null => {
+  const parsed = new Date(dateValue)
+  if (Number.isNaN(parsed.getTime())) {
+    return null
+  }
+
+  parsed.setHours(0, 0, 0, 0)
+  return parsed
 }
+
+export const certificateStatusForDate = (expireDate: string): CertificateStatus => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const expiryDate = toDateOnly(expireDate)
+  if (!expiryDate) {
+    return 'Utgått'
+  }
+
+  const daysUntilExpiry = Math.floor((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  if (daysUntilExpiry < 0) {
+    return 'Utgått'
+  }
+
+  if (daysUntilExpiry <= SOON_DAYS) {
+    return 'Utløper snart'
+  }
+
+  return 'Gyldig'
+}
+
+export const formatDateValue = (value: string): string => {
+  const parsedDate = toDateOnly(value)
+  if (!parsedDate) {
+    return value
+  }
+
+  return formatDateForOrganization(parsedDate)
+}
+
+const certificateStatus = (expireDate: string): CertificateStatus => certificateStatusForDate(expireDate)
+
+const formattedDate = (value: string): string => formatDateValue(value)
+
+const totalCertificates = computed(() => employees.value.reduce((sum, employee) => sum + employee.certifications.length, 0))
+
+const certificateCounts = computed(
+  () =>
+    employees.value.reduce(
+      (counts, employee) => {
+        employee.certifications.forEach((certification) => {
+          const status = certificateStatus(certification.expire_date)
+          counts[status] += 1
+        })
+
+        return counts
+      },
+      {
+        Gyldig: 0,
+        'Utløper snart': 0,
+        Utgått: 0,
+      } as Record<CertificateStatus, number>,
+    ),
+)
+
+const staffWithExpired = computed(() =>
+  employees.value
+    .filter((employee) => employee.certifications.some((certification) => certificateStatus(certification.expire_date) === 'Utgått'))
+    .map((employee) => employee.name),
+)
+
+const completedControls = computed(() => dailyControls.value.filter((item) => item.is_checked).length)
+const pendingControls = computed(() => dailyControls.value.length - completedControls.value)
+const completionRate = computed(() =>
+  dailyControls.value.length > 0 ? Math.round((completedControls.value / dailyControls.value.length) * 100) : 0,
+)
 
 export const useAlkoholData = () => {
   void loadData()
+
+  const reload = async () => {
+    hasLoaded.value = false
+    await loadData()
+  }
 
   return {
     dailyControls,
@@ -363,29 +535,17 @@ export const useAlkoholData = () => {
     employees,
     laws,
     demands,
-    get totalCertificates() {
-      return totalCertificates()
-    },
-    get certificateCounts() {
-      return certificateCounts()
-    },
-    get staffWithExpired() {
-      return staffWithExpired()
-    },
-    get completedControls() {
-      return completedControls()
-    },
-    get pendingControls() {
-      return pendingControls()
-    },
-    get completionRate() {
-      return completionRate()
-    },
-    sectionsForLaw,
-    certificateStatus,
-    formattedDate,
+    totalCertificates,
+    certificateCounts,
+    staffWithExpired,
+    completedControls,
+    pendingControls,
+    completionRate,
     isLoading,
     error,
     reload,
+    sectionsForLaw,
+    certificateStatus,
+    formattedDate,
   }
 }

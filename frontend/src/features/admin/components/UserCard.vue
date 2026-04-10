@@ -91,27 +91,29 @@ const certificationStatus = computed(() => {
 .user-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: box-shadow var(--transition-base);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-sm);
 }
 
 .user-card:hover {
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .user-card--inactive {
-  opacity: 0.6;
-  background: var(--color-accent);
+  opacity: 0.78;
+  background: color-mix(in srgb, var(--color-gray-100) 42%, var(--color-card));
 }
 
 .user-card__header {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -121,11 +123,11 @@ const certificationStatus = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-foreground);
-  color: var(--color-background);
+  background: linear-gradient(135deg, var(--color-brand-deep-violet) 0%, var(--color-brand-medium-violet) 100%);
+  color: var(--color-primary-foreground);
   border-radius: var(--radius-full);
   font-weight: 700;
-  font-size: var(--text-lg);
+  font-size: 1.125rem;
   flex-shrink: 0;
 }
 
@@ -136,35 +138,35 @@ const certificationStatus = computed(() => {
 
 .user-card__name {
   margin: 0;
-  font-size: var(--text-base);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-foreground);
 }
 
 .user-card__email {
   margin: 0.25rem 0 0;
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-gray-600);
   word-break: break-all;
 }
 
 .user-card__status {
   padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
-  font-weight: 600;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .user-card__status--active {
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
+  background: var(--color-cta);
+  color: var(--color-cta-foreground);
 }
 
 .user-card__status--inactive {
-  background: rgba(239, 68, 68, 0.1);
-  color: #991b1b;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 .user-card__body {
@@ -181,29 +183,29 @@ const certificationStatus = computed(() => {
 }
 
 .user-card__label {
-  font-size: var(--text-xs);
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   color: var(--color-gray-600);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .user-card__value {
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-foreground);
 }
 
 .user-card__certifications {
   padding: 1rem 1.5rem;
-  background: var(--color-accent);
+  background: color-mix(in srgb, var(--color-brand-pale-lavender) 42%, var(--color-card));
   border-top: 1px solid var(--color-border);
 }
 
 .user-card__cert-title {
   margin: 0;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-gray-600);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--color-brand-deep-violet);
   text-transform: uppercase;
   margin-bottom: 0.5rem;
 }
@@ -215,7 +217,7 @@ const certificationStatus = computed(() => {
 }
 
 .user-card__cert-item {
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-foreground);
 }
 
@@ -229,26 +231,27 @@ const certificationStatus = computed(() => {
 .user-card__action-btn {
   flex: 1;
   padding: 0.5rem 1rem;
-  background: var(--color-foreground);
-  color: var(--color-background);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
   border: none;
   border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .user-card__action-btn:hover {
-  background: var(--color-gray-900);
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
 }
 
 .user-card__action-btn--danger {
-  background: #ef4444;
+  background: var(--color-danger);
 }
 
 .user-card__action-btn--danger:hover {
-  background: #991b1b;
+  background: var(--color-danger-hover);
 }
 
 @media (max-width: 48rem) {

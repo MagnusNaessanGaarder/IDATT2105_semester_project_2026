@@ -13,7 +13,7 @@
 -->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import * as XLSX from 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm'
+import * as XLSX from 'xlsx'
 
 type Frequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM'
 type ModuleType = 'FOOD' | 'ALCOHOL'
@@ -115,6 +115,9 @@ function validateItems(parsed: ChecklistItem[]): string | null {
 
   for (let i = 0; i < parsed.length; i++) {
     const item = parsed[i]
+    if (!item) {
+      return `Rad ${i + 1}: ugyldig rad`
+    }
     if (!item.label) return `Rad ${i + 1}: «label» mangler`
     if (!VALID_ITEM_TYPES.includes(item.itemType)) {
       return `Rad ${i + 1}: ugyldig itemType «${item.itemType}». Gyldige: ${VALID_ITEM_TYPES.join(', ')}`
@@ -136,7 +139,9 @@ function parseCSV(text: string): ChecklistItem[] {
   const lines = text.trim().split('\n')
   if (lines.length < 2) throw new Error('CSV mangler innhold')
 
-  const headers = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''))
+  const headerLine = lines[0]
+  if (!headerLine) throw new Error('CSV mangler header')
+  const headers = headerLine.split(',').map((h) => h.trim().replace(/^"|"$/g, ''))
   return lines.slice(1).map((line, i) => {
     const values = line.split(',').map((v) => v.trim().replace(/^"|"$/g, ''))
     const row: Record<string, unknown> = {}
@@ -147,7 +152,14 @@ function parseCSV(text: string): ChecklistItem[] {
 
 function parseXLSX(buffer: ArrayBuffer): ChecklistItem[] {
   const wb = XLSX.read(buffer, { type: 'array' })
-  const ws = wb.Sheets[wb.SheetNames[0]]
+  const firstSheetName = wb.SheetNames[0]
+  if (!firstSheetName) {
+    throw new Error('Excel-filen inneholder ingen ark')
+  }
+  const ws = wb.Sheets[firstSheetName]
+  if (!ws) {
+    throw new Error('Fant ikke arket i Excel-filen')
+  }
   const rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(ws, { defval: '' })
   return rows.map((r, i) => normalizeItem(r, i))
 }
@@ -612,7 +624,7 @@ function handleSubmit() {
 .form-label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--color-gray-700);
+  color: var(--color-gray-800);
 }
 
 .form-label__required {
@@ -623,19 +635,21 @@ function handleSubmit() {
 .form-input {
   min-height: 2.5rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-family: inherit;
   color: var(--color-foreground);
-  background: var(--color-card);
-  transition: border-color var(--transition-fast);
+  background: var(--color-surface-muted);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-focus);
 }
 
 .form-input--error {
@@ -662,15 +676,21 @@ function handleSubmit() {
   align-items: center;
   gap: 0.5rem;
   font-size: var(--font-size-sm);
-  color: var(--color-gray-700);
+  color: var(--color-gray-800);
   cursor: pointer;
   min-height: 2.5rem;
 }
 
 .form-checkbox {
-  width: 1rem;
-  height: 1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  min-height: 0;
   cursor: pointer;
+  accent-color: var(--color-primary);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .drop-zone {

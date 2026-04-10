@@ -27,6 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -65,11 +66,13 @@ public class FileController {
       @ApiResponse(responseCode = "403", description = "Forbidden")
   })
   @GetMapping
-  @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE','COOK','BARTENDER','WAITER')")
   public ResponseEntity<List<OrganizationDocument>> listDocuments(
       @Parameter(description = "Organization number identifying the tenant", required = true) @RequestHeader("X-Org-Number") Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
 
       @Parameter(description = "Optional document type filter") @RequestParam(required = false) String category) {
+    validateUserOrganizationAccess(userDetails.getUserId(), orgNumber);
 
     List<OrganizationDocument> documents;
     if (category != null && !category.isEmpty()) {
@@ -89,7 +92,7 @@ public class FileController {
       @ApiResponse(responseCode = "500", description = "Storage or database error")
   })
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasAnyRole('EMPLOYEE','MANAGER','ADMIN')")
+  @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
   public ResponseEntity<?> upload(
       @Parameter(description = "Organization number identifying the tenant", required = true) @RequestHeader("X-Org-Number") Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -125,7 +128,7 @@ public class FileController {
       @ApiResponse(responseCode = "500", description = "Storage or database error")
   })
   @PostMapping(value = "/{documentId}/version", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
+  @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   public ResponseEntity<OrganizationDocument> uploadNewVersion(
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -155,11 +158,13 @@ public class FileController {
       @ApiResponse(responseCode = "404", description = "Document not found")
   })
   @GetMapping("/download/{documentId}")
-  @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
   public ResponseEntity<byte[]> download(
       @Parameter(description = "Organization number identifying the tenant", required = true) @RequestHeader("X-Org-Number") Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
 
       @Parameter(description = "ID of the document to download", required = true) @PathVariable Long documentId) {
+    validateUserOrganizationAccess(userDetails.getUserId(), orgNumber);
 
     OrganizationDocument doc = documentRepo.findByDocumentIdAndOrgNumber(documentId, orgNumber)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -178,6 +183,26 @@ public class FileController {
         .contentType(MediaType.parseMediaType(version.getMimeType()))
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + safeFilename + "\"")
         .body(stream.toByteArray());
+  }
+
+  @GetMapping("/{documentId}/link")
+  @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE', 'COOK', 'BARTENDER', 'WAITER')")
+  @Operation(summary = "Get signed blob link for a document")
+  public ResponseEntity<Map<String, String>> getDocumentLink(
+      @RequestHeader("X-Org-Number") Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable Long documentId) {
+    validateUserOrganizationAccess(userDetails.getUserId(), orgNumber);
+
+    OrganizationDocument doc = documentRepo.findByDocumentIdAndOrgNumber(documentId, orgNumber)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    OrganizationDocumentVersion version = versionRepo
+        .findByDocumentIdAndVersionNumber(documentId, doc.getCurrentVersion())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    String url = blobStorageService.generateSasUrl(orgNumber, version.getAzureBlobName(), Duration.ofHours(1));
+    return ResponseEntity.ok(Map.of("url", url));
   }
 
   private static void enforceFileSize(MultipartFile file) {

@@ -1,5 +1,4 @@
 import { ref, computed } from 'vue'
-import axios from 'axios'
 
 type ApiErrorShape = {
   response?: {
@@ -10,14 +9,13 @@ type ApiErrorShape = {
 }
 import { useAuthStore } from '@/stores/auth.ts'
 import { exportApi, type ExportRequest, type ExportResponse } from '../api.ts'
-import {client} from "@/api/client.ts";
+import { client } from '@/api/client.ts'
 
 
 const POLL_INTERVAL_RUNNING_MS = 3000
 const POLL_INTERVAL_PENDING_MS = 8000
 const PENDING_STALL_THRESHOLD = 5
 const MAX_POLL_ATTEMPTS = 30
-
 export function useExport() {
   const authStore = useAuthStore()
   const orgNumber = computed(() => authStore.currentOrg?.orgNumber ?? null)
@@ -130,35 +128,28 @@ export function useExport() {
 
     try {
       const path = await exportApi.getDownloadUrl(orgNumber.value, exportJobId)
-      const hasOrgNumber = /(?:\?|&)orgNumber=/.test(path)
-      const separator = path.includes('?') ? '&' : '?'
-      const pathWithOrg = hasOrgNumber ? path : `${path}${separator}orgNumber=${orgNumber.value}`
-
-      const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace('/api/v1', '')
-      const downloadUrl = pathWithOrg.startsWith('http://') || pathWithOrg.startsWith('https://')
-        ? pathWithOrg
-        : `${baseUrl}${pathWithOrg}`
-
-      const response = await axios.get(downloadUrl, {
-        responseType: 'blob',
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
-        },
-      })
+      const documentId = Number(path.split('/').pop())
+      if (!documentId) throw new Error('Could not parse document ID from download path: ' + path)
 
       const job = exports.value.find((e) => e.exportJobId === exportJobId) ?? activeJob.value
       const ext = job?.format === 'JSON' ? 'json' : 'pdf'
-      const mimeType = job?.format === 'JSON' ? 'application/json' : 'application/pdf'
 
-      const blob = new Blob([response.data], { type: mimeType })
+      const response = await client.get<Blob>(`/files/download/${documentId}`, {
+        headers: { 'X-Org-Number': String(orgNumber.value) },
+        responseType: 'blob',
+      })
+
+      const blob = new Blob([response.data], {
+        type: job?.format === 'JSON' ? 'application/json' : 'application/pdf',
+      })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `export-${exportJobId}.${ext}`
+      link.download = job?.fileName ?? `export-${exportJobId}.${ext}`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      setTimeout(() => URL.revokeObjectURL(url), 10_000)
     } catch (err: unknown) {
       const apiError = err as ApiErrorShape
       error.value = apiError.response?.data?.message ?? 'Klarte ikke laste ned eksport.'

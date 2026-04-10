@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
 /**
  * Validator for temperature range validation.
@@ -20,7 +21,6 @@ public class TemperatureRangeValidator implements ConstraintValidator<ValidTempe
         this.min = constraintAnnotation.min();
         this.max = constraintAnnotation.max();
 
-        // Validate that min < max
         if (min >= max) {
             throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
         }
@@ -29,7 +29,7 @@ public class TemperatureRangeValidator implements ConstraintValidator<ValidTempe
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
         if (value == null) {
-            return true; // Null values are handled by @NotNull
+            return true;
         }
 
         double temperature;
@@ -43,17 +43,15 @@ public class TemperatureRangeValidator implements ConstraintValidator<ValidTempe
             return false;
         }
 
-        // Check for NaN or Infinity
         if (Double.isNaN(temperature) || Double.isInfinite(temperature)) {
             return false;
         }
 
         boolean valid = temperature >= min && temperature <= max;
-
-        if (!valid) {
+        if (!valid && context != null) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(
-                    String.format("Temperature must be between %.1f°C and %.1f°C", min, max)
+                    String.format(Locale.ROOT, "Temperature must be between %.1f°C and %.1f°C", min, max)
             ).addConstraintViolation();
         }
 

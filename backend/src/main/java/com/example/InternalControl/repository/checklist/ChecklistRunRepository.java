@@ -21,10 +21,10 @@ import java.util.Optional;
 @Repository
 public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long> {
 
-    @EntityGraph(attributePaths = {"template", "template.items", "items"})
+    @EntityGraph(attributePaths = {"template", "items"})
     List<ChecklistRun> findByOrgNumber(Integer orgNumber);
 
-    @EntityGraph(attributePaths = {"template", "template.items", "items"})
+    @EntityGraph(attributePaths = {"template", "items"})
     List<ChecklistRun> findByOrgNumberAndStatus(Integer orgNumber, RunStatus status);
 
     List<ChecklistRun> findByOrgNumberAndRunDateBetween(
@@ -32,8 +32,41 @@ public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long
 
     List<ChecklistRun> findByTemplateTemplateId(Long templateId);
 
-    @EntityGraph(attributePaths = {"template", "template.items", "items"})
+    @EntityGraph(attributePaths = {"template", "items"})
     Optional<ChecklistRun> findByRunIdAndOrgNumber(Long runId, Integer orgNumber);
+
+    @Query("""
+            SELECT DISTINCT r
+            FROM ChecklistRun r
+            LEFT JOIN FETCH r.template
+            LEFT JOIN FETCH r.items
+            WHERE r.orgNumber = :orgNumber
+            """)
+    List<ChecklistRun> findByOrgNumberWithDetails(@Param("orgNumber") Integer orgNumber);
+
+    @Query("""
+            SELECT DISTINCT r
+            FROM ChecklistRun r
+            LEFT JOIN FETCH r.template
+            LEFT JOIN FETCH r.items
+            WHERE r.orgNumber = :orgNumber
+              AND r.status = :status
+            """)
+    List<ChecklistRun> findByOrgNumberAndStatusWithDetails(
+            @Param("orgNumber") Integer orgNumber,
+            @Param("status") RunStatus status);
+
+    @Query("""
+            SELECT DISTINCT r
+            FROM ChecklistRun r
+            LEFT JOIN FETCH r.template
+            LEFT JOIN FETCH r.items
+            WHERE r.runId = :runId
+              AND r.orgNumber = :orgNumber
+            """)
+    Optional<ChecklistRun> findByRunIdAndOrgNumberWithDetails(
+            @Param("runId") Long runId,
+            @Param("orgNumber") Integer orgNumber);
 
     @Query("SELECT DISTINCT r FROM ChecklistRun r LEFT JOIN FETCH r.template LEFT JOIN FETCH r.items WHERE r.orgNumber = :orgNumber")
     List<ChecklistRun> findByOrgNumberWithTemplate(@Param("orgNumber") Integer orgNumber);

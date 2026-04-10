@@ -6,12 +6,14 @@ const props = withDefaults(
     variant: 'main' | 'sub'
     label: string
     active?: boolean
+    hasActiveChild?: boolean
     badge?: number
     icon?: string
     expanded?: boolean
-  }> (), 
+  }> (),
   {
     active: false,
+    hasActiveChild: false,
     badge: 0,
     icon: '',
     expanded: false,
@@ -34,6 +36,7 @@ const handleSelect = () => {
     :class="[
       `menu-item--${props.variant}`,
       { 'menu-item--active': props.active },
+      { 'menu-item--has-active-child': props.hasActiveChild },
     ]"
     :initial="{ opacity: 0, y: 4 }"
     :animate="{ opacity: 1, y: 0, transition: { duration: 0.18 } }"
@@ -53,19 +56,20 @@ const handleSelect = () => {
       </span>
       <span class="menu-item__label">{{ props.label }}</span>
       <span v-if="props.badge" class="menu-item__badge">{{ props.badge }}</span>
-      <svg
+      <motion.svg
         v-if="props.variant === 'main'"
-        width="14"
-        height="14"
+        width="18"
+        height="18"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
+        stroke-width="2.4"
         class="menu-item__chevron"
-        :class="{ 'menu-item__chevron--open': props.expanded }"
+        :animate="{ rotate: props.expanded ? 90 : 0 }"
+        :transition="{ duration: 0.2, ease: 'easeOut' }"
       >
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
+        <polyline points="9 6 15 12 9 18" />
+      </motion.svg>
     </motion.button>
   </motion.div>
 </template>
@@ -73,11 +77,12 @@ const handleSelect = () => {
 <style scoped>
 .menu-item {
   width: 100%;
+  margin: 0;
 }
 
 .menu-item__button {
   width: 100%;
-  min-height: 3rem;
+  min-height: 3.5rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -87,16 +92,15 @@ const handleSelect = () => {
   text-align: left;
   font-family: var(--font-family-ui);
   border-radius: 0;
-  border-left: 0.25rem solid transparent;
-  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .menu-item__button--main {
-  padding: 0.85rem calc(var(--spacing-md) - 0.25rem) 0.85rem var(--spacing-md);
+  padding: 1.15rem var(--spacing-xl);
 }
 
 .menu-item__button--sub {
-  padding: 0.7rem calc(var(--spacing-md) - 0.25rem) 0.7rem var(--spacing-md);
+  padding: 1rem var(--spacing-xl);
 }
 
 .menu-item__icon {
@@ -105,14 +109,15 @@ const handleSelect = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-gray-400);
+  color: color-mix(in srgb, white 72%, transparent);
   transition: color var(--transition-fast);
 }
 
 .menu-item__label {
   font-size: 0.875rem;
   font-weight: var(--font-weight-medium);
-  color: var(--color-gray-700);
+  color: color-mix(in srgb, white 92%, transparent);
+  flex: 1;
 }
 
 .menu-item--main .menu-item__label {
@@ -134,53 +139,62 @@ const handleSelect = () => {
   font-size: 0.6875rem;
   font-weight: 700;
   border-radius: 624.9375rem;
-  margin-left: auto;
+  margin: 0;
   box-shadow: 0 0.0625rem 0 rgba(0, 0, 0, 0.08);
 }
 
 .menu-item__chevron {
-  margin-left: 0.25rem;
-  color: var(--color-gray-400);
-  transform: rotate(-90deg);
-  transition: transform var(--transition-base) ease, color var(--transition-fast);
-}
-
-.menu-item__chevron--open {
-  transform: rotate(0deg);
+  margin: 0;
+  color: color-mix(in srgb, white 72%, transparent);
+  transform-origin: 50% 50%;
+  transition: color var(--transition-fast);
 }
 
 .menu-item__button:hover {
-  background-color: var(--color-accent);
+  background-color: rgba(255, 255, 255, 0.08);
   transform: translateX(1px);
 }
 
 .menu-item--sub .menu-item__button:hover {
   transition: background-color var(--transition-fast);
-  color: var(--color-primary);
+  color: var(--color-surface-raised);
 }
 
+/* Has active child - parent of current page (subtle indicator) */
+.menu-item--has-active-child .menu-item__button {
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.5);
+}
+
+.menu-item--has-active-child .menu-item__label {
+  color: white;
+  font-weight: 500;
+}
+
+.menu-item--has-active-child .menu-item__icon,
+.menu-item--has-active-child .menu-item__chevron {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Full active state - current page (overrides has-active-child) */
 .menu-item--active .menu-item__button {
-  background-color: color-mix(in srgb, var(--color-accent-hover) 70%, var(--color-card));
-  border-left-color: var(--color-primary);
-  color: var(--color-primary);
-  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--color-primary) 12%, transparent);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  box-shadow: none;
+  border-left: none;
 }
 
 .menu-item--active .menu-item__label,
 .menu-item--active .menu-item__chevron {
-  color: var(--color-gray-900);
+  color: var(--color-foreground);
 }
 
 .menu-item--active .menu-item__icon {
-  color: var(--color-primary);
-}
-
-.menu-item--active .menu-item__chevron {
-  color: var(--color-primary);
+  color: var(--color-foreground);
 }
 
 .menu-item--sub.menu-item--active .menu-item__label {
-  color: var(--color-primary);
+  color: var(--color-foreground);
   font-weight: 600;
 }
 

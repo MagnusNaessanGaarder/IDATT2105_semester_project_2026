@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hind:wght@300;400;600&family=Montserrat:wght@400;500;600;700&display=swap');
 
 /**
  * Base - Globale base-styles og CSS reset
@@ -14,6 +14,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  border: 0 !important;
 }
 
 html {
@@ -33,9 +34,9 @@ body {
   color: var(--color-foreground);
   background-color: var(--color-background);
   background-image:
-    radial-gradient(circle at top left, var(--color-surface-tint) 0%, transparent 34%),
-    radial-gradient(circle at bottom right, var(--color-surface-tint-strong) 0%, transparent 32%),
-    linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
+    radial-gradient(circle at top left, var(--color-surface-tint) 0%, transparent 28%),
+    radial-gradient(circle at top right, var(--color-surface-tint-strong) 0%, transparent 24%),
+    linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -49,13 +50,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: clamp(1.85rem, 2.4vw, var(--font-size-3xl));
-  letter-spacing: -0.006em;
+  font-size: clamp(2rem, 2.6vw, var(--font-size-3xl));
+  letter-spacing: -0.01em;
 }
 
 h2 {
   font-size: clamp(1.4rem, 1.9vw, var(--font-size-2xl));
-  letter-spacing: -0.004em;
+  letter-spacing: -0.008em;
 }
 
 h3 {
@@ -72,13 +73,15 @@ p {
 a {
   color: var(--color-link);
   text-decoration: none;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
   transition: color var(--transition-fast), text-underline-offset var(--transition-fast);
 }
 
 a:hover {
   color: var(--color-link-hover);
   text-decoration: underline;
-  text-underline-offset: 0.12em;
+  text-underline-offset: 0.18em;
 }
 
 a:focus-visible {
@@ -109,7 +112,41 @@ input, textarea, select {
   font-size: inherit;
   color: var(--color-foreground);
   line-height: inherit;
-  background: var(--color-card);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--input-padding);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  border-color: var(--color-focus);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-focus);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  min-height: 0;
+  padding: 0;
+  accent-color: var(--color-primary);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 ul, ol {
@@ -144,8 +181,8 @@ img {
 }
 
 ::selection {
-  background-color: var(--color-focus);
-  color: var(--color-primary-foreground);
+  background-color: var(--color-cta);
+  color: var(--color-cta-foreground);
 }
 
 ::-webkit-scrollbar {
@@ -166,12 +203,70 @@ img {
   background-color: var(--color-gray-400);
 }
 
-button, a, input, textarea, select {
+button, a, input:not([type='checkbox']):not([type='radio']), textarea, select {
   min-height: var(--touch-target);
 }
 
 ::placeholder {
-  color: var(--color-gray-400);
+  color: color-mix(in srgb, var(--color-foreground) 45%, transparent);
+}
+
+.page-shell {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--content-padding);
+}
+
+.page-stack {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.surface-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.surface-card--raised {
+  box-shadow: var(--shadow-md);
+}
+
+.surface-card--accent {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-brand-ice-teal) 52%, white) 0%, var(--color-card) 100%);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-family-ui);
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-brand-dark-teal);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--color-cta);
+}
+
+.fade-up-enter-active,
+.fade-up-leave-active {
+  transition: opacity var(--transition-base) var(--ease-emphasized), transform var(--transition-base) var(--ease-emphasized);
+}
+
+.fade-up-enter-from,
+.fade-up-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 @media (prefers-reduced-motion: reduce) {

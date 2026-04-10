@@ -239,7 +239,7 @@ onMounted(fetchLocations)
 </script>
 
 <template>
-  <div class="locations-view">
+  <div class="view-page locations-view">
 
     <!-- Header -->
     <header class="page-header">
@@ -247,7 +247,7 @@ onMounted(fetchLocations)
         <h1>Lokasjoner</h1>
         <p class="subtitle">Administrer lokasjoner og temperaturområder i organisasjonen</p>
       </div>
-      <button class="add-btn" type="button" @click="openAdd">
+      <button class="btn btn--primary" type="button" @click="openAdd">
         + Ny lokasjon
       </button>
     </header>
@@ -261,15 +261,15 @@ onMounted(fetchLocations)
     <template v-else>
       <!-- Stats -->
       <div class="stats-row">
-        <div class="stat">
+        <div class="stat app-surface">
           <strong>{{ locations.length }}</strong>
           <span>Totalt</span>
         </div>
-        <div class="stat stat--ok">
+        <div class="stat app-surface stat--ok">
           <strong>{{ active.length }}</strong>
           <span>Aktive</span>
         </div>
-        <div class="stat stat--muted">
+        <div class="stat app-surface stat--muted">
           <strong>{{ inactive.length }}</strong>
           <span>Inaktive</span>
         </div>
@@ -281,11 +281,11 @@ onMounted(fetchLocations)
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
         </svg>
         <p>Ingen lokasjoner registrert ennå.</p>
-        <button class="add-btn" type="button" @click="openAdd">Legg til første lokasjon</button>
+        <button class="btn btn--primary" type="button" @click="openAdd">Legg til første lokasjon</button>
       </div>
 
       <!-- Table -->
-      <div v-else class="table-card">
+      <div v-else class="table-card app-surface">
         <table>
           <thead>
           <tr>
@@ -421,9 +421,9 @@ onMounted(fetchLocations)
           </div>
 
           <footer class="modal__footer">
-            <button class="btn-ghost" type="button" @click="closeModal">Avbryt</button>
+            <button class="btn btn--ghost" type="button" @click="closeModal">Avbryt</button>
             <button
-                class="btn-primary"
+                class="btn btn--primary"
                 type="button"
                 :disabled="saving || !form.name.trim() || !tempInputsValid"
                 @click="save"
@@ -459,8 +459,8 @@ onMounted(fetchLocations)
             </p>
           </div>
           <footer class="modal__footer">
-            <button class="btn-ghost" type="button" @click="confirmId = null">Avbryt</button>
-            <button class="btn-danger" type="button" :disabled="deleting" @click="deleteLocation">
+            <button class="btn btn--ghost" type="button" @click="confirmId = null">Avbryt</button>
+            <button class="btn btn--danger" type="button" :disabled="deleting" @click="deleteLocation">
               {{ deleting ? 'Sletter…' : 'Slett' }}
             </button>
           </footer>
@@ -472,44 +472,27 @@ onMounted(fetchLocations)
 </template>
 
 <style scoped>
+/* Bruker delte klasser fra components.css:
+   - .view-page (wrapper)
+   - .page-header (header layout)
+   - .btn, .btn--primary (knapper)
+   Se components.css for detaljer.
+*/
+
 .locations-view {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
+  /* Tilleggsspissifikk styling for lokasjoner */
 }
 
 /*  Header  */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1rem;
-}
 .page-header h1 {
-  margin: 0;
-  font-size: clamp(1.5rem, 2.4vw, var(--font-size-3xl));
-  font-weight: 700;
-  letter-spacing: -0.015em;
+  font-family: var(--font-family-display);
+  line-height: var(--line-height-heading);
+  letter-spacing: -0.01em;
 }
+
 .subtitle {
   margin: 0.3rem 0 0;
-  color: var(--color-gray-500);
-  font-size: var(--font-size-sm);
 }
-.add-btn {
-  min-height: var(--touch-target);
-  padding: var(--button-padding-md);
-  background: var(--color-primary);
-  color: var(--color-primary-foreground);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.add-btn:hover { opacity: 0.88; }
 
 /*  Toast feedback (fixed, doesn't shift layout)  */
 .toast {
@@ -560,9 +543,6 @@ onMounted(fetchLocations)
   gap: 0.75rem;
 }
 .stat {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-card);
   padding: 0.75rem 1rem;
   display: flex;
   flex-direction: column;
@@ -588,10 +568,6 @@ onMounted(fetchLocations)
 
 /*  Table  */
 .table-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 table { width: 100%; border-collapse: collapse; }
@@ -793,52 +769,55 @@ tr:last-child td { border-bottom: none; }
   line-height: 1.55;
 }
 
-/*  Buttons  */
-.btn-ghost {
-  min-height: 2.25rem;
-  padding: 0.4rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-card);
-  color: var(--color-gray-700);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  cursor: pointer;
-}
-.btn-ghost:hover { background: var(--color-gray-50); }
+/*  Buttons  
+   Bruker delte klasser fra components.css:
+   - .btn (base)
+   - .btn--primary, .btn--ghost, .btn--danger (varianter)
+   
+   WCAG-forbedringer: Tydeligere kanter og kontrast for bedre synlighet
+*/
 
-.btn-primary {
+.btn { 
   min-height: 2.25rem;
-  padding: 0.4rem 1.25rem;
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--color-primary);
-  color: var(--color-primary-foreground);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
+  border: 2px solid transparent;
 }
-.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-primary:not(:disabled):hover { opacity: 0.88; }
 
-.btn-danger {
-  min-height: 2.25rem;
-  padding: 0.4rem 1.25rem;
-  border: none;
-  border-radius: var(--radius-md);
-  background: #dc2626;
-  color: #fff;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
+/* + Ny lokasjon - forsterket synlighet */
+.btn--primary {
+  border-color: var(--color-brand-deep-forest);
+  box-shadow: 0 2px 4px rgba(0, 39, 43, 0.15);
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
-.btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-danger:hover:not(:disabled) { background: #b91c1c; }
+
+.btn--primary:hover {
+  border-color: var(--color-brand-dark-teal);
+  box-shadow: 0 4px 8px rgba(0, 39, 43, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn--primary:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-brand-deep-forest);
+}
+
+.btn--primary:disabled { 
+  opacity: 0.5; 
+  cursor: not-allowed;
+  border-color: var(--color-gray-400);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn--danger:disabled { 
+  opacity: 0.6; 
+  cursor: not-allowed; 
+}
 
 /*  Responsive  */
 @media (max-width: 48rem) {
   .page-header { flex-direction: column; align-items: flex-start; }
-  .add-btn { width: 100%; text-align: center; }
   .stats-row { grid-template-columns: repeat(3, 1fr); }
   .field-row { grid-template-columns: 1fr; }
   th:nth-child(4), td:nth-child(4) { display: none; }
