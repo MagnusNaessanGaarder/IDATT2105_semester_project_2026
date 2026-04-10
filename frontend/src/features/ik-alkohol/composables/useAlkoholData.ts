@@ -62,6 +62,7 @@ export interface CertificationUser {
 
 export interface CertificationRecord {
   trainingRecordId: number
+  userId: number | null        // serialized directly from the FK — always present
   user: CertificationUser | null
   orgNumber: number
   trainingType: CertificationType
@@ -189,23 +190,23 @@ export const useAlkoholData = () => {
   const totalCertificates = computed(() => employees.reduce((sum: number, employee: EmployeeCertification) => sum + employee.certifications.length, 0))
 
   const certificateCounts = computed(() => employees.reduce(
-    (counts: Record<CertificateStatus, number>, employee: EmployeeCertification) => {
-      employee.certifications.forEach((certification: EmployeeCertificate) => {
-        const status = certificateStatus(certification.expire_date)
-        counts[status] += 1
-      })
-      return counts
-    },
-    {
-      Gyldig: 0,
-      'Utløper snart': 0,
-      Utgått: 0,
-    } as Record<CertificateStatus, number>,
+      (counts: Record<CertificateStatus, number>, employee: EmployeeCertification) => {
+        employee.certifications.forEach((certification: EmployeeCertificate) => {
+          const status = certificateStatus(certification.expire_date)
+          counts[status] += 1
+        })
+        return counts
+      },
+      {
+        Gyldig: 0,
+        'Utløper snart': 0,
+        Utgått: 0,
+      } as Record<CertificateStatus, number>,
   ))
 
   const staffWithExpired = computed(() => employees
-    .filter((employee: EmployeeCertification) => employee.certifications.some((certification: EmployeeCertificate) => certificateStatus(certification.expire_date) === 'Utgått'))
-    .map((employee: EmployeeCertification) => employee.name))
+      .filter((employee: EmployeeCertification) => employee.certifications.some((certification: EmployeeCertificate) => certificateStatus(certification.expire_date) === 'Utgått'))
+      .map((employee: EmployeeCertification) => employee.name))
 
   const completedControls = computed(() => dailyControls.filter((item: DailyControlItem) => item.is_checked).length)
   const pendingControls = computed(() => dailyControls.length - completedControls.value)
@@ -248,20 +249,20 @@ export const useAlkoholData = () => {
             params: withOrgNumber({}),
           }),
           checklistRunsEndpointUnavailable
-            ? Promise.resolve({ data: [] as ChecklistRunApi[] })
-            : client.get<ChecklistRunApi[]>('/checklists/runs', {
-              params: withOrgNumber({}),
-              skipGlobalErrorLog: true,
-            }).catch((err: unknown) => {
-              if (typeof err === 'object' && err !== null && 'response' in err) {
-                const response = (err as { response?: { status?: number } }).response
-                if (response?.status === 500) {
-                  checklistRunsEndpointUnavailable = true
-                  return { data: [] as ChecklistRunApi[] }
+              ? Promise.resolve({ data: [] as ChecklistRunApi[] })
+              : client.get<ChecklistRunApi[]>('/checklists/runs', {
+                params: withOrgNumber({}),
+                skipGlobalErrorLog: true,
+              }).catch((err: unknown) => {
+                if (typeof err === 'object' && err !== null && 'response' in err) {
+                  const response = (err as { response?: { status?: number } }).response
+                  if (response?.status === 500) {
+                    checklistRunsEndpointUnavailable = true
+                    return { data: [] as ChecklistRunApi[] }
+                  }
                 }
-              }
-              throw err
-            }),
+                throw err
+              }),
         ])
 
         const templates = (templatesResponse.status === 'fulfilled' ? templatesResponse.value.data : []) as ChecklistTemplateApi[]
@@ -270,42 +271,42 @@ export const useAlkoholData = () => {
         const alcoholRuns = allRuns.filter((run: ChecklistRunApi) => alcoholTemplateIds.has(run.templateId))
 
         const mappedControlsFromRuns = alcoholRuns
-          .slice()
-          .sort((a: ChecklistRunApi, b: ChecklistRunApi) => new Date(b.completedAt ?? b.runDate ?? 0).getTime() - new Date(a.completedAt ?? a.runDate ?? 0).getTime())
-          .flatMap((run: ChecklistRunApi) => {
-            const split = splitIsoDateTime(run.completedAt ?? run.runDate)
-            const employee = run.performedByUserId ? `Bruker ${run.performedByUserId}` : 'Ukjent'
+            .slice()
+            .sort((a: ChecklistRunApi, b: ChecklistRunApi) => new Date(b.completedAt ?? b.runDate ?? 0).getTime() - new Date(a.completedAt ?? a.runDate ?? 0).getTime())
+            .flatMap((run: ChecklistRunApi) => {
+              const split = splitIsoDateTime(run.completedAt ?? run.runDate)
+              const employee = run.performedByUserId ? `Bruker ${run.performedByUserId}` : 'Ukjent'
 
-            if (run.items && run.items.length > 0) {
-              return run.items.map((item: ChecklistRunItemApi, index: number) => ({
-                id: Number(`${run.runId}${String(index + 1).padStart(2, '0')}`),
-                name: item.templateItemLabel ?? `Kontrollpunkt ${index + 1}`,
-                law_unit: run.templateTitle ?? 'Daglig alkoholkontroll',
+              if (run.items && run.items.length > 0) {
+                return run.items.map((item: ChecklistRunItemApi, index: number) => ({
+                  id: Number(`${run.runId}${String(index + 1).padStart(2, '0')}`),
+                  name: item.templateItemLabel ?? `Kontrollpunkt ${index + 1}`,
+                  law_unit: run.templateTitle ?? 'Daglig alkoholkontroll',
+                  employee,
+                  comment: item.commentText ?? run.notes ?? '',
+                  completion_date: {
+                    date: split.date,
+                    time: split.time,
+                  },
+                  attachment: null,
+                  is_checked: item.hasAnswer ?? run.status === 'COMPLETED',
+                } satisfies DailyControlItem))
+              }
+
+              return [{
+                id: run.runId,
+                name: run.templateTitle ?? `Kontroll ${run.templateId}`,
+                law_unit: 'ALKOHOLLOVEN',
                 employee,
-                comment: item.commentText ?? run.notes ?? '',
+                comment: run.notes ?? '',
                 completion_date: {
                   date: split.date,
                   time: split.time,
                 },
                 attachment: null,
-                is_checked: item.hasAnswer ?? run.status === 'COMPLETED',
-              } satisfies DailyControlItem))
-            }
-
-            return [{
-              id: run.runId,
-              name: run.templateTitle ?? `Kontroll ${run.templateId}`,
-              law_unit: 'ALKOHOLLOVEN',
-              employee,
-              comment: run.notes ?? '',
-              completion_date: {
-                date: split.date,
-                time: split.time,
-              },
-              attachment: null,
-              is_checked: run.status === 'COMPLETED',
-            } satisfies DailyControlItem]
-          })
+                is_checked: run.status === 'COMPLETED',
+              } satisfies DailyControlItem]
+            })
 
         const mappedControlsFromTemplates = templates.map((template: ChecklistTemplateApi) => ({
           id: template.templateId,
@@ -322,8 +323,8 @@ export const useAlkoholData = () => {
         } satisfies DailyControlItem))
 
         const mappedControls = mappedControlsFromRuns.length > 0
-          ? mappedControlsFromRuns
-          : mappedControlsFromTemplates
+            ? mappedControlsFromRuns
+            : mappedControlsFromTemplates
 
         const employeeMap = new Map<string, EmployeeCertification>()
         alcoholRuns.forEach((run: ChecklistRunApi) => {

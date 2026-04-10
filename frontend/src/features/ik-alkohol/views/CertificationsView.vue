@@ -31,6 +31,9 @@ interface UserCertificationGroup {
   }>
 }
 
+// Only these training types are relevant to the alcohol module
+const ALCOHOL_TYPES = new Set(['RESPONSIBLE_ALCOHOL_SERVICE', 'AGE_VERIFICATION'])
+
 const {
   items: certifications,
   isLoading: isLoadingCerts,
@@ -70,22 +73,28 @@ const formState = ref({
 })
 
 const availableCertTypes = computed(() => {
-  return certificationCatalog.value.map((item) => ({
-    value: item.trainingType,
-    label: item.displayName,
-  }))
+  return certificationCatalog.value
+      .filter((item) => ALCOHOL_TYPES.has(item.trainingType))
+      .map((item) => ({
+        value: item.trainingType,
+        label: item.displayName,
+      }))
 })
 
 const certificationTypeLabels = computed<Record<string, string>>(() => Object.fromEntries(
-  certificationCatalog.value.map((item) => [item.trainingType, item.displayName]),
+    certificationCatalog.value.map((item) => [item.trainingType, item.displayName]),
 ))
 const filteredCatalogTypes = computed(() => (
-  activeFilter.value === 'ALL'
-    ? availableCertTypes.value
-    : availableCertTypes.value.filter((type) => type.value === activeFilter.value)
+    activeFilter.value === 'ALL'
+        ? availableCertTypes.value
+        : availableCertTypes.value.filter((type) => type.value === activeFilter.value)
 ))
 
-const totalCertificates = computed(() => certifications.value.length)
+const alcoholCertifications = computed(() =>
+    certifications.value.filter((cert) => ALCOHOL_TYPES.has(cert.trainingType))
+)
+
+const totalCertificates = computed(() => alcoholCertifications.value.length)
 
 const statusCount = computed(() => {
   const counts: Record<CertificateStatus, number> = {
@@ -94,12 +103,12 @@ const statusCount = computed(() => {
     Utgått: 0,
   }
 
-  certifications.value.forEach((cert) => {
+  alcoholCertifications.value.forEach((cert) => {
     const status = cert.expiresAt
-      ? certificateStatusForDate(cert.expiresAt.slice(0, 10))
-      : cert.status === 'COMPLETED'
-        ? 'Gyldig'
-        : null
+        ? certificateStatusForDate(cert.expiresAt.slice(0, 10))
+        : cert.status === 'COMPLETED'
+            ? 'Gyldig'
+            : null
 
     if (status) {
       counts[status] += 1
@@ -116,47 +125,49 @@ const statusCount = computed(() => {
 const userGroups = computed<UserCertificationGroup[]>(() => {
   const certsByUser = new Map<number, UserCertificationGroup['certifications']>()
 
-  certifications.value.forEach((cert) => {
-    const userId = cert.user?.userId
-    if (!userId) {
-      return
-    }
+  certifications.value
+      .filter((cert) => ALCOHOL_TYPES.has(cert.trainingType))
+      .forEach((cert) => {
+        const userId = cert.user?.userId
+        if (!userId) {
+          return
+        }
 
-    const list = certsByUser.get(userId) ?? []
-    list.push({
-      id: cert.trainingRecordId,
-      title: cert.title,
-      trainingType: cert.trainingType,
-      status: cert.expiresAt
-        ? certificateStatusForDate(cert.expiresAt.slice(0, 10))
-        : cert.status === 'COMPLETED'
-          ? 'Gyldig'
-          : 'Mangler',
-      expires: cert.expiresAt ? formatDateValue(cert.expiresAt.slice(0, 10)) : '-',
-      completedAt: cert.completedAt ? formatDateValue(cert.completedAt.slice(0, 10)) : '-',
-      notes: cert.notes,
-      raw: cert,
-    })
-    certsByUser.set(userId, list)
-  })
+        const list = certsByUser.get(userId) ?? []
+        list.push({
+          id: cert.trainingRecordId,
+          title: cert.title,
+          trainingType: cert.trainingType,
+          status: cert.expiresAt
+              ? certificateStatusForDate(cert.expiresAt.slice(0, 10))
+              : cert.status === 'COMPLETED'
+                  ? 'Gyldig'
+                  : 'Mangler',
+          expires: cert.expiresAt ? formatDateValue(cert.expiresAt.slice(0, 10)) : '-',
+          completedAt: cert.completedAt ? formatDateValue(cert.completedAt.slice(0, 10)) : '-',
+          notes: cert.notes,
+          raw: cert,
+        })
+        certsByUser.set(userId, list)
+      })
 
   return users.value.map((user) => ({
-      userId: user.userId,
-      employee: user.displayName,
-      email: user.email ?? null,
-      certifications: (certsByUser.get(user.userId) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title)),
-    }))
+    userId: user.userId,
+    employee: user.displayName,
+    email: user.email ?? null,
+    certifications: (certsByUser.get(user.userId) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title)),
+  }))
 })
 
 const filteredUserGroups = computed<UserCertificationGroup[]>(() => {
   return userGroups.value
-    .map((group) => ({
-      ...group,
-      certifications: group.certifications.filter(
-        (certification) => activeFilter.value === 'ALL' || certification.trainingType === activeFilter.value,
-      ),
-    }))
-    .filter((group) => activeFilter.value === 'ALL' || group.certifications.length > 0)
+      .map((group) => ({
+        ...group,
+        certifications: group.certifications.filter(
+            (certification) => activeFilter.value === 'ALL' || certification.trainingType === activeFilter.value,
+        ),
+      }))
+      .filter((group) => activeFilter.value === 'ALL' || group.certifications.length > 0)
 })
 
 const loadUsers = async (force = false) => {
@@ -258,12 +269,12 @@ const saveCertification = async () => {
   if (!orgNumber) return
 
   const completedAt = formState.value.completedAtDate
-    ? `${formState.value.completedAtDate}T${formState.value.completedAtTime || '00:00'}:00`
-    : null
+      ? `${formState.value.completedAtDate}T${formState.value.completedAtTime || '00:00'}:00`
+      : null
 
   const expiresAt = formState.value.expiresAtDate
-    ? `${formState.value.expiresAtDate}T${formState.value.expiresAtTime || '00:00'}:00`
-    : null
+      ? `${formState.value.expiresAtDate}T${formState.value.expiresAtTime || '00:00'}:00`
+      : null
 
   const requestData = {
     userId: formState.value.userId,
@@ -368,20 +379,20 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 
     <section class="filter-strip" aria-label="Filtrer sertifikater">
       <button
-        type="button"
-        class="filter-btn"
-        :class="{ 'filter-btn--active': activeFilter === 'ALL' }"
-        @click="activeFilter = 'ALL'"
+          type="button"
+          class="filter-btn"
+          :class="{ 'filter-btn--active': activeFilter === 'ALL' }"
+          @click="activeFilter = 'ALL'"
       >
         Alle
       </button>
       <button
-        v-for="type in availableCertTypes"
-        :key="type.value"
-        type="button"
-        class="filter-btn"
-        :class="{ 'filter-btn--active': activeFilter === type.value }"
-        @click="activeFilter = type.value"
+          v-for="type in availableCertTypes"
+          :key="type.value"
+          type="button"
+          class="filter-btn"
+          :class="{ 'filter-btn--active': activeFilter === type.value }"
+          @click="activeFilter = type.value"
       >
         {{ type.label }}
       </button>
@@ -407,10 +418,10 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
               <p v-if="group.email" class="user-cert-card__meta">{{ group.email }}</p>
             </div>
             <button
-              v-if="canManageCertifications"
-              type="button"
-              class="action-btn action-btn--edit"
-              @click="openAddModalForUser(group.userId)"
+                v-if="canManageCertifications"
+                type="button"
+                class="action-btn action-btn--edit"
+                @click="openAddModalForUser(group.userId)"
             >
               + Nytt sertifikat
             </button>
@@ -418,9 +429,9 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 
           <div v-if="group.certifications.length > 0" class="user-cert-card__items">
             <article
-              v-for="certification in group.certifications"
-              :key="`${activeFilter}-${certification.id}`"
-              class="user-cert-item"
+                v-for="certification in group.certifications"
+                :key="`${activeFilter}-${certification.id}`"
+                class="user-cert-item"
             >
               <div class="user-cert-item__content">
                 <div>
@@ -439,16 +450,16 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 
               <div v-if="canManageCertifications" class="action-buttons">
                 <button
-                  type="button"
-                  class="action-btn action-btn--edit"
-                  @click="openEditModal(certification.raw)"
+                    type="button"
+                    class="action-btn action-btn--edit"
+                    @click="openEditModal(certification.raw)"
                 >
                   Rediger
                 </button>
                 <button
-                  type="button"
-                  class="action-btn action-btn--delete"
-                  @click="deleteCertification(certification.id)"
+                    type="button"
+                    class="action-btn action-btn--delete"
+                    @click="deleteCertification(certification.id)"
                 >
                   Slett
                 </button>
@@ -500,9 +511,9 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
     </section>
 
     <BaseModal
-      :open="showFormModal"
-      :title="formMode === 'add' ? 'Legg til sertifisering' : 'Rediger sertifisering'"
-      @close="closeFormModal"
+        :open="showFormModal"
+        :title="formMode === 'add' ? 'Legg til sertifisering' : 'Rediger sertifisering'"
+        @close="closeFormModal"
     >
       <form class="cert-form" @submit.prevent="saveCertification">
         <label>
@@ -561,10 +572,10 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 
       <template #footer>
         <button
-          type="button"
-          class="modal-btn modal-btn--ghost"
-          @click="closeFormModal"
-          :disabled="isSubmitting"
+            type="button"
+            class="modal-btn modal-btn--ghost"
+            @click="closeFormModal"
+            :disabled="isSubmitting"
         >
           Avbryt
         </button>
