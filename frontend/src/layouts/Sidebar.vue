@@ -61,6 +61,7 @@ const sections = computed(() => [
     icon: 'FolderOpen',
     dashboardRoute: 'Dashboard',
     items: [
+      { id: 'employee-training', label: 'Opplæring', route: 'EmployeeTraining' },
       { id: 'reports', label: 'Rapporter', route: 'Reports' },
       { id: 'documents', label: 'Dokumenter', route: 'Documents' },
       { id: 'notifications', label: 'Varsler', route: 'Notifications' },
@@ -101,6 +102,7 @@ const sections = computed(() => [
       ...(user.value?.role === 'ADMIN'
           ? [{ id: 'users', label: 'Brukere', route: 'Users' }]
           : []),
+      { id: 'opplaering', label: 'Opplæring', route: 'Training' },
       { id: 'locations', label: 'Lokasjoner', route: 'Locations' },
       { id: 'settings', label: 'Innstillinger', route: 'Settings' }
     ]
