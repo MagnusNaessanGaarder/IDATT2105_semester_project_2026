@@ -391,6 +391,7 @@ watch(currentOrgNumber, () => {
 
 <template>
   <div class="view-page settings-view" role="main" aria-labelledby="settings-heading">
+    <!-- SettingsView bruker .view-page fra components.css for konsistent layout -->
     <header class="page-header">
       <div>
         <h1 id="settings-heading">Innstillinger</h1>
@@ -723,7 +724,15 @@ watch(currentOrgNumber, () => {
 </template>
 
 <style scoped>
+/* Bruker delte klasser fra components.css:
+   - .view-page (wrapper)
+   - .page-header (header layout)
+   - .btn, .btn--primary, .btn--secondary, .btn--danger (knapper)
+   Se components.css for detaljer.
+*/
+
 .settings-view {
+  /* Tilleggsspissifikk styling for innstillinger */
   display: grid;
   gap: 1rem;
 }
@@ -998,11 +1007,25 @@ watch(currentOrgNumber, () => {
   min-width: 14rem;
   padding: 0 0.7rem;
   background: var(--color-gray-50);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong, var(--color-gray-300));
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   color: var(--color-foreground);
   box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.setting-select:hover,
+.setting-input:hover {
+  border-color: var(--color-gray-400);
+}
+
+.setting-select:focus,
+.setting-input:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: var(--color-surface-raised);
 }
 
 .toggle-wrap {
@@ -1133,35 +1156,62 @@ watch(currentOrgNumber, () => {
   justify-content: flex-end;
 }
 
-/* Button Styles */
+/* Button Styles - WCAG-forbedret med tydeligere kanter */
 .btn {
   min-height: 2.7rem;
   padding: 0.45rem 0.95rem;
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 600;
-  border: none;
+  border: 2px solid transparent;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
+/* Lagre endringer - Primærknapp med forsterket synlighet */
 .btn--primary {
   background: var(--color-foreground);
   color: var(--color-background);
+  border-color: var(--color-foreground);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn--primary:hover {
   background: var(--color-gray-900);
+  border-color: var(--color-gray-900);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
+.btn--primary:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Tilbake til standard / Tilbakestill endringer - Sekundærknapp med tydelig kant */
 .btn--secondary {
   background: var(--color-card);
   color: var(--color-gray-700);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn--secondary:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.btn--secondary:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-gray-500);
 }
 
 .btn--danger {
   background: var(--color-danger);
   color: white;
+  border-color: var(--color-danger);
 }
 
 .btn--danger:hover {
@@ -1171,6 +1221,9 @@ watch(currentOrgNumber, () => {
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  border-color: var(--color-gray-300);
+  transform: none;
+  box-shadow: none;
 }
 
 .error-message {

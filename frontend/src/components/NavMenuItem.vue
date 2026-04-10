@@ -6,12 +6,14 @@ const props = withDefaults(
     variant: 'main' | 'sub'
     label: string
     active?: boolean
+    hasActiveChild?: boolean
     badge?: number
     icon?: string
     expanded?: boolean
-  }> (), 
+  }> (),
   {
     active: false,
+    hasActiveChild: false,
     badge: 0,
     icon: '',
     expanded: false,
@@ -34,6 +36,7 @@ const handleSelect = () => {
     :class="[
       `menu-item--${props.variant}`,
       { 'menu-item--active': props.active },
+      { 'menu-item--has-active-child': props.hasActiveChild },
     ]"
     :initial="{ opacity: 0, y: 4 }"
     :animate="{ opacity: 1, y: 0, transition: { duration: 0.18 } }"
@@ -157,6 +160,7 @@ const handleSelect = () => {
   color: var(--color-surface-raised);
 }
 
+/* Full active state - current page (overrides has-active-child) */
 .menu-item--active .menu-item__button {
   background-color: var(--color-background);
   color: var(--color-foreground);

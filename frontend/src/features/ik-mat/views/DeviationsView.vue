@@ -149,7 +149,6 @@ async function assignReport() {
   } catch (err: unknown) {
     const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
     assignError.value = msg ?? 'Tildeling feilet. Prøv igjen.'
-    console.error('assignReport error:', err)
   } finally {
     assignLoading.value = false
   }
@@ -184,7 +183,6 @@ async function startInvestigation() {
   } catch (err: unknown) {
     const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response?.data?.message
     actionError.value = msg ? `Statusendring feilet: ${msg}` : 'Statusendring feilet.'
-    console.error('startInvestigation error:', err)
   } finally {
     actionLoading.value = false
   }
@@ -216,7 +214,6 @@ async function submitAction() {
   } catch (err: unknown) {
     const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response?.data?.message
     actionError.value = msg ? `Feilet: ${msg}` : 'Handlingen feilet. Prøv igjen.'
-    console.error('submitAction error:', err)
   } finally {
     actionLoading.value = false
   }
@@ -237,7 +234,6 @@ async function closeReport() {
   } catch (err: unknown) {
     const msg = (err as { response?: { data?: { message?: string }; status?: number } })?.response?.data?.message
     actionError.value = msg ? `Lukking feilet: ${msg}` : 'Lukking feilet.'
-    console.error('closeReport error:', err)
   } finally {
     actionLoading.value = false
   }

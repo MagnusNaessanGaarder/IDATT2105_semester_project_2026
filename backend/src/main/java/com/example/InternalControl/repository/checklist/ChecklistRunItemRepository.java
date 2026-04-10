@@ -24,4 +24,6 @@ public interface ChecklistRunItemRepository extends JpaRepository<ChecklistRunIt
 
     long countByRunRunIdAndBooleanValueIsNullAndTextValueIsNullAndNumericValueIsNullAndSelectedChoiceIsNull(
             Long runId);
+
+    boolean existsByTemplateItemId(Long templateItemId);
 }

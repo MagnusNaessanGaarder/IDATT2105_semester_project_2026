@@ -61,8 +61,8 @@ export function useCertifications(): UseCertificationsReturn {
   }
 
   const addItem = async (
-      data: CreateCertificationRequest,
-      orgNumber: number,
+    data: CreateCertificationRequest,
+    orgNumber: number,
   ): Promise<boolean> => {
     isSubmitting.value = true
     error.value = null
@@ -87,9 +87,9 @@ export function useCertifications(): UseCertificationsReturn {
   }
 
   const editItem = async (
-      id: number,
-      data: UpdateCertificationRequest,
-      orgNumber: number,
+    id: number,
+    data: UpdateCertificationRequest,
+    orgNumber: number,
   ): Promise<boolean> => {
     isSubmitting.value = true
     error.value = null
@@ -136,9 +136,9 @@ export function useCertifications(): UseCertificationsReturn {
   }
 
   const completeItem = async (
-      id: number,
-      orgNumber: number,
-      certificateDocumentId?: number | null,
+    id: number,
+    orgNumber: number,
+    certificateDocumentId?: number | null,
   ): Promise<boolean> => {
     isSubmitting.value = true
     error.value = null

@@ -1,21 +1,3 @@
-# AI tool directories and files
-.clawhub/
-.openclaw/
-skills/
-HEARTBEAT.md
-IDENTITY.md
-SOUL.md
-TOOLS.md
-USER.md
-MEMORY.md
-AGENTS.md
-ai-*.md
-AI_*.md
-*.ai.md
-docs/
-memory/
-*.txt
-
 # Dependencies
 node_modules/
 
@@ -50,15 +32,6 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
-# Devex
-DEV_NOTES.md
-frontend/DEV_NOTES.md
-frontend/VUE_NOTES.md
-frontend/API_ENDPOINTS_GUIDE.md
-docs/DEV_NOTES/
-docs/EXPORT_FEATURE_GUIDE.md
-BACKEND_MASTER_GUIDE.md
-
 # IDE
 .vscode/*
 !.vscode/extensions.json
@@ -83,4 +56,3 @@ test-results/
 
 # Vite
 *.timestamp-*-*.mjs
-BACKEND_MASTER_GUIDE.md

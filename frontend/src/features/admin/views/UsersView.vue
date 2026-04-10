@@ -320,7 +320,7 @@ const availableRoles = [
       </div>
 
       <!-- User table -->
-      <div v-else class="table-card">
+      <div v-else class="table-card app-surface">
         <table>
           <thead>
           <tr>
@@ -415,7 +415,7 @@ const availableRoles = [
       </div>
 
       <template #footer>
-        <button class="btn-ghost" @click="showAddModal = false">Avbryt</button>
+        <button class="btn btn--ghost" @click="showAddModal = false">Avbryt</button>
         <button
             class="btn-primary"
             :disabled="addSubmitLoading || !addEmail.trim()"
@@ -450,8 +450,8 @@ const availableRoles = [
         <div v-if="editError" class="add-error">{{ editError }}</div>
       </form>
       <template #footer>
-        <button type="button" class="btn-ghost" @click="showEditModal = false">Avbryt</button>
-        <button type="submit" form="editUserForm" class="btn-primary" :disabled="editLoading">
+        <button type="button" class="btn btn--ghost" @click="showEditModal = false">Avbryt</button>
+        <button type="submit" form="editUserForm" class="btn btn--primary" :disabled="editLoading">
           <BaseSpinner v-if="editLoading" size="sm" />
           <span v-else>Lagre</span>
         </button>
@@ -461,8 +461,8 @@ const availableRoles = [
     <BaseModal :open="showConfirm" :title="confirmTitle" @close="showConfirm = false">
       <p>{{ confirmMsg }}</p>
       <template #footer>
-        <button class="btn-ghost" @click="showConfirm = false">Avbryt</button>
-        <button class="btn-danger" :disabled="confirmLoading" @click="runConfirm">
+        <button class="btn btn--ghost" @click="showConfirm = false">Avbryt</button>
+        <button class="btn btn--danger" :disabled="confirmLoading" @click="runConfirm">
           <BaseSpinner v-if="confirmLoading" size="sm" />
           <span v-else>Bekreft</span>
         </button>
@@ -473,24 +473,28 @@ const availableRoles = [
 </template>
 
 <style scoped>
-.users-view {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
+/* 
+  Bruker delte klasser fra components.css:
+  - .view-page (wrapper)
+  - .page-header (header layout)
+  - .btn, .btn--primary, .btn--ghost, .btn--danger (knapper)
+  - .app-surface (kort/flater)
+  
+  WCAG 2.1 AA krav:
+  - Kontrast 4.5:1 for tekst
+  - Kontrast 3:1 for UI-komponenter
+  - Fokus-indikatorer synlige
+  - Touch-targets minimum 44x44px
+*/
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1rem;
+.users-view {
+  display: block;
 }
 
 .page-header h1 {
-  font-size: clamp(1.6rem, 2.4vw, var(--font-size-3xl));
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  margin: 0;
+  font-family: var(--font-family-display);
+  line-height: var(--line-height-heading);
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
@@ -602,17 +606,10 @@ const availableRoles = [
   align-items: center;
   gap: 0.75rem;
   padding: 3.5rem 1rem;
-  color: var(--color-gray-400);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
+  color: var(--color-gray-500);
 }
 
 .table-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 

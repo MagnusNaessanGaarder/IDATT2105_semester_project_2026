@@ -102,7 +102,8 @@ const sections = computed(() => [
       ...(user.value?.role === 'ADMIN'
           ? [{ id: 'users', label: 'Brukere', route: 'Users' }]
           : []),
-      { id: 'opplaering', label: 'Opplæring', route: 'Training' },
+      { id: 'checklists', label: 'Sjekklister', route: 'MakeChecklists' },
+      { id: 'training', label: 'Opplæring', route: 'Training' },
       { id: 'locations', label: 'Lokasjoner', route: 'Locations' },
       { id: 'settings', label: 'Innstillinger', route: 'Settings' }
     ]

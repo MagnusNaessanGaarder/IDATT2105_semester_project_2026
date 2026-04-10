@@ -33,13 +33,19 @@ export interface ChecklistRunApi {
   templateId: number
   templateTitle: string | null
   performedByUserId: number | null
+  assignedToUserId: number | null
+  locationId: number | null
   runDate: string | null
+  dueAt: string | null
   completedAt: string | null
   status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE' | string
   items?: Array<{
+    runItemId: number
     templateItemId: number
     templateItemLabel: string | null
     hasAnswer: boolean
+    booleanValue: boolean | null
+    isDeviation: boolean
     commentText: string | null
   }>
 }

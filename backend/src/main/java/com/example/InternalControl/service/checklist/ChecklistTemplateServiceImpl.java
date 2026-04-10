@@ -3,6 +3,7 @@ package com.example.InternalControl.service.checklist;
 import com.example.InternalControl.model.checklist.ChecklistTemplate;
 import com.example.InternalControl.model.checklist.ChecklistTemplateItem;
 import com.example.InternalControl.model.enums.ModuleType;
+import com.example.InternalControl.repository.checklist.ChecklistRunItemRepository;
 import com.example.InternalControl.repository.checklist.ChecklistTemplateRepository;
 import com.example.InternalControl.repository.organization.OrganizationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -27,6 +29,8 @@ public class ChecklistTemplateServiceImpl implements ChecklistTemplateService {
 
   private final OrganizationRepository orgRepository;
 
+  private final ChecklistRunItemRepository runItemRepository;
+
   @Override
   public ChecklistTemplate createTemplate(ChecklistTemplate template, Integer orgNumber, Long userId) {
     validateOrganizationExists(orgNumber);
@@ -34,6 +38,11 @@ public class ChecklistTemplateServiceImpl implements ChecklistTemplateService {
     template.setOrgNumber(orgNumber);
     template.setCreatedByUserId(userId);
     template.setIsActive(true);
+
+    // Ensure bidirectional relationship for items
+    if (template.getItems() != null) {
+      template.getItems().forEach(item -> item.setTemplate(template));
+    }
 
     return templateRepository.save(template);
   }
@@ -77,6 +86,48 @@ public class ChecklistTemplateServiceImpl implements ChecklistTemplateService {
         target.setExpectedNumericMin(item.getExpectedNumericMin());
         target.setExpectedNumericMax(item.getExpectedNumericMax());
         target.setChoiceOptionsJson(item.getChoiceOptionsJson());
+      }
+    }
+
+    // Merge items in-place to avoid FK constraint violations from orphanRemoval.
+    // Run items reference template items via FK; clearing and re-adding would
+    // attempt to DELETE referenced rows → DataIntegrityViolationException.
+    if (template.getItems() != null) {
+      List<ChecklistTemplateItem> existingItems = existing.getItems();
+      List<ChecklistTemplateItem> newItems = template.getItems();
+      int existingSize = existingItems.size();
+      int newSize = newItems.size();
+      int updateCount = Math.min(existingSize, newSize);
+
+      // Update existing items in-place
+      for (int i = 0; i < updateCount; i++) {
+        ChecklistTemplateItem existingItem = existingItems.get(i);
+        ChecklistTemplateItem newItem = newItems.get(i);
+        existingItem.setLabel(newItem.getLabel());
+        existingItem.setDescription(newItem.getDescription());
+        existingItem.setItemType(newItem.getItemType());
+        existingItem.setIsRequired(newItem.getIsRequired());
+        existingItem.setSortOrder(newItem.getSortOrder());
+        existingItem.setExpectedText(newItem.getExpectedText());
+        existingItem.setExpectedNumericMin(newItem.getExpectedNumericMin());
+        existingItem.setExpectedNumericMax(newItem.getExpectedNumericMax());
+        existingItem.setChoiceOptionsJson(newItem.getChoiceOptionsJson());
+      }
+
+      // Add new items beyond the original count
+      for (int i = existingSize; i < newSize; i++) {
+        existing.addItem(newItems.get(i));
+      }
+
+      // Remove trailing items only when no run items reference them
+      if (existingSize > newSize) {
+        List<ChecklistTemplateItem> toRemove = new ArrayList<>(
+            existingItems.subList(newSize, existingSize));
+        for (ChecklistTemplateItem item : toRemove) {
+          if (!runItemRepository.existsByTemplateItemId(item.getItemId())) {
+            existing.removeItem(item);
+          }
+        }
       }
     }
 

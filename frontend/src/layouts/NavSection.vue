@@ -38,6 +38,10 @@ const sectionBadgeCount = computed(() => {
   return props.section.items.reduce((acc, item) => acc + (item.badge || 0), 0)
 })
 
+const hasActiveChild = computed(() => {
+  return props.section.items.some((item) => item.route === props.currentScreen)
+})
+
 // Check if a specific item is the active child
 const isItemActive = (routeName: string) => {
   return props.currentScreen === routeName
@@ -62,7 +66,10 @@ const navigateToScreen = (routeName: string) => {
 <template>
   <motion.div
     class="nav-section"
-    :class="{ 'nav-section--active': isMainActive }"
+    :class="{
+      'nav-section--active': isMainActive,
+      'nav-section--has-active-child': hasActiveChild
+    }"
   >
     <NavMenuItem
       variant="main"
@@ -70,6 +77,7 @@ const navigateToScreen = (routeName: string) => {
       :icon="section.icon"
       :badge="sectionBadgeCount"
       :active="isMainActive"
+      :has-active-child="hasActiveChild"
       :expanded="isExpanded"
       @select="handleHeaderClick"
     >

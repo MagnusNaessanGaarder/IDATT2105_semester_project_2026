@@ -185,11 +185,16 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 }
 
 .stat-card {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 7rem;
+  border: none;
   border-radius: var(--radius-lg);
-  padding: 1rem;
+  padding: 1rem 1.1rem;
   box-shadow: var(--shadow-sm);
+  color: var(--color-primary-foreground);
+  background: var(--color-secondary);
 }
 
 .stat-card--success {
@@ -206,7 +211,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
 .stat-card__label {
   margin: 0;
-  color: var(--color-gray-600);
+  color: color-mix(in srgb, currentColor 82%, transparent);
   font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -223,7 +228,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 .stat-card__unit {
   margin-left: 0.2rem;
   font-size: var(--font-size-sm);
-  color: var(--color-gray-500);
+  color: color-mix(in srgb, currentColor 82%, transparent);
 }
 
 .quick-actions {

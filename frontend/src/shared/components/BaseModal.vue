@@ -2,8 +2,14 @@
   BaseModal - Gjenbrukbar modal/dialog-komponent
   
   Brukes for dialoger, bekreftelser og popup-vinduer.
-  Støtter Escape-tast for lukking, klikk utenfor for lukking
-  Har Teleport til body for riktig z-index
+  
+  Tilgjengelighetsfunksjoner:
+  - Trap focus: Tab-navigasjon holdes innenfor modalen
+  - Escape-tast lukker modalen
+  - Klikk utenfor lukker modalen
+  - Fokus gjenopprettes til trigger-element ved lukking
+  - ARIA-attributter for skjermlesere
+  - Teleport til body for riktig z-index
   
   Eksempel:
   <BaseModal :open="showModal" title="Bekreft sletting" @close="showModal = false">

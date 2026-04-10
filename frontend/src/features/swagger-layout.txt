@@ -1,0 +1,10150 @@
+## Swagger-layout
+
+Authorize
+Admin - Audit Log
+Audit log management (Admin only)
+
+
+
+GET
+/api/v1/admin/audit-log
+Get audit logs for organization
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved audit logs
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.073Z",
+      "createdAt": "2026-04-08T20:35:02.073Z",
+      "updatedAt": "2026-04-08T20:35:02.073Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.073Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.076Z",
+      "createdAt": "2026-04-08T20:35:02.076Z",
+      "updatedAt": "2026-04-08T20:35:02.076Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.076Z"
+  }
+]
+No links
+403	
+Forbidden - Admin only
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.079Z",
+      "createdAt": "2026-04-08T20:35:02.079Z",
+      "updatedAt": "2026-04-08T20:35:02.079Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.079Z"
+  }
+]
+No links
+
+GET
+/api/v1/admin/audit-log/entity/{entityType}/{entityId}
+Get audit logs for specific entity
+
+
+Parameters
+Try it out
+Name	Description
+entityType *
+string
+(path)
+entityType
+entityId *
+integer($int64)
+(path)
+entityId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved entity audit logs
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.085Z",
+      "createdAt": "2026-04-08T20:35:02.085Z",
+      "updatedAt": "2026-04-08T20:35:02.085Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.085Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.088Z",
+      "createdAt": "2026-04-08T20:35:02.088Z",
+      "updatedAt": "2026-04-08T20:35:02.088Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.088Z"
+  }
+]
+No links
+403	
+Forbidden - Admin only
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.090Z",
+      "createdAt": "2026-04-08T20:35:02.090Z",
+      "updatedAt": "2026-04-08T20:35:02.090Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.090Z"
+  }
+]
+No links
+
+GET
+/api/v1/admin/audit-log/date-range
+Get audit logs by date range
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+fromDate *
+string($date-time)
+(query)
+fromDate
+toDate *
+string($date-time)
+(query)
+toDate
+Responses
+Code	Description	Links
+200	
+Successfully retrieved audit logs
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.096Z",
+      "createdAt": "2026-04-08T20:35:02.096Z",
+      "updatedAt": "2026-04-08T20:35:02.096Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.096Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.098Z",
+      "createdAt": "2026-04-08T20:35:02.098Z",
+      "updatedAt": "2026-04-08T20:35:02.098Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.098Z"
+  }
+]
+No links
+403	
+Forbidden - Admin only
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.101Z",
+      "createdAt": "2026-04-08T20:35:02.101Z",
+      "updatedAt": "2026-04-08T20:35:02.101Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.101Z"
+  }
+]
+No links
+
+GET
+/api/v1/admin/audit-log/action/{actionType}
+Get audit logs by action type
+
+
+Parameters
+Try it out
+Name	Description
+actionType *
+string
+(path)
+Available values : CREATE, UPDATE, DELETE, LOGIN, LOGOUT, EXPORT, VIEW
+
+
+CREATE
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved audit logs
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.107Z",
+      "createdAt": "2026-04-08T20:35:02.107Z",
+      "updatedAt": "2026-04-08T20:35:02.107Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.107Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.109Z",
+      "createdAt": "2026-04-08T20:35:02.109Z",
+      "updatedAt": "2026-04-08T20:35:02.109Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.109Z"
+  }
+]
+No links
+403	
+Forbidden - Admin only
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "auditLogId": 0,
+    "orgNumber": 0,
+    "actedByUser": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.111Z",
+      "createdAt": "2026-04-08T20:35:02.111Z",
+      "updatedAt": "2026-04-08T20:35:02.111Z",
+      "active": true,
+      "locked": true
+    },
+    "actionType": "string",
+    "entityType": "string",
+    "entityId": 0,
+    "oldValuesJson": "string",
+    "newValuesJson": "string",
+    "userAgent": "string",
+    "createdAt": "2026-04-08T20:35:02.111Z"
+  }
+]
+No links
+Authentication
+Authentication endpoints for login, register, and token refresh
+
+
+
+POST
+/api/auth/register
+Register new user
+
+
+Creates a new user account and returns JWT tokens
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "fullName": "string",
+  "email": "string",
+  "phone": "string",
+  "password": "(8P6R>]h8qM?F&41p gd4p'q*PYzFyHuI32-tFdqt`_Bm2i<AJB0v4CgGN`!E'l5k"
+}
+Responses
+Code	Description	Links
+201	
+User created successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "email": "string",
+  "role": "string",
+  "organizations": [
+    {
+      "orgNumber": 0,
+      "orgName": "string",
+      "role": "string",
+      "joinedAt": "2026-04-08T20:35:02.118Z"
+    }
+  ]
+}
+No links
+400	
+Invalid input or email already exists
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "email": "string",
+  "role": "string",
+  "organizations": [
+    {
+      "orgNumber": 0,
+      "orgName": "string",
+      "role": "string",
+      "joinedAt": "2026-04-08T20:35:02.119Z"
+    }
+  ]
+}
+No links
+
+POST
+/api/auth/refresh
+Refresh token
+
+
+Refreshes access token using refresh token
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "refreshToken": "string"
+}
+Responses
+Code	Description	Links
+200	
+Token refreshed successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "email": "string",
+  "role": "string",
+  "organizations": [
+    {
+      "orgNumber": 0,
+      "orgName": "string",
+      "role": "string",
+      "joinedAt": "2026-04-08T20:35:02.126Z"
+    }
+  ]
+}
+No links
+401	
+Invalid refresh token
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "email": "string",
+  "role": "string",
+  "organizations": [
+    {
+      "orgNumber": 0,
+      "orgName": "string",
+      "role": "string",
+      "joinedAt": "2026-04-08T20:35:02.127Z"
+    }
+  ]
+}
+No links
+429	
+Too many refresh attempts
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "email": "string",
+  "role": "string",
+  "organizations": [
+    {
+      "orgNumber": 0,
+      "orgName": "string",
+      "role": "string",
+      "joinedAt": "2026-04-08T20:35:02.129Z"
+    }
+  ]
+}
+No links
+
+POST
+/api/auth/login
+Login
+
+
+Authenticates user and returns JWT tokens
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "email": "string",
+  "password": "string"
+}
+Responses
+Code	Description	Links
+200	
+Login successful
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "email": "string",
+  "role": "string",
+  "organizations": [
+    {
+      "orgNumber": 0,
+      "orgName": "string",
+      "role": "string",
+      "joinedAt": "2026-04-08T20:35:02.134Z"
+    }
+  ]
+}
+No links
+401	
+Invalid credentials or account locked
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "email": "string",
+  "role": "string",
+  "organizations": [
+    {
+      "orgNumber": 0,
+      "orgName": "string",
+      "role": "string",
+      "joinedAt": "2026-04-08T20:35:02.136Z"
+    }
+  ]
+}
+No links
+429	
+Too many login attempts
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "accessToken": "string",
+  "refreshToken": "string",
+  "email": "string",
+  "role": "string",
+  "organizations": [
+    {
+      "orgNumber": 0,
+      "orgName": "string",
+      "role": "string",
+      "joinedAt": "2026-04-08T20:35:02.138Z"
+    }
+  ]
+}
+No links
+Checklist Runs
+Perform and manage checklist runs
+
+
+
+GET
+/api/checklists/runs
+Get all runs for organization
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+status
+string
+(query)
+Available values : DRAFT, IN_PROGRESS, COMPLETED, OVERDUE, CANCELLED
+
+
+--
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "runId": 0,
+    "templateId": 0,
+    "templateTitle": "string",
+    "orgNumber": 0,
+    "locationId": 0,
+    "performedByUserId": 0,
+    "assignedToUserId": 0,
+    "runDate": "2026-04-08",
+    "dueAt": "2026-04-08T20:35:02.144Z",
+    "completedAt": "2026-04-08T20:35:02.144Z",
+    "status": "DRAFT",
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:02.144Z",
+    "updatedAt": "2026-04-08T20:35:02.144Z",
+    "items": [
+      {
+        "runItemId": 0,
+        "runId": 0,
+        "templateItemId": 0,
+        "templateItemLabel": "string",
+        "booleanValue": true,
+        "textValue": "string",
+        "numericValue": 0,
+        "selectedChoice": "string",
+        "isDeviation": true,
+        "commentText": "string",
+        "createdAt": "2026-04-08T20:35:02.144Z",
+        "updatedAt": "2026-04-08T20:35:02.144Z",
+        "hasAnswer": true
+      }
+    ]
+  }
+]
+No links
+
+GET
+/api/checklists/runs/{id}
+Get run by ID
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "runId": 0,
+  "templateId": 0,
+  "templateTitle": "string",
+  "orgNumber": 0,
+  "locationId": 0,
+  "performedByUserId": 0,
+  "assignedToUserId": 0,
+  "runDate": "2026-04-08",
+  "dueAt": "2026-04-08T20:35:02.149Z",
+  "completedAt": "2026-04-08T20:35:02.149Z",
+  "status": "DRAFT",
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:02.149Z",
+  "updatedAt": "2026-04-08T20:35:02.149Z",
+  "items": [
+    {
+      "runItemId": 0,
+      "runId": 0,
+      "templateItemId": 0,
+      "templateItemLabel": "string",
+      "booleanValue": true,
+      "textValue": "string",
+      "numericValue": 0,
+      "selectedChoice": "string",
+      "isDeviation": true,
+      "commentText": "string",
+      "createdAt": "2026-04-08T20:35:02.149Z",
+      "updatedAt": "2026-04-08T20:35:02.149Z",
+      "hasAnswer": true
+    }
+  ]
+}
+No links
+
+GET
+/api/checklists/runs/{id}/items
+Get all items for a run
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "runItemId": 0,
+    "runId": 0,
+    "templateItemId": 0,
+    "templateItemLabel": "string",
+    "booleanValue": true,
+    "textValue": "string",
+    "numericValue": 0,
+    "selectedChoice": "string",
+    "isDeviation": true,
+    "commentText": "string",
+    "createdAt": "2026-04-08T20:35:02.154Z",
+    "updatedAt": "2026-04-08T20:35:02.154Z",
+    "hasAnswer": true
+  }
+]
+No links
+
+POST
+/api/checklists/runs
+Create new run from template
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "templateId": 0,
+  "runDate": "2026-04-08",
+  "assignedToUserId": 0,
+  "notes": "string"
+}
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "runId": 0,
+  "templateId": 0,
+  "templateTitle": "string",
+  "orgNumber": 0,
+  "locationId": 0,
+  "performedByUserId": 0,
+  "assignedToUserId": 0,
+  "runDate": "2026-04-08",
+  "dueAt": "2026-04-08T20:35:02.161Z",
+  "completedAt": "2026-04-08T20:35:02.161Z",
+  "status": "DRAFT",
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:02.161Z",
+  "updatedAt": "2026-04-08T20:35:02.161Z",
+  "items": [
+    {
+      "runItemId": 0,
+      "runId": 0,
+      "templateItemId": 0,
+      "templateItemLabel": "string",
+      "booleanValue": true,
+      "textValue": "string",
+      "numericValue": 0,
+      "selectedChoice": "string",
+      "isDeviation": true,
+      "commentText": "string",
+      "createdAt": "2026-04-08T20:35:02.161Z",
+      "updatedAt": "2026-04-08T20:35:02.161Z",
+      "hasAnswer": true
+    }
+  ]
+}
+No links
+
+PUT
+/api/checklists/runs/{runId}/items/{itemId}
+Update run item (answer question)
+
+
+Parameters
+Try it out
+Name	Description
+runId *
+integer($int64)
+(path)
+runId
+itemId *
+integer($int64)
+(path)
+itemId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "booleanValue": true,
+  "textValue": "string",
+  "numericValue": 0,
+  "selectedChoice": "string",
+  "isDeviation": true,
+  "commentText": "string"
+}
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "runItemId": 0,
+  "runId": 0,
+  "templateItemId": 0,
+  "templateItemLabel": "string",
+  "booleanValue": true,
+  "textValue": "string",
+  "numericValue": 0,
+  "selectedChoice": "string",
+  "isDeviation": true,
+  "commentText": "string",
+  "createdAt": "2026-04-08T20:35:02.170Z",
+  "updatedAt": "2026-04-08T20:35:02.170Z",
+  "hasAnswer": true
+}
+No links
+
+PUT
+/api/checklists/runs/{id}/complete
+Complete a run
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "runId": 0,
+  "templateId": 0,
+  "templateTitle": "string",
+  "orgNumber": 0,
+  "locationId": 0,
+  "performedByUserId": 0,
+  "assignedToUserId": 0,
+  "runDate": "2026-04-08",
+  "dueAt": "2026-04-08T20:35:02.176Z",
+  "completedAt": "2026-04-08T20:35:02.176Z",
+  "status": "DRAFT",
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:02.176Z",
+  "updatedAt": "2026-04-08T20:35:02.176Z",
+  "items": [
+    {
+      "runItemId": 0,
+      "runId": 0,
+      "templateItemId": 0,
+      "templateItemLabel": "string",
+      "booleanValue": true,
+      "textValue": "string",
+      "numericValue": 0,
+      "selectedChoice": "string",
+      "isDeviation": true,
+      "commentText": "string",
+      "createdAt": "2026-04-08T20:35:02.176Z",
+      "updatedAt": "2026-04-08T20:35:02.176Z",
+      "hasAnswer": true
+    }
+  ]
+}
+No links
+Checklist Templates
+Manage checklist templates
+
+
+
+DELETE
+/api/checklists/templates/{id}
+Delete template (soft delete)
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+No links
+
+GET
+/api/checklists/templates/{id}
+Get template by ID
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "templateId": 0,
+  "orgNumber": 0,
+  "moduleType": "FOOD",
+  "title": "string",
+  "description": "string",
+  "frequency": "DAILY",
+  "isActive": true,
+  "createdByUserId": 0,
+  "createdAt": "2026-04-08T20:35:02.185Z",
+  "updatedAt": "2026-04-08T20:35:02.185Z",
+  "items": [
+    {
+      "itemId": 0,
+      "sortOrder": 0,
+      "label": "string",
+      "description": "string",
+      "itemType": "BOOLEAN",
+      "isRequired": true,
+      "expectedText": "string",
+      "expectedNumericMin": 0,
+      "expectedNumericMax": 0,
+      "choiceOptionsJson": "string",
+      "choiceType": true
+    }
+  ]
+}
+No links
+
+GET
+/api/checklists/templates
+Get all templates for organization
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "templateId": 0,
+    "orgNumber": 0,
+    "moduleType": "FOOD",
+    "title": "string",
+    "description": "string",
+    "frequency": "DAILY",
+    "isActive": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:02.189Z",
+    "updatedAt": "2026-04-08T20:35:02.189Z",
+    "items": [
+      {
+        "itemId": 0,
+        "sortOrder": 0,
+        "label": "string",
+        "description": "string",
+        "itemType": "BOOLEAN",
+        "isRequired": true,
+        "expectedText": "string",
+        "expectedNumericMin": 0,
+        "expectedNumericMax": 0,
+        "choiceOptionsJson": "string",
+        "choiceType": true
+      }
+    ]
+  }
+]
+No links
+
+GET
+/api/checklists/templates/module/{moduleType}
+Get templates by module type
+
+
+Parameters
+Try it out
+Name	Description
+moduleType *
+string
+(path)
+Available values : FOOD, ALCOHOL
+
+
+FOOD
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "templateId": 0,
+    "orgNumber": 0,
+    "moduleType": "FOOD",
+    "title": "string",
+    "description": "string",
+    "frequency": "DAILY",
+    "isActive": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:02.195Z",
+    "updatedAt": "2026-04-08T20:35:02.195Z",
+    "items": [
+      {
+        "itemId": 0,
+        "sortOrder": 0,
+        "label": "string",
+        "description": "string",
+        "itemType": "BOOLEAN",
+        "isRequired": true,
+        "expectedText": "string",
+        "expectedNumericMin": 0,
+        "expectedNumericMax": 0,
+        "choiceOptionsJson": "string",
+        "choiceType": true
+      }
+    ]
+  }
+]
+No links
+
+GET
+/api/checklists/templates/active
+Get active templates
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "templateId": 0,
+    "orgNumber": 0,
+    "moduleType": "FOOD",
+    "title": "string",
+    "description": "string",
+    "frequency": "DAILY",
+    "isActive": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:02.206Z",
+    "updatedAt": "2026-04-08T20:35:02.206Z",
+    "items": [
+      {
+        "itemId": 0,
+        "sortOrder": 0,
+        "label": "string",
+        "description": "string",
+        "itemType": "BOOLEAN",
+        "isRequired": true,
+        "expectedText": "string",
+        "expectedNumericMin": 0,
+        "expectedNumericMax": 0,
+        "choiceOptionsJson": "string",
+        "choiceType": true
+      }
+    ]
+  }
+]
+No links
+
+POST
+/api/checklists/templates
+Create new template
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "title": "string",
+  "description": "string",
+  "moduleType": "FOOD",
+  "frequency": "DAILY",
+  "items": [
+    {
+      "sortOrder": 0,
+      "label": "string",
+      "description": "string",
+      "itemType": "BOOLEAN",
+      "isRequired": true,
+      "expectedText": "string",
+      "expectedNumericMin": 0,
+      "expectedNumericMax": 0,
+      "choiceOptionsJson": "string"
+    }
+  ]
+}
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "templateId": 0,
+  "orgNumber": 0,
+  "moduleType": "FOOD",
+  "title": "string",
+  "description": "string",
+  "frequency": "DAILY",
+  "isActive": true,
+  "createdByUserId": 0,
+  "createdAt": "2026-04-08T20:35:02.213Z",
+  "updatedAt": "2026-04-08T20:35:02.213Z",
+  "items": [
+    {
+      "itemId": 0,
+      "sortOrder": 0,
+      "label": "string",
+      "description": "string",
+      "itemType": "BOOLEAN",
+      "isRequired": true,
+      "expectedText": "string",
+      "expectedNumericMin": 0,
+      "expectedNumericMax": 0,
+      "choiceOptionsJson": "string",
+      "choiceType": true
+    }
+  ]
+}
+No links
+
+PUT
+/api/checklists/templates/{id}
+Update template
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "title": "string",
+  "description": "string",
+  "moduleType": "FOOD",
+  "frequency": "DAILY",
+  "items": [
+    {
+      "sortOrder": 0,
+      "label": "string",
+      "description": "string",
+      "itemType": "BOOLEAN",
+      "isRequired": true,
+      "expectedText": "string",
+      "expectedNumericMin": 0,
+      "expectedNumericMax": 0,
+      "choiceOptionsJson": "string"
+    }
+  ]
+}
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "templateId": 0,
+  "orgNumber": 0,
+  "moduleType": "FOOD",
+  "title": "string",
+  "description": "string",
+  "frequency": "DAILY",
+  "isActive": true,
+  "createdByUserId": 0,
+  "createdAt": "2026-04-08T20:35:02.222Z",
+  "updatedAt": "2026-04-08T20:35:02.222Z",
+  "items": [
+    {
+      "itemId": 0,
+      "sortOrder": 0,
+      "label": "string",
+      "description": "string",
+      "itemType": "BOOLEAN",
+      "isRequired": true,
+      "expectedText": "string",
+      "expectedNumericMin": 0,
+      "expectedNumericMax": 0,
+      "choiceOptionsJson": "string",
+      "choiceType": true
+    }
+  ]
+}
+No links
+Dashboard and Analytics
+Dashboard statistics and compliance analytics
+
+
+
+GET
+/api/v1/analytics/dashboard/summary
+Get dashboard summary
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved dashboard summary
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "checklistsCompletedToday": 0,
+  "checklistsCompletedThisWeek": 0,
+  "checklistsOverdue": 0,
+  "checklistCompletionRate": 0,
+  "openDeviations": 0,
+  "criticalDeviations": 0,
+  "deviationsClosedThisWeek": 0,
+  "temperatureAlerts": 0,
+  "avgTemperatureToday": 0,
+  "expiringTrainingCount": 0,
+  "complianceScore": 0,
+  "complianceStatus": "string",
+  "period": "string"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "checklistsCompletedToday": 0,
+  "checklistsCompletedThisWeek": 0,
+  "checklistsOverdue": 0,
+  "checklistCompletionRate": 0,
+  "openDeviations": 0,
+  "criticalDeviations": 0,
+  "deviationsClosedThisWeek": 0,
+  "temperatureAlerts": 0,
+  "avgTemperatureToday": 0,
+  "expiringTrainingCount": 0,
+  "complianceScore": 0,
+  "complianceStatus": "string",
+  "period": "string"
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "checklistsCompletedToday": 0,
+  "checklistsCompletedThisWeek": 0,
+  "checklistsOverdue": 0,
+  "checklistCompletionRate": 0,
+  "openDeviations": 0,
+  "criticalDeviations": 0,
+  "deviationsClosedThisWeek": 0,
+  "temperatureAlerts": 0,
+  "avgTemperatureToday": 0,
+  "expiringTrainingCount": 0,
+  "complianceScore": 0,
+  "complianceStatus": "string",
+  "period": "string"
+}
+No links
+
+GET
+/api/v1/analytics/compliance-score
+Get compliance score
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved compliance score
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "currentScore": 0,
+  "status": "string",
+  "calculatedAt": "2026-04-08",
+  "components": [
+    {
+      "name": "string",
+      "weight": 0,
+      "score": 0,
+      "description": "string"
+    }
+  ]
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "currentScore": 0,
+  "status": "string",
+  "calculatedAt": "2026-04-08",
+  "components": [
+    {
+      "name": "string",
+      "weight": 0,
+      "score": 0,
+      "description": "string"
+    }
+  ]
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "currentScore": 0,
+  "status": "string",
+  "calculatedAt": "2026-04-08",
+  "components": [
+    {
+      "name": "string",
+      "weight": 0,
+      "score": 0,
+      "description": "string"
+    }
+  ]
+}
+No links
+Deviation Reports
+Manage deviation and incident reports
+
+
+
+DELETE
+/api/deviations/{id}
+Delete deviation report (admin only)
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+204	
+Deviation report deleted successfully
+
+No links
+401	
+Unauthorized
+
+No links
+403	
+Forbidden
+
+No links
+404	
+Deviation report not found
+
+No links
+
+GET
+/api/deviations/{id}
+Get deviation report by ID
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved deviation report
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.249Z",
+  "updatedAt": "2026-04-08T20:35:02.249Z",
+  "closedAt": "2026-04-08T20:35:02.249Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.251Z",
+  "updatedAt": "2026-04-08T20:35:02.251Z",
+  "closedAt": "2026-04-08T20:35:02.251Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.253Z",
+  "updatedAt": "2026-04-08T20:35:02.253Z",
+  "closedAt": "2026-04-08T20:35:02.253Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Deviation report not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.256Z",
+  "updatedAt": "2026-04-08T20:35:02.256Z",
+  "closedAt": "2026-04-08T20:35:02.256Z",
+  "closed": true,
+  "editable": true
+}
+No links
+
+GET
+/api/deviations
+Get all deviation reports for organization
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved deviation reports
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.261Z",
+    "updatedAt": "2026-04-08T20:35:02.261Z",
+    "closedAt": "2026-04-08T20:35:02.261Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.264Z",
+    "updatedAt": "2026-04-08T20:35:02.264Z",
+    "closedAt": "2026-04-08T20:35:02.264Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.266Z",
+    "updatedAt": "2026-04-08T20:35:02.266Z",
+    "closedAt": "2026-04-08T20:35:02.266Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+
+GET
+/api/deviations/status/{status}
+Get deviation reports by status
+
+
+Parameters
+Try it out
+Name	Description
+status *
+string
+(path)
+Available values : DRAFT, REPORTED, UNDER_INVESTIGATION, CORRECTIVE_ACTION_PLANNED, CORRECTIVE_ACTION_COMPLETED, CLOSED
+
+
+DRAFT
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved deviation reports by status
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.273Z",
+    "updatedAt": "2026-04-08T20:35:02.273Z",
+    "closedAt": "2026-04-08T20:35:02.273Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.275Z",
+    "updatedAt": "2026-04-08T20:35:02.275Z",
+    "closedAt": "2026-04-08T20:35:02.275Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.277Z",
+    "updatedAt": "2026-04-08T20:35:02.277Z",
+    "closedAt": "2026-04-08T20:35:02.277Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+
+GET
+/api/deviations/severity/{severity}
+Get deviation reports by severity
+
+
+Parameters
+Try it out
+Name	Description
+severity *
+string
+(path)
+Available values : MINOR, MAJOR, CRITICAL
+
+
+MINOR
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved deviation reports by severity
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.283Z",
+    "updatedAt": "2026-04-08T20:35:02.283Z",
+    "closedAt": "2026-04-08T20:35:02.283Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.285Z",
+    "updatedAt": "2026-04-08T20:35:02.285Z",
+    "closedAt": "2026-04-08T20:35:02.285Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.288Z",
+    "updatedAt": "2026-04-08T20:35:02.288Z",
+    "closedAt": "2026-04-08T20:35:02.288Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+
+GET
+/api/deviations/search
+Search deviation reports with filters
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+status
+string
+(query)
+Available values : DRAFT, REPORTED, UNDER_INVESTIGATION, CORRECTIVE_ACTION_PLANNED, CORRECTIVE_ACTION_COMPLETED, CLOSED
+
+
+--
+severity
+string
+(query)
+Available values : MINOR, MAJOR, CRITICAL
+
+
+--
+assignedToId
+integer($int64)
+(query)
+assignedToId
+fromDate
+string($date)
+(query)
+fromDate
+toDate
+string($date)
+(query)
+toDate
+Responses
+Code	Description	Links
+200	
+Successfully retrieved filtered deviation reports
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.298Z",
+    "updatedAt": "2026-04-08T20:35:02.298Z",
+    "closedAt": "2026-04-08T20:35:02.298Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.301Z",
+    "updatedAt": "2026-04-08T20:35:02.301Z",
+    "closedAt": "2026-04-08T20:35:02.301Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.303Z",
+    "updatedAt": "2026-04-08T20:35:02.303Z",
+    "closedAt": "2026-04-08T20:35:02.303Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+
+GET
+/api/deviations/count/open
+Get count of open deviation reports
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved count
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+0
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+0
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+0
+No links
+
+GET
+/api/deviations/assigned/{assignedToId}
+Get deviation reports assigned to a user
+
+
+Parameters
+Try it out
+Name	Description
+assignedToId *
+integer($int64)
+(path)
+assignedToId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved assigned deviation reports
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.315Z",
+    "updatedAt": "2026-04-08T20:35:02.315Z",
+    "closedAt": "2026-04-08T20:35:02.315Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.317Z",
+    "updatedAt": "2026-04-08T20:35:02.317Z",
+    "closedAt": "2026-04-08T20:35:02.317Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "reportId": 0,
+    "orgNumber": 0,
+    "reportType": "INCIDENT",
+    "severity": "MINOR",
+    "title": "string",
+    "description": "string",
+    "locationText": "string",
+    "occurredDate": "2026-04-08",
+    "occurredTime": {
+      "hour": 0,
+      "minute": 0,
+      "second": 0,
+      "nano": 0
+    },
+    "reportDate": "2026-04-08",
+    "discoveredByName": "string",
+    "reportedToName": "string",
+    "immediateActionText": "string",
+    "causeAnalysisText": "string",
+    "correctiveActionText": "string",
+    "completionText": "string",
+    "status": "DRAFT",
+    "createdAt": "2026-04-08T20:35:02.320Z",
+    "updatedAt": "2026-04-08T20:35:02.320Z",
+    "closedAt": "2026-04-08T20:35:02.320Z",
+    "closed": true,
+    "editable": true
+  }
+]
+No links
+
+POST
+/api/deviations
+Create new deviation report
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationId": 0,
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "discoveredByUserId": 0,
+  "discoveredByName": "string",
+  "reportedToUserId": 0,
+  "reportedToName": "string",
+  "assignedToUserId": 0
+}
+Responses
+Code	Description	Links
+201	
+Deviation report created successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.328Z",
+  "updatedAt": "2026-04-08T20:35:02.328Z",
+  "closedAt": "2026-04-08T20:35:02.328Z",
+  "closed": true,
+  "editable": true
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.330Z",
+  "updatedAt": "2026-04-08T20:35:02.330Z",
+  "closedAt": "2026-04-08T20:35:02.330Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.333Z",
+  "updatedAt": "2026-04-08T20:35:02.333Z",
+  "closedAt": "2026-04-08T20:35:02.333Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.335Z",
+  "updatedAt": "2026-04-08T20:35:02.335Z",
+  "closedAt": "2026-04-08T20:35:02.335Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Organization or referenced user not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.337Z",
+  "updatedAt": "2026-04-08T20:35:02.337Z",
+  "closedAt": "2026-04-08T20:35:02.337Z",
+  "closed": true,
+  "editable": true
+}
+No links
+
+POST
+/api/deviations/{id}/immediate-action
+Add immediate action to deviation report
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "actionText": "string"
+}
+Responses
+Code	Description	Links
+200	
+Immediate action added successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.352Z",
+  "updatedAt": "2026-04-08T20:35:02.352Z",
+  "closedAt": "2026-04-08T20:35:02.352Z",
+  "closed": true,
+  "editable": true
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.355Z",
+  "updatedAt": "2026-04-08T20:35:02.355Z",
+  "closedAt": "2026-04-08T20:35:02.355Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.358Z",
+  "updatedAt": "2026-04-08T20:35:02.358Z",
+  "closedAt": "2026-04-08T20:35:02.358Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.360Z",
+  "updatedAt": "2026-04-08T20:35:02.360Z",
+  "closedAt": "2026-04-08T20:35:02.360Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Deviation report not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.363Z",
+  "updatedAt": "2026-04-08T20:35:02.363Z",
+  "closedAt": "2026-04-08T20:35:02.363Z",
+  "closed": true,
+  "editable": true
+}
+No links
+
+POST
+/api/deviations/{id}/corrective-action
+Add corrective action to deviation report
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "actionText": "string"
+}
+Responses
+Code	Description	Links
+200	
+Corrective action added successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.372Z",
+  "updatedAt": "2026-04-08T20:35:02.372Z",
+  "closedAt": "2026-04-08T20:35:02.372Z",
+  "closed": true,
+  "editable": true
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.375Z",
+  "updatedAt": "2026-04-08T20:35:02.375Z",
+  "closedAt": "2026-04-08T20:35:02.375Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.377Z",
+  "updatedAt": "2026-04-08T20:35:02.377Z",
+  "closedAt": "2026-04-08T20:35:02.377Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.380Z",
+  "updatedAt": "2026-04-08T20:35:02.380Z",
+  "closedAt": "2026-04-08T20:35:02.380Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Deviation report not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.382Z",
+  "updatedAt": "2026-04-08T20:35:02.382Z",
+  "closedAt": "2026-04-08T20:35:02.382Z",
+  "closed": true,
+  "editable": true
+}
+No links
+
+POST
+/api/deviations/{id}/complete
+Complete deviation report
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "actionText": "string"
+}
+Responses
+Code	Description	Links
+200	
+Completion added successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.393Z",
+  "updatedAt": "2026-04-08T20:35:02.393Z",
+  "closedAt": "2026-04-08T20:35:02.393Z",
+  "closed": true,
+  "editable": true
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.395Z",
+  "updatedAt": "2026-04-08T20:35:02.395Z",
+  "closedAt": "2026-04-08T20:35:02.395Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.398Z",
+  "updatedAt": "2026-04-08T20:35:02.398Z",
+  "closedAt": "2026-04-08T20:35:02.398Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.400Z",
+  "updatedAt": "2026-04-08T20:35:02.400Z",
+  "closedAt": "2026-04-08T20:35:02.400Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Deviation report not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.403Z",
+  "updatedAt": "2026-04-08T20:35:02.403Z",
+  "closedAt": "2026-04-08T20:35:02.403Z",
+  "closed": true,
+  "editable": true
+}
+No links
+
+POST
+/api/deviations/{id}/close
+Close deviation report
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Deviation report closed successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.409Z",
+  "updatedAt": "2026-04-08T20:35:02.409Z",
+  "closedAt": "2026-04-08T20:35:02.409Z",
+  "closed": true,
+  "editable": true
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.411Z",
+  "updatedAt": "2026-04-08T20:35:02.411Z",
+  "closedAt": "2026-04-08T20:35:02.411Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.413Z",
+  "updatedAt": "2026-04-08T20:35:02.413Z",
+  "closedAt": "2026-04-08T20:35:02.413Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.416Z",
+  "updatedAt": "2026-04-08T20:35:02.416Z",
+  "closedAt": "2026-04-08T20:35:02.416Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Deviation report not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.418Z",
+  "updatedAt": "2026-04-08T20:35:02.418Z",
+  "closedAt": "2026-04-08T20:35:02.418Z",
+  "closed": true,
+  "editable": true
+}
+No links
+
+POST
+/api/deviations/{id}/cause-analysis
+Add cause analysis to deviation report
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "actionText": "string"
+}
+Responses
+Code	Description	Links
+200	
+Cause analysis added successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.428Z",
+  "updatedAt": "2026-04-08T20:35:02.428Z",
+  "closedAt": "2026-04-08T20:35:02.428Z",
+  "closed": true,
+  "editable": true
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.430Z",
+  "updatedAt": "2026-04-08T20:35:02.430Z",
+  "closedAt": "2026-04-08T20:35:02.430Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.433Z",
+  "updatedAt": "2026-04-08T20:35:02.433Z",
+  "closedAt": "2026-04-08T20:35:02.433Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.436Z",
+  "updatedAt": "2026-04-08T20:35:02.436Z",
+  "closedAt": "2026-04-08T20:35:02.436Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Deviation report not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.439Z",
+  "updatedAt": "2026-04-08T20:35:02.439Z",
+  "closedAt": "2026-04-08T20:35:02.439Z",
+  "closed": true,
+  "editable": true
+}
+No links
+
+POST
+/api/deviations/{id}/assign
+Assign deviation report to a user
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+assignedToUserId *
+integer($int64)
+(query)
+assignedToUserId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Deviation report assigned successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.447Z",
+  "updatedAt": "2026-04-08T20:35:02.447Z",
+  "closedAt": "2026-04-08T20:35:02.447Z",
+  "closed": true,
+  "editable": true
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.449Z",
+  "updatedAt": "2026-04-08T20:35:02.449Z",
+  "closedAt": "2026-04-08T20:35:02.449Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.452Z",
+  "updatedAt": "2026-04-08T20:35:02.452Z",
+  "closedAt": "2026-04-08T20:35:02.452Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.455Z",
+  "updatedAt": "2026-04-08T20:35:02.455Z",
+  "closedAt": "2026-04-08T20:35:02.455Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Deviation report or user not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.458Z",
+  "updatedAt": "2026-04-08T20:35:02.458Z",
+  "closedAt": "2026-04-08T20:35:02.458Z",
+  "closed": true,
+  "editable": true
+}
+No links
+
+PUT
+/api/deviations/{id}
+Update deviation report
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationId": 0,
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "discoveredByUserId": 0,
+  "discoveredByName": "string",
+  "reportedToUserId": 0,
+  "reportedToName": "string",
+  "assignedToUserId": 0
+}
+Responses
+Code	Description	Links
+200	
+Deviation report updated successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.469Z",
+  "updatedAt": "2026-04-08T20:35:02.469Z",
+  "closedAt": "2026-04-08T20:35:02.469Z",
+  "closed": true,
+  "editable": true
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.472Z",
+  "updatedAt": "2026-04-08T20:35:02.472Z",
+  "closedAt": "2026-04-08T20:35:02.472Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.476Z",
+  "updatedAt": "2026-04-08T20:35:02.476Z",
+  "closedAt": "2026-04-08T20:35:02.476Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.479Z",
+  "updatedAt": "2026-04-08T20:35:02.479Z",
+  "closedAt": "2026-04-08T20:35:02.479Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Deviation report not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.482Z",
+  "updatedAt": "2026-04-08T20:35:02.482Z",
+  "closedAt": "2026-04-08T20:35:02.482Z",
+  "closed": true,
+  "editable": true
+}
+No links
+
+PUT
+/api/deviations/{id}/status
+Update deviation report status
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "status": "DRAFT"
+}
+Responses
+Code	Description	Links
+200	
+Status updated successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.499Z",
+  "updatedAt": "2026-04-08T20:35:02.499Z",
+  "closedAt": "2026-04-08T20:35:02.499Z",
+  "closed": true,
+  "editable": true
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.502Z",
+  "updatedAt": "2026-04-08T20:35:02.502Z",
+  "closedAt": "2026-04-08T20:35:02.502Z",
+  "closed": true,
+  "editable": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.504Z",
+  "updatedAt": "2026-04-08T20:35:02.504Z",
+  "closedAt": "2026-04-08T20:35:02.504Z",
+  "closed": true,
+  "editable": true
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.508Z",
+  "updatedAt": "2026-04-08T20:35:02.508Z",
+  "closedAt": "2026-04-08T20:35:02.508Z",
+  "closed": true,
+  "editable": true
+}
+No links
+404	
+Deviation report not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "reportId": 0,
+  "orgNumber": 0,
+  "reportType": "INCIDENT",
+  "severity": "MINOR",
+  "title": "string",
+  "description": "string",
+  "locationText": "string",
+  "occurredDate": "2026-04-08",
+  "occurredTime": {
+    "hour": 0,
+    "minute": 0,
+    "second": 0,
+    "nano": 0
+  },
+  "reportDate": "2026-04-08",
+  "discoveredByName": "string",
+  "reportedToName": "string",
+  "immediateActionText": "string",
+  "causeAnalysisText": "string",
+  "correctiveActionText": "string",
+  "completionText": "string",
+  "status": "DRAFT",
+  "createdAt": "2026-04-08T20:35:02.511Z",
+  "updatedAt": "2026-04-08T20:35:02.511Z",
+  "closedAt": "2026-04-08T20:35:02.511Z",
+  "closed": true,
+  "editable": true
+}
+No links
+Export
+Export operations for compliance reports
+
+
+
+GET
+/api/exports
+List exports
+
+
+Lists all export jobs for the organization
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+pageable *
+object
+(query)
+{
+  "page": 0,
+  "size": 1,
+  "sort": [
+    "string"
+  ]
+}
+Responses
+Code	Description	Links
+200	
+List retrieved
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "totalElements": 0,
+  "totalPages": 0,
+  "pageable": {
+    "paged": true,
+    "pageNumber": 0,
+    "pageSize": 0,
+    "offset": 0,
+    "sort": [
+      {
+        "direction": "string",
+        "nullHandling": "string",
+        "ascending": true,
+        "property": "string",
+        "ignoreCase": true
+      }
+    ],
+    "unpaged": true
+  },
+  "size": 0,
+  "content": [
+    {
+      "exportJobId": 0,
+      "exportType": "AUDIT_REPORT",
+      "format": "PDF",
+      "status": "PENDING",
+      "downloadUrl": "string",
+      "fileName": "string",
+      "recordCount": 0,
+      "failureReason": "string",
+      "requestedAt": "2026-04-08T20:35:02.518Z",
+      "completedAt": "2026-04-08T20:35:02.518Z"
+    }
+  ],
+  "number": 0,
+  "sort": [
+    {
+      "direction": "string",
+      "nullHandling": "string",
+      "ascending": true,
+      "property": "string",
+      "ignoreCase": true
+    }
+  ],
+  "first": true,
+  "last": true,
+  "numberOfElements": 0,
+  "empty": true
+}
+No links
+
+GET
+/api/exports/{exportJobId}
+Get export status
+
+
+Gets the status of an export job
+
+Parameters
+Try it out
+Name	Description
+exportJobId *
+integer($int64)
+(path)
+Export job ID
+
+exportJobId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Export status retrieved
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "exportJobId": 0,
+  "exportType": "AUDIT_REPORT",
+  "format": "PDF",
+  "status": "PENDING",
+  "downloadUrl": "string",
+  "fileName": "string",
+  "recordCount": 0,
+  "failureReason": "string",
+  "requestedAt": "2026-04-08T20:35:02.527Z",
+  "completedAt": "2026-04-08T20:35:02.527Z"
+}
+No links
+403	
+Access denied
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "exportJobId": 0,
+  "exportType": "AUDIT_REPORT",
+  "format": "PDF",
+  "status": "PENDING",
+  "downloadUrl": "string",
+  "fileName": "string",
+  "recordCount": 0,
+  "failureReason": "string",
+  "requestedAt": "2026-04-08T20:35:02.529Z",
+  "completedAt": "2026-04-08T20:35:02.529Z"
+}
+No links
+404	
+Export job not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "exportJobId": 0,
+  "exportType": "AUDIT_REPORT",
+  "format": "PDF",
+  "status": "PENDING",
+  "downloadUrl": "string",
+  "fileName": "string",
+  "recordCount": 0,
+  "failureReason": "string",
+  "requestedAt": "2026-04-08T20:35:02.531Z",
+  "completedAt": "2026-04-08T20:35:02.531Z"
+}
+No links
+
+GET
+/api/exports/{exportJobId}/download
+Download export
+
+
+Gets a presigned URL to download the export file
+
+Parameters
+Try it out
+Name	Description
+exportJobId *
+integer($int64)
+(path)
+Export job ID
+
+exportJobId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Download URL generated
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+403	
+Access denied
+
+Media type
+
+application/json
+Example Value
+Schema
+"string"
+No links
+404	
+Export job not found
+
+Media type
+
+application/json
+Example Value
+Schema
+"string"
+No links
+409	
+Export not ready
+
+Media type
+
+application/json
+Example Value
+Schema
+"string"
+No links
+
+POST
+/api/exports
+Create export job
+
+
+Creates a new PDF or JSON export job
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "exportType": "AUDIT_REPORT",
+  "format": "PDF",
+  "dateFrom": "2026-04-08",
+  "dateTo": "2026-04-08",
+  "locationId": 0,
+  "checklistType": "string"
+}
+Responses
+Code	Description	Links
+201	
+Export job created
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "exportJobId": 0,
+  "exportType": "AUDIT_REPORT",
+  "format": "PDF",
+  "status": "PENDING",
+  "downloadUrl": "string",
+  "fileName": "string",
+  "recordCount": 0,
+  "failureReason": "string",
+  "requestedAt": "2026-04-08T20:35:02.551Z",
+  "completedAt": "2026-04-08T20:35:02.551Z"
+}
+No links
+400	
+Invalid request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "exportJobId": 0,
+  "exportType": "AUDIT_REPORT",
+  "format": "PDF",
+  "status": "PENDING",
+  "downloadUrl": "string",
+  "fileName": "string",
+  "recordCount": 0,
+  "failureReason": "string",
+  "requestedAt": "2026-04-08T20:35:02.553Z",
+  "completedAt": "2026-04-08T20:35:02.553Z"
+}
+No links
+403	
+Access denied
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "exportJobId": 0,
+  "exportType": "AUDIT_REPORT",
+  "format": "PDF",
+  "status": "PENDING",
+  "downloadUrl": "string",
+  "fileName": "string",
+  "recordCount": 0,
+  "failureReason": "string",
+  "requestedAt": "2026-04-08T20:35:02.555Z",
+  "completedAt": "2026-04-08T20:35:02.555Z"
+}
+No links
+File Management
+Endpoints for uploading and downloading organization documents
+
+
+
+GET
+/api/files
+List all documents
+
+
+Returns a list of all documents for the specified organization.
+
+Parameters
+Try it out
+Name	Description
+X-Org-Number *
+integer($int32)
+(header)
+Organization number identifying the tenant
+
+X-Org-Number
+category
+string
+(query)
+Optional document type filter
+
+category
+Responses
+Code	Description	Links
+200	
+Documents retrieved successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:02.563Z",
+    "updatedAt": "2026-04-08T20:35:02.563Z"
+  }
+]
+No links
+401	
+Not authenticated
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:02.565Z",
+    "updatedAt": "2026-04-08T20:35:02.565Z"
+  }
+]
+No links
+
+GET
+/api/files/download/{documentId}
+Download a document
+
+
+Downloads the current version of a document by its ID.
+
+Parameters
+Try it out
+Name	Description
+X-Org-Number *
+integer($int32)
+(header)
+Organization number identifying the tenant
+
+X-Org-Number
+documentId *
+integer($int64)
+(path)
+ID of the document to download
+
+documentId
+Responses
+Code	Description	Links
+200	
+File downloaded successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+"string"
+No links
+401	
+Not authenticated
+
+Media type
+
+application/json
+Example Value
+Schema
+"string"
+No links
+404	
+Document not found
+
+Media type
+
+application/json
+Example Value
+Schema
+"string"
+No links
+
+POST
+/api/files/upload
+Upload a document
+
+
+Uploads a file to Azure Blob Storage and creates metadata records.
+
+Parameters
+Try it out
+Name	Description
+X-Org-Number *
+integer($int32)
+(header)
+Organization number identifying the tenant
+
+X-Org-Number
+documentType
+string
+(query)
+Document type
+
+Default value : other
+
+other
+directory
+string
+(query)
+Storage directory within the tenant's blob container
+
+Default value : documents
+
+documents
+Request body
+
+multipart/form-data
+file *
+string($binary)
+The file to upload
+
+Responses
+Code	Description	Links
+200	
+File uploaded successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{}
+No links
+400	
+Invalid file name, empty file, or invalid input
+
+Media type
+
+application/json
+Example Value
+Schema
+{}
+No links
+401	
+Not authenticated
+
+Media type
+
+application/json
+Example Value
+Schema
+{}
+No links
+500	
+Storage or database error
+
+Media type
+
+application/json
+Example Value
+Schema
+{}
+No links
+Identity Provider
+External identity provider integration API
+
+
+
+DELETE
+/api/v1/identity/user/{userId}/{identityId}
+Unlink external identity from user
+
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+identityId *
+integer($int64)
+(path)
+identityId
+Responses
+Code	Description	Links
+204	
+Identity unlinked successfully
+
+No links
+401	
+Unauthorized
+
+No links
+403	
+Forbidden
+
+No links
+404	
+Identity not found
+
+No links
+
+GET
+/api/v1/identity/user/{userId}
+Get linked identities for a user
+
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+Responses
+Code	Description	Links
+200	
+Successfully retrieved identities
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "identityId": 0,
+    "userId": 0,
+    "providerName": "string",
+    "providerUserId": "string",
+    "providerEmail": "string",
+    "createdAt": "2026-04-08T20:35:02.604Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "identityId": 0,
+    "userId": 0,
+    "providerName": "string",
+    "providerUserId": "string",
+    "providerEmail": "string",
+    "createdAt": "2026-04-08T20:35:02.607Z"
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "identityId": 0,
+    "userId": 0,
+    "providerName": "string",
+    "providerUserId": "string",
+    "providerEmail": "string",
+    "createdAt": "2026-04-08T20:35:02.609Z"
+  }
+]
+No links
+
+GET
+/api/v1/identity/providers
+Get supported identity providers
+
+
+Parameters
+Try it out
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Successfully retrieved supported providers
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  "string"
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  "string"
+]
+No links
+
+POST
+/api/v1/identity/user/{userId}/link
+Link external identity to user
+
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "providerName": "string",
+  "providerUserId": "string",
+  "providerEmail": "string"
+}
+Responses
+Code	Description	Links
+201	
+Identity linked successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "identityId": 0,
+  "userId": 0,
+  "providerName": "string",
+  "providerUserId": "string",
+  "providerEmail": "string",
+  "createdAt": "2026-04-08T20:35:02.622Z"
+}
+No links
+400	
+Invalid request or unsupported provider
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "identityId": 0,
+  "userId": 0,
+  "providerName": "string",
+  "providerUserId": "string",
+  "providerEmail": "string",
+  "createdAt": "2026-04-08T20:35:02.624Z"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "identityId": 0,
+  "userId": 0,
+  "providerName": "string",
+  "providerUserId": "string",
+  "providerEmail": "string",
+  "createdAt": "2026-04-08T20:35:02.627Z"
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "identityId": 0,
+  "userId": 0,
+  "providerName": "string",
+  "providerUserId": "string",
+  "providerEmail": "string",
+  "createdAt": "2026-04-08T20:35:02.629Z"
+}
+No links
+409	
+Identity already linked
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "identityId": 0,
+  "userId": 0,
+  "providerName": "string",
+  "providerUserId": "string",
+  "providerEmail": "string",
+  "createdAt": "2026-04-08T20:35:02.631Z"
+}
+No links
+Locations
+Manage locations/areas within an organization
+
+
+
+DELETE
+/api/locations/{id}
+Delete location (soft delete)
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+No links
+
+GET
+/api/locations/{id}
+Get location by ID
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "locationId": 0,
+  "orgNumber": 0,
+  "name": "string",
+  "description": "string",
+  "locationType": "KITCHEN",
+  "tempMinC": 0,
+  "tempMaxC": 0,
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.641Z",
+  "updatedAt": "2026-04-08T20:35:02.641Z"
+}
+No links
+
+GET
+/api/locations
+Get all locations for organization
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "locationId": 0,
+    "orgNumber": 0,
+    "name": "string",
+    "description": "string",
+    "locationType": "KITCHEN",
+    "tempMinC": 0,
+    "tempMaxC": 0,
+    "isActive": true,
+    "createdAt": "2026-04-08T20:35:02.646Z",
+    "updatedAt": "2026-04-08T20:35:02.646Z"
+  }
+]
+No links
+
+POST
+/api/locations
+Create new location
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "locationId": 0,
+  "orgNumber": 0,
+  "name": "string",
+  "description": "string",
+  "locationType": "KITCHEN",
+  "tempMinC": 0,
+  "tempMaxC": 0,
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.652Z",
+  "updatedAt": "2026-04-08T20:35:02.652Z"
+}
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "locationId": 0,
+  "orgNumber": 0,
+  "name": "string",
+  "description": "string",
+  "locationType": "KITCHEN",
+  "tempMinC": 0,
+  "tempMaxC": 0,
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.654Z",
+  "updatedAt": "2026-04-08T20:35:02.654Z"
+}
+No links
+
+PUT
+/api/locations/{id}
+Update location
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "locationId": 0,
+  "orgNumber": 0,
+  "name": "string",
+  "description": "string",
+  "locationType": "KITCHEN",
+  "tempMinC": 0,
+  "tempMaxC": 0,
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.664Z",
+  "updatedAt": "2026-04-08T20:35:02.664Z"
+}
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "locationId": 0,
+  "orgNumber": 0,
+  "name": "string",
+  "description": "string",
+  "locationType": "KITCHEN",
+  "tempMinC": 0,
+  "tempMaxC": 0,
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.665Z",
+  "updatedAt": "2026-04-08T20:35:02.665Z"
+}
+No links
+Notification Delivery
+Notification delivery tracking API
+
+
+
+GET
+/api/v1/notifications/delivery/{notificationId}
+Get delivery status for a notification
+
+
+Parameters
+Try it out
+Name	Description
+notificationId *
+integer($int64)
+(path)
+notificationId
+Responses
+Code	Description	Links
+200	
+Successfully retrieved delivery records
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "deliveryId": 0,
+    "notificationId": 0,
+    "deliveryChannel": "IN_APP",
+    "deliveryStatus": "PENDING",
+    "attemptedAt": "2026-04-08T20:35:02.670Z",
+    "deliveredAt": "2026-04-08T20:35:02.670Z",
+    "failureReason": "string"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "deliveryId": 0,
+    "notificationId": 0,
+    "deliveryChannel": "IN_APP",
+    "deliveryStatus": "PENDING",
+    "attemptedAt": "2026-04-08T20:35:02.672Z",
+    "deliveredAt": "2026-04-08T20:35:02.672Z",
+    "failureReason": "string"
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "deliveryId": 0,
+    "notificationId": 0,
+    "deliveryChannel": "IN_APP",
+    "deliveryStatus": "PENDING",
+    "attemptedAt": "2026-04-08T20:35:02.675Z",
+    "deliveredAt": "2026-04-08T20:35:02.675Z",
+    "failureReason": "string"
+  }
+]
+No links
+
+GET
+/api/v1/notifications/delivery/{notificationId}/status/{channel}
+Get delivery status for specific channel
+
+
+Parameters
+Try it out
+Name	Description
+notificationId *
+integer($int64)
+(path)
+notificationId
+channel *
+string
+(path)
+Available values : IN_APP, EMAIL, SMS, PUSH
+
+
+IN_APP
+Responses
+Code	Description	Links
+200	
+Successfully retrieved delivery record
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "deliveryId": 0,
+  "notificationId": 0,
+  "deliveryChannel": "IN_APP",
+  "deliveryStatus": "PENDING",
+  "attemptedAt": "2026-04-08T20:35:02.681Z",
+  "deliveredAt": "2026-04-08T20:35:02.681Z",
+  "failureReason": "string"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "deliveryId": 0,
+  "notificationId": 0,
+  "deliveryChannel": "IN_APP",
+  "deliveryStatus": "PENDING",
+  "attemptedAt": "2026-04-08T20:35:02.683Z",
+  "deliveredAt": "2026-04-08T20:35:02.683Z",
+  "failureReason": "string"
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "deliveryId": 0,
+  "notificationId": 0,
+  "deliveryChannel": "IN_APP",
+  "deliveryStatus": "PENDING",
+  "attemptedAt": "2026-04-08T20:35:02.685Z",
+  "deliveredAt": "2026-04-08T20:35:02.685Z",
+  "failureReason": "string"
+}
+No links
+404	
+Delivery record not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "deliveryId": 0,
+  "notificationId": 0,
+  "deliveryChannel": "IN_APP",
+  "deliveryStatus": "PENDING",
+  "attemptedAt": "2026-04-08T20:35:02.687Z",
+  "deliveredAt": "2026-04-08T20:35:02.687Z",
+  "failureReason": "string"
+}
+No links
+
+GET
+/api/v1/notifications/delivery/pending
+Get all pending deliveries (ADMIN only)
+
+
+Parameters
+Try it out
+Name	Description
+pageable *
+object
+(query)
+{
+  "page": 0,
+  "size": 1,
+  "sort": [
+    "string"
+  ]
+}
+Responses
+Code	Description	Links
+200	
+Successfully retrieved pending deliveries
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "totalElements": 0,
+  "totalPages": 0,
+  "pageable": {
+    "paged": true,
+    "pageNumber": 0,
+    "pageSize": 0,
+    "offset": 0,
+    "sort": [
+      {
+        "direction": "string",
+        "nullHandling": "string",
+        "ascending": true,
+        "property": "string",
+        "ignoreCase": true
+      }
+    ],
+    "unpaged": true
+  },
+  "size": 0,
+  "content": [
+    {
+      "deliveryId": 0,
+      "notificationId": 0,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "PENDING",
+      "attemptedAt": "2026-04-08T20:35:02.693Z",
+      "deliveredAt": "2026-04-08T20:35:02.693Z",
+      "failureReason": "string"
+    }
+  ],
+  "number": 0,
+  "sort": [
+    {
+      "direction": "string",
+      "nullHandling": "string",
+      "ascending": true,
+      "property": "string",
+      "ignoreCase": true
+    }
+  ],
+  "first": true,
+  "last": true,
+  "numberOfElements": 0,
+  "empty": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "totalElements": 0,
+  "totalPages": 0,
+  "pageable": {
+    "paged": true,
+    "pageNumber": 0,
+    "pageSize": 0,
+    "offset": 0,
+    "sort": [
+      {
+        "direction": "string",
+        "nullHandling": "string",
+        "ascending": true,
+        "property": "string",
+        "ignoreCase": true
+      }
+    ],
+    "unpaged": true
+  },
+  "size": 0,
+  "content": [
+    {
+      "deliveryId": 0,
+      "notificationId": 0,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "PENDING",
+      "attemptedAt": "2026-04-08T20:35:02.696Z",
+      "deliveredAt": "2026-04-08T20:35:02.696Z",
+      "failureReason": "string"
+    }
+  ],
+  "number": 0,
+  "sort": [
+    {
+      "direction": "string",
+      "nullHandling": "string",
+      "ascending": true,
+      "property": "string",
+      "ignoreCase": true
+    }
+  ],
+  "first": true,
+  "last": true,
+  "numberOfElements": 0,
+  "empty": true
+}
+No links
+403	
+Forbidden - requires ADMIN role
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "totalElements": 0,
+  "totalPages": 0,
+  "pageable": {
+    "paged": true,
+    "pageNumber": 0,
+    "pageSize": 0,
+    "offset": 0,
+    "sort": [
+      {
+        "direction": "string",
+        "nullHandling": "string",
+        "ascending": true,
+        "property": "string",
+        "ignoreCase": true
+      }
+    ],
+    "unpaged": true
+  },
+  "size": 0,
+  "content": [
+    {
+      "deliveryId": 0,
+      "notificationId": 0,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "PENDING",
+      "attemptedAt": "2026-04-08T20:35:02.699Z",
+      "deliveredAt": "2026-04-08T20:35:02.699Z",
+      "failureReason": "string"
+    }
+  ],
+  "number": 0,
+  "sort": [
+    {
+      "direction": "string",
+      "nullHandling": "string",
+      "ascending": true,
+      "property": "string",
+      "ignoreCase": true
+    }
+  ],
+  "first": true,
+  "last": true,
+  "numberOfElements": 0,
+  "empty": true
+}
+No links
+
+GET
+/api/v1/notifications/delivery/failed
+Get all failed deliveries (ADMIN only)
+
+
+Parameters
+Try it out
+Name	Description
+pageable *
+object
+(query)
+{
+  "page": 0,
+  "size": 1,
+  "sort": [
+    "string"
+  ]
+}
+Responses
+Code	Description	Links
+200	
+Successfully retrieved failed deliveries
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "totalElements": 0,
+  "totalPages": 0,
+  "pageable": {
+    "paged": true,
+    "pageNumber": 0,
+    "pageSize": 0,
+    "offset": 0,
+    "sort": [
+      {
+        "direction": "string",
+        "nullHandling": "string",
+        "ascending": true,
+        "property": "string",
+        "ignoreCase": true
+      }
+    ],
+    "unpaged": true
+  },
+  "size": 0,
+  "content": [
+    {
+      "deliveryId": 0,
+      "notificationId": 0,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "PENDING",
+      "attemptedAt": "2026-04-08T20:35:02.705Z",
+      "deliveredAt": "2026-04-08T20:35:02.705Z",
+      "failureReason": "string"
+    }
+  ],
+  "number": 0,
+  "sort": [
+    {
+      "direction": "string",
+      "nullHandling": "string",
+      "ascending": true,
+      "property": "string",
+      "ignoreCase": true
+    }
+  ],
+  "first": true,
+  "last": true,
+  "numberOfElements": 0,
+  "empty": true
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "totalElements": 0,
+  "totalPages": 0,
+  "pageable": {
+    "paged": true,
+    "pageNumber": 0,
+    "pageSize": 0,
+    "offset": 0,
+    "sort": [
+      {
+        "direction": "string",
+        "nullHandling": "string",
+        "ascending": true,
+        "property": "string",
+        "ignoreCase": true
+      }
+    ],
+    "unpaged": true
+  },
+  "size": 0,
+  "content": [
+    {
+      "deliveryId": 0,
+      "notificationId": 0,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "PENDING",
+      "attemptedAt": "2026-04-08T20:35:02.714Z",
+      "deliveredAt": "2026-04-08T20:35:02.714Z",
+      "failureReason": "string"
+    }
+  ],
+  "number": 0,
+  "sort": [
+    {
+      "direction": "string",
+      "nullHandling": "string",
+      "ascending": true,
+      "property": "string",
+      "ignoreCase": true
+    }
+  ],
+  "first": true,
+  "last": true,
+  "numberOfElements": 0,
+  "empty": true
+}
+No links
+403	
+Forbidden - requires ADMIN role
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "totalElements": 0,
+  "totalPages": 0,
+  "pageable": {
+    "paged": true,
+    "pageNumber": 0,
+    "pageSize": 0,
+    "offset": 0,
+    "sort": [
+      {
+        "direction": "string",
+        "nullHandling": "string",
+        "ascending": true,
+        "property": "string",
+        "ignoreCase": true
+      }
+    ],
+    "unpaged": true
+  },
+  "size": 0,
+  "content": [
+    {
+      "deliveryId": 0,
+      "notificationId": 0,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "PENDING",
+      "attemptedAt": "2026-04-08T20:35:02.717Z",
+      "deliveredAt": "2026-04-08T20:35:02.717Z",
+      "failureReason": "string"
+    }
+  ],
+  "number": 0,
+  "sort": [
+    {
+      "direction": "string",
+      "nullHandling": "string",
+      "ascending": true,
+      "property": "string",
+      "ignoreCase": true
+    }
+  ],
+  "first": true,
+  "last": true,
+  "numberOfElements": 0,
+  "empty": true
+}
+No links
+
+POST
+/api/v1/notifications/delivery/{notificationId}/retry
+Retry failed deliveries
+
+
+Parameters
+Try it out
+Name	Description
+notificationId *
+integer($int64)
+(path)
+notificationId
+channel
+string
+(query)
+Available values : IN_APP, EMAIL, SMS, PUSH
+
+
+--
+Responses
+Code	Description	Links
+202	
+Retry accepted
+
+No links
+401	
+Unauthorized
+
+No links
+403	
+Forbidden - requires ADMIN role
+
+No links
+404	
+Notification not found
+
+No links
+Notifications
+User notification management
+
+
+
+DELETE
+/api/v1/notifications/{id}
+Delete notification
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+Responses
+Code	Description	Links
+204	
+Notification deleted
+
+No links
+401	
+Unauthorized
+
+No links
+404	
+Notification not found
+
+No links
+
+GET
+/api/v1/notifications
+Get user's notifications
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved notifications
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "notificationId": 0,
+    "orgNumber": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.735Z",
+      "createdAt": "2026-04-08T20:35:02.735Z",
+      "updatedAt": "2026-04-08T20:35:02.735Z",
+      "active": true,
+      "locked": true
+    },
+    "notificationType": "TASK_OVERDUE",
+    "title": "string",
+    "bodyText": "string",
+    "relatedEntityType": "CHECKLIST_RUN",
+    "relatedEntityId": 0,
+    "isRead": true,
+    "readAt": "2026-04-08T20:35:02.735Z",
+    "createdAt": "2026-04-08T20:35:02.735Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "notificationId": 0,
+    "orgNumber": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:02.738Z",
+      "createdAt": "2026-04-08T20:35:02.738Z",
+      "updatedAt": "2026-04-08T20:35:02.738Z",
+      "active": true,
+      "locked": true
+    },
+    "notificationType": "TASK_OVERDUE",
+    "title": "string",
+    "bodyText": "string",
+    "relatedEntityType": "CHECKLIST_RUN",
+    "relatedEntityId": 0,
+    "isRead": true,
+    "readAt": "2026-04-08T20:35:02.738Z",
+    "createdAt": "2026-04-08T20:35:02.738Z"
+  }
+]
+No links
+
+GET
+/api/v1/notifications/{id}
+Get specific notification
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+Responses
+Code	Description	Links
+200	
+Successfully retrieved notification
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "notificationId": 0,
+  "orgNumber": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:02.744Z",
+    "createdAt": "2026-04-08T20:35:02.744Z",
+    "updatedAt": "2026-04-08T20:35:02.744Z",
+    "active": true,
+    "locked": true
+  },
+  "notificationType": "TASK_OVERDUE",
+  "title": "string",
+  "bodyText": "string",
+  "relatedEntityType": "CHECKLIST_RUN",
+  "relatedEntityId": 0,
+  "isRead": true,
+  "readAt": "2026-04-08T20:35:02.744Z",
+  "createdAt": "2026-04-08T20:35:02.744Z"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "notificationId": 0,
+  "orgNumber": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:02.747Z",
+    "createdAt": "2026-04-08T20:35:02.747Z",
+    "updatedAt": "2026-04-08T20:35:02.747Z",
+    "active": true,
+    "locked": true
+  },
+  "notificationType": "TASK_OVERDUE",
+  "title": "string",
+  "bodyText": "string",
+  "relatedEntityType": "CHECKLIST_RUN",
+  "relatedEntityId": 0,
+  "isRead": true,
+  "readAt": "2026-04-08T20:35:02.747Z",
+  "createdAt": "2026-04-08T20:35:02.747Z"
+}
+No links
+404	
+Notification not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "notificationId": 0,
+  "orgNumber": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:02.749Z",
+    "createdAt": "2026-04-08T20:35:02.749Z",
+    "updatedAt": "2026-04-08T20:35:02.749Z",
+    "active": true,
+    "locked": true
+  },
+  "notificationType": "TASK_OVERDUE",
+  "title": "string",
+  "bodyText": "string",
+  "relatedEntityType": "CHECKLIST_RUN",
+  "relatedEntityId": 0,
+  "isRead": true,
+  "readAt": "2026-04-08T20:35:02.749Z",
+  "createdAt": "2026-04-08T20:35:02.749Z"
+}
+No links
+
+GET
+/api/v1/notifications/unread-count
+Get unread notifications count
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved unread count
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "additionalProp1": 0,
+  "additionalProp2": 0,
+  "additionalProp3": 0
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "additionalProp1": 0,
+  "additionalProp2": 0,
+  "additionalProp3": 0
+}
+No links
+
+PUT
+/api/v1/notifications/{id}/read
+Mark notification as read
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+Responses
+Code	Description	Links
+204	
+Notification marked as read
+
+No links
+401	
+Unauthorized
+
+No links
+404	
+Notification not found
+
+No links
+
+PUT
+/api/v1/notifications/read-all
+Mark all notifications as read
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+204	
+All notifications marked as read
+
+No links
+401	
+Unauthorized
+
+No links
+Organization Settings
+Organization configuration management
+
+
+
+GET
+/api/v1/organizations/{orgNumber}/settings
+Get organization settings
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(path)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved settings
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.767Z",
+  "updatedAt": "2026-04-08T20:35:02.767Z"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.769Z",
+  "updatedAt": "2026-04-08T20:35:02.769Z"
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.772Z",
+  "updatedAt": "2026-04-08T20:35:02.772Z"
+}
+No links
+404	
+Settings not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.775Z",
+  "updatedAt": "2026-04-08T20:35:02.775Z"
+}
+No links
+
+PUT
+/api/v1/organizations/{orgNumber}/settings
+Update organization settings (Admin/Manager only)
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(path)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0
+}
+Responses
+Code	Description	Links
+200	
+Settings updated successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.783Z",
+  "updatedAt": "2026-04-08T20:35:02.783Z"
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.786Z",
+  "updatedAt": "2026-04-08T20:35:02.786Z"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.787Z",
+  "updatedAt": "2026-04-08T20:35:02.787Z"
+}
+No links
+403	
+Forbidden - Admin/Manager only
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.790Z",
+  "updatedAt": "2026-04-08T20:35:02.790Z"
+}
+No links
+404	
+Settings not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.793Z",
+  "updatedAt": "2026-04-08T20:35:02.793Z"
+}
+No links
+Organization Settings Admin
+Administrative endpoints for managing organization settings
+
+
+
+GET
+/api/admin/organizations/settings
+Get organization settings
+
+
+Retrieve settings for a specific organization
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved settings
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.799Z",
+  "updatedAt": "2026-04-08T20:35:02.799Z"
+}
+No links
+404	
+Organization not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.802Z",
+  "updatedAt": "2026-04-08T20:35:02.802Z"
+}
+No links
+
+PUT
+/api/admin/organizations/settings
+Update organization settings
+
+
+Update settings for a specific organization (ADMIN only)
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0
+}
+Responses
+Code	Description	Links
+200	
+Successfully updated settings
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.814Z",
+  "updatedAt": "2026-04-08T20:35:02.814Z"
+}
+No links
+403	
+Insufficient permissions
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.816Z",
+  "updatedAt": "2026-04-08T20:35:02.816Z"
+}
+No links
+404	
+Organization not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "orgNumber": 0,
+  "timezoneName": "string",
+  "localeCode": "string",
+  "enableFoodModule": true,
+  "enableAlcoholModule": true,
+  "defaultTempMinC": 0,
+  "defaultTempMaxC": 0,
+  "reminderEmailEnabled": true,
+  "notificationEmail": "string",
+  "retentionUserMonths": 0,
+  "retentionAuditMonths": 0,
+  "createdAt": "2026-04-08T20:35:02.818Z",
+  "updatedAt": "2026-04-08T20:35:02.818Z"
+}
+No links
+Permissions
+Permission management API
+
+
+
+DELETE
+/api/admin/permissions/role/{roleId}/{permissionId}
+Remove permission from role
+
+
+Parameters
+Try it out
+Name	Description
+roleId *
+integer($int64)
+(path)
+roleId
+permissionId *
+integer($int64)
+(path)
+permissionId
+Responses
+Code	Description	Links
+204	
+Permission removed successfully
+
+No links
+401	
+Unauthorized
+
+No links
+403	
+Forbidden - requires ADMIN role
+
+No links
+404	
+Permission assignment not found
+
+No links
+
+GET
+/api/admin/permissions/role/{roleId}
+Get permissions for a role
+
+
+Parameters
+Try it out
+Name	Description
+roleId *
+integer($int64)
+(path)
+roleId
+Responses
+Code	Description	Links
+200	
+Successfully retrieved role permissions
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "permissionId": 0,
+    "permissionKey": "string",
+    "description": "string"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "permissionId": 0,
+    "permissionKey": "string",
+    "description": "string"
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "permissionId": 0,
+    "permissionKey": "string",
+    "description": "string"
+  }
+]
+No links
+
+GET
+/api/admin/permissions
+Get all permissions
+
+
+Parameters
+Try it out
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Successfully retrieved permissions
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "permissionId": 0,
+    "permissionKey": "string",
+    "description": "string"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "permissionId": 0,
+    "permissionKey": "string",
+    "description": "string"
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "permissionId": 0,
+    "permissionKey": "string",
+    "description": "string"
+  }
+]
+No links
+
+GET
+/api/admin/permissions/{permissionId}
+Get permission by ID
+
+
+Parameters
+Try it out
+Name	Description
+permissionId *
+integer($int64)
+(path)
+permissionId
+Responses
+Code	Description	Links
+200	
+Successfully retrieved permission
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "permissionId": 0,
+  "permissionKey": "string",
+  "description": "string"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "permissionId": 0,
+  "permissionKey": "string",
+  "description": "string"
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "permissionId": 0,
+  "permissionKey": "string",
+  "description": "string"
+}
+No links
+404	
+Permission not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "permissionId": 0,
+  "permissionKey": "string",
+  "description": "string"
+}
+No links
+
+POST
+/api/admin/permissions/role/{roleId}
+Assign permission to role
+
+
+Parameters
+Try it out
+Name	Description
+roleId *
+integer($int64)
+(path)
+roleId
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "permissionId": 0
+}
+Responses
+Code	Description	Links
+201	
+Permission assigned successfully
+
+No links
+400	
+Invalid request
+
+No links
+401	
+Unauthorized
+
+No links
+403	
+Forbidden - requires ADMIN role
+
+No links
+404	
+Permission or role not found
+
+No links
+Role Management
+Manage roles and user role assignments
+
+
+
+DELETE
+/api/admin/roles/user/{userId}
+Remove role from user
+
+
+Remove a role from a user in an organization (ADMIN only)
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+roleId *
+integer($int64)
+(query)
+roleId
+Responses
+Code	Description	Links
+204	
+Role successfully removed
+
+No links
+403	
+Insufficient permissions
+
+No links
+404	
+User role assignment not found
+
+No links
+
+GET
+/api/admin/roles/user/{userId}
+Get user roles
+
+
+Retrieve roles assigned to a specific user in an organization
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved user roles
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "roleId": 0,
+    "roleName": "string",
+    "description": "string",
+    "isSystemRole": true
+  }
+]
+No links
+
+GET
+/api/admin/roles
+Get all roles
+
+
+Retrieve all available roles in the system
+
+Parameters
+Try it out
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Successfully retrieved roles
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "roleId": 0,
+    "roleName": "string",
+    "description": "string",
+    "isSystemRole": true
+  }
+]
+No links
+
+GET
+/api/admin/roles/{roleId}
+Get role by ID
+
+
+Retrieve a specific role by its ID
+
+Parameters
+Try it out
+Name	Description
+roleId *
+integer($int64)
+(path)
+roleId
+Responses
+Code	Description	Links
+200	
+Successfully retrieved role
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "roleId": 0,
+  "roleName": "string",
+  "description": "string",
+  "isSystemRole": true
+}
+No links
+404	
+Role not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "roleId": 0,
+  "roleName": "string",
+  "description": "string",
+  "isSystemRole": true
+}
+No links
+
+POST
+/api/admin/roles/user/{userId}
+Assign role to user
+
+
+Assign a role to a user in an organization (ADMIN only)
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+roleId *
+integer($int64)
+(query)
+roleId
+Responses
+Code	Description	Links
+200	
+Role already assigned
+
+No links
+201	
+Role successfully assigned
+
+No links
+403	
+Insufficient permissions
+
+No links
+Temperature Logging
+Temperature monitoring for food safety compliance
+
+
+
+DELETE
+/api/temperature/points/{pointId}
+Delete log point
+
+
+Parameters
+Try it out
+Name	Description
+pointId *
+integer($int64)
+(path)
+Log point ID
+
+pointId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+No links
+
+GET
+/api/temperature/points/{pointId}
+Get specific log point
+
+
+Parameters
+Try it out
+Name	Description
+pointId *
+integer($int64)
+(path)
+Log point ID
+
+pointId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "logPointId": 0,
+  "locationId": 0,
+  "locationName": "string",
+  "name": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.917Z",
+  "updatedAt": "2026-04-08T20:35:02.917Z"
+}
+No links
+
+GET
+/api/temperature/points
+List all temperature log points
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "logPointId": 0,
+    "locationId": 0,
+    "locationName": "string",
+    "name": "string",
+    "isActive": true,
+    "createdAt": "2026-04-08T20:35:02.920Z",
+    "updatedAt": "2026-04-08T20:35:02.920Z"
+  }
+]
+No links
+
+GET
+/api/temperature/entries
+List temperature entries
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "entryId": 0,
+    "logPointId": 0,
+    "logPointName": "string",
+    "locationId": 0,
+    "locationName": "string",
+    "temperatureC": 0,
+    "isAlert": true,
+    "noteText": "string",
+    "recordedByName": "string",
+    "measuredAt": "2026-04-08T20:35:02.926Z",
+    "createdAt": "2026-04-08T20:35:02.926Z"
+  }
+]
+No links
+
+GET
+/api/temperature/points/active
+List active temperature log points
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "logPointId": 0,
+    "locationId": 0,
+    "locationName": "string",
+    "name": "string",
+    "isActive": true,
+    "createdAt": "2026-04-08T20:35:02.931Z",
+    "updatedAt": "2026-04-08T20:35:02.931Z"
+  }
+]
+No links
+
+GET
+/api/temperature/entries/{entryId}
+Get specific temperature entry
+
+
+Parameters
+Try it out
+Name	Description
+entryId *
+integer($int64)
+(path)
+Entry ID
+
+entryId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "entryId": 0,
+  "logPointId": 0,
+  "logPointName": "string",
+  "locationId": 0,
+  "locationName": "string",
+  "temperatureC": 0,
+  "isAlert": true,
+  "noteText": "string",
+  "recordedByName": "string",
+  "measuredAt": "2026-04-08T20:35:02.936Z",
+  "createdAt": "2026-04-08T20:35:02.936Z"
+}
+No links
+
+GET
+/api/temperature/entries/paginated
+List temperature entries (paginated)
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+pageable *
+object
+(query)
+{
+  "page": 0,
+  "size": 1,
+  "sort": [
+    "string"
+  ]
+}
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "totalElements": 0,
+  "totalPages": 0,
+  "pageable": {
+    "paged": true,
+    "pageNumber": 0,
+    "pageSize": 0,
+    "offset": 0,
+    "sort": [
+      {
+        "direction": "string",
+        "nullHandling": "string",
+        "ascending": true,
+        "property": "string",
+        "ignoreCase": true
+      }
+    ],
+    "unpaged": true
+  },
+  "size": 0,
+  "content": [
+    {
+      "entryId": 0,
+      "logPointId": 0,
+      "logPointName": "string",
+      "locationId": 0,
+      "locationName": "string",
+      "temperatureC": 0,
+      "isAlert": true,
+      "noteText": "string",
+      "recordedByName": "string",
+      "measuredAt": "2026-04-08T20:35:02.942Z",
+      "createdAt": "2026-04-08T20:35:02.942Z"
+    }
+  ],
+  "number": 0,
+  "sort": [
+    {
+      "direction": "string",
+      "nullHandling": "string",
+      "ascending": true,
+      "property": "string",
+      "ignoreCase": true
+    }
+  ],
+  "first": true,
+  "last": true,
+  "numberOfElements": 0,
+  "empty": true
+}
+No links
+
+GET
+/api/temperature/entries/by-point/{pointId}
+List entries for specific log point
+
+
+Parameters
+Try it out
+Name	Description
+pointId *
+integer($int64)
+(path)
+Log point ID
+
+pointId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "entryId": 0,
+    "logPointId": 0,
+    "logPointName": "string",
+    "locationId": 0,
+    "locationName": "string",
+    "temperatureC": 0,
+    "isAlert": true,
+    "noteText": "string",
+    "recordedByName": "string",
+    "measuredAt": "2026-04-08T20:35:02.948Z",
+    "createdAt": "2026-04-08T20:35:02.948Z"
+  }
+]
+No links
+
+GET
+/api/temperature/entries/by-date
+List entries by date range
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+from *
+string($date-time)
+(query)
+from
+to *
+string($date-time)
+(query)
+to
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "entryId": 0,
+    "logPointId": 0,
+    "logPointName": "string",
+    "locationId": 0,
+    "locationName": "string",
+    "temperatureC": 0,
+    "isAlert": true,
+    "noteText": "string",
+    "recordedByName": "string",
+    "measuredAt": "2026-04-08T20:35:02.954Z",
+    "createdAt": "2026-04-08T20:35:02.954Z"
+  }
+]
+No links
+
+GET
+/api/temperature/alerts
+Get all temperature alerts (out-of-range)
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "entryId": 0,
+    "logPointId": 0,
+    "logPointName": "string",
+    "locationId": 0,
+    "locationName": "string",
+    "temperatureC": 0,
+    "isAlert": true,
+    "noteText": "string",
+    "recordedByName": "string",
+    "measuredAt": "2026-04-08T20:35:02.959Z",
+    "createdAt": "2026-04-08T20:35:02.959Z"
+  }
+]
+No links
+
+POST
+/api/temperature/points
+Create temperature log point
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "locationId": 0,
+  "name": "string",
+  "isActive": true
+}
+Responses
+Code	Description	Links
+201	
+Log point created
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "logPointId": 0,
+  "locationId": 0,
+  "locationName": "string",
+  "name": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.967Z",
+  "updatedAt": "2026-04-08T20:35:02.967Z"
+}
+No links
+400	
+Invalid request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "logPointId": 0,
+  "locationId": 0,
+  "locationName": "string",
+  "name": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.969Z",
+  "updatedAt": "2026-04-08T20:35:02.969Z"
+}
+No links
+403	
+Access denied
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "logPointId": 0,
+  "locationId": 0,
+  "locationName": "string",
+  "name": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.970Z",
+  "updatedAt": "2026-04-08T20:35:02.970Z"
+}
+No links
+
+POST
+/api/temperature/entries
+Record temperature reading
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "logPointId": 0,
+  "temperatureC": 0,
+  "measuredAt": "2026-04-08T20:35:02.978Z",
+  "noteText": "string"
+}
+Responses
+Code	Description	Links
+201	
+Temperature recorded
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "entryId": 0,
+  "logPointId": 0,
+  "logPointName": "string",
+  "locationId": 0,
+  "locationName": "string",
+  "temperatureC": 0,
+  "isAlert": true,
+  "noteText": "string",
+  "recordedByName": "string",
+  "measuredAt": "2026-04-08T20:35:02.979Z",
+  "createdAt": "2026-04-08T20:35:02.979Z"
+}
+No links
+400	
+Invalid request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "entryId": 0,
+  "logPointId": 0,
+  "logPointName": "string",
+  "locationId": 0,
+  "locationName": "string",
+  "temperatureC": 0,
+  "isAlert": true,
+  "noteText": "string",
+  "recordedByName": "string",
+  "measuredAt": "2026-04-08T20:35:02.981Z",
+  "createdAt": "2026-04-08T20:35:02.981Z"
+}
+No links
+
+PUT
+/api/temperature/points/{pointId}
+Update log point
+
+
+Parameters
+Try it out
+Name	Description
+pointId *
+integer($int64)
+(path)
+Log point ID
+
+pointId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "locationId": 0,
+  "name": "string",
+  "isActive": true
+}
+Responses
+Code	Description	Links
+200	
+OK
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "logPointId": 0,
+  "locationId": 0,
+  "locationName": "string",
+  "name": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:02.991Z",
+  "updatedAt": "2026-04-08T20:35:02.991Z"
+}
+No links
+Training Records
+Employee training and certification management
+
+
+
+DELETE
+/api/v1/training/{id}
+Delete training record
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+204	
+Training record deleted successfully
+
+No links
+401	
+Unauthorized
+
+No links
+403	
+Forbidden
+
+No links
+404	
+Training record not found
+
+No links
+
+GET
+/api/v1/training/{id}
+Get training record by ID
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved training record
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.002Z",
+    "createdAt": "2026-04-08T20:35:03.002Z",
+    "updatedAt": "2026-04-08T20:35:03.002Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.002Z",
+  "expiresAt": "2026-04-08T20:35:03.002Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.002Z",
+    "updatedAt": "2026-04-08T20:35:03.002Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.002Z"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.007Z",
+    "createdAt": "2026-04-08T20:35:03.007Z",
+    "updatedAt": "2026-04-08T20:35:03.007Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.007Z",
+  "expiresAt": "2026-04-08T20:35:03.007Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.007Z",
+    "updatedAt": "2026-04-08T20:35:03.007Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.007Z"
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.011Z",
+    "createdAt": "2026-04-08T20:35:03.011Z",
+    "updatedAt": "2026-04-08T20:35:03.011Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.011Z",
+  "expiresAt": "2026-04-08T20:35:03.011Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.011Z",
+    "updatedAt": "2026-04-08T20:35:03.011Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.011Z"
+}
+No links
+404	
+Training record not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.015Z",
+    "createdAt": "2026-04-08T20:35:03.015Z",
+    "updatedAt": "2026-04-08T20:35:03.015Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.015Z",
+  "expiresAt": "2026-04-08T20:35:03.015Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.015Z",
+    "updatedAt": "2026-04-08T20:35:03.015Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.015Z"
+}
+No links
+
+GET
+/api/v1/training
+Get all training records for organization
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved training records
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.021Z",
+      "createdAt": "2026-04-08T20:35:03.021Z",
+      "updatedAt": "2026-04-08T20:35:03.021Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.021Z",
+    "expiresAt": "2026-04-08T20:35:03.021Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.021Z",
+      "updatedAt": "2026-04-08T20:35:03.021Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.021Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.025Z",
+      "createdAt": "2026-04-08T20:35:03.025Z",
+      "updatedAt": "2026-04-08T20:35:03.025Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.025Z",
+    "expiresAt": "2026-04-08T20:35:03.025Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.025Z",
+      "updatedAt": "2026-04-08T20:35:03.025Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.025Z"
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.029Z",
+      "createdAt": "2026-04-08T20:35:03.029Z",
+      "updatedAt": "2026-04-08T20:35:03.029Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.029Z",
+    "expiresAt": "2026-04-08T20:35:03.029Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.029Z",
+      "updatedAt": "2026-04-08T20:35:03.029Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.029Z"
+  }
+]
+No links
+
+GET
+/api/v1/training/user/{userId}
+Get user's training records
+
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved user's training records
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.036Z",
+      "createdAt": "2026-04-08T20:35:03.036Z",
+      "updatedAt": "2026-04-08T20:35:03.036Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.036Z",
+    "expiresAt": "2026-04-08T20:35:03.036Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.036Z",
+      "updatedAt": "2026-04-08T20:35:03.036Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.036Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.039Z",
+      "createdAt": "2026-04-08T20:35:03.039Z",
+      "updatedAt": "2026-04-08T20:35:03.039Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.039Z",
+    "expiresAt": "2026-04-08T20:35:03.039Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.039Z",
+      "updatedAt": "2026-04-08T20:35:03.039Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.039Z"
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.042Z",
+      "createdAt": "2026-04-08T20:35:03.042Z",
+      "updatedAt": "2026-04-08T20:35:03.042Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.042Z",
+    "expiresAt": "2026-04-08T20:35:03.042Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.042Z",
+      "updatedAt": "2026-04-08T20:35:03.042Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.042Z"
+  }
+]
+No links
+
+GET
+/api/v1/training/status/{status}
+Get training records by status
+
+
+Parameters
+Try it out
+Name	Description
+status *
+string
+(path)
+Available values : ASSIGNED, COMPLETED, EXPIRED
+
+
+ASSIGNED
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved training records
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.049Z",
+      "createdAt": "2026-04-08T20:35:03.049Z",
+      "updatedAt": "2026-04-08T20:35:03.049Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.049Z",
+    "expiresAt": "2026-04-08T20:35:03.049Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.049Z",
+      "updatedAt": "2026-04-08T20:35:03.049Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.049Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.051Z",
+      "createdAt": "2026-04-08T20:35:03.051Z",
+      "updatedAt": "2026-04-08T20:35:03.051Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.051Z",
+    "expiresAt": "2026-04-08T20:35:03.051Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.051Z",
+      "updatedAt": "2026-04-08T20:35:03.051Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.051Z"
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.054Z",
+      "createdAt": "2026-04-08T20:35:03.054Z",
+      "updatedAt": "2026-04-08T20:35:03.054Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.054Z",
+    "expiresAt": "2026-04-08T20:35:03.054Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.054Z",
+      "updatedAt": "2026-04-08T20:35:03.054Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.054Z"
+  }
+]
+No links
+
+GET
+/api/v1/training/expiring
+Get expiring training records
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+days
+integer($int32)
+(query)
+Default value : 30
+
+30
+Responses
+Code	Description	Links
+200	
+Successfully retrieved expiring records
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.060Z",
+      "createdAt": "2026-04-08T20:35:03.060Z",
+      "updatedAt": "2026-04-08T20:35:03.060Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.060Z",
+    "expiresAt": "2026-04-08T20:35:03.060Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.060Z",
+      "updatedAt": "2026-04-08T20:35:03.060Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.060Z"
+  }
+]
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.063Z",
+      "createdAt": "2026-04-08T20:35:03.063Z",
+      "updatedAt": "2026-04-08T20:35:03.063Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.063Z",
+    "expiresAt": "2026-04-08T20:35:03.063Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.063Z",
+      "updatedAt": "2026-04-08T20:35:03.063Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.063Z"
+  }
+]
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+[
+  {
+    "trainingRecordId": 0,
+    "user": {
+      "userId": 0,
+      "displayName": "string",
+      "email": "string",
+      "isActive": true,
+      "phone": "string",
+      "globalLastSeenAt": "2026-04-08T20:35:03.065Z",
+      "createdAt": "2026-04-08T20:35:03.065Z",
+      "updatedAt": "2026-04-08T20:35:03.065Z",
+      "active": true,
+      "locked": true
+    },
+    "orgNumber": 0,
+    "trainingType": "FOOD_HYGIENE",
+    "title": "string",
+    "completedAt": "2026-04-08T20:35:03.065Z",
+    "expiresAt": "2026-04-08T20:35:03.065Z",
+    "status": "ASSIGNED",
+    "certificateDocument": {
+      "documentId": 0,
+      "orgNumber": 0,
+      "documentType": "string",
+      "title": "string",
+      "description": "string",
+      "currentVersion": 0,
+      "active": true,
+      "createdByUserId": 0,
+      "createdAt": "2026-04-08T20:35:03.065Z",
+      "updatedAt": "2026-04-08T20:35:03.065Z"
+    },
+    "notes": "string",
+    "createdAt": "2026-04-08T20:35:03.065Z"
+  }
+]
+No links
+
+GET
+/api/v1/training/expiring/count
+Get count of expiring training records
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved count
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "additionalProp1": 0,
+  "additionalProp2": 0,
+  "additionalProp3": 0
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "additionalProp1": 0,
+  "additionalProp2": 0,
+  "additionalProp3": 0
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "additionalProp1": 0,
+  "additionalProp2": 0,
+  "additionalProp3": 0
+}
+No links
+
+POST
+/api/v1/training
+Create new training record
+
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "userId": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.079Z",
+  "expiresAt": "2026-04-08T20:35:03.079Z",
+  "certificateDocumentId": 0,
+  "notes": "string"
+}
+Responses
+Code	Description	Links
+201	
+Training record created successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.080Z",
+    "createdAt": "2026-04-08T20:35:03.080Z",
+    "updatedAt": "2026-04-08T20:35:03.080Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.080Z",
+  "expiresAt": "2026-04-08T20:35:03.080Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.080Z",
+    "updatedAt": "2026-04-08T20:35:03.080Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.080Z"
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.089Z",
+    "createdAt": "2026-04-08T20:35:03.089Z",
+    "updatedAt": "2026-04-08T20:35:03.089Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.089Z",
+  "expiresAt": "2026-04-08T20:35:03.089Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.089Z",
+    "updatedAt": "2026-04-08T20:35:03.089Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.089Z"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.093Z",
+    "createdAt": "2026-04-08T20:35:03.093Z",
+    "updatedAt": "2026-04-08T20:35:03.093Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.093Z",
+  "expiresAt": "2026-04-08T20:35:03.093Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.093Z",
+    "updatedAt": "2026-04-08T20:35:03.093Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.093Z"
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.096Z",
+    "createdAt": "2026-04-08T20:35:03.096Z",
+    "updatedAt": "2026-04-08T20:35:03.096Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.096Z",
+  "expiresAt": "2026-04-08T20:35:03.096Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.096Z",
+    "updatedAt": "2026-04-08T20:35:03.096Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.096Z"
+}
+No links
+
+POST
+/api/v1/training/{id}/complete
+Complete training record (Admin/Manager only)
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+certificateDocumentId
+integer($int64)
+(query)
+certificateDocumentId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Training record marked as completed
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.105Z",
+    "createdAt": "2026-04-08T20:35:03.105Z",
+    "updatedAt": "2026-04-08T20:35:03.105Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.105Z",
+  "expiresAt": "2026-04-08T20:35:03.105Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.105Z",
+    "updatedAt": "2026-04-08T20:35:03.105Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.105Z"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.108Z",
+    "createdAt": "2026-04-08T20:35:03.108Z",
+    "updatedAt": "2026-04-08T20:35:03.108Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.108Z",
+  "expiresAt": "2026-04-08T20:35:03.108Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.108Z",
+    "updatedAt": "2026-04-08T20:35:03.108Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.108Z"
+}
+No links
+403	
+Forbidden - Admin/Manager only
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.111Z",
+    "createdAt": "2026-04-08T20:35:03.111Z",
+    "updatedAt": "2026-04-08T20:35:03.111Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.111Z",
+  "expiresAt": "2026-04-08T20:35:03.111Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.111Z",
+    "updatedAt": "2026-04-08T20:35:03.111Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.111Z"
+}
+No links
+404	
+Training record not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.114Z",
+    "createdAt": "2026-04-08T20:35:03.114Z",
+    "updatedAt": "2026-04-08T20:35:03.114Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.114Z",
+  "expiresAt": "2026-04-08T20:35:03.114Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.114Z",
+    "updatedAt": "2026-04-08T20:35:03.114Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.114Z"
+}
+No links
+
+PUT
+/api/v1/training/{id}
+Update training record
+
+
+Parameters
+Try it out
+Name	Description
+id *
+integer($int64)
+(path)
+id
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "userId": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.124Z",
+  "expiresAt": "2026-04-08T20:35:03.124Z",
+  "certificateDocumentId": 0,
+  "notes": "string"
+}
+Responses
+Code	Description	Links
+200	
+Training record updated successfully
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.125Z",
+    "createdAt": "2026-04-08T20:35:03.125Z",
+    "updatedAt": "2026-04-08T20:35:03.125Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.125Z",
+  "expiresAt": "2026-04-08T20:35:03.125Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.125Z",
+    "updatedAt": "2026-04-08T20:35:03.125Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.125Z"
+}
+No links
+400	
+Bad request
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.128Z",
+    "createdAt": "2026-04-08T20:35:03.128Z",
+    "updatedAt": "2026-04-08T20:35:03.128Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.128Z",
+  "expiresAt": "2026-04-08T20:35:03.128Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.128Z",
+    "updatedAt": "2026-04-08T20:35:03.128Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.128Z"
+}
+No links
+401	
+Unauthorized
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.130Z",
+    "createdAt": "2026-04-08T20:35:03.130Z",
+    "updatedAt": "2026-04-08T20:35:03.130Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.130Z",
+  "expiresAt": "2026-04-08T20:35:03.130Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.130Z",
+    "updatedAt": "2026-04-08T20:35:03.130Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.130Z"
+}
+No links
+403	
+Forbidden
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.133Z",
+    "createdAt": "2026-04-08T20:35:03.133Z",
+    "updatedAt": "2026-04-08T20:35:03.133Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.133Z",
+  "expiresAt": "2026-04-08T20:35:03.133Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.133Z",
+    "updatedAt": "2026-04-08T20:35:03.133Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.133Z"
+}
+No links
+404	
+Training record not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "trainingRecordId": 0,
+  "user": {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "isActive": true,
+    "phone": "string",
+    "globalLastSeenAt": "2026-04-08T20:35:03.135Z",
+    "createdAt": "2026-04-08T20:35:03.135Z",
+    "updatedAt": "2026-04-08T20:35:03.135Z",
+    "active": true,
+    "locked": true
+  },
+  "orgNumber": 0,
+  "trainingType": "FOOD_HYGIENE",
+  "title": "string",
+  "completedAt": "2026-04-08T20:35:03.135Z",
+  "expiresAt": "2026-04-08T20:35:03.135Z",
+  "status": "ASSIGNED",
+  "certificateDocument": {
+    "documentId": 0,
+    "orgNumber": 0,
+    "documentType": "string",
+    "title": "string",
+    "description": "string",
+    "currentVersion": 0,
+    "active": true,
+    "createdByUserId": 0,
+    "createdAt": "2026-04-08T20:35:03.135Z",
+    "updatedAt": "2026-04-08T20:35:03.135Z"
+  },
+  "notes": "string",
+  "createdAt": "2026-04-08T20:35:03.135Z"
+}
+No links
+User Management
+Manage users within organizations
+
+
+
+DELETE
+/api/users/{userId}
+Delete user
+
+
+Soft delete (deactivate) a user (ADMIN only)
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+204	
+User successfully deactivated
+
+No links
+403	
+Insufficient permissions
+
+No links
+404	
+User not found
+
+No links
+
+GET
+/api/users/{userId}
+Get user by ID
+
+
+Retrieve a specific user by ID
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved user
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "userId": 0,
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:03.148Z",
+  "updatedAt": "2026-04-08T20:35:03.148Z",
+  "roles": [
+    {
+      "roleId": 0,
+      "roleName": "string",
+      "description": "string",
+      "isSystemRole": true
+    }
+  ]
+}
+No links
+404	
+User not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "userId": 0,
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:03.150Z",
+  "updatedAt": "2026-04-08T20:35:03.150Z",
+  "roles": [
+    {
+      "roleId": 0,
+      "roleName": "string",
+      "description": "string",
+      "isSystemRole": true
+    }
+  ]
+}
+No links
+
+GET
+/api/users
+Get all users
+
+
+Retrieve all users in an organization
+
+Parameters
+Try it out
+Name	Description
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Responses
+Code	Description	Links
+200	
+Successfully retrieved users
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+[
+  {
+    "userId": 0,
+    "displayName": "string",
+    "email": "string",
+    "phone": "string",
+    "isActive": true,
+    "createdAt": "2026-04-08T20:35:03.155Z",
+    "updatedAt": "2026-04-08T20:35:03.155Z",
+    "roles": [
+      {
+        "roleId": 0,
+        "roleName": "string",
+        "description": "string",
+        "isSystemRole": true
+      }
+    ]
+  }
+]
+No links
+
+POST
+/api/users
+Create user
+
+
+Create a new user in an organization (ADMIN only)
+
+Parameters
+Try it out
+No parameters
+
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "password": "KL2&/<Hf?ty$KMH%+rVdl.Epr&>!sHK$kvj,n!dV/W<nottWc08|-dX,O&BmuT3ZERzlZ'`_C+WJ=1=*,Prs!}Vng~2sXv\\*F#ol",
+  "orgNumber": 0,
+  "roleIds": [
+    0
+  ]
+}
+Responses
+Code	Description	Links
+201	
+User successfully created
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "userId": 0,
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:03.164Z",
+  "updatedAt": "2026-04-08T20:35:03.164Z",
+  "roles": [
+    {
+      "roleId": 0,
+      "roleName": "string",
+      "description": "string",
+      "isSystemRole": true
+    }
+  ]
+}
+No links
+400	
+Invalid input or email already exists
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "userId": 0,
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:03.166Z",
+  "updatedAt": "2026-04-08T20:35:03.166Z",
+  "roles": [
+    {
+      "roleId": 0,
+      "roleName": "string",
+      "description": "string",
+      "isSystemRole": true
+    }
+  ]
+}
+No links
+403	
+Insufficient permissions
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "userId": 0,
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:03.168Z",
+  "updatedAt": "2026-04-08T20:35:03.168Z",
+  "roles": [
+    {
+      "roleId": 0,
+      "roleName": "string",
+      "description": "string",
+      "isSystemRole": true
+    }
+  ]
+}
+No links
+
+PUT
+/api/users/{userId}
+Update user
+
+
+Update user details
+
+Parameters
+Try it out
+Name	Description
+userId *
+integer($int64)
+(path)
+userId
+orgNumber *
+integer($int32)
+(query)
+orgNumber
+Request body
+
+application/json
+Example Value
+Schema
+{
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "isActive": true,
+  "roleIds": [
+    0
+  ]
+}
+Responses
+Code	Description	Links
+200	
+User successfully updated
+
+Media type
+
+application/json
+Controls Accept header.
+Example Value
+Schema
+{
+  "userId": 0,
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:03.179Z",
+  "updatedAt": "2026-04-08T20:35:03.179Z",
+  "roles": [
+    {
+      "roleId": 0,
+      "roleName": "string",
+      "description": "string",
+      "isSystemRole": true
+    }
+  ]
+}
+No links
+403	
+Insufficient permissions
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "userId": 0,
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:03.181Z",
+  "updatedAt": "2026-04-08T20:35:03.181Z",
+  "roles": [
+    {
+      "roleId": 0,
+      "roleName": "string",
+      "description": "string",
+      "isSystemRole": true
+    }
+  ]
+}
+No links
+404	
+User not found
+
+Media type
+
+application/json
+Example Value
+Schema
+{
+  "userId": 0,
+  "displayName": "string",
+  "email": "string",
+  "phone": "string",
+  "isActive": true,
+  "createdAt": "2026-04-08T20:35:03.183Z",
+  "updatedAt": "2026-04-08T20:35:03.183Z",
+  "roles": [
+    {
+      "roleId": 0,
+      "roleName": "string",
+      "description": "string",
+      "isSystemRole": true
+    }
+  ]
+}

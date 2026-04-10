@@ -24,6 +24,7 @@
   "dependencies": {
     "@vueuse/motion": "^3.0.3",
     "axios": "^1.13.6",
+    "lucide-vue-next": "^1.0.0",
     "motion": "^12.38.0",
     "motion-v": "^2.2.0",
     "pinia": "^3.0.4",
