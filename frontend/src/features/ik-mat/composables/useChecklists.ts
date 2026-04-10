@@ -125,7 +125,10 @@ export function useChecklists() {
     // Mark as inactive in local state
     const index = templates.value.findIndex((t) => t.templateId === templateId)
     if (index !== -1) {
-      templates.value[index].isActive = false
+      const template = templates.value[index]
+      if (template) {
+        template.isActive = false
+      }
     }
   }
 
