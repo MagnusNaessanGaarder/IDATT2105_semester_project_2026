@@ -79,13 +79,14 @@ const applyDatePreset = () => {
   }
 }
 
-const filteredAuditLog = computed(() => {
+// Search filter - filter the full dataset, then paginate
+const searchFilteredAuditLog = computed(() => {
   const search = query.value.trim().toLowerCase()
-  return auditData.paginatedAuditLog.value.filter((entry) => {
-    if (search.length === 0) {
-      return true
-    }
+  if (search.length === 0) {
+    return auditData.sortedAuditLog.value
+  }
 
+  return auditData.sortedAuditLog.value.filter((entry) => {
     return (
       entry.user.toLowerCase().includes(search) ||
       entry.action.toLowerCase().includes(search) ||
@@ -93,6 +94,33 @@ const filteredAuditLog = computed(() => {
       entry.resource.toLowerCase().includes(search)
     )
   })
+})
+
+// Pagination on filtered results
+const filteredPaginatedAuditLog = computed(() => {
+  const start = (auditData.currentPage.value - 1) * auditData.pageSize.value
+  const end = start + auditData.pageSize.value
+  return searchFilteredAuditLog.value.slice(start, end)
+})
+
+// Total entries after filtering
+const filteredTotalEntries = computed(() => searchFilteredAuditLog.value.length)
+const filteredTotalPages = computed(() => Math.max(1, Math.ceil(filteredTotalEntries.value / auditData.pageSize.value)))
+
+// Filtered pagination info for display
+const filteredPaginationInfo = computed(() => {
+  const total = filteredTotalEntries.value
+  if (total === 0) {
+    return { start: 0, end: 0, total: 0 }
+  }
+  const start = (auditData.currentPage.value - 1) * auditData.pageSize.value + 1
+  const end = Math.min(auditData.currentPage.value * auditData.pageSize.value, total)
+  return { start, end, total }
+})
+
+// Custom pagination functions that reset to page 1 when search changes
+watch(query, () => {
+  auditData.goToFirstPage()
 })
 
 const formatDateTime = (timestamp: string): string => {
@@ -210,7 +238,7 @@ defineExpose({
       <div class="audit-header__left">
         <h2>Revisjonslogg</h2>
         <span class="audit-count">
-          Viser {{ auditData.paginationInfo.value.start }}–{{ auditData.paginationInfo.value.end }} av {{ auditData.paginationInfo.value.total }} hendelser
+          Viser {{ filteredPaginationInfo.start }}–{{ filteredPaginationInfo.end }} av {{ filteredPaginationInfo.total }} hendelser
         </span>
       </div>
       <div class="audit-header__right">
@@ -283,8 +311,9 @@ defineExpose({
     <div v-else-if="auditData.error.value" class="error-message">
       ⚠ {{ auditData.error.value }}
     </div>
-    <div v-else-if="filteredAuditLog.length === 0" class="audit-empty-state">
-      <p>Ingen revisjonshendelser funnet</p>
+    <div v-else-if="filteredPaginatedAuditLog.length === 0" class="audit-empty-state">
+      <p>{{ query.trim() ? `Ingen resultater for "${query.trim()}"` : 'Ingen revisjonshendelser funnet' }}</p>
+      <button v-if="query.trim()" class="btn btn--secondary btn--sm" @click="query = ''">Nullstill søk</button>
     </div>
 
     <template v-else>
@@ -301,7 +330,7 @@ defineExpose({
             </tr>
           </thead>
           <tbody>
-            <template v-for="entry in filteredAuditLog" :key="entry.id">
+            <template v-for="entry in filteredPaginatedAuditLog" :key="entry.id">
               <tr
                 class="audit-row"
                 :class="{ 'audit-row--expanded': expandedEntryId === entry.id }"
@@ -351,31 +380,6 @@ defineExpose({
                       </table>
                     </div>
 
-                    <!-- Basic Info -->
-                    <div class="detail-grid">
-                      <div class="detail-item">
-                        <span class="detail-label">Tidspunkt:</span>
-                        <span class="detail-value">{{ formatDateTime(entry.timestamp) }}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">Bruker:</span>
-                        <span class="detail-value">{{ entry.user }}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">Handling:</span>
-                        <span class="detail-value">{{ entry.action }}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">Ressurs:</span>
-                        <span class="detail-value">{{ entry.resource }}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">Resultat:</span>
-                        <span class="detail-value" :class="{ 'text-success': entry.result === 'SUCCESS', 'text-error': entry.result === 'FAILED' }">
-                          {{ entry.result }}
-                        </span>
-                      </div>
-                    </div>
                     <button class="btn btn--secondary btn--sm close-details" @click.stop="toggleEntryDetails(entry.id)">
                       Lukk detaljer
                     </button>
@@ -414,19 +418,19 @@ defineExpose({
           </button>
 
           <span class="pagination__info">
-            Side {{ auditData.currentPage.value }} av {{ auditData.totalPages.value }}
+            Side {{ auditData.currentPage.value }} av {{ filteredTotalPages }}
           </span>
 
           <button
             class="btn btn--secondary btn--sm"
-            :disabled="auditData.currentPage.value === auditData.totalPages.value"
+            :disabled="auditData.currentPage.value >= filteredTotalPages"
             @click="auditData.goToNextPage()"
           >
             Neste ›
           </button>
           <button
             class="btn btn--secondary btn--sm"
-            :disabled="auditData.currentPage.value === auditData.totalPages.value"
+            :disabled="auditData.currentPage.value >= filteredTotalPages"
             @click="auditData.goToLastPage()"
           >
             Siste »
