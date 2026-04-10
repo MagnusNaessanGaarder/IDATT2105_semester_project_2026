@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,4 +38,22 @@ public interface UserOrganizationRepository extends JpaRepository<UserOrganizati
 
   @Query("SELECT uo FROM UserOrganization uo JOIN FETCH uo.user WHERE uo.organization.orgNumber = :orgNumber")
   List<UserOrganization> findByOrgNumber(@Param("orgNumber") Integer orgNumber);
+
+  @Query("""
+      SELECT uo FROM UserOrganization uo
+      JOIN FETCH uo.user
+      WHERE uo.organization.orgNumber = :orgNumber
+        AND uo.isActive = false
+        AND uo.leftAt IS NOT NULL
+        AND uo.leftAt < :cutoff
+      """)
+  List<UserOrganization> findInactiveLeftBefore(@Param("orgNumber") Integer orgNumber,
+                                                 @Param("cutoff") LocalDateTime cutoff);
+
+  @Query("""
+      SELECT COUNT(uo) FROM UserOrganization uo
+      WHERE uo.user.userId = :userId
+        AND uo.isActive = true
+      """)
+  long countActiveMemberships(@Param("userId") Long userId);
 }

@@ -8,6 +8,7 @@ import com.example.InternalControl.model.enums.RunStatus;
 import com.example.InternalControl.repository.checklist.ChecklistRunItemRepository;
 import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
 import com.example.InternalControl.repository.checklist.ChecklistTemplateRepository;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
     private final ChecklistRunItemRepository runItemRepository;
 
     private final ChecklistTemplateRepository templateRepository;
+    private final OrganizationModuleAccessService moduleAccessService;
 
     @Override
     public ChecklistRun createRun(Long templateId, Integer orgNumber, Long userId, LocalDate runDate) {
@@ -37,6 +39,7 @@ public class ChecklistRunServiceImpl implements ChecklistRunService {
                 .findByTemplateIdAndOrgNumber(templateId, orgNumber)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Template not found: " + templateId));
+        moduleAccessService.ensureModuleEnabled(orgNumber, template.getModuleType());
 
         if (Boolean.FALSE.equals(template.getIsActive())) {
             throw new IllegalStateException("Cannot create run from inactive template");

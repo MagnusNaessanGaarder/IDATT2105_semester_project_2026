@@ -13,8 +13,28 @@ declare module 'axios' {
   }
 }
 
+const normalizeApiBaseUrl = (value: string | undefined): string => {
+  const fallback = 'http://localhost:8080/api/v1'
+  if (!value || value.trim().length === 0) {
+    return fallback
+  }
+
+  const trimmed = value.trim().replace(/\/+$/, '')
+  if (trimmed.endsWith('/api/v1')) {
+    return trimmed
+  }
+  if (trimmed.endsWith('/api')) {
+    return `${trimmed}/v1`
+  }
+  return `${trimmed}/api/v1`
+}
+
+const apiBaseUrl = import.meta.env.DEV
+  ? '/api/v1'
+  : normalizeApiBaseUrl(import.meta.env.VITE_API_URL as string | undefined)
+
 export const client = axios.create({
-  baseURL: import.meta.env.DEV ? '/api/v1' : (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'),
+  baseURL: apiBaseUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -38,6 +58,42 @@ const shouldAttachOrgContext = (url?: string): boolean => {
 const isFilesEndpoint = (url?: string): boolean => {
   if (!url) return false
   return url.includes('/files')
+}
+
+export const normalizeRelativeApiPath = (url?: string): string | undefined => {
+  if (!url) {
+    return url
+  }
+
+  if (/^https?:\/\//i.test(url)) {
+    return url
+  }
+
+  if (url === '/api/v1' || url === 'api/v1') {
+    return '/'
+  }
+
+  if (url.startsWith('/api/v1/')) {
+    return url.slice('/api/v1'.length)
+  }
+
+  if (url.startsWith('api/v1/')) {
+    return `/${url.slice('api/v1/'.length)}`
+  }
+
+  if (url === '/api' || url === 'api') {
+    return '/'
+  }
+
+  if (url.startsWith('/api/')) {
+    return url.slice('/api'.length)
+  }
+
+  if (url.startsWith('api/')) {
+    return `/${url.slice('api/'.length)}`
+  }
+
+  return url
 }
 
 const clearSessionTokens = () => {
@@ -108,7 +164,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
     return null
   }
 
-  const refreshEndpoint = `${client.defaults.baseURL || '/api'}/auth/refresh`
+  const refreshEndpoint = `${client.defaults.baseURL || '/api/v1'}/auth/refresh`
 
   refreshPromise = axios
     .post(refreshEndpoint, { refreshToken })
@@ -137,6 +193,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
 // Add JWT token to all requests
 client.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
+    config.url = normalizeRelativeApiPath(config.url)
     console.log(`[HTTP] 📤 ${config.method?.toUpperCase()} ${config.url}`)
     if (config.params) {
       console.log('[HTTP]    Params:', config.params)

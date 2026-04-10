@@ -1,5 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 import {
   documentsApi,
   type OrganizationDocument,
@@ -129,7 +130,11 @@ export function useDocuments() {
   function formatDate(iso: string): string {
     const d = new Date(iso)
     if (isNaN(d.getTime())) return iso
-    return d.toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })
+    return formatDateForOrganization(d, orgNumber.value ?? undefined, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
   }
 
   onMounted(fetchDocuments)

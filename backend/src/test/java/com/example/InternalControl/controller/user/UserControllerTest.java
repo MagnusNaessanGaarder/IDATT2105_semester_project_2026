@@ -2,13 +2,16 @@ package com.example.InternalControl.controller.user;
 
 import com.example.InternalControl.dto.user.UserCreateRequest;
 import com.example.InternalControl.dto.user.UserUpdateRequest;
+import com.example.InternalControl.model.organization.Organization;
 import com.example.InternalControl.model.user.AppUser;
 import com.example.InternalControl.model.user.Role;
 import com.example.InternalControl.model.user.UserOrganization;
 import com.example.InternalControl.model.user.UserOrganizationId;
 import com.example.InternalControl.model.user.UserOrganizationRole;
 import com.example.InternalControl.model.user.UserOrganizationRoleId;
+import com.example.InternalControl.repository.organization.OrganizationRepository;
 import com.example.InternalControl.repository.user.AppUserRepository;
+import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import com.example.InternalControl.security.CustomUserDetails;
@@ -63,6 +66,12 @@ class UserControllerTest {
     private UserOrganizationRoleRepository userOrgRoleRepository;
 
     @MockBean
+    private OrganizationRepository organizationRepository;
+
+    @MockBean
+    private RoleRepository roleRepository;
+
+    @MockBean
     private PasswordEncoder passwordEncoder;
 
     @MockBean
@@ -95,6 +104,13 @@ class UserControllerTest {
                 .isActive(true)
                 .joinedAt(LocalDateTime.now())
                 .build();
+
+        // Mock organization repository
+        Organization org = Organization.builder()
+                .orgNumber(937219997)
+                .legalName("Test Org")
+                .build();
+        when(organizationRepository.findById(937219997)).thenReturn(Optional.of(org));
     }
 
     @Test

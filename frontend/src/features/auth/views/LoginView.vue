@@ -36,10 +36,10 @@ const handleLogin = async () => {
 <template>
   <div class="login-page">
     <div
-      class="login-container"
-      v-motion
-      :initial="{ opacity: 0, y: 10 }"
-      :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
+        class="login-container"
+        v-motion
+        :initial="{ opacity: 0, y: 10 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
     >
       <form class="login-form" @submit.prevent="handleLogin">
         <p class="login-kicker">Internkontroll</p>
@@ -48,12 +48,12 @@ const handleLogin = async () => {
 
         <div v-if="error" class="error-message" role="alert">
           <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
           >
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -65,24 +65,24 @@ const handleLogin = async () => {
         <div class="form-group">
           <label for="email">E-post</label>
           <input
-            id="email"
-            v-model="email"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="din@epost.no"
+              id="email"
+              v-model="email"
+              type="email"
+              required
+              autocomplete="email"
+              placeholder="din@epost.no"
           />
         </div>
 
         <div class="form-group">
           <label for="password">Passord</label>
           <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            autocomplete="current-password"
-            placeholder="passord"
+              id="password"
+              v-model="password"
+              type="password"
+              required
+              autocomplete="current-password"
+              placeholder="passord"
           />
         </div>
 
@@ -90,6 +90,11 @@ const handleLogin = async () => {
           <span v-if="isLoading">Logger inn...</span>
           <span v-else>Logg inn</span>
         </button>
+
+        <p class="register-link">
+          Ny bruker?
+          <router-link :to="{ name: 'Register' }">Opprett konto</router-link>
+        </p>
       </form>
 
       <footer class="login-footer"></footer>
@@ -104,9 +109,9 @@ const handleLogin = async () => {
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(circle at 8% 14%, var(--color-surface-tint), transparent 32%),
-    radial-gradient(circle at 90% 88%, var(--color-surface-tint-strong), transparent 35%),
-    linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
+      radial-gradient(circle at 8% 14%, var(--color-surface-tint), transparent 32%),
+      radial-gradient(circle at 90% 88%, var(--color-surface-tint-strong), transparent 35%),
+      linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
   padding: var(--content-padding);
 }
 
@@ -235,5 +240,18 @@ const handleLogin = async () => {
   .login-form {
     padding: 1.5rem;
   }
+}
+
+.register-link {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+}
+
+.register-link a {
+  color: var(--color-foreground);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
 }
 </style>

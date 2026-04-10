@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -50,4 +52,15 @@ public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long
 
     List<ChecklistRun> findByOrgNumberAndStatusAndDueAtBefore(
             Integer orgNumber, RunStatus status, java.time.LocalDateTime now);
+
+    @Query("""
+            SELECT r FROM ChecklistRun r
+            WHERE r.orgNumber = :orgNumber
+              AND r.status IN :statuses
+              AND r.dueAt IS NOT NULL
+              AND r.dueAt < :cutoff
+            """)
+    List<ChecklistRun> findReminderCandidates(@Param("orgNumber") Integer orgNumber,
+                                              @Param("statuses") Collection<RunStatus> statuses,
+                                              @Param("cutoff") LocalDateTime cutoff);
 }

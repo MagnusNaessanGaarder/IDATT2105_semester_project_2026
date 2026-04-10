@@ -4,6 +4,7 @@ import com.example.InternalControl.AbstractIntegrationTest;
 import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.organization.LocationService;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +45,9 @@ class LocationControllerTest extends AbstractIntegrationTest {
 
     @MockBean
     private UserOrganizationService userOrgService;
+
+    @MockBean
+    private OrganizationModuleAccessService moduleAccessService;
 
     private static final Integer ORG_NUMBER = 123456789;
     private static final String BASE_URL = "/api/v1/locations";

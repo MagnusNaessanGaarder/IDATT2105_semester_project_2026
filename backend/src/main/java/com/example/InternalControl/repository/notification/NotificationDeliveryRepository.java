@@ -21,4 +21,7 @@ public interface NotificationDeliveryRepository extends JpaRepository<Notificati
     List<NotificationDelivery> findByNotificationIdAndDeliveryStatus(Long notificationId, DeliveryStatus status);
 
     Page<NotificationDelivery> findByDeliveryStatus(DeliveryStatus status, Pageable pageable);
+
+    List<NotificationDelivery> findTop100ByDeliveryChannelAndDeliveryStatusOrderByDeliveryIdAsc(
+            DeliveryChannel channel, DeliveryStatus status);
 }
