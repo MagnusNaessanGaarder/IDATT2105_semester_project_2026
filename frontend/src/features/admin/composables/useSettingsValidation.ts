@@ -17,7 +17,69 @@ const useSettingsValidation = () => {
   }
 
   const validateEmail = (email: string): boolean => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    // RFC 5322 compliant email regex
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+    return emailRegex.test(email)
+  }
+
+  const getEmailError = (email: string): string | null => {
+    if (email.length === 0) {
+      return null // Empty is allowed (optional fields)
+    }
+
+    // Check for common typos
+    const commonTypos = [
+      { pattern: /@gmil\.com$/i, correct: '@gmail.com' },
+      { pattern: /@gmal\.com$/i, correct: '@gmail.com' },
+      { pattern: /@gamil\.com$/i, correct: '@gmail.com' },
+      { pattern: /@hotmial\.com$/i, correct: '@hotmail.com' },
+      { pattern: /@hotmal\.com$/i, correct: '@hotmail.com' },
+      { pattern: /@outlok\.com$/i, correct: '@outlook.com' },
+      { pattern: /@outook\.com$/i, correct: '@outlook.com' },
+      { pattern: /@yaho\.com$/i, correct: '@yahoo.com' },
+    ]
+
+    for (const typo of commonTypos) {
+      if (typo.pattern.test(email)) {
+        return `Mulig skrivefeil: Mente du ${typo.correct}?`
+      }
+    }
+
+    // Check basic format
+    if (!email.includes('@')) {
+      return 'E-post må inneholde @'
+    }
+
+    const parts = email.split('@')
+    if (parts.length !== 2) {
+      return 'Ugyldig e-postformat'
+    }
+
+    const [localPart, domain] = parts
+
+    if (localPart.length === 0) {
+      return 'Mangler navn før @'
+    }
+
+    if (domain.length === 0) {
+      return 'Mangler domene etter @'
+    }
+
+    if (!domain.includes('.')) {
+      return 'Ugyldig domene (mangler .com, .no, etc.)'
+    }
+
+    const domainParts = domain.split('.')
+    if (domainParts[domainParts.length - 1].length < 2) {
+      return 'Ugyldig toppdomene (må være minst 2 tegn)'
+    }
+
+    // Full RFC validation
+    if (!validateEmail(email)) {
+      return 'Ugyldig e-postformat'
+    }
+
+    return null
   }
 
   const validateSettings = (settingsState: SettingsState): boolean => {
@@ -110,8 +172,11 @@ const useSettingsValidation = () => {
     if (reminderEnabled && email.length === 0) {
       validationErrors.value.notification_email = 'E-post er påkrevd når e-postpåminnelser er aktivert.'
       return false
-    } else if (email.length > 0 && !validateEmail(email)) {
-      validationErrors.value.notification_email = 'Ugyldig e-postformat.'
+    }
+
+    const error = getEmailError(email)
+    if (error) {
+      validationErrors.value.notification_email = error
       return false
     }
     return true
@@ -119,8 +184,9 @@ const useSettingsValidation = () => {
 
   const validateContactEmail = (value: unknown): boolean => {
     const email = String(value ?? '').trim()
-    if (email.length > 0 && !validateEmail(email)) {
-      validationErrors.value.contact_email = 'Ugyldig e-postformat.'
+    const error = getEmailError(email)
+    if (error) {
+      validationErrors.value.contact_email = error
       return false
     }
     return true
