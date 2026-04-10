@@ -96,17 +96,20 @@ withDefaults(defineProps<Props>(), {
   .base-input {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: var(--spacing-xs);
   }
 
   .base-input__label {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
+    font-family: var(--font-family-ui);
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--color-foreground);
   }
 
   .base-input__required {
-    color: var(--color-danger);
+    color: var(--color-brand-deep-violet);
   }
 
   .base-input__field {
@@ -121,6 +124,7 @@ withDefaults(defineProps<Props>(), {
 
   .base-input__field:focus {
     border-color: var(--color-focus);
+    outline: none;
     box-shadow: var(--shadow-focus);
   }
 
@@ -129,7 +133,7 @@ withDefaults(defineProps<Props>(), {
   }
 
   .base-input__field:disabled {
-    background: var(--color-card-muted);
+    background: var(--color-background-soft);
     cursor: not-allowed;
   }
 

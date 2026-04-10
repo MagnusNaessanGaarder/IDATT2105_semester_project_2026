@@ -38,7 +38,7 @@ withDefaults(defineProps<Props>(), {
 
 .base-spinner__circle {
   border: 2px solid var(--color-gray-300);
-  border-top-color: var(--color-accent);
+  border-top-color: var(--color-cta);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

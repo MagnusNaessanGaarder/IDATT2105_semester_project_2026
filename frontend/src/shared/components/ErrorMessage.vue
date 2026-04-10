@@ -57,8 +57,8 @@
     align-items: flex-start;
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
-    background: var(--color-danger-bg);
-    border-left: 3px solid var(--color-danger);
+    background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface-raised));
+    border-left: 4px solid var(--color-danger);
     border-radius: var(--radius-md);
   }
 
@@ -73,7 +73,7 @@
 
   .error-message__text {
     margin: 0;
-    color: var(--color-danger-fg);
+    color: var(--color-danger);
     font-size: var(--font-size-sm);
   }
 
