@@ -20,4 +20,6 @@ public interface AppUserIdentityRepository extends JpaRepository<AppUserIdentity
     boolean existsByUserIdAndProviderName(Long userId, String providerName);
 
     boolean existsByProviderNameAndProviderUserId(String providerName, String providerUserId);
+
+    long deleteByUserId(Long userId);
 }

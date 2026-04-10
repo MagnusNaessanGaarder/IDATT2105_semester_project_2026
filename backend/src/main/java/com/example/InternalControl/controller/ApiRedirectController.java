@@ -13,9 +13,7 @@ import org.springframework.web.util.UriUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.stream.Collectors;
-
 /**
  * Redirects non-versioned API calls to versioned endpoints.
  * Provides backward compatibility while encouraging migration to versioned URLs.
@@ -52,6 +50,20 @@ public class ApiRedirectController {
         }
         if (queryString != null && !queryString.isBlank()) {
             versionedUri += "?" + queryString;
+        } else if (request.getParameterMap() != null && !request.getParameterMap().isEmpty()) {
+            // Fallback for MockMvc or when getQueryString() returns null
+            StringBuilder params = new StringBuilder();
+            request.getParameterMap().forEach((key, values) -> {
+                for (String value : values) {
+                    if (params.length() > 0) {
+                        params.append("&");
+                    }
+                    params.append(key).append("=").append(value);
+                }
+            });
+            if (params.length() > 0) {
+                versionedUri += "?" + params;
+            }
         }
 
         // Send deprecation warning header

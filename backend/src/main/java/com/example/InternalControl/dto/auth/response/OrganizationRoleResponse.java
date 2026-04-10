@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 public record OrganizationRoleResponse(
     Integer orgNumber,
     String orgName,
+    String contactEmail,
+    String contactPhone,
     String role,
     LocalDateTime joinedAt) {
 }

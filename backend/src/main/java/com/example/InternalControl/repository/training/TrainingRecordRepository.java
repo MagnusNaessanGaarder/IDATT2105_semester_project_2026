@@ -2,6 +2,7 @@ package com.example.InternalControl.repository.training;
 
 import com.example.InternalControl.model.training.TrainingRecord;
 import com.example.InternalControl.model.user.AppUser;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for TrainingRecord entities.
@@ -19,11 +21,17 @@ import java.util.List;
 @Repository
 public interface TrainingRecordRepository extends JpaRepository<TrainingRecord, Long> {
 
+    @EntityGraph(attributePaths = {"user"})
     @Query("SELECT tr FROM TrainingRecord tr WHERE tr.orgNumber = :orgNumber ORDER BY tr.createdAt DESC")
     List<TrainingRecord> findByOrgNumber(@Param("orgNumber") Integer orgNumber);
 
+    @EntityGraph(attributePaths = {"user"})
     @Query("SELECT tr FROM TrainingRecord tr WHERE tr.user.userId = :userId AND tr.orgNumber = :orgNumber")
     List<TrainingRecord> findByUserIdAndOrgNumber(@Param("userId") Long userId, @Param("orgNumber") Integer orgNumber);
+
+    @EntityGraph(attributePaths = {"user"})
+    @Query("SELECT tr FROM TrainingRecord tr WHERE tr.trainingRecordId = :id AND tr.orgNumber = :orgNumber")
+    Optional<TrainingRecord> findByTrainingRecordIdAndOrgNumber(@Param("id") Long id, @Param("orgNumber") Integer orgNumber);
 
     List<TrainingRecord> findByUser(AppUser user);
 

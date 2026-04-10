@@ -136,7 +136,7 @@ describe('Auth Store', () => {
 
       const store = useAuthStore()
       await expect(
-        store.register({ email: 'x', password: 'x' })
+        store.register({ email: 'x', password: 'x', fullName: 'Test User' })
       ).rejects.toBeTruthy()
 
       expect(store.error?.message).toContain('Invalid email')

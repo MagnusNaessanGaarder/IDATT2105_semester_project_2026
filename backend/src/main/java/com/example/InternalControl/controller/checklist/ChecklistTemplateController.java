@@ -10,6 +10,7 @@ import com.example.InternalControl.model.enums.Frequency;
 import com.example.InternalControl.model.enums.ModuleType;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistTemplateService;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -49,6 +50,7 @@ public class ChecklistTemplateController {
 
     private final ChecklistTemplateService templateService;
     private final UserOrganizationService userOrgService;
+    private final OrganizationModuleAccessService moduleAccessService;
 
     @Operation(summary = "Get all templates for organization")
     @GetMapping
@@ -87,6 +89,7 @@ public class ChecklistTemplateController {
         requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_EMPLOYEE", "ROLE_COOK", "ROLE_BARTENDER", "ROLE_WAITER");
         Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
+        moduleAccessService.ensureModuleEnabled(orgNumber, moduleType);
         return ResponseEntity.ok(templateService.getTemplatesByModule(orgNumber, moduleType).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList()));
@@ -117,10 +120,13 @@ public class ChecklistTemplateController {
         Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
+        ModuleType moduleType = requestDto.getModuleType() != null ? requestDto.getModuleType() : ModuleType.FOOD;
+        moduleAccessService.ensureModuleEnabled(orgNumber, moduleType);
+
         ChecklistTemplate template = ChecklistTemplate.builder()
                 .title(requestDto.getTitle())
                 .description(requestDto.getDescription())
-                .moduleType(requestDto.getModuleType() != null ? requestDto.getModuleType() : ModuleType.FOOD)
+                .moduleType(moduleType)
                 .frequency(requestDto.getFrequency() != null ? requestDto.getFrequency() : Frequency.DAILY)
                 .build();
         applyTemplateItems(template, requestDto.getItems());
@@ -148,15 +154,32 @@ public class ChecklistTemplateController {
         Long userId = resolveUserId(userDetails);
         validateUserOrganizationAccess(userId, orgNumber);
 
+        ModuleType moduleType = requestDto.getModuleType() != null ? requestDto.getModuleType() : ModuleType.FOOD;
+        moduleAccessService.ensureModuleEnabled(orgNumber, moduleType);
+
         ChecklistTemplate template = ChecklistTemplate.builder()
                 .title(requestDto.getTitle())
                 .description(requestDto.getDescription())
-                .moduleType(requestDto.getModuleType() != null ? requestDto.getModuleType() : ModuleType.FOOD)
+                .moduleType(moduleType)
                 .frequency(requestDto.getFrequency() != null ? requestDto.getFrequency() : Frequency.DAILY)
                 .build();
         applyTemplateItems(template, requestDto.getItems());
 
         return ResponseEntity.ok(mapToResponse(templateService.updateTemplate(id, template, orgNumber)));
+    }
+
+    @Operation(summary = "Delete template (soft delete)")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<Void> deleteTemplate(
+            @PathVariable Long id,
+            @RequestParam Integer orgNumber,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
+        Long userId = resolveUserId(userDetails);
+        validateUserOrganizationAccess(userId, orgNumber);
+        templateService.deleteTemplate(id, orgNumber);
+        return ResponseEntity.noContent().build();
     }
 
     private ChecklistTemplateResponse mapToResponse(ChecklistTemplate template) {
@@ -191,20 +214,6 @@ public class ChecklistTemplateController {
                 .expectedNumericMax(item.getExpectedNumericMax())
                 .choiceOptionsJson(item.getChoiceOptionsJson())
                 .build();
-    }
-
-    @Operation(summary = "Delete template (soft delete)")
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<Void> deleteTemplate(
-            @PathVariable Long id,
-            @RequestParam Integer orgNumber,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        requireAnyRole("ROLE_ADMIN", "ROLE_MANAGER");
-        Long userId = resolveUserId(userDetails);
-        validateUserOrganizationAccess(userId, orgNumber);
-        templateService.deleteTemplate(id, orgNumber);
-        return ResponseEntity.noContent().build();
     }
 
     private Long resolveUserId(CustomUserDetails userDetails) {

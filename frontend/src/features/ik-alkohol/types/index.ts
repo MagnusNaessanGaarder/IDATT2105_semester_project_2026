@@ -34,6 +34,7 @@ export type GetRunsResult = GetRunsSuccess | GetRunsError
 export interface DailyControlItem {
   id: number
   run_id: number | null
+  run_date: string | null
   template_id: number | null
   template_item_id: number | null
   law_document_id: number | null
@@ -102,7 +103,12 @@ export interface ChecklistRunItemApi {
   templateItemId?: number
   templateItemLabel?: string | null
   booleanValue?: boolean | null
+  textValue?: string | null
+  numericValue?: number | null
+  selectedChoice?: string | null
+  isDeviation?: boolean | null
   commentText?: string | null
+  hasAnswer?: boolean | null
   updatedAt?: string | null
   createdAt?: string | null
 }

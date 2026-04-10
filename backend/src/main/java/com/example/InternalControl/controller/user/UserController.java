@@ -9,6 +9,8 @@ import com.example.InternalControl.model.user.UserOrganizationId;
 import com.example.InternalControl.model.user.UserOrganizationRole;
 import com.example.InternalControl.model.user.UserOrganizationRoleId;
 import com.example.InternalControl.repository.user.AppUserRepository;
+import com.example.InternalControl.repository.organization.OrganizationRepository;
+import com.example.InternalControl.repository.user.RoleRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRepository;
 import com.example.InternalControl.repository.user.UserOrganizationRoleRepository;
 import com.example.InternalControl.security.JwtService;
@@ -55,6 +57,8 @@ public class UserController {
     private final AppUserRepository userRepository;
     private final UserOrganizationRepository userOrgRepository;
     private final UserOrganizationRoleRepository userOrgRoleRepository;
+    private final OrganizationRepository organizationRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
@@ -82,13 +86,6 @@ public class UserController {
         List<UserOrganization> userOrgs = userOrgRepository.findByOrgNumber(orgNumber);
 
         List<UserResponse> users = userOrgs.stream()
-                .filter(uo -> {
-                    if (uo.getUser() == null) {
-                        log.warn("Skipping orphaned user_organization row for orgNumber={} (user is null)", orgNumber);
-                        return false;
-                    }
-                    return true;
-                })
                 .map(uo -> mapToUserResponse(uo.getUser(), orgNumber))
                 .collect(Collectors.toList());
 
@@ -161,6 +158,10 @@ public class UserController {
         user = userRepository.save(user);
 
         // Create organization membership
+        com.example.InternalControl.model.organization.Organization organization =
+                organizationRepository.findById(request.getOrgNumber())
+                        .orElseThrow(() -> new EntityNotFoundException("Organization not found: " + request.getOrgNumber()));
+
         UserOrganizationId userOrgId = UserOrganizationId.builder()
                 .userId(user.getUserId())
                 .orgNumber(request.getOrgNumber())
@@ -168,15 +169,20 @@ public class UserController {
 
         UserOrganization userOrg = UserOrganization.builder()
                 .id(userOrgId)
+                .user(user)
+                .organization(organization)
                 .isActive(true)
                 .joinedAt(LocalDateTime.now())
                 .build();
 
         userOrgRepository.save(userOrg);
 
-        // Assign roles if provided
+        // Assign roles if provided — must set user, organization AND role for @MapsId
         if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
             for (Long roleId : request.getRoleIds()) {
+                com.example.InternalControl.model.user.Role roleEntity = roleRepository.findById(roleId)
+                        .orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleId));
+
                 UserOrganizationRoleId roleIdObj = UserOrganizationRoleId.builder()
                         .userId(user.getUserId())
                         .orgNumber(request.getOrgNumber())
@@ -185,6 +191,9 @@ public class UserController {
 
                 UserOrganizationRole userRole = UserOrganizationRole.builder()
                         .id(roleIdObj)
+                        .user(user)
+                        .organization(organization)
+                        .role(roleEntity)
                         .assignedAt(LocalDateTime.now())
                         .build();
                 userOrgRoleRepository.save(userRole);
@@ -245,8 +254,15 @@ public class UserController {
                     .findByUserIdAndOrgNumber(userId, orgNumber);
             userOrgRoleRepository.deleteAll(existingRoles);
 
-            // Add new roles
+            com.example.InternalControl.model.organization.Organization organization =
+                    organizationRepository.findById(orgNumber)
+                            .orElseThrow(() -> new EntityNotFoundException("Organization not found: " + orgNumber));
+
+            // Add new roles — must set user, organization AND role for @MapsId
             for (Long roleId : request.getRoleIds()) {
+                com.example.InternalControl.model.user.Role roleEntity = roleRepository.findById(roleId)
+                        .orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleId));
+
                 UserOrganizationRoleId roleIdObj = UserOrganizationRoleId.builder()
                         .userId(userId)
                         .orgNumber(orgNumber)
@@ -255,6 +271,9 @@ public class UserController {
 
                 UserOrganizationRole userRole = UserOrganizationRole.builder()
                         .id(roleIdObj)
+                        .user(user)
+                        .organization(organization)
+                        .role(roleEntity)
                         .assignedAt(LocalDateTime.now())
                         .build();
                 userOrgRoleRepository.save(userRole);
@@ -303,6 +322,94 @@ public class UserController {
         userOrgRepository.save(userOrg);
 
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Add an existing user to an organization by email.
+     * The user must have already registered an account.
+     *
+     * @param request the add-to-org request
+     * @return the user response, or 404 if no account exists for that email
+     */
+    @PostMapping("/add-to-org")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    @Operation(summary = "Add existing user to org", description = "Add a pre-registered user to an organization by email (ADMIN only)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User added to organization"),
+            @ApiResponse(responseCode = "404", description = "No account found for that email"),
+            @ApiResponse(responseCode = "409", description = "User is already a member of this organization"),
+            @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
+    public ResponseEntity<UserResponse> addToOrg(
+            @RequestBody AddToOrgRequest request) {
+
+        log.info("Adding user by email {} to organization {}", request.getEmail(), request.getOrgNumber());
+
+        AppUser user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "No account found for email: " + request.getEmail()));
+
+        // Check not already a member
+        if (userOrgRepository.existsByUserIdAndOrgNumber(user.getUserId(), request.getOrgNumber())) {
+            throw new IllegalStateException("User is already a member of this organization");
+        }
+
+        com.example.InternalControl.model.organization.Organization organization =
+                organizationRepository.findById(request.getOrgNumber())
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "Organization not found: " + request.getOrgNumber()));
+
+        // Must set both entity references so @MapsId can derive the composite key
+        UserOrganizationId userOrgId = UserOrganizationId.builder()
+                .userId(user.getUserId())
+                .orgNumber(request.getOrgNumber())
+                .build();
+
+        UserOrganization userOrg = UserOrganization.builder()
+                .id(userOrgId)
+                .user(user)
+                .organization(organization)
+                .isActive(true)
+                .joinedAt(LocalDateTime.now())
+                .build();
+
+        userOrgRepository.save(userOrg);
+
+        // Assign roles — must set user, organization AND role for @MapsId to resolve
+        if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
+            for (Long roleId : request.getRoleIds()) {
+                com.example.InternalControl.model.user.Role roleEntity = roleRepository.findById(roleId)
+                        .orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleId));
+
+                UserOrganizationRoleId roleIdObj = UserOrganizationRoleId.builder()
+                        .userId(user.getUserId())
+                        .orgNumber(request.getOrgNumber())
+                        .roleId(roleId)
+                        .build();
+
+                UserOrganizationRole userRole = UserOrganizationRole.builder()
+                        .id(roleIdObj)
+                        .user(user)
+                        .organization(organization)
+                        .role(roleEntity)
+                        .assignedAt(LocalDateTime.now())
+                        .build();
+                userOrgRoleRepository.save(userRole);
+            }
+        }
+
+        return ResponseEntity.ok(mapToUserResponse(user, request.getOrgNumber()));
+    }
+
+    /** Simple inner DTO for the add-to-org request. */
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class AddToOrgRequest {
+        private String email;
+        private Integer orgNumber;
+        private java.util.List<Long> roleIds;
     }
 
     private UserResponse mapToUserResponse(AppUser user, Integer orgNumber) {

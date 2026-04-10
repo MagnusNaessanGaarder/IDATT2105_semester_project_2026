@@ -4,6 +4,8 @@ import { client } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { getUsers, type User } from '@/features/admin/api/users'
 import DeviationReportForm from '@/shared/components/DeviationReportForm.vue'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 type DeviationStatus =
     | 'DRAFT'
@@ -69,7 +71,7 @@ async function fetchEmployees() {
     const data = await getUsers(orgNumber.value)
     employees.value = data.filter((u) => u.isActive)
   } catch {
-    // non-critical — assign UI degrades gracefully
+    // non-critical - assign UI degrades gracefully
   }
 }
 
@@ -82,8 +84,9 @@ async function fetchDeviations() {
       params: { orgNumber: orgNumber.value },
     })
     deviations.value = data
-    if (selectedId.value === null && data.length > 0) {
-      selectedId.value = data[0].reportId
+    const firstDeviation = data[0]
+    if (selectedId.value === null && firstDeviation) {
+      selectedId.value = firstDeviation.reportId
     }
   } catch {
     error.value = 'Kunne ikke hente avvik. Prøv igjen.'
@@ -107,8 +110,9 @@ const selectedDeviation = computed(
 )
 
 watch(filtered, (list) => {
-  if (!list.find((d) => d.reportId === selectedId.value) && list.length > 0) {
-    selectedId.value = list[0].reportId
+  const firstDeviation = list[0]
+  if (!list.find((d) => d.reportId === selectedId.value) && firstDeviation) {
+    selectedId.value = firstDeviation.reportId
   }
 })
 
@@ -278,7 +282,7 @@ function reportTypeLabel(t: ReportType): string {
 }
 
 function formatDate(d: string | null): string {
-  if (!d) return '—'
+  if (!d) return '-'
   return new Date(d).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
@@ -335,7 +339,7 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
             @click="selectDeviation(item.reportId)"
         >
           <p class="list-item__title">{{ item.title }}</p>
-          <p class="list-item__meta">{{ item.locationText ?? '—' }} · {{ formatDate(item.reportDate) }}</p>
+          <p class="list-item__meta">{{ item.locationText ?? '-' }} · {{ formatDate(item.reportDate) }}</p>
           <div class="list-item__chips">
             <span class="chip" :class="`chip--${statusTone(item.status)}`">{{ statusLabel(item.status) }}</span>
             <span class="chip" :class="`chip--${severityTone(item.severity)}`">{{ severityLabel(item.severity) }}</span>
@@ -371,19 +375,19 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
           </div>
           <div class="detail-field">
             <p class="detail-label">Lokasjon</p>
-            <p class="detail-value">{{ selectedDeviation.locationText ?? '—' }}</p>
+            <p class="detail-value">{{ selectedDeviation.locationText ?? '-' }}</p>
           </div>
           <div class="detail-field">
             <p class="detail-label">Oppdaget av</p>
-            <p class="detail-value">{{ selectedDeviation.discoveredByName ?? '—' }}</p>
+            <p class="detail-value">{{ selectedDeviation.discoveredByName ?? '-' }}</p>
           </div>
           <div class="detail-field">
             <p class="detail-label">Rapportert til</p>
-            <p class="detail-value">{{ selectedDeviation.reportedToName ?? '—' }}</p>
+            <p class="detail-value">{{ selectedDeviation.reportedToName ?? '-' }}</p>
           </div>
           <div class="detail-field">
             <p class="detail-label">Tildelt</p>
-            <p class="detail-value">{{ selectedDeviation.assignedToName ?? '—' }}</p>
+            <p class="detail-value">{{ selectedDeviation.assignedToName ?? '-' }}</p>
           </div>
         </div>
 
@@ -484,7 +488,7 @@ const actionLabels: Record<NonNullable<typeof activeAction.value>, string> = {
           <div v-if="assignOpen" class="action-form">
             <label class="action-form__label" for="assign-select">Tildel til</label>
             <select id="assign-select" v-model="assignUserId" class="action-form__select">
-              <option :value="null">— Velg ansatt —</option>
+              <option :value="null">- Velg ansatt -</option>
               <option v-for="emp in employees" :key="emp.userId" :value="emp.userId">
                 {{ emp.displayName }}
               </option>

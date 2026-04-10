@@ -7,6 +7,7 @@ import com.example.InternalControl.model.enums.ModuleType;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.checklist.ChecklistTemplateService;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,9 @@ class ChecklistTemplateControllerTest {
 
     @MockBean
     private JwtService jwtService;
+
+    @MockBean
+    private OrganizationModuleAccessService moduleAccessService;
 
     @BeforeEach
     void setUp() {

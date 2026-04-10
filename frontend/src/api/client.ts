@@ -1,11 +1,40 @@
-import axios, { type InternalAxiosRequestConfig } from 'axios'
+import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 import { getOrgNumber } from '@/shared/utils/orgContext'
 
 // Extend Axios config type to allow _retry property
 declare module 'axios' {
+  interface AxiosRequestConfig {
+    skipGlobalErrorLog?: boolean
+  }
+
   interface InternalAxiosRequestConfig {
     _retry?: boolean
+    skipGlobalErrorLog?: boolean
   }
+}
+
+export const normalizeRelativeApiPath = (path: string): string => {
+  if (/^https?:\/\//i.test(path)) {
+    return path
+  }
+
+  if (path.startsWith('/api/v1/')) {
+    return path.replace(/^\/api\/v1/, '')
+  }
+
+  if (path.startsWith('api/v1/')) {
+    return `/${path.replace(/^api\/v1\//, '')}`
+  }
+
+  if (path.startsWith('/api/')) {
+    return path.replace(/^\/api/, '')
+  }
+
+  if (path.startsWith('api/')) {
+    return `/${path.replace(/^api\//, '')}`
+  }
+
+  return path
 }
 
 export const client = axios.create({
@@ -99,6 +128,10 @@ const refreshAccessToken = async (): Promise<string | null> => {
 // Add JWT token to all requests
 client.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
+    if (config.url) {
+      config.url = normalizeRelativeApiPath(config.url)
+    }
+
     if (shouldSkipAuthHeader(config.url)) {
       return config
     }
