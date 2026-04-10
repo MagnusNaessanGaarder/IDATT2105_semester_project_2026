@@ -1,7 +1,9 @@
 package com.example.InternalControl.controller.organization;
 
 import com.example.InternalControl.model.organization.Organization;
+import com.example.InternalControl.model.user.*;
 import com.example.InternalControl.repository.organization.OrganizationRepository;
+import com.example.InternalControl.repository.user.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,8 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -33,6 +38,11 @@ import java.util.List;
 public class OrganizationAdminController {
 
     private final OrganizationRepository organizationRepository;
+    private final AppUserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final UserOrganizationRepository userOrganizationRepository;
+    private final UserOrganizationRoleRepository userOrganizationRoleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping
     @Operation(
@@ -136,6 +146,74 @@ public class OrganizationAdminController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{orgNumber}/admins")
+    @Transactional
+    @Operation(
+            summary = "Add an admin user to an organization",
+            description = "Creates a new user and assigns them the ADMIN role within the specified organization."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Admin user created and assigned successfully"),
+            @ApiResponse(responseCode = "404", description = "Organization or Role not found"),
+            @ApiResponse(responseCode = "409", description = "Email already in use"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden – SYSADMIN role required")
+    })
+    public ResponseEntity<Void> addAdmin(
+            @PathVariable Integer orgNumber,
+            @RequestBody AdminUserRequest request) {
+
+        log.info("Sysadmin adding admin {} to organization {}", request.email(), orgNumber);
+
+        Organization org = organizationRepository.findById(orgNumber)
+                .orElseThrow(() -> new EntityNotFoundException("Organization not found: " + orgNumber));
+
+        if (userRepository.existsByEmail(request.email())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        Role adminRole = roleRepository.findByRoleName("ADMIN")
+                .orElseThrow(() -> new EntityNotFoundException("Role ADMIN not found"));
+
+        AppUser user = AppUser.builder()
+                .displayName(request.fullName())
+                .email(request.email())
+                .isActive(true)
+                .build();
+
+        user = userRepository.save(user);
+
+        AppUserLocalCredential credential = AppUserLocalCredential.builder()
+                .user(user)
+                .passwordHash(passwordEncoder.encode(request.password()))
+                .mustChangePw(true)
+                .lastChangedAt(LocalDateTime.now())
+                .failedAttempts(0)
+                .build();
+
+        user.setLocalCredential(credential);
+        userRepository.save(user);
+
+        UserOrganization uo = UserOrganization.builder()
+                .id(new UserOrganizationId(user.getUserId(), org.getOrgNumber()))
+                .user(user)
+                .organization(org)
+                .isActive(true)
+                .build();
+        userOrganizationRepository.save(uo);
+
+        UserOrganizationRole uor = UserOrganizationRole.builder()
+                .id(new UserOrganizationRoleId(user.getUserId(), org.getOrgNumber(), adminRole.getRoleId()))
+                .user(user)
+                .organization(org)
+                .role(adminRole)
+                .build();
+        userOrganizationRoleRepository.save(uor);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
     /**
      * Request body for create and update operations.
      * All fields except orgNumber and legalName are optional on update.
@@ -147,5 +225,11 @@ public class OrganizationAdminController {
             String contactEmail,
             String contactPhone,
             Boolean isActive
+    ) {}
+
+    public record AdminUserRequest(
+            String email,
+            String fullName,
+            String password
     ) {}
 }

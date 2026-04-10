@@ -39,6 +39,17 @@ const form = reactive({
 const confirmOrg  = ref<Organization | null>(null)
 const confirming  = ref(false)
 
+// admin modal
+const adminModalOpen = ref(false)
+const selectedOrg    = ref<Organization | null>(null)
+const savingAdmin    = ref(false)
+const adminError     = ref<string | null>(null)
+const adminForm      = reactive({
+  email:    '',
+  fullName: '',
+  password: '',
+})
+
 //  derived 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -174,6 +185,40 @@ function fmtDate(iso?: string) {
   return new Date(iso).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+// admin modal logic
+function openAdminModal(org: Organization) {
+  selectedOrg.value = org
+  adminForm.email    = ''
+  adminForm.fullName = ''
+  adminForm.password = ''
+  adminError.value   = null
+  adminModalOpen.value = true
+}
+
+async function saveAdmin() {
+  if (!adminForm.email || !adminForm.fullName || !adminForm.password) {
+    adminError.value = 'Alle felt er påkrevd.'
+    return
+  }
+  if (!selectedOrg.value) return
+
+  savingAdmin.value = true
+  adminError.value  = null
+  try {
+    await client.post(`/sysadmin/organizations/${selectedOrg.value.orgNumber}/admins`, {
+      email:    adminForm.email.trim(),
+      fullName: adminForm.fullName.trim(),
+      password: adminForm.password
+    })
+    flash('success', `Admin lagt til i ${selectedOrg.value.legalName}`)
+    adminModalOpen.value = false
+  } catch (err: any) {
+    adminError.value = err.response?.data?.message || 'Kunne ikke legge til admin.'
+  } finally {
+    savingAdmin.value = false
+  }
+}
+
 onMounted(fetchOrgs)
 </script>
 
@@ -278,6 +323,7 @@ onMounted(fetchOrgs)
               </span>
           </td>
           <td class="td-actions">
+            <button class="row-btn" type="button" @click="openAdminModal(org)">+ Admin</button>
             <button class="row-btn" type="button" @click="openEdit(org)">Rediger</button>
             <button
                 v-if="org.isActive"
@@ -406,6 +452,42 @@ onMounted(fetchOrgs)
             <button class="btn-ghost" type="button" @click="confirmOrg = null">Avbryt</button>
             <button class="btn-danger" type="button" :disabled="confirming" @click="confirmDeactivate">
               {{ confirming ? 'Deaktiverer…' : 'Deaktiver' }}
+            </button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
+
+    <!--  Add Admin modal  -->
+    <Teleport to="body">
+      <div v-if="adminModalOpen" class="overlay" @click.self="adminModalOpen = false">
+        <div class="modal" role="dialog" aria-modal="true">
+          <header class="modal__header">
+            <h2>Legg til admin i {{ selectedOrg?.legalName }}</h2>
+            <button class="modal__close" type="button" @click="adminModalOpen = false">✕</button>
+          </header>
+
+          <div class="modal__body">
+            <div class="field">
+              <label for="a-email">E-post <span class="req">*</span></label>
+              <input id="a-email" v-model="adminForm.email" type="email" placeholder="admin@firma.no" required />
+            </div>
+            <div class="field">
+              <label for="a-name">Fullt navn <span class="req">*</span></label>
+              <input id="a-name" v-model="adminForm.fullName" type="text" placeholder="Ola Nordmann" required />
+            </div>
+            <div class="field">
+              <label for="a-pass">Passord <span class="req">*</span></label>
+              <input id="a-pass" v-model="adminForm.password" type="password" placeholder="••••••••" required />
+              <small class="subtitle" style="margin-top:0.2rem">Brukeren må bytte passord ved første pålogging.</small>
+            </div>
+            <p v-if="adminError" class="form-error">{{ adminError }}</p>
+          </div>
+
+          <footer class="modal__footer">
+            <button class="btn-ghost" type="button" @click="adminModalOpen = false">Avbryt</button>
+            <button class="btn-primary" type="button" :disabled="savingAdmin" @click="saveAdmin">
+              {{ savingAdmin ? 'Lagrer…' : 'Legg til admin' }}
             </button>
           </footer>
         </div>
