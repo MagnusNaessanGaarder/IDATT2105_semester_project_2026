@@ -1141,11 +1141,6 @@ watch(currentOrgNumber, () => {
   gap: 0.5rem;
 }
 
-.setting-item--modified {
-  margin: -0.6rem -0.5rem;
-  padding: 0.6rem 0.5rem;
-}
-
 .setting-input,
 .setting-select {
   min-width: 0;
@@ -1165,11 +1160,6 @@ watch(currentOrgNumber, () => {
   .setting-item {
     grid-template-columns: 1fr auto;
     gap: 0.8rem;
-  }
-
-  .setting-item--modified {
-    margin: -0.6rem -0.9rem;
-    padding: 0.6rem 0.9rem;
   }
 
   .modal-actions {
