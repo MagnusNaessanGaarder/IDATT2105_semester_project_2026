@@ -74,6 +74,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!accessToken.value)
   const isAdmin = computed(() => role.value === 'ADMIN')
+  const isSysadmin = computed(() => role.value === 'SYSADMIN')
   const currentOrg = computed(() => organizations.value[0] || null)
   const userDisplayName = computed(() => {
     if (email.value) {
@@ -266,6 +267,7 @@ export const useAuthStore = defineStore('auth', () => {
     hasCheckedAuth,
     isAuthenticated,
     isAdmin,
+    isSysadmin,
     currentOrg,
     userDisplayName,
     user,

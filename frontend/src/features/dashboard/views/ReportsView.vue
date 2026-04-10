@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { client } from '@/api/client'
 import {
   useExport,
   exportTypeLabels,
@@ -9,6 +8,7 @@ import {
   exportStatusLabels,
   exportStatusTone,
 } from '@/features/export/composables/useExport.ts'
+import { client } from '@/api/client'
 import { exportApi } from '@/features/export/api.ts'
 import { useAuthStore } from '@/stores/auth.ts'
 import type { ExportResponse } from '@/features/export/api.ts'
@@ -33,10 +33,6 @@ const previewUrl        = ref<string | null>(null)
 const previewJsonText   = ref<string | null>(null)
 const isLoadingPreview  = ref(false)
 const previewError      = ref<string | null>(null)
-const API_PREFIX = '/api/v1'
-
-const toClientRelativePath = (path: string): string =>
-  path.startsWith(API_PREFIX) ? path.slice(API_PREFIX.length) || '/' : path
 
 async function openPreview(job: ExportResponse) {
   if (!orgNumber.value) return
@@ -48,9 +44,11 @@ async function openPreview(job: ExportResponse) {
 
   try {
     const path = await exportApi.getDownloadUrl(orgNumber.value, job.exportJobId)
+    const documentId = Number(path.split('/').pop())
+    if (!documentId) throw new Error('Could not parse document ID from path: ' + path)
     const mimeType = job.format === 'JSON' ? 'application/json' : 'application/pdf'
-    const response = await client.get(toClientRelativePath(path), {
-      params: { orgNumber: orgNumber.value },
+    const response = await client.get<Blob>(`/files/download/${documentId}`, {
+      headers: { 'X-Org-Number': String(orgNumber.value) },
       responseType: 'blob',
     })
 
