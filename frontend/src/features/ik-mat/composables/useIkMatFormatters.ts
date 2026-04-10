@@ -1,16 +1,17 @@
 import type { Checklist, TemperatureRecord } from '../types'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 export const formatDate = (value: string | null): string => {
   if (!value) {
     return '-'
   }
 
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return value
-  }
-
-  return parsed.toLocaleDateString('nb-NO')
+  return formatDateForOrganization(value, getOrgNumber(), {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 export const completionForChecklist = (checklist: Checklist): number => {

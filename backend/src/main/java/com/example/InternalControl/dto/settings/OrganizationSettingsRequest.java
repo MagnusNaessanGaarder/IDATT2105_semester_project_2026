@@ -38,6 +38,15 @@ public class OrganizationSettingsRequest {
     @Email(message = "Invalid email format")
     private String notificationEmail;
 
+    private String displayName;
+
+    private String legalName;
+
+    @Email(message = "Invalid contact email format")
+    private String contactEmail;
+
+    private String contactPhone;
+
     private Integer retentionUserMonths;
 
     private Integer retentionAuditMonths;

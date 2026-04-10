@@ -6,6 +6,9 @@ import com.example.InternalControl.model.audit.ActionType;
 import com.example.InternalControl.model.audit.Audited;
 import com.example.InternalControl.model.organization.OrganizationSettings;
 import com.example.InternalControl.repository.organization.OrganizationSettingsRepository;
+import com.example.InternalControl.service.audit.AuditLogService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrganizationSettingsServiceImpl implements OrganizationSettingsService {
 
     private final OrganizationSettingsRepository settingsRepository;
+    private final AuditLogService auditLogService;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -36,12 +41,11 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
 
     @Override
     @Transactional
-    @Audited(action = ActionType.UPDATE, entityType = "OrganizationSettings")
     public OrganizationSettingsResponse updateSettings(Integer orgNumber, OrganizationSettingsRequest request, Long userId) {
+        // Create default settings if they don't exist
         OrganizationSettings settings = settingsRepository.findById(orgNumber)
                 .orElseGet(() -> {
-                    log.info("No settings found for org: {}. Creating defaults before update.", orgNumber);
-                    return OrganizationSettings.builder()
+                    OrganizationSettings newSettings = OrganizationSettings.builder()
                             .orgNumber(orgNumber)
                             .timezoneName("Europe/Oslo")
                             .localeCode("nb-NO")
@@ -49,23 +53,45 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
                             .enableAlcoholModule(true)
                             .reminderEmailEnabled(true)
                             .build();
+                    return settingsRepository.save(newSettings);
                 });
+        OrganizationSettingsResponse oldValues = mapToResponse(settings);
 
-        settings.setTimezoneName(request.getTimezoneName());
-        settings.setLocaleCode(request.getLocaleCode());
-        settings.setEnableFoodModule(request.getEnableFoodModule());
-        settings.setEnableAlcoholModule(request.getEnableAlcoholModule());
+        if (request.getTimezoneName() != null) {
+            settings.setTimezoneName(request.getTimezoneName());
+        }
+        if (request.getLocaleCode() != null) {
+            settings.setLocaleCode(request.getLocaleCode());
+        }
+        if (request.getEnableFoodModule() != null) {
+            settings.setEnableFoodModule(request.getEnableFoodModule());
+        }
+        if (request.getEnableAlcoholModule() != null) {
+            settings.setEnableAlcoholModule(request.getEnableAlcoholModule());
+        }
         settings.setDefaultTempMinC(request.getDefaultTempMinC());
         settings.setDefaultTempMaxC(request.getDefaultTempMaxC());
-        settings.setReminderEmailEnabled(request.getReminderEmailEnabled());
+        if (request.getReminderEmailEnabled() != null) {
+            settings.setReminderEmailEnabled(request.getReminderEmailEnabled());
+        }
         settings.setNotificationEmail(request.getNotificationEmail());
-        settings.setRetentionUserMonths(request.getRetentionUserMonths());
-        settings.setRetentionAuditMonths(request.getRetentionAuditMonths());
+        settings.setDisplayName(request.getDisplayName());
+        settings.setLegalName(request.getLegalName());
+        settings.setContactEmail(request.getContactEmail());
+        settings.setContactPhone(request.getContactPhone());
+        if (request.getRetentionUserMonths() != null) {
+            settings.setRetentionUserMonths(request.getRetentionUserMonths());
+        }
+        if (request.getRetentionAuditMonths() != null) {
+            settings.setRetentionAuditMonths(request.getRetentionAuditMonths());
+        }
 
         OrganizationSettings updated = settingsRepository.save(settings);
         log.info("Updated organization settings for org: {} by user: {}", orgNumber, userId);
 
-        return mapToResponse(updated);
+        OrganizationSettingsResponse response = mapToResponse(updated);
+        logSettingsUpdateAudit(orgNumber, userId, oldValues, response);
+        return response;
     }
 
     @Override
@@ -104,10 +130,36 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
                 .defaultTempMaxC(settings.getDefaultTempMaxC())
                 .reminderEmailEnabled(settings.isReminderEmailEnabled())
                 .notificationEmail(settings.getNotificationEmail())
+                .displayName(settings.getDisplayName())
+                .legalName(settings.getLegalName())
+                .contactEmail(settings.getContactEmail())
+                .contactPhone(settings.getContactPhone())
                 .retentionUserMonths(Math.toIntExact(settings.getRetentionUserMonths()))
                 .retentionAuditMonths(Math.toIntExact(settings.getRetentionAuditMonths()))
                 .createdAt(settings.getCreatedAt())
                 .updatedAt(settings.getUpdatedAt())
                 .build();
+    }
+
+    private void logSettingsUpdateAudit(Integer orgNumber,
+                                        Long userId,
+                                        OrganizationSettingsResponse oldValues,
+                                        OrganizationSettingsResponse newValues) {
+        try {
+            String oldValuesJson = objectMapper.writeValueAsString(oldValues);
+            String newValuesJson = objectMapper.writeValueAsString(newValues);
+            auditLogService.logAction(
+                    orgNumber,
+                    userId,
+                    ActionType.UPDATE,
+                    "OrganizationSettings",
+                    orgNumber != null ? orgNumber.longValue() : null,
+                    oldValuesJson,
+                    newValuesJson,
+                    null,
+                    null);
+        } catch (JsonProcessingException e) {
+            log.warn("Could not serialize organization settings audit payload for org: {}", orgNumber, e);
+        }
     }
 }

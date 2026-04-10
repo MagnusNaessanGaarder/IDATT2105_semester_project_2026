@@ -12,6 +12,8 @@ import {
 import { exportApi } from '@/features/export/api.ts'
 import { useAuthStore } from '@/stores/auth.ts'
 import type { ExportResponse } from '@/features/export/api.ts'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateTimeForOrganization } from '@/shared/utils/orgSettings'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -105,7 +107,7 @@ const failedCount    = computed(() => exports.value.filter((e) => e.status === '
 
 function formatDate(iso: string | null | undefined) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('nb-NO', {
+  return formatDateTimeForOrganization(iso, getOrgNumber(), {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })

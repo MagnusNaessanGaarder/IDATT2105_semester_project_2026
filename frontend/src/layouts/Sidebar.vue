@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { motion } from 'motion-v'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { isModuleEnabled } from '@/shared/utils/orgSettings'
 import NavSection from './NavSection.vue'
 import SidebarUser from './SidebarUser.vue'
 
@@ -26,6 +27,7 @@ const expandedSections = ref<string[]>([])
 const user = computed(() => authStore.user)
 const isDesktop = ref(false)
 const prefersReducedMotion = ref(false)
+const currentOrgNumber = computed(() => authStore.currentOrg?.orgNumber)
 
 const fallbackBusinessName = 'Internkontroll'
 
@@ -54,31 +56,8 @@ const businessLabel = computed(() => {
 
 const sections = computed(() => [
   {
-    key: 'ikmat',
-    label: 'IK-MAT',
-    icon: 'Salad',
-    dashboardRoute: 'IKMatDashboard',
-    items: [
-      { id: 'checklists', label: 'Sjekklister', route: 'Checklists' },
-      { id: 'temperature', label: 'Temperatur', route: 'Temperature' },
-      { id: 'deviations', label: 'Avvik', route: 'Deviations' },
-      { id: 'haccp', label: 'HACCP-plan', route: 'HACCP' }
-    ]
-  },
-  {
-    key: 'alkohol',
-    label: 'IK-ALKOHOL',
-    icon: 'Wine',
-    dashboardRoute: 'AlkoholDashboard',
-    items: [
-      { id: 'daily-control', label: 'Daglig kontroll', route: 'DailyControl' },
-      { id: 'certifications', label: 'Sertifiseringer', route: 'Certifications' },
-      { id: 'regulations', label: 'Regelverk', route: 'Regulations' }
-    ]
-  },
-  {
-    key: 'felles',
-    label: 'FELLES',
+    key: 'dashboard',
+    label: 'DASHBOARD',
     icon: 'FolderOpen',
     dashboardRoute: 'Dashboard',
     items: [
@@ -90,6 +69,29 @@ const sections = computed(() => [
           : [])
     ]
   },
+  ...(isModuleEnabled('food', currentOrgNumber.value) ? [{
+    key: 'ikmat',
+    label: 'IK-MAT',
+    icon: 'Salad',
+    dashboardRoute: 'IKMatDashboard',
+    items: [
+      { id: 'checklists', label: 'Sjekklister', route: 'Checklists' },
+      { id: 'temperature', label: 'Temperatur', route: 'Temperature' },
+      { id: 'deviations', label: 'Avvik', route: 'Deviations' },
+      { id: 'haccp', label: 'HACCP-plan', route: 'HACCP' }
+    ]
+  }] : []),
+  ...(isModuleEnabled('alcohol', currentOrgNumber.value) ? [{
+    key: 'alkohol',
+    label: 'IK-ALKOHOL',
+    icon: 'Wine',
+    dashboardRoute: 'AlkoholDashboard',
+    items: [
+      { id: 'daily-control', label: 'Daglig kontroll', route: 'DailyControl' },
+      { id: 'certifications', label: 'Sertifiseringer', route: 'Certifications' },
+      { id: 'regulations', label: 'Regelverk', route: 'Regulations' }
+    ]
+  }] : []),
   ...((user.value?.role === 'ADMIN' || user.value?.role === 'MANAGER') ? [{
     key: 'admin',
     label: 'ADMIN',

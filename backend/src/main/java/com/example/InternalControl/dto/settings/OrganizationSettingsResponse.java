@@ -23,6 +23,10 @@ public class OrganizationSettingsResponse {
     private BigDecimal defaultTempMaxC;
     private boolean reminderEmailEnabled;
     private String notificationEmail;
+    private String displayName;
+    private String legalName;
+    private String contactEmail;
+    private String contactPhone;
     private Integer retentionUserMonths;
     private Integer retentionAuditMonths;
     private LocalDateTime createdAt;

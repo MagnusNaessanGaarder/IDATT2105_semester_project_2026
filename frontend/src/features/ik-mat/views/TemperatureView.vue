@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useIkMatData } from '../composables/useIkMatData'
+import { getOrganizationTempDefaults } from '@/shared/utils/orgSettings'
 import { getUsers } from '@/features/admin/api/users'
 import type { TemperatureRecord } from '../types/domain'
 import DeviationReportForm from '@/shared/components/DeviationReportForm.vue'
@@ -125,6 +126,15 @@ const pointOptions = computed(() =>
     })
 )
 
+const resetPointForm = () => {
+  const defaults = getOrganizationTempDefaults(authStore.currentOrg?.orgNumber)
+  pointForm.name = ''
+  pointForm.locationName = ''
+  pointForm.minTempC = defaults.min != null ? String(defaults.min) : ''
+  pointForm.maxTempC = defaults.max != null ? String(defaults.max) : ''
+  editingLocationId.value = null
+  originalRange.value = { min: defaults.min, max: defaults.max }
+}
 //  log modal
 const modalOpen   = ref(false)
 const isSubmitting = ref(false)

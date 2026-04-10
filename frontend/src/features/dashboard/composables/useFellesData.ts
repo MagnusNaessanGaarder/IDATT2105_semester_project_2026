@@ -1,6 +1,7 @@
 import { reactive, ref } from 'vue'
 import { client } from '@/api/client'
 import { getOrgNumber, orgHeaders, withOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 export interface DashboardStat {
   label: string
@@ -134,7 +135,7 @@ const formatDate = (dateValue: string): string => {
     return dateValue
   }
 
-  return date.toLocaleDateString('nb-NO', {
+  return formatDateForOrganization(date, getOrgNumber(), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

@@ -1,6 +1,7 @@
 import { reactive, ref } from 'vue'
 import { client } from '@/api/client'
 import { withOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 export interface DailyControlItem {
   id: number
@@ -121,7 +122,7 @@ const formattedDate = (value: string): string => {
     return value
   }
 
-  return parsedDate.toLocaleDateString('nb-NO')
+  return formatDateForOrganization(parsedDate)
 }
 
 const totalCertificates = () => employees.reduce((sum: number, employee: EmployeeCertification) => sum + employee.certifications.length, 0)

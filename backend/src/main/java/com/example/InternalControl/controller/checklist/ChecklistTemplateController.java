@@ -5,6 +5,7 @@ import com.example.InternalControl.model.checklist.ChecklistTemplate;
 import com.example.InternalControl.model.enums.ModuleType;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.checklist.ChecklistTemplateService;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -44,6 +45,7 @@ public class ChecklistTemplateController {
 
   private final ChecklistTemplateService templateService;
   private final UserOrganizationService userOrgService;
+  private final OrganizationModuleAccessService moduleAccessService;
 
   @Operation(summary = "Get all templates for organization")
   @ApiResponses({
@@ -93,6 +95,7 @@ public class ChecklistTemplateController {
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
+    moduleAccessService.ensureModuleEnabled(orgNumber, moduleType);
     return ResponseEntity.ok(templateService.getTemplatesByModule(orgNumber, moduleType));
   }
 
@@ -127,6 +130,7 @@ public class ChecklistTemplateController {
 
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
+    moduleAccessService.ensureModuleEnabled(orgNumber, requestDto.getModuleType());
 
     ChecklistTemplate template = ChecklistTemplate.builder()
         .title(requestDto.getTitle())
@@ -164,6 +168,7 @@ public class ChecklistTemplateController {
 
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
+    moduleAccessService.ensureModuleEnabled(orgNumber, requestDto.getModuleType());
 
     ChecklistTemplate template = ChecklistTemplate.builder()
         .title(requestDto.getTitle())

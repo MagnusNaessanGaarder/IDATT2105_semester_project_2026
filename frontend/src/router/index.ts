@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { ensureOrganizationSettings, isModuleEnabled } from '@/shared/utils/orgSettings'
 
 declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean
     allowedRoles?: ('ADMIN' | 'MANAGER' | 'EMPLOYEE')[]
+    moduleKey?: 'food' | 'alcohol'
     title?: string
   }
 }
@@ -17,6 +19,12 @@ const router = createRouter({
       name: 'Login',
       component: () => import('@/features/auth/views/LoginView.vue'),
       meta: { requiresAuth: false, title: 'Innlogging' },
+    },
+    {
+      path: '/register',
+      name: 'Register',
+      component: () => import('@/features/auth/views/RegisterView.vue'),
+      meta: { requiresAuth: false, title: 'Registrering' },
     },
     {
       path: '/',
@@ -33,55 +41,55 @@ const router = createRouter({
           path: 'ikmat',
           name: 'IKMatDashboard',
           component: () => import('@/features/ik-mat/views/IKMatDashboardView.vue'),
-          meta: { title: 'IK-Mat Dashboard' },
+          meta: { title: 'IK-Mat Dashboard', moduleKey: 'food' },
         },
         {
           path: 'ikmat/sjekklister',
           name: 'Checklists',
           component: () => import('@/features/ik-mat/views/ChecklistsView.vue'),
-          meta: { title: 'Sjekklister' },
+          meta: { title: 'Sjekklister', moduleKey: 'food' },
         },
         {
           path: 'ikmat/temperatur',
           name: 'Temperature',
           component: () => import('@/features/ik-mat/views/TemperatureView.vue'),
-          meta: { title: 'Temperaturlogging' },
+          meta: { title: 'Temperaturlogging', moduleKey: 'food' },
         },
         {
           path: 'ikmat/avvik',
           name: 'Deviations',
           component: () => import('@/features/ik-mat/views/DeviationsView.vue'),
-          meta: { title: 'Avvikshåndtering' },
+          meta: { title: 'Avvikshåndtering', moduleKey: 'food' },
         },
         {
           path: 'ikmat/haccp',
           name: 'HACCP',
           component: () => import('@/features/ik-mat/views/HACCPView.vue'),
-          meta: { title: 'HACCP-plan' },
+          meta: { title: 'HACCP-plan', moduleKey: 'food' },
         },
         {
           path: 'alkohol',
           name: 'AlkoholDashboard',
           component: () => import('@/features/ik-alkohol/views/AlkoholDashboardView.vue'),
-          meta: { title: 'IK-Alkohol Dashboard' },
+          meta: { title: 'IK-Alkohol Dashboard', moduleKey: 'alcohol' },
         },
         {
           path: 'alkohol/daglig-kontroll',
           name: 'DailyControl',
           component: () => import('@/features/ik-alkohol/views/DailyControlView.vue'),
-          meta: { title: 'Daglig kontroll' },
+          meta: { title: 'Daglig kontroll', moduleKey: 'alcohol' },
         },
         {
           path: 'alkohol/sertifiseringer',
           name: 'Certifications',
           component: () => import('@/features/ik-alkohol/views/CertificationsView.vue'),
-          meta: { title: 'Sertifiseringer' },
+          meta: { title: 'Sertifiseringer', moduleKey: 'alcohol' },
         },
         {
           path: 'alkohol/regelverk',
           name: 'Regulations',
           component: () => import('@/features/ik-alkohol/views/RegulationsView.vue'),
-          meta: { title: 'Regelverk' },
+          meta: { title: 'Regelverk', moduleKey: 'alcohol' },
         },
         {
           path: 'rapporter',
@@ -163,6 +171,14 @@ router.beforeEach(async (to) => {
     if (to.meta.allowedRoles && to.meta.allowedRoles.length > 0) {
       const userRole = authStore.user?.role
       if (!userRole || !to.meta.allowedRoles.includes(userRole as 'ADMIN' | 'MANAGER' | 'EMPLOYEE')) {
+        return { name: 'Forbidden' }
+      }
+    }
+
+    const currentOrgNumber = authStore.currentOrg?.orgNumber
+    if (currentOrgNumber) {
+      await ensureOrganizationSettings(currentOrgNumber)
+      if (to.meta.moduleKey && !isModuleEnabled(to.meta.moduleKey, currentOrgNumber)) {
         return { name: 'Forbidden' }
       }
     }

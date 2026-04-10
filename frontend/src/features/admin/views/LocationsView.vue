@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, reactive } from 'vue'
+import { computed, nextTick, onMounted, ref, reactive } from 'vue'
 import { client } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 
@@ -65,6 +65,51 @@ const locationTypes = [
 ]
 
 const typeLabel = (v: string) => locationTypes.find((t) => t.value === v)?.label ?? v
+
+// Suggested names per type for datalist
+const nameSuggestions: Record<string, string[]> = {
+  KITCHEN:      ['Kjøkken', 'Kjøkken 1', 'Kjøkken 2'],
+  BAR:          ['Bar', 'Bar 1', 'Bar 2', 'Uteservering'],
+  FREEZER:      ['Fryser', 'Fryser 1', 'Fryser 2', 'Fryseboks'],
+  FRIDGE:       ['Kjølerom', 'Kjøleskap 1', 'Kjøleskap 2', 'Kjøleskap 3'],
+  STORAGE:      ['Lager', 'Tørrlager', 'Kjølelager'],
+  SERVING_AREA: ['Serveringsområde', 'Buffet', 'Bardisk'],
+  HOT_FOOD:     ['Varmmat', 'Varmholding 1', 'Varmholding 2'],
+  OTHER:        ['Annet'],
+}
+
+const currentSuggestions = computed(() => nameSuggestions[form.locationType] ?? [])
+
+const isValidTemp = (v: string) => v.trim() === '' || v.trim() === '-' || /^-?\d+([.,]\d+)?$/.test(v.trim())
+
+const tempMinError = computed(() => {
+  if (!showTemp.value || form.tempMinC.trim() === '') return null
+  if (!isValidTemp(form.tempMinC)) return 'Må være et tall, f.eks. -18 eller 2.5'
+  return null
+})
+
+const tempMaxError = computed(() => {
+  if (!showTemp.value || form.tempMaxC.trim() === '') return null
+  if (!isValidTemp(form.tempMaxC)) return 'Må være et tall, f.eks. 4 eller 65'
+  const min = parseFloat(form.tempMinC.replace(',', '.'))
+  const max = parseFloat(form.tempMaxC.replace(',', '.'))
+  if (!isNaN(min) && !isNaN(max) && max <= min) return 'Maks må være høyere enn min'
+  return null
+})
+
+const tempInputsValid = computed(() => !tempMinError.value && !tempMaxError.value)
+
+function onTypeChange() {
+  if (modalMode.value !== 'add') return
+  if (form.locationType === 'OTHER') {
+    form.name = ''
+    nextTick(() => {
+      document.getElementById('loc-name')?.focus()
+    })
+  } else if (!form.name.trim()) {
+    form.name = typeLabel(form.locationType)
+  }
+}
 
 // Temperature-bearing types (show temp range fields)
 const tempTypes = new Set(['FREEZER', 'FRIDGE', 'HOT_FOOD', 'KITCHEN'])
@@ -207,11 +252,6 @@ onMounted(fetchLocations)
       </button>
     </header>
 
-    <!-- Feedback -->
-    <div v-if="feedback" class="feedback" :class="`feedback--${feedback.type}`" role="status">
-      {{ feedback.msg }}
-    </div>
-
     <!-- Error -->
     <div v-if="error" class="inline-error">{{ error }}</div>
 
@@ -302,33 +342,10 @@ onMounted(fetchLocations)
 
           <div class="modal__body">
 
-            <div class="field">
-              <label for="loc-name">Navn <span class="req">*</span></label>
-              <input
-                  id="loc-name"
-                  v-model="form.name"
-                  type="text"
-                  placeholder="f.eks. Kjøleskap 1"
-                  maxlength="100"
-                  required
-              />
-            </div>
-
-            <div class="field">
-              <label for="loc-desc">Beskrivelse</label>
-              <input
-                  id="loc-desc"
-                  v-model="form.description"
-                  type="text"
-                  placeholder="Valgfri beskrivelse"
-                  maxlength="255"
-              />
-            </div>
-
             <div class="field-row">
               <div class="field">
                 <label for="loc-type">Type <span class="req">*</span></label>
-                <select id="loc-type" v-model="form.locationType">
+                <select id="loc-type" v-model="form.locationType" @change="onTypeChange">
                   <option v-for="t in locationTypes" :key="t.value" :value="t.value">
                     {{ t.label }}
                   </option>
@@ -344,6 +361,34 @@ onMounted(fetchLocations)
               </div>
             </div>
 
+            <div class="field">
+              <label for="loc-name">Navn <span class="req">*</span></label>
+              <input
+                  id="loc-name"
+                  v-model="form.name"
+                  type="text"
+                  list="loc-name-suggestions"
+                  :placeholder="form.locationType === 'OTHER' ? 'Skriv inn egendefinert navn…' : 'f.eks. Kjøleskap 1'"
+                  maxlength="100"
+                  required
+              />
+              <datalist id="loc-name-suggestions">
+                <option v-for="s in currentSuggestions" :key="s" :value="s" />
+              </datalist>
+              <p v-if="form.locationType === 'OTHER'" class="field-hint">Gi lokasjonen et beskrivende navn, f.eks. «Personalrom» eller «Ventilasjonsrom».</p>
+            </div>
+
+            <div class="field">
+              <label for="loc-desc">Beskrivelse</label>
+              <input
+                  id="loc-desc"
+                  v-model="form.description"
+                  type="text"
+                  placeholder="Valgfri beskrivelse"
+                  maxlength="255"
+              />
+            </div>
+
             <div v-if="showTemp" class="field-row">
               <div class="field">
                 <label for="loc-min">Min. temperatur (°C)</label>
@@ -353,7 +398,9 @@ onMounted(fetchLocations)
                     type="text"
                     inputmode="decimal"
                     placeholder="f.eks. 0"
+                    :class="{ 'input--error': tempMinError }"
                 />
+                <p v-if="tempMinError" class="field-error">{{ tempMinError }}</p>
               </div>
               <div class="field">
                 <label for="loc-max">Maks. temperatur (°C)</label>
@@ -363,7 +410,9 @@ onMounted(fetchLocations)
                     type="text"
                     inputmode="decimal"
                     placeholder="f.eks. 4"
+                    :class="{ 'input--error': tempMaxError }"
                 />
+                <p v-if="tempMaxError" class="field-error">{{ tempMaxError }}</p>
               </div>
             </div>
 
@@ -376,7 +425,7 @@ onMounted(fetchLocations)
             <button
                 class="btn-primary"
                 type="button"
-                :disabled="saving || !form.name.trim()"
+                :disabled="saving || !form.name.trim() || !tempInputsValid"
                 @click="save"
             >
               {{ saving ? 'Lagrer…' : modalMode === 'add' ? 'Opprett' : 'Lagre' }}
@@ -384,6 +433,13 @@ onMounted(fetchLocations)
           </footer>
 
         </div>
+      </div>
+    </Teleport>
+
+    <!--  Toast feedback  -->
+    <Teleport to="body">
+      <div v-if="feedback" class="toast" :class="`toast--${feedback.type}`" role="status" aria-live="polite">
+        {{ feedback.msg }}
       </div>
     </Teleport>
 
@@ -455,15 +511,31 @@ onMounted(fetchLocations)
 }
 .add-btn:hover { opacity: 0.88; }
 
-/*  Feedback / error  */
-.feedback {
-  padding: 0.7rem 1rem;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+/*  Toast feedback (fixed, doesn't shift layout)  */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 200;
+  padding: 1rem 1.4rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-width: 26rem;
+  border-width: 1.5px;
+  border-style: solid;
 }
-.feedback--success { background: var(--color-success-bg); color: var(--color-success); border: 1px solid var(--color-success); }
-.feedback--error   { background: var(--color-danger-bg);  color: var(--color-danger);  border: 1px solid var(--color-danger);  }
+.toast--success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+.toast--error {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
 
 .inline-error {
   padding: 0.65rem 0.9rem;
@@ -683,6 +755,24 @@ tr:last-child td { border-bottom: none; }
   background-position: right 0.75rem center;
   padding-right: 2rem;
   cursor: pointer;
+}
+
+.field-hint {
+  margin: 0.3rem 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+}
+
+.field-error {
+  margin: 0.3rem 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.input--error {
+  border-color: var(--color-danger) !important;
+  background: var(--color-danger-bg) !important;
 }
 
 .form-error {

@@ -221,6 +221,8 @@ public class AuthService {
                     return OrganizationRoleResponse.builder()
                             .orgNumber(userOrg.getOrganization().getOrgNumber())
                             .orgName(userOrg.getOrganization().getDisplayName())
+                            .contactEmail(userOrg.getOrganization().getContactEmail())
+                            .contactPhone(userOrg.getOrganization().getContactPhone())
                             .role(roleName)
                             .joinedAt(userOrg.getJoinedAt())
                             .build();

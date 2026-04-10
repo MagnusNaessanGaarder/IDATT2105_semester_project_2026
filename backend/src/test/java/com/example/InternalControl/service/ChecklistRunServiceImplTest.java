@@ -12,6 +12,7 @@ import com.example.InternalControl.repository.checklist.ChecklistRunItemReposito
 import com.example.InternalControl.repository.checklist.ChecklistRunRepository;
 import com.example.InternalControl.repository.checklist.ChecklistTemplateRepository;
 import com.example.InternalControl.service.checklist.ChecklistRunServiceImpl;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +51,9 @@ class ChecklistRunServiceImplTest {
     @Mock
     private ChecklistTemplateRepository templateRepository;
 
+    @Mock
+    private OrganizationModuleAccessService moduleAccessService;
+
     @InjectMocks
     private ChecklistRunServiceImpl runService;
 
@@ -83,6 +87,7 @@ class ChecklistRunServiceImplTest {
         assertThat(result.getOrgNumber()).isEqualTo(orgNumber);
 
         verify(runRepository).save(any(ChecklistRun.class));
+        verify(moduleAccessService).ensureModuleEnabled(orgNumber, ModuleType.FOOD);
     }
 
     @Test
