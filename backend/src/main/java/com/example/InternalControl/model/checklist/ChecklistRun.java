@@ -28,7 +28,7 @@ public class ChecklistRun {
     @Column(name = "run_id")
     private Long runId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "template_id", nullable = false)
     private ChecklistTemplate template;
 
@@ -69,7 +69,7 @@ public class ChecklistRun {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "run", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "run", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private List<ChecklistRunItem> items = new ArrayList<>();
 
