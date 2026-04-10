@@ -2,23 +2,17 @@
 import { computed, ref, watch } from 'vue'
 import { useAlkoholData } from '../composables/useAlkoholData'
 import { useAuthStore } from '@/stores/auth'
+import { createChecklistTemplate, createRun, uncompleteRun, updateChecklistTemplate, updateRunItem } from '../api/checklistsRun'
 import ControllItem from '../components/ControllItem.vue'
 import ControlProgressCard from '../components/ControlProgressCard.vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
-import type { DailyControlItem } from '../composables/useAlkoholData'
+import type { DailyControlItem } from '../types'
+import { serializeLawReference } from '../utils/lawReference'
 
-const { dailyControls } = useAlkoholData()
+const { dailyControls, laws, reload } = useAlkoholData()
 const authStore = useAuthStore()
 
-const controls = ref(dailyControls.map((item) => ({ ...item })))
-
-watch(
-  () => dailyControls,
-  (nextControls) => {
-    controls.value = nextControls.map((item) => ({ ...item }))
-  },
-  { immediate: true, deep: true },
-)
+const controls = ref<DailyControlItem[]>([])
 const filter = ref<'all' | 'checked' | 'pending'>('all')
 const isAdmin = computed(() => authStore.isAdmin)
 
@@ -29,7 +23,7 @@ const editingItemId = ref<number | null>(null)
 
 const formState = ref({
   name: '',
-  law_unit: '',
+  law_document_id: '',
   employee: '',
   comment: '',
   completion_date: {
@@ -39,21 +33,117 @@ const formState = ref({
   attachment: '',
   is_checked: false,
 })
+const isSubmittingItemId = ref<number | null>(null)
+const isSavingForm = ref(false)
+
+const todayDateString = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+const toCompletionDateParts = (value?: string | null) => {
+  if (!value) {
+    return {
+      date: '',
+      time: '',
+    }
+  }
+
+  if (value.includes('T')) {
+    const [date = '', time = ''] = value.split('T')
+    return {
+      date,
+      time: time.replace('Z', '').slice(0, 8),
+    }
+  }
+
+  return {
+    date: value.slice(0, 10),
+    time: '',
+  }
+}
 
 const completed = computed(() => controls.value.filter((item) => item.is_checked).length)
 const total = computed(() => controls.value.length)
 
-const toggleControl = (id: number) => {
-  controls.value = controls.value.map((item) => {
-    if (item.id !== id) {
-      return item
+const toggleControl = async (id: number) => {
+  const selected = controls.value.find((item) => item.id === id)
+  const orgNumber = authStore.currentOrg?.orgNumber
+
+  if (!selected || !orgNumber || isSubmittingItemId.value === selected.id) {
+    return
+  }
+
+  isSubmittingItemId.value = selected.id
+
+  try {
+    if (selected.is_checked && selected.run_id && selected.run_status === 'COMPLETED') {
+      await uncompleteRun(selected.run_id, orgNumber)
+      controls.value = controls.value.map((item) =>
+        item.id === selected.id
+          ? {
+              ...item,
+              is_checked: false,
+              run_status: 'DRAFT',
+            }
+          : item,
+      )
+      return
     }
 
-    return {
-      ...item,
-      is_checked: !item.is_checked,
+    if (!selected.template_item_id) {
+      return
     }
-  })
+
+    let runId = selected.run_id
+
+    if (!runId) {
+      if (!selected.template_id) {
+        return
+      }
+
+      const createdRun = await createRun(
+        selected.template_id,
+        todayDateString(),
+        orgNumber,
+      )
+
+      runId = createdRun.runId ?? null
+
+      if (!runId) {
+        return
+      }
+    }
+
+    const updatedItem = await updateRunItem(
+      runId,
+      selected.template_item_id,
+      orgNumber,
+      !selected.is_checked,
+    )
+    controls.value = controls.value.map((item) =>
+      item.id === selected.id
+        ? {
+            ...item,
+            run_id: runId,
+            is_checked: !selected.is_checked,
+            run_status: !selected.is_checked ? 'DRAFT' : item.run_status,
+            employee: !selected.is_checked ? authStore.userDisplayName : item.employee,
+            completion_date: !selected.is_checked
+              ? toCompletionDateParts(updatedItem.updatedAt ?? updatedItem.createdAt ?? null)
+              : item.completion_date,
+          }
+        : item,
+    )
+  } catch (error) {
+    console.error('Failed to complete checklist run', error)
+  } finally {
+    isSubmittingItemId.value = null
+  }
 }
 
 const openDetails = (id: number) => {
@@ -72,7 +162,7 @@ const closeDetails = () => {
 const resetForm = () => {
   formState.value = {
     name: '',
-    law_unit: '',
+    law_document_id: '',
     employee: '',
     comment: '',
     completion_date: {
@@ -83,6 +173,24 @@ const resetForm = () => {
     is_checked: false,
   }
 }
+
+const lawOptions = computed(() =>
+  laws.value
+    .map((law) => ({
+      value: String(law.documentId),
+      label: law.name,
+    }))
+    .sort((left, right) => left.label.localeCompare(right.label, 'nb')),
+)
+
+const selectedLaw = computed(() => {
+  const documentId = Number(formState.value.law_document_id)
+  if (!Number.isFinite(documentId)) {
+    return null
+  }
+
+  return laws.value.find((law) => law.documentId === documentId) ?? null
+})
 
 const openAddModal = () => {
   formMode.value = 'add'
@@ -101,7 +209,10 @@ const openEditModal = (id: number) => {
   editingItemId.value = id
   formState.value = {
     name: selected.name,
-    law_unit: selected.law_unit,
+    law_document_id:
+      selected.law_document_id != null
+        ? String(selected.law_document_id)
+        : String(laws.value.find((law) => law.name === selected.law_unit)?.documentId ?? ''),
     employee: selected.employee,
     comment: selected.comment,
     completion_date: {
@@ -118,52 +229,92 @@ const closeFormModal = () => {
   showFormModal.value = false
 }
 
-const saveControlItem = () => {
-  if (!formState.value.name.trim() || !formState.value.law_unit.trim()) {
-    return
-  }
-
-  if (!formState.value.completion_date.date || !formState.value.completion_date.time) {
+const saveControlItem = async () => {
+  if (!formState.value.name.trim() || !selectedLaw.value) {
     return
   }
 
   if (formMode.value === 'add') {
-    const nextId = controls.value.length > 0 ? Math.max(...controls.value.map((item) => item.id)) + 1 : 1
-    controls.value.push({
-      id: nextId,
-      name: formState.value.name.trim(),
-      law_unit: formState.value.law_unit.trim(),
-      employee: formState.value.employee.trim() || 'Ukjent',
-      comment: formState.value.comment.trim(),
-      completion_date: {
-        date: formState.value.completion_date.date,
-        time: formState.value.completion_date.time,
-      },
-      attachment: formState.value.attachment.trim() || null,
-      is_checked: formState.value.is_checked,
-    })
+    const orgNumber = authStore.currentOrg?.orgNumber
+    if (!orgNumber || isSavingForm.value) {
+      return
+    }
+
+    isSavingForm.value = true
+
+    try {
+      const createdTemplate = await createChecklistTemplate(
+        {
+          title: formState.value.name.trim(),
+          description: serializeLawReference(selectedLaw.value),
+          moduleType: 'ALCOHOL',
+          frequency: 'DAILY',
+          items: [
+            {
+              sortOrder: 1,
+              label: formState.value.name.trim(),
+              description: formState.value.comment.trim() || selectedLaw.value.name,
+              itemType: 'BOOLEAN',
+              isRequired: true,
+            },
+          ],
+        },
+        orgNumber,
+      )
+
+      await createRun(
+        createdTemplate.templateId,
+        todayDateString(),
+        orgNumber,
+      )
+
+      await reload()
+    } catch (error) {
+      console.error('Failed to create daily checklist template', error)
+      return
+    } finally {
+      isSavingForm.value = false
+    }
   }
 
   if (formMode.value === 'edit' && editingItemId.value !== null) {
-    controls.value = controls.value.map((item) => {
-      if (item.id !== editingItemId.value) {
-        return item
-      }
+    const orgNumber = authStore.currentOrg?.orgNumber
+    const selected = controls.value.find((item) => item.id === editingItemId.value)
 
-      return {
-        ...item,
-        name: formState.value.name.trim(),
-        law_unit: formState.value.law_unit.trim(),
-        employee: formState.value.employee.trim() || item.employee,
-        comment: formState.value.comment.trim(),
-        completion_date: {
-          date: formState.value.completion_date.date,
-          time: formState.value.completion_date.time,
+    if (!orgNumber || !selected?.template_id || isSavingForm.value) {
+      return
+    }
+
+    isSavingForm.value = true
+
+    try {
+      await updateChecklistTemplate(
+        selected.template_id,
+        {
+          title: formState.value.name.trim(),
+          description: serializeLawReference(selectedLaw.value),
+          moduleType: 'ALCOHOL',
+          frequency: 'DAILY',
+          items: [
+            {
+              sortOrder: 1,
+              label: formState.value.name.trim(),
+              description: formState.value.comment.trim() || selectedLaw.value.name,
+              itemType: 'BOOLEAN',
+              isRequired: true,
+            },
+          ],
         },
-        attachment: formState.value.attachment.trim() || null,
-        is_checked: formState.value.is_checked,
-      }
-    })
+        orgNumber,
+      )
+
+      await reload()
+    } catch (error) {
+      console.error('Failed to update daily checklist template', error)
+      return
+    } finally {
+      isSavingForm.value = false
+    }
   }
 
   showFormModal.value = false
@@ -200,13 +351,21 @@ const filteredControls = computed(() => {
 
   return controls.value
 })
+
+watch(
+  dailyControls,
+  (items) => {
+    controls.value = items.map((item) => ({ ...item }))
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
   <div class="daily-control-page">
     <header class="page-header">
-      <h1>Sjekkliste</h1>
-      <p class="subtitle">Daglig kontroll med sjekkliste for ansvarlig alkoholservering</p>
+      <h1>Daglig kontroll</h1>
+      <p class="subtitle">Daglige kontrollpunkter for ansvarlig alkoholservering</p>
     </header>
 
     <ControlProgressCard :completed="completed" :total="total" />
@@ -246,20 +405,20 @@ const filteredControls = computed(() => {
         </label>
         <label>
           Lovgrunnlag
-          <input v-model="formState.law_unit" type="text" required />
+          <select v-model="formState.law_document_id" required>
+            <option disabled value="">Velg lovverk</option>
+            <option
+              v-for="law in lawOptions"
+              :key="law.value"
+              :value="law.value"
+            >
+              {{ law.label }}
+            </option>
+          </select>
         </label>
-        <label>
-          Ansatt
-          <input v-model="formState.employee" type="text" />
-        </label>
-        <label>
-          Dato
-          <input v-model="formState.completion_date.date" type="date" required />
-        </label>
-        <label>
-          Tid
-          <input v-model="formState.completion_date.time" type="time" required />
-        </label>
+        <p class="control-form__hint">
+          Bruker og tidspunkt settes automatisk når kontrollpunktet blir utført.
+        </p>
         <label>
           Kommentar
           <textarea v-model="formState.comment" rows="3" />
@@ -268,7 +427,7 @@ const filteredControls = computed(() => {
           Vedlegg (url eller filnavn)
           <input v-model="formState.attachment" type="text" />
         </label>
-        <label v-if="formMode === 'edit'" class="control-form__checkbox">
+        <label class="control-form__checkbox">
           <input v-model="formState.is_checked" type="checkbox" />
           Fullført
         </label>
@@ -379,6 +538,12 @@ const filteredControls = computed(() => {
   color: var(--ik-alkohol-primary);
   font-weight: var(--font-weight-semibold);
   border-radius: var(--radius-md);
+}
+
+.control-form__hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
 }
 
 .add-item-btn:hover {

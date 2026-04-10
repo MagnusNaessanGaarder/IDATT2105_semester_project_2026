@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * Can be customized with min and max parameters.
  */
 @Constraint(validatedBy = TemperatureRangeValidator.class)
-@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidTemperatureRange {
 
