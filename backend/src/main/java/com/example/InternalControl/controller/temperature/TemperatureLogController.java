@@ -5,6 +5,7 @@ import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRe
 import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
 import com.example.InternalControl.security.CustomUserDetails;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.example.InternalControl.service.temperature.TemperatureLogService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,6 +36,7 @@ public class TemperatureLogController {
 
   private final TemperatureLogService temperatureLogService;
   private final UserOrganizationService userOrgService;
+  private final OrganizationModuleAccessService moduleAccessService;
 
   // Log Points
   @PostMapping("/points")
@@ -294,5 +296,6 @@ public class TemperatureLogController {
     if (!userOrgService.isUserInOrganization(userId, orgNumber)) {
       throw new jakarta.persistence.EntityNotFoundException("Organization not found or access denied");
     }
+    moduleAccessService.ensureFoodModuleEnabled(orgNumber);
   }
 }

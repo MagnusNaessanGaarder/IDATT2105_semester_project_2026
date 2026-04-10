@@ -4,6 +4,8 @@ import type { User } from '@/types'
 export interface OrganizationRole {
   orgNumber: number
   orgName: string
+  contactEmail?: string | null
+  contactPhone?: string | null
   role: string
   joinedAt: string
 }

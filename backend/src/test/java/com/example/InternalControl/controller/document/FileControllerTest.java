@@ -85,7 +85,7 @@ class FileControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/files")
-                        .param("orgNumber", "123456789"))
+                        .header("X-Org-Number", "123456789"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].documentId").value(1));
     }
@@ -103,8 +103,8 @@ class FileControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/files")
-                        .param("orgNumber", "123456789")
-                        .param("category", "POLICY"))
+                        .param("category", "POLICY")
+                        .header("X-Org-Number", "123456789"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Policy Document"));
     }
@@ -117,7 +117,7 @@ class FileControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/files")
-                        .param("orgNumber", "123456789"))
+                        .header("X-Org-Number", "123456789"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());

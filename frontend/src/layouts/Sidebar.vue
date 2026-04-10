@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { motion } from 'motion-v'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { isModuleEnabled } from '@/shared/utils/orgSettings'
 import NavSection from './NavSection.vue'
 import SidebarUser from './SidebarUser.vue'
 
@@ -26,6 +27,7 @@ const expandedSections = ref<string[]>([])
 const user = computed(() => authStore.user)
 const isDesktop = ref(false)
 const prefersReducedMotion = ref(false)
+const currentOrgNumber = computed(() => authStore.currentOrg?.orgNumber)
 
 const fallbackBusinessName = 'Internkontroll'
 
@@ -53,7 +55,7 @@ const businessLabel = computed(() => {
 })
 
 const sections = computed(() => [
-  {
+  ...(isModuleEnabled('food', currentOrgNumber.value) ? [{
     key: 'ikmat',
     label: 'IK-MAT',
     icon: 'Salad',
@@ -64,8 +66,8 @@ const sections = computed(() => [
       { id: 'deviations', label: 'Avvik', route: 'Deviations' },
       { id: 'haccp', label: 'HACCP-plan', route: 'HACCP' }
     ]
-  },
-  {
+  }] : []),
+  ...(isModuleEnabled('alcohol', currentOrgNumber.value) ? [{
     key: 'alkohol',
     label: 'IK-ALKOHOL',
     icon: 'Wine',
@@ -75,7 +77,7 @@ const sections = computed(() => [
       { id: 'certifications', label: 'Sertifiseringer', route: 'Certifications' },
       { id: 'regulations', label: 'Regelverk', route: 'Regulations' }
     ]
-  },
+  }] : []),
   {
     key: 'felles',
     label: 'FELLES',

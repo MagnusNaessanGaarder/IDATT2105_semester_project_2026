@@ -6,6 +6,7 @@ import com.example.InternalControl.dto.temperature.request.TemperatureLogPointRe
 import com.example.InternalControl.dto.temperature.response.TemperatureLogEntryResponse;
 import com.example.InternalControl.dto.temperature.response.TemperatureLogPointResponse;
 import com.example.InternalControl.security.CustomUserDetails;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.temperature.TemperatureLogService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +50,9 @@ class TemperatureLogControllerTest extends AbstractIntegrationTest {
 
     @MockBean
     private UserOrganizationService userOrgService;
+
+    @MockBean
+    private OrganizationModuleAccessService moduleAccessService;
 
     private static final Integer ORG_NUMBER = 123456789;
     private static final String BASE_URL = "/api/v1/temperature";

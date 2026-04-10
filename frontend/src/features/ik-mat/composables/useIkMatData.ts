@@ -1,5 +1,6 @@
 import { reactive, ref } from 'vue'
 import { getOrgNumber } from '@/shared/utils/orgContext'
+import { getOrganizationTempDefaults } from '@/shared/utils/orgSettings'
 import { ikMatApi } from '../api/ikMatApi'
 import { completionForChecklist, formatDate, isTemperatureInRange } from './useIkMatFormatters'
 import type {
@@ -254,6 +255,7 @@ const loadData = async (): Promise<void> => {
           const split = splitIsoDateTime(entry.measuredAt)
           const point = pointById.get(entry.logPointId)
           const location = entry.locationId ? locationById.get(entry.locationId) : point?.locationId ? locationById.get(point.locationId) : undefined
+          const tempDefaults = getOrganizationTempDefaults(orgNumber)
           const reporterName = reporterFromNote(entry.noteText) ?? entry.recordedByName
           return {
             id: entry.entryId,
@@ -262,8 +264,8 @@ const loadData = async (): Promise<void> => {
             location_id: entry.locationId ?? point?.locationId ?? null,
             location: entry.locationName ?? point?.locationName ?? location?.name ?? 'Ukjent lokasjon',
             temperature_c: Number(entry.temperatureC),
-            min_temp: Number(location?.tempMinC ?? 0),
-            max_temp: Number(location?.tempMaxC ?? 4),
+            min_temp: Number(location?.tempMinC ?? tempDefaults.min ?? 0),
+            max_temp: Number(location?.tempMaxC ?? tempDefaults.max ?? 4),
             recorded_by: reporterName ?? 'Ukjent',
             note_text: entry.noteText ?? null,
             recorded_date: split.date,

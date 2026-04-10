@@ -4,6 +4,8 @@ import { client } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { getUsers, type User } from '@/features/admin/api/users'
 import DeviationReportForm from '@/shared/components/DeviationReportForm.vue'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 type DeviationStatus =
     | 'DRAFT'
@@ -279,7 +281,7 @@ function reportTypeLabel(t: ReportType): string {
 
 function formatDate(d: string | null): string {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })
+  return formatDateForOrganization(d, getOrgNumber(), { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 const filters: { key: FilterStatus; label: string }[] = [

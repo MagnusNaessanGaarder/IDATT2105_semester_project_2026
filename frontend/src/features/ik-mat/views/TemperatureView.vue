@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import BaseModal from '@/shared/components/BaseModal.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useIkMatData } from '../composables/useIkMatData'
+import { getOrganizationTempDefaults } from '@/shared/utils/orgSettings'
 
 type PointModalMode = 'add' | 'edit'
 
@@ -93,14 +94,15 @@ const latestRecordByPoint = computed(() => {
 })
 
 const instances = computed<TemperatureInstance[]>(() => {
+  const defaults = getOrganizationTempDefaults(authStore.currentOrg?.orgNumber)
   return temperaturePoints
     .filter((point) => point.isActive !== false)
     .map((point) => {
       const latest = latestRecordByPoint.value.get(point.logPointId)
       const location = locationById.value.get(point.locationId)
 
-      const minTemp = Number(location?.tempMinC ?? 0)
-      const maxTemp = Number(location?.tempMaxC ?? 4)
+      const minTemp = Number(location?.tempMinC ?? defaults.min ?? 0)
+      const maxTemp = Number(location?.tempMaxC ?? defaults.max ?? 4)
       const isAlert = latest ? !isTemperatureInRange(latest) : false
 
       return {
@@ -155,12 +157,13 @@ const updateViewport = () => {
 }
 
 const resetPointForm = () => {
+  const defaults = getOrganizationTempDefaults(authStore.currentOrg?.orgNumber)
   pointForm.name = ''
   pointForm.locationName = ''
-  pointForm.minTempC = ''
-  pointForm.maxTempC = ''
+  pointForm.minTempC = defaults.min != null ? String(defaults.min) : ''
+  pointForm.maxTempC = defaults.max != null ? String(defaults.max) : ''
   editingLocationId.value = null
-  originalRange.value = { min: null, max: null }
+  originalRange.value = { min: defaults.min, max: defaults.max }
 }
 
 const openAddPointModal = () => {

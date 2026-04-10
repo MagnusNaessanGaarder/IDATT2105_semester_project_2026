@@ -6,6 +6,7 @@ import com.example.InternalControl.model.training.TrainingRecord;
 import com.example.InternalControl.model.training.TrainingStatus;
 import com.example.InternalControl.model.training.TrainingType;
 import com.example.InternalControl.security.CustomUserDetails;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.training.TrainingRecordService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,6 +48,9 @@ class TrainingRecordControllerTest extends AbstractIntegrationTest {
 
     @MockBean
     private UserOrganizationService userOrgService;
+
+    @MockBean
+    private OrganizationModuleAccessService moduleAccessService;
 
     private static final Integer ORG_NUMBER = 937219997;
     private static final String BASE_URL = "/api/v1/training";
