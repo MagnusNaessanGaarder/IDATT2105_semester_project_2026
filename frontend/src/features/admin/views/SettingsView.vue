@@ -429,117 +429,204 @@ watch(currentOrgNumber, () => {
       </section>
 
       <section class="settings-grid" aria-label="Konfigurasjonspanel">
-        <article v-for="section in sections" :key="section.id" class="settings-section">
-          <h2 class="settings-title">{{ section.section_title }}</h2>
-          <p v-if="section.id === 'temperature' && tempRangeError" class="section-error">
-            ⚠ {{ tempRangeError }}
-          </p>
-          <div class="settings-items">
-            <div
-              v-for="item in section.items"
-              :key="item.id"
-              class="setting-item"
-              :class="{ 'setting-item--modified': isFieldModified(section.id, item.id) }"
-            >
-              <div class="setting-header">
-                <div class="setting-label-wrap">
-                  <label :for="item.id" class="setting-label">{{ item.label }}</label>
-                <div v-if="item.description" class="help-tooltip-container">
-                  <span class="help-tooltip">?</span>
-                  <div class="help-tooltip-text">{{ item.description }}</div>
+        <!-- Left column: Profile + Alerts (bigger cards) -->
+        <div class="settings-column">
+          <article class="settings-section">
+            <h2 class="settings-title">{{ settingsState.profile.section_title }}</h2>
+            <div class="settings-items">
+              <div
+                v-for="item in settingsState.profile.items"
+                :key="item.id"
+                class="setting-item"
+                :class="{ 'setting-item--modified': isFieldModified('profile', item.id) }"
+              >
+                <div class="setting-header">
+                  <div class="setting-label-wrap">
+                    <label :for="item.id" class="setting-label">{{ item.label }}</label>
+                    <div v-if="item.description" class="help-tooltip-container">
+                      <span class="help-tooltip">?</span>
+                      <div class="help-tooltip-text">{{ item.description }}</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              </div>
-
-              <div class="setting-control">
-                <select
-                  v-if="item.type === 'select'"
-                  :id="item.id"
-                  class="setting-select"
-                  :class="{ 'setting-select--error': validation.getError(item.id) }"
-                  :value="String(item.current_value)"
-                  :disabled="data.isLoading.value"
-                  @change="updateSetting(section.id, item.id, ($event.target as HTMLSelectElement).value)"
-                >
-                  <option v-for="option in item.options" :key="option" :value="option">
-                    {{
-                      option === 'ADMIN_MANAGER'
-                        ? 'Admin og leder'
-                        : option === 'ADMIN_MANAGER_AND_ASSIGNED'
-                          ? 'Admin, leder og ansvarlig'
-                          : option
-                    }}
-                  </option>
-                </select>
-
-                <label v-else-if="item.type === 'toggle'" class="toggle-wrap" :class="{ 'toggle-wrap--error': validation.getError(item.id) }">
-                  <input
-                    :id="item.id"
-                    type="checkbox"
-                    :checked="Boolean(item.current_value)"
-                    :disabled="data.isLoading.value"
-                    @change="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).checked)"
-                  >
-                  <span>{{ Boolean(item.current_value) ? 'På' : 'Av' }}</span>
-                </label>
-
-                <div v-else-if="item.type === 'number'" class="number-input-wrap">
+                <div class="setting-control">
                   <input
                     :id="item.id"
                     class="setting-input"
-                    :class="{ 'setting-input--error': isInvalidInput(item.id) || validation.getError(item.id) }"
+                    :type="item.type"
+                    :value="String(item.current_value ?? '')"
+                    :placeholder="item.placeholder || ''"
+                    :disabled="data.isLoading.value"
+                    @input="updateSetting('profile', item.id, ($event.target as HTMLInputElement).value)"
+                  >
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="settings-section">
+            <h2 class="settings-title">{{ settingsState.alerts_retention.section_title }}</h2>
+            <div class="settings-items">
+              <div
+                v-for="item in settingsState.alerts_retention.items"
+                :key="item.id"
+                class="setting-item"
+                :class="{ 'setting-item--modified': isFieldModified('alerts_retention', item.id) }"
+              >
+                <div class="setting-header">
+                  <div class="setting-label-wrap">
+                    <label :for="item.id" class="setting-label">{{ item.label }}</label>
+                    <div v-if="item.description" class="help-tooltip-container">
+                      <span class="help-tooltip">?</span>
+                      <div class="help-tooltip-text">{{ item.description }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="setting-control">
+                  <label v-if="item.type === 'toggle'" class="toggle-wrap">
+                    <input
+                      :id="item.id"
+                      type="checkbox"
+                      :checked="Boolean(item.current_value)"
+                      :disabled="data.isLoading.value"
+                      @change="updateSetting('alerts_retention', item.id, ($event.target as HTMLInputElement).checked)"
+                    >
+                    <span>{{ Boolean(item.current_value) ? 'På' : 'Av' }}</span>
+                  </label>
+                  <input
+                    v-else
+                    :id="item.id"
+                    class="setting-input"
+                    :type="item.type"
+                    :value="String(item.current_value ?? '')"
+                    :placeholder="item.placeholder || ''"
+                    :disabled="data.isLoading.value"
+                    @input="updateSetting('alerts_retention', item.id, ($event.target as HTMLInputElement).value)"
+                  >
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Right column: Organization + Modules + Temperature (smaller cards) -->
+        <div class="settings-column">
+          <article class="settings-section">
+            <h2 class="settings-title">{{ settingsState.organization.section_title }}</h2>
+            <div class="settings-items">
+              <div
+                v-for="item in settingsState.organization.items"
+                :key="item.id"
+                class="setting-item"
+                :class="{ 'setting-item--modified': isFieldModified('organization', item.id) }"
+              >
+                <div class="setting-header">
+                  <div class="setting-label-wrap">
+                    <label :for="item.id" class="setting-label">{{ item.label }}</label>
+                    <div v-if="item.description" class="help-tooltip-container">
+                      <span class="help-tooltip">?</span>
+                      <div class="help-tooltip-text">{{ item.description }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="setting-control">
+                  <select
+                    v-if="item.type === 'select'"
+                    :id="item.id"
+                    class="setting-select"
+                    :value="String(item.current_value)"
+                    :disabled="data.isLoading.value"
+                    @change="updateSetting('organization', item.id, ($event.target as HTMLSelectElement).value)"
+                  >
+                    <option v-for="option in item.options" :key="option" :value="option">
+                      {{ option }}
+                    </option>
+                  </select>
+                  <input
+                    v-else
+                    :id="item.id"
+                    class="setting-input"
+                    :type="item.type"
+                    :value="String(item.current_value ?? '')"
+                    :placeholder="item.placeholder || ''"
+                    :disabled="data.isLoading.value"
+                    @input="updateSetting('organization', item.id, ($event.target as HTMLInputElement).value)"
+                  >
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="settings-section">
+            <h2 class="settings-title">{{ settingsState.modules.section_title }}</h2>
+            <div class="settings-items">
+              <div
+                v-for="item in settingsState.modules.items"
+                :key="item.id"
+                class="setting-item"
+                :class="{ 'setting-item--modified': isFieldModified('modules', item.id) }"
+              >
+                <div class="setting-header">
+                  <div class="setting-label-wrap">
+                    <label :for="item.id" class="setting-label">{{ item.label }}</label>
+                    <div v-if="item.description" class="help-tooltip-container">
+                      <span class="help-tooltip">?</span>
+                      <div class="help-tooltip-text">{{ item.description }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-wrap">
+                    <input
+                      :id="item.id"
+                      type="checkbox"
+                      :checked="Boolean(item.current_value)"
+                      :disabled="data.isLoading.value"
+                      @change="updateSetting('modules', item.id, ($event.target as HTMLInputElement).checked)"
+                    >
+                    <span>{{ Boolean(item.current_value) ? 'På' : 'Av' }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="settings-section">
+            <h2 class="settings-title">{{ settingsState.temperature.section_title }}</h2>
+            <p v-if="tempRangeError" class="section-error">⚠ {{ tempRangeError }}</p>
+            <div class="settings-items">
+              <div
+                v-for="item in settingsState.temperature.items"
+                :key="item.id"
+                class="setting-item"
+                :class="{ 'setting-item--modified': isFieldModified('temperature', item.id) }"
+              >
+                <div class="setting-header">
+                  <div class="setting-label-wrap">
+                    <label :for="item.id" class="setting-label">{{ item.label }}</label>
+                    <div v-if="item.description" class="help-tooltip-container">
+                      <span class="help-tooltip">?</span>
+                      <div class="help-tooltip-text">{{ item.description }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="setting-control">
+                  <input
+                    :id="item.id"
+                    class="setting-input"
                     type="number"
                     :value="item.current_value ?? ''"
                     :min="item.min"
                     :max="item.max"
                     :step="item.step"
                     :disabled="data.isLoading.value"
-                    @input="validateAndUpdateNumber(section.id, item.id, ($event.target as HTMLInputElement), item.min, item.max)"
-                    @blur="validateAndUpdateNumber(section.id, item.id, ($event.target as HTMLInputElement), item.min, item.max)"
-                    @keydown.enter="validateAndUpdateNumber(section.id, item.id, ($event.target as HTMLInputElement), item.min, item.max)"
-                  >
-                  <span v-if="isInvalidInput(item.id)" class="input-error-msg">Ugyldig tall</span>
-                  <span v-else-if="validation.getError(item.id)" class="input-error-msg">{{ validation.getError(item.id) }}</span>
-                </div>
-
-                <div v-else-if="item.type === 'email'" class="email-input-wrap">
-                  <input
-                    :id="item.id"
-                    class="setting-input email-input"
-                    :class="{ 'setting-input--error': validation.getError(item.id) }"
-                    type="email"
-                    :value="String(item.current_value ?? '')"
-                    :placeholder="item.placeholder || ''"
-                    :disabled="data.isLoading.value"
-                    @input="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).value)"
+                    @blur="validateAndUpdateNumber('temperature', item.id, ($event.target as HTMLInputElement), item.min, item.max)"
                   >
                 </div>
-
-                <input
-                  v-else-if="item.type === 'text' || item.type === 'tel'"
-                  :id="item.id"
-                  class="setting-input"
-                  :type="item.type"
-                  :value="String(item.current_value ?? '')"
-                  :placeholder="item.placeholder || ''"
-                  :disabled="data.isLoading.value"
-                  @input="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).value)"
-                >
-
-                <input
-                  v-else
-                  :id="item.id"
-                  class="setting-input"
-                  type="text"
-                  :value="String(item.current_value ?? '')"
-                  :disabled="data.isLoading.value"
-                  @input="updateSetting(section.id, item.id, ($event.target as HTMLInputElement).value)"
-                >
               </div>
-              <p v-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
             </div>
-          </div>
-        </article>
+          </article>
+        </div>
       </section>
 
       <AuditLogSection
@@ -676,7 +763,31 @@ watch(currentOrgNumber, () => {
 .settings-grid {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
+}
+
+.settings-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+}
+
+/* Tablet: 2 independent columns */
+@media (min-width: 768px) {
+  .settings-grid {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .settings-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 .settings-section {
@@ -819,7 +930,7 @@ watch(currentOrgNumber, () => {
 
 .setting-select,
 .setting-input {
-  min-height: 2.3rem;
+  height: 2.75rem;
   min-width: 14rem;
   padding: 0 0.7rem;
   background: var(--color-gray-50);
@@ -827,19 +938,25 @@ watch(currentOrgNumber, () => {
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   color: var(--color-foreground);
+  box-sizing: border-box;
 }
 
 .toggle-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-600);
+  gap: 0.6rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.25rem 0;
 }
 
 .toggle-wrap input {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+  accent-color: var(--color-foreground);
 }
 
 .field-error {
