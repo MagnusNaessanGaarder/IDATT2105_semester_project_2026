@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import {
-  CERTIFICATION_TYPE_LABELS,
   certificateStatusForDate,
   formatDateValue,
   type CertificationType,
   type CertificateStatus,
 } from '@/features/ik-alkohol/composables/useAlkoholData'
 import { useCertifications } from '@/features/ik-alkohol/composables/useCertifications'
+import { getCertificationCatalog, type CertificationCatalogItem } from '@/features/ik-alkohol/api/certificationCatalog'
 import { getUsers, type UserResponse } from '@/features/ik-alkohol/api/users'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
@@ -49,12 +49,14 @@ const hasLoadedOnce = ref(false)
 const hasLoadedUsers = ref(false)
 
 const users = ref<UserResponse[]>([])
+const certificationCatalog = ref<CertificationCatalogItem[]>([])
 const isLoadingUsers = ref(false)
 const canManageCertifications = computed(() => authStore.hasRole('ADMIN', 'MANAGER'))
 
 const showFormModal = ref(false)
 const formMode = ref<'add' | 'edit'>('add')
 const editingCertId = ref<number | null>(null)
+const activeFilter = ref<'ALL' | CertificationType>('ALL')
 
 const formState = ref({
   userId: null as number | null,
@@ -68,13 +70,20 @@ const formState = ref({
 })
 
 const availableCertTypes = computed(() => {
-  return Object.entries(CERTIFICATION_TYPE_LABELS).map(([value, label]) => ({
-    value: value as CertificationType,
-    label,
+  return certificationCatalog.value.map((item) => ({
+    value: item.trainingType,
+    label: item.displayName,
   }))
 })
 
-const certificationTypes = computed(() => availableCertTypes.value.map((type) => type.label))
+const certificationTypeLabels = computed<Record<string, string>>(() => Object.fromEntries(
+  certificationCatalog.value.map((item) => [item.trainingType, item.displayName]),
+))
+const filteredCatalogTypes = computed(() => (
+  activeFilter.value === 'ALL'
+    ? availableCertTypes.value
+    : availableCertTypes.value.filter((type) => type.value === activeFilter.value)
+))
 
 const totalCertificates = computed(() => certifications.value.length)
 
@@ -131,25 +140,23 @@ const userGroups = computed<UserCertificationGroup[]>(() => {
     certsByUser.set(userId, list)
   })
 
-  const knownUsers = users.value.length > 0
-    ? users.value
-    : certifications.value
-      .map((cert) => cert.user)
-      .filter((user): user is NonNullable<CertificationRecord['user']> => user !== null)
-      .map((user) => ({
-        userId: user.userId,
-        displayName: user.displayName,
-        email: user.email,
-        isActive: true,
-        roles: [],
-      }))
+  return users.value.map((user) => ({
+      userId: user.userId,
+      employee: user.displayName,
+      email: user.email ?? null,
+      certifications: (certsByUser.get(user.userId) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title)),
+    }))
+})
 
-  return knownUsers.map((user) => ({
-    userId: user.userId,
-    employee: user.displayName,
-    email: user.email ?? null,
-    certifications: (certsByUser.get(user.userId) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title)),
-  }))
+const filteredUserGroups = computed<UserCertificationGroup[]>(() => {
+  return userGroups.value
+    .map((group) => ({
+      ...group,
+      certifications: group.certifications.filter(
+        (certification) => activeFilter.value === 'ALL' || certification.trainingType === activeFilter.value,
+      ),
+    }))
+    .filter((group) => activeFilter.value === 'ALL' || group.certifications.length > 0)
 })
 
 const loadUsers = async (force = false) => {
@@ -167,6 +174,18 @@ const loadUsers = async (force = false) => {
     users.value = []
   } finally {
     isLoadingUsers.value = false
+  }
+}
+
+const loadCertificationCatalog = async () => {
+  const orgNumber = currentOrg.value?.orgNumber
+  if (!orgNumber) return
+
+  const result = await getCertificationCatalog(orgNumber)
+  if (result.ok) {
+    certificationCatalog.value = result.data
+  } else {
+    certificationCatalog.value = []
   }
 }
 
@@ -194,7 +213,7 @@ const openAddModal = () => {
 const openAddModalForType = (trainingType: CertificationType) => {
   openAddModal()
   formState.value.trainingType = trainingType
-  formState.value.title = CERTIFICATION_TYPE_LABELS[trainingType]
+  formState.value.title = certificationTypeLabels.value[trainingType] ?? trainingType
 }
 
 const openAddModalForUser = (userId: number | null) => {
@@ -299,7 +318,7 @@ const loadCertifications = async () => {
   const orgNumber = currentOrg.value?.orgNumber
   if (orgNumber && !hasLoadedOnce.value) {
     hasLoadedOnce.value = true
-    await loadItems(orgNumber)
+    await Promise.all([loadItems(orgNumber), loadCertificationCatalog()])
     await loadUsers()
   }
 }
@@ -313,6 +332,7 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
     hasLoadedOnce.value = false
     hasLoadedUsers.value = false
     users.value = []
+    certificationCatalog.value = []
   }
 
   if (newOrgNumber && !hasLoadedOnce.value) {
@@ -346,11 +366,25 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
       </article>
     </section>
 
-    <section class="type-strip" aria-label="Sertifiseringstyper">
-      <p class="type-strip__label">Typer i systemet:</p>
-      <ul>
-        <li v-for="type in certificationTypes" :key="type">{{ type }}</li>
-      </ul>
+    <section class="filter-strip" aria-label="Filtrer sertifikater">
+      <button
+        type="button"
+        class="filter-btn"
+        :class="{ 'filter-btn--active': activeFilter === 'ALL' }"
+        @click="activeFilter = 'ALL'"
+      >
+        Alle
+      </button>
+      <button
+        v-for="type in availableCertTypes"
+        :key="type.value"
+        type="button"
+        class="filter-btn"
+        :class="{ 'filter-btn--active': activeFilter === type.value }"
+        @click="activeFilter = type.value"
+      >
+        {{ type.label }}
+      </button>
     </section>
 
     <section class="matrix-section" aria-label="Personellsertifiseringer">
@@ -366,7 +400,7 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
       </div>
 
       <div class="user-cert-list">
-        <article v-for="group in userGroups" :key="group.userId ?? group.employee" class="user-cert-card">
+        <article v-for="group in filteredUserGroups" :key="`${activeFilter}-${group.userId ?? group.employee}`" class="user-cert-card">
           <div class="user-cert-card__header">
             <div>
               <h3 class="user-cert-card__title">{{ group.employee }}</h3>
@@ -385,14 +419,14 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
           <div v-if="group.certifications.length > 0" class="user-cert-card__items">
             <article
               v-for="certification in group.certifications"
-              :key="certification.id"
+              :key="`${activeFilter}-${certification.id}`"
               class="user-cert-item"
             >
               <div class="user-cert-item__content">
                 <div>
                   <p class="user-cert-item__title">{{ certification.title }}</p>
                   <div class="user-cert-item__meta">
-                    <span class="type-badge">{{ CERTIFICATION_TYPE_LABELS[certification.trainingType] }}</span>
+                    <span class="type-badge">{{ certificationTypeLabels[certification.trainingType] ?? certification.trainingType }}</span>
                     <span>Gyldig til {{ certification.expires }}</span>
                     <span>Fullført {{ certification.completedAt }}</span>
                   </div>
@@ -433,7 +467,7 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
         <span>Laster...</span>
       </div>
 
-      <div v-else-if="userGroups.length === 0" class="empty-state">
+      <div v-else-if="filteredUserGroups.length === 0" class="empty-state">
         <p>Ingen sertifiseringer funnet.</p>
         <p v-if="canManageCertifications" class="empty-hint">Klikk "Legg til sertifisering" for å opprette den første.</p>
       </div>
@@ -456,7 +490,7 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
       </div>
 
       <div class="catalog-grid">
-        <article v-for="type in availableCertTypes" :key="type.value" class="catalog-card">
+        <article v-for="type in filteredCatalogTypes" :key="type.value" class="catalog-card">
           <div>
             <p class="catalog-card__title">{{ type.label }}</p>
             <p class="catalog-card__meta">{{ type.value }}</p>
@@ -611,36 +645,28 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
   border-left: 0.25rem solid var(--color-danger);
 }
 
-.type-strip {
-  margin-bottom: 12px;
+.filter-strip {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.type-strip__label {
-  margin: 0;
-  color: var(--color-gray-600);
-  font-size: var(--font-size-sm);
-}
-
-.type-strip ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.type-strip li {
-  padding: 4px 8px;
+.filter-btn {
   border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-gray-700);
   border-radius: 999px;
-  background: #f8fafc;
-  font-size: var(--font-size-xs);
-  color: var(--color-gray-600);
+  padding: 0.4rem 0.8rem;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.filter-btn--active {
+  border-color: var(--ik-alkohol-primary);
+  background: color-mix(in srgb, var(--ik-alkohol-primary) 10%, white);
+  color: var(--ik-alkohol-primary);
+  font-weight: var(--font-weight-semibold);
 }
 
 .matrix-section {

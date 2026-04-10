@@ -49,14 +49,7 @@ export interface DemandItem {
 
 export type CertificateStatus = 'Gyldig' | 'Utløper snart' | 'Utgått'
 
-export type CertificationType =
-  | 'FOOD_HYGIENE'
-  | 'ALLERGEN_HANDLING'
-  | 'TEMPERATURE_CONTROL'
-  | 'CLEANING_ROUTINES'
-  | 'RESPONSIBLE_ALCOHOL_SERVICE'
-  | 'AGE_VERIFICATION'
-  | 'OTHER'
+export type CertificationType = string
 
 export type TrainingStatus = 'ASSIGNED' | 'COMPLETED' | 'EXPIRED'
 
@@ -96,16 +89,6 @@ export interface CertificationFailure {
 }
 
 export type CertificationResult = CertificationSuccess | CertificationFailure
-
-export const CERTIFICATION_TYPE_LABELS: Record<CertificationType, string> = {
-  FOOD_HYGIENE: 'Mat hygiene',
-  ALLERGEN_HANDLING: 'Allergen handtering',
-  TEMPERATURE_CONTROL: 'Temperaturkontroll',
-  CLEANING_ROUTINES: 'Rengjøringsrutiner',
-  RESPONSIBLE_ALCOHOL_SERVICE: 'Ansvarlig alkoholservering',
-  AGE_VERIFICATION: 'Alderskontroll',
-  OTHER: 'Annet',
-}
 
 interface ChecklistTemplateApi {
   templateId: number
