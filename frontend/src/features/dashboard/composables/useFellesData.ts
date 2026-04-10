@@ -213,7 +213,7 @@ const hasResponse = (value: unknown): value is { response?: unknown } => {
 const loadData = async (): Promise<void> => {
   const orgNumber = getOrgNumber()
 
-  if (hasLoaded && lastLoadedOrgNumber === orgNumber) {
+  if (hasLoaded && lastLoadedOrgNumber === orgNumber && !error.value) {
     return
   }
 

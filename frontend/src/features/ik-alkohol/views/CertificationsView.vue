@@ -1,4 +1,4 @@
-<script setup lang="ts">
+3<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import {
   certificateStatusForDate,
@@ -693,6 +693,7 @@ watch(
 }
 
 .type-strip {
+.filter-strip {
   display: flex;
   gap: 0.35rem;
   flex-wrap: wrap;
@@ -725,6 +726,11 @@ watch(
   background: color-mix(in srgb, var(--color-brand-pale-lavender) 40%, var(--color-card));
   font-size: var(--font-size-xs);
   color: var(--color-brand-deep-violet);
+.matrix-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
 }
 
 .catalog-section {
@@ -775,12 +781,58 @@ table {
   border-collapse: collapse;
 }
 
-th,
-td {
-  text-align: left;
-  padding: 0.8rem 1rem;
-  border-bottom: 1px solid var(--color-gray-100);
-  vertical-align: middle;
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.catalog-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-card) 94%, #f8fafc);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.catalog-card__title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-foreground);
+}
+
+.catalog-card__meta {
+  margin: 0.35rem 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.matrix-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.add-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ik-alkohol-primary);
+  background: color-mix(in srgb, var(--ik-alkohol-primary) 7%, var(--color-card));
+  color: var(--ik-alkohol-primary);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
 }
 
 th {
@@ -794,13 +846,66 @@ th {
 
 tr:last-child td { border-bottom: none; }
 
-.table-wrap th {
-  text-align: left;
-  padding: 12px 8px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-brand-deep-violet);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.user-cert-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: color-mix(in srgb, var(--color-card) 94%, #f8fafc);
+}
+
+.user-cert-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.user-cert-card__title {
+  margin: 0;
+  font-size: var(--font-size-base);
+}
+
+.user-cert-card__meta {
+  margin: 0.2rem 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+
+.user-cert-card__items {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.user-cert-item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.user-cert-item__content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.user-cert-item__title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-foreground);
+}
+
+.user-cert-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.35rem;
   font-size: var(--font-size-xs);
   color: var(--color-gray-500);
 }
@@ -1095,7 +1200,111 @@ tr:last-child td { border-bottom: none; }
   cursor: not-allowed;
 }
 
-.btn-danger:not(:disabled):hover { background: #b91c1c; }
+.cert-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.cert-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+}
+
+.cert-form input,
+.cert-form select,
+.cert-form textarea {
+  border: 1px solid var(--color-border);
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  font-size: var(--font-size-sm);
+}
+
+.cert-form input:focus,
+.cert-form select:focus,
+.cert-form textarea:focus {
+  outline: none;
+  border-color: var(--ik-alkohol-primary);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.field-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  font-style: italic;
+}
+
+.modal-btn {
+  border: 1px solid var(--ik-alkohol-primary);
+  background: var(--ik-alkohol-primary);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-sm);
+}
+
+.modal-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-btn--ghost {
+  background: var(--color-card);
+  color: var(--color-gray-700);
+  border-color: var(--color-border);
+}
+
+.debug-info {
+  background: #f0f0f0;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: var(--radius-sm);
+}
+
+.debug-info p {
+  margin: 4px 0;
+  font-size: var(--font-size-xs);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-gray-600);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  margin: 1rem 0;
+}
+
+.empty-state--compact {
+  margin: 0;
+  padding: 1rem;
+}
+
+.empty-state p {
+  margin: 0.5rem 0;
+}
+
+.empty-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
 
 @media (max-width: 48rem) {
   .page-header {
