@@ -11,6 +11,10 @@ const openSidebar = () => {
 const closeSidebar = () => {
   isSidebarOpen.value = false
 }
+
+const toggleSidebar = () => {
+  isSidebarOpen.value = !isSidebarOpen.value
+}
 </script>
 
 <template>

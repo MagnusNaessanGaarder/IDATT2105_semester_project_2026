@@ -9,7 +9,6 @@ import com.example.InternalControl.repository.organization.OrganizationSettingsR
 import com.example.InternalControl.service.audit.AuditLogService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,9 +41,9 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     @Override
     @Transactional
     public OrganizationSettingsResponse updateSettings(Integer orgNumber, OrganizationSettingsRequest request, Long userId) {
-        // Create default settings if they don't exist
         OrganizationSettings settings = settingsRepository.findById(orgNumber)
                 .orElseGet(() -> {
+                    log.info("No settings found for org: {}. Creating defaults before update.", orgNumber);
                     OrganizationSettings newSettings = OrganizationSettings.builder()
                             .orgNumber(orgNumber)
                             .timezoneName("Europe/Oslo")
@@ -55,6 +54,7 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
                             .build();
                     return settingsRepository.save(newSettings);
                 });
+
         OrganizationSettingsResponse oldValues = mapToResponse(settings);
 
         if (request.getTimezoneName() != null) {
@@ -98,7 +98,6 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     @Transactional
     @Audited(action = ActionType.CREATE, entityType = "OrganizationSettings")
     public OrganizationSettingsResponse createDefaultSettings(Integer orgNumber) {
-        // Check if settings already exist
         if (settingsRepository.existsById(orgNumber)) {
             log.debug("Settings already exist for org: {}", orgNumber);
             return getSettings(orgNumber);

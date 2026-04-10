@@ -66,8 +66,9 @@ public class TrainingRecordServiceImpl implements TrainingRecordService {
     @Override
     @Transactional(readOnly = true)
     public TrainingRecord getTrainingRecord(Long id, Integer orgNumber) {
-        return trainingRecordRepository.findById(id)
-                .filter(tr -> tr.getOrgNumber().equals(orgNumber))
+        return trainingRecordRepository.findByTrainingRecordIdAndOrgNumber(id, orgNumber)
+                .or(() -> trainingRecordRepository.findById(id)
+                        .filter(tr -> tr.getOrgNumber().equals(orgNumber)))
                 .orElseThrow(() -> new EntityNotFoundException("Training record not found: " + id));
     }
 

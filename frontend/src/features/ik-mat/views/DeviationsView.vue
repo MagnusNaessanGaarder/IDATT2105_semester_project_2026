@@ -84,8 +84,9 @@ async function fetchDeviations() {
       params: { orgNumber: orgNumber.value },
     })
     deviations.value = data
-    if (selectedId.value === null && data.length > 0) {
-      selectedId.value = data[0].reportId
+    const firstDeviation = data[0]
+    if (selectedId.value === null && firstDeviation) {
+      selectedId.value = firstDeviation.reportId
     }
   } catch {
     error.value = 'Kunne ikke hente avvik. Prøv igjen.'
@@ -109,8 +110,9 @@ const selectedDeviation = computed(
 )
 
 watch(filtered, (list) => {
-  if (!list.find((d) => d.reportId === selectedId.value) && list.length > 0) {
-    selectedId.value = list[0].reportId
+  const firstDeviation = list[0]
+  if (!list.find((d) => d.reportId === selectedId.value) && firstDeviation) {
+    selectedId.value = firstDeviation.reportId
   }
 })
 

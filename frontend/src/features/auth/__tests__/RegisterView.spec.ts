@@ -56,7 +56,7 @@ async function fillForm(
 describe('RegisterView', () => {
     beforeEach(() => {
         setActivePinia(createPinia())
-        vi.mocked(useAuthStore).mockReturnValue(mockAuthStore as ReturnType<typeof useAuthStore>)
+        vi.mocked(useAuthStore).mockReturnValue(mockAuthStore as unknown as ReturnType<typeof useAuthStore>)
         mockRegister.mockReset()
         mockAuthStore.error = null
     })
