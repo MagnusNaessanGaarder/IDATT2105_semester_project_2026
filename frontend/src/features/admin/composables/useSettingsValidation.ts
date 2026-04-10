@@ -84,6 +84,12 @@ const useSettingsValidation = () => {
         return validateNotificationEmail(value, settingsState)
       case 'contact_email':
         return validateContactEmail(value)
+      case 'contact_phone':
+        return validatePhone(value)
+      case 'display_name':
+        return validateRequiredText(itemId, value, 100)
+      case 'legal_name':
+        return validateRequiredText(itemId, value, 200)
       case 'default_temp_min_c':
       case 'default_temp_max_c':
         return validateTemperature(itemId, value, settingsState)
@@ -115,6 +121,29 @@ const useSettingsValidation = () => {
     const email = String(value ?? '').trim()
     if (email.length > 0 && !validateEmail(email)) {
       validationErrors.value.contact_email = 'Ugyldig e-postformat.'
+      return false
+    }
+    return true
+  }
+
+  const validatePhone = (value: unknown): boolean => {
+    const phone = String(value ?? '').trim()
+    // Allow empty or valid phone format (+ and numbers)
+    if (phone.length > 0 && !/^[+]?[\d\s-()]+$/.test(phone)) {
+      validationErrors.value.contact_phone = 'Ugyldig telefonnummer. Bruk kun tall, +, og mellomrom.'
+      return false
+    }
+    return true
+  }
+
+  const validateRequiredText = (itemId: string, value: unknown, maxLength = 255): boolean => {
+    const text = String(value ?? '').trim()
+    if (text.length === 0) {
+      validationErrors.value[itemId] = 'Dette feltet er påkrevd.'
+      return false
+    }
+    if (text.length > maxLength) {
+      validationErrors.value[itemId] = `Maks ${maxLength} tegn.`
       return false
     }
     return true
