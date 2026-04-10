@@ -14,7 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -22,7 +21,6 @@ import java.io.IOException;
 /**
  * Filter that validates JWT tokens on every request.
  */
-@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
@@ -37,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     public JwtAuthenticationFilter(ObjectProvider<JwtService> jwtServiceProvider, UserDetailsService userDetailsService) {
-        this(jwtServiceProvider.getIfAvailable(), userDetailsService);
+        this(jwtServiceProvider != null ? jwtServiceProvider.getIfAvailable() : null, userDetailsService);
     }
 
     @Override
@@ -51,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String userEmail;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ") || jwtService == null) {
             filterChain.doFilter(request, response);
             return;
         }

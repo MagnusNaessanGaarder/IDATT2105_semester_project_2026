@@ -40,10 +40,12 @@ export interface UploadNewVersionPayload {
   directory?: string
 }
 
+export interface DocumentLinkResponse {
+  url: string
+}
 // All endpoints except uploadNewVersion read orgNumber from X-Org-Number header.
 // uploadNewVersion reads it as @RequestParam so it goes in FormData.
 const orgHeader = (orgNumber: number) => ({ 'X-Org-Number': String(orgNumber) })
-
 export const documentsApi = {
 
   listDocuments(orgNumber: number, category?: string): Promise<OrganizationDocument[]> {
@@ -113,5 +115,13 @@ export const documentsApi = {
       responseType: 'blob',
     })
     return URL.createObjectURL(response.data)
+  },
+
+  getDocumentLink(orgNumber: number, documentId: number): Promise<DocumentLinkResponse> {
+    return client
+      .get<DocumentLinkResponse>(`/files/${documentId}/link`, {
+        headers: orgHeader(orgNumber),
+      })
+      .then((r) => r.data)
   },
 }

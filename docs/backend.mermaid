@@ -1,0 +1,31 @@
+classDiagram
+    direction LR
+
+    class Controllers
+    class Security
+    class Services
+    class Repositories
+    class Models
+    class DTOs
+    class Validation
+    class Scheduler
+    class Storage
+    class Audit
+
+    Controllers --> Security
+    Controllers --> DTOs
+    Controllers --> Services
+
+    Services --> Repositories
+    Services --> Models
+    Services --> DTOs
+    Services --> Validation
+    Services --> Storage
+    Services --> Audit
+
+    Repositories --> Models
+
+    Scheduler --> Services
+
+    Audit --> Models
+    Audit --> Repositories

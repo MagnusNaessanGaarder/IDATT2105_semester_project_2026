@@ -36,6 +36,9 @@ export interface Checklist {
   completion_date: string | null
   completion_time: string | null
   status: 'completed' | 'pending' | 'overdue'
+  // Tracking fields for persistence
+  run_id: number | null
+  run_date: string | null
 }
 
 export interface TemperatureRecord {

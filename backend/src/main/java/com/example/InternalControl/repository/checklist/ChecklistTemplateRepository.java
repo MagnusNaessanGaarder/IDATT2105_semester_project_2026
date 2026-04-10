@@ -28,6 +28,7 @@ public interface ChecklistTemplateRepository extends JpaRepository<ChecklistTemp
 
     List<ChecklistTemplate> findByOrgNumberAndFrequency(Integer orgNumber, Frequency frequency);
 
+    @EntityGraph(attributePaths = {"items"})
     Optional<ChecklistTemplate> findByTemplateIdAndOrgNumber(Long templateId, Integer orgNumber);
 
     boolean existsByTemplateIdAndOrgNumber(Long templateId, Integer orgNumber);

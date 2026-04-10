@@ -1,88 +1,72 @@
 #!/bin/bash
-# API Test Script using HTTPie
 
-BASE_URL="localhost:8080/api"
+set -u
+
+BASE_URL="http://localhost:8080"
+API_BASE="$BASE_URL/api/v1"
+ORG_NUMBER="937219997"
+ADMIN_EMAIL="admin@everest-sushi.no"
+ADMIN_PASSWORD="Test1234!"
+
 PASS=0
 FAIL=0
-TOKEN=""
-TEMPLATE_ID=""
 
-# Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+print_result() {
+  if [ "$1" -eq 0 ]; then
+    echo -e "${GREEN}PASS${NC}: $2"
+    PASS=$((PASS + 1))
+  else
+    echo -e "${RED}FAIL${NC}: $2"
+    if [ -n "${3:-}" ]; then
+      echo "  Error: $3"
+    fi
+    FAIL=$((FAIL + 1))
+  fi
+}
+
+require_cmd() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo -e "${RED}ERROR:${NC} Missing required command: $1"
+    exit 1
+  fi
+}
+
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  API Tests with HTTPie${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
-# Check if httpie is installed
-if ! command -v http &>/dev/null; then
-  echo -e "${RED}ERROR: HTTPie is not installed!${NC}"
-  echo ""
-  echo "To install HTTPie:"
-  echo "  Arch:    sudo pacman -S httpie"
-  echo "  Ubuntu:  sudo apt-get install httpie"
-  echo "  macOS:   brew install httpie"
-  echo "  Python:  pip install httpie"
-  echo ""
-  echo "Or use the curl version: ./test-api-curl.sh"
-  exit 1
-fi
+require_cmd http
+require_cmd jq
 
-# Function to print test results
-print_result() {
-  if [ $1 -eq 0 ]; then
-    echo -e "${GREEN}✓ PASS${NC}: $2"
-    ((PASS++))
-  else
-    echo -e "${RED}✗ FAIL${NC}: $2"
-    if [ -n "$3" ]; then
-      echo "  Error: $3"
-    fi
-    ((FAIL++))
-  fi
-}
-
-# Check prerequisites
 echo -e "${YELLOW}Checking prerequisites...${NC}"
 echo ""
 
 echo -n "  Checking backend... "
-if ! http :8080/actuator/health &>/dev/null; then
-  echo -e "${RED}✗ NOT RUNNING${NC}"
+if http --check-status --ignore-stdin GET "$BASE_URL/swagger-ui/index.html" >/dev/null 2>&1; then
+  echo -e "${GREEN}RUNNING${NC}"
+else
+  echo -e "${RED}NOT RUNNING${NC}"
   echo ""
-  echo -e "${RED}ERROR: Backend is not running!${NC}"
-  echo "Run: ./start.sh"
+  echo -e "${RED}ERROR:${NC} Backend is not reachable at $BASE_URL"
   exit 1
 fi
-echo -e "${GREEN}✓ RUNNING${NC}"
-
-echo -n "  Checking MySQL... "
-if ! docker ps | grep -q "backend-mysql-1"; then
-  echo -e "${RED}✗ NOT RUNNING${NC}"
-  echo ""
-  echo -e "${RED}ERROR: MySQL is not running!${NC}"
-  exit 1
-fi
-echo -e "${GREEN}✓ RUNNING${NC}"
 
 echo ""
-
-# ==================== AUTH TESTS ====================
 echo -e "${BLUE}Authentication Tests${NC}"
 echo "--------------------"
 
-# Test 1: Health check
-echo "Test 1: Health check"
-if http :8080/actuator/health &>/dev/null; then
-  print_result 0 "Health check"
-else
-  print_result 1 "Health check"
-fi
+echo "Test 1: Login with admin user"
+LOGIN_RESPONSE=$(http --ignore-stdin --check-status --body POST "$API_BASE/auth/login" \
+  Content-Type:application/json \
+  email="$ADMIN_EMAIL" \
+  password="$ADMIN_PASSWORD" 2>/dev/null)
 
 # Test 2: Register new user first
 echo "Test 2: Register new user"
@@ -164,7 +148,6 @@ fi
 
 echo ""
 
-# ==================== CHECKLIST TESTS ====================
 if [ -n "$TOKEN" ]; then
   echo -e "${BLUE}Checklist API Tests${NC}"
   echo "-------------------"
@@ -197,24 +180,21 @@ if [ -n "$TOKEN" ]; then
   echo "Test 8: Create template"
   RESPONSE=$(http --ignore-stdin -b POST :8080/api/v1/checklists/templates \
     Authorization:"Bearer $TOKEN" \
-    orgNumber==937219997 \
+    Content-Type:application/json \
+    title="$TEMPLATE_TITLE" \
+    description="HTTPie smoke test" \
     moduleType="FOOD" \
-    title="Daily Temperature Check" \
-    description="Check all fridge temperatures" \
-    frequency="DAILY" 2>/dev/null)
+    frequency="DAILY" \
+    items:='[]' 2>/dev/null)
 
-  if [ -n "$RESPONSE" ]; then
-    TEMPLATE_ID=$(echo "$RESPONSE" | grep -o '"templateId":[0-9]*' | cut -d':' -f2)
-    if [ -n "$TEMPLATE_ID" ]; then
-      print_result 0 "Create template (ID: $TEMPLATE_ID)"
-    else
-      print_result 1 "Create template" "No templateId in response"
-    fi
+  TEMPLATE_ID=$(printf '%s' "$TEMPLATE_RESPONSE" | jq -r '.templateId // empty')
+
+  if [ -n "$TEMPLATE_ID" ]; then
+    print_result 0 "Create template (ID: $TEMPLATE_ID)"
   else
-    print_result 1 "Create template"
+    print_result 1 "Create template" "No templateId in response"
   fi
 
-  # Test 9: Get by ID
   if [ -n "$TEMPLATE_ID" ]; then
     echo "Test 9: Get template by ID"
     if http :8080/api/v1/checklists/templates/$TEMPLATE_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
@@ -222,7 +202,6 @@ if [ -n "$TOKEN" ]; then
     else
       print_result 1 "Get template by ID"
     fi
-  fi
 
   # Test 10: Update template
   if [ -n "$TEMPLATE_ID" ]; then
@@ -230,13 +209,23 @@ if [ -n "$TOKEN" ]; then
     if http --ignore-stdin -b PUT :8080/api/v1/checklists/templates/$TEMPLATE_ID \
       orgNumber==937219997 \
       Authorization:"Bearer $TOKEN" \
-      title="Daily Temperature Check - Updated" \
+      Content-Type:application/json \
+      title="$TEMPLATE_TITLE updated" \
+      description="Updated HTTPie smoke test" \
       moduleType="FOOD" \
-      frequency="DAILY" \
-      description="Updated description" &>/dev/null; then
+      frequency="WEEKLY" \
+      items:='[]' >/dev/null 2>&1; then
       print_result 0 "Update template"
     else
       print_result 1 "Update template"
+    fi
+
+    echo "Test 9: Delete template"
+    if http --check-status --ignore-stdin DELETE "$API_BASE/checklists/templates/$TEMPLATE_ID?orgNumber=$ORG_NUMBER" \
+      Authorization:"Bearer $TOKEN" >/dev/null 2>&1; then
+      print_result 0 "Delete template"
+    else
+      print_result 1 "Delete template"
     fi
   fi
 
@@ -286,7 +275,21 @@ if [ -n "$TOKEN" ]; then
     print_result 1 "Get all deviation reports"
   fi
 
-  # Test 14: Get deviation by ID
+  DEVIATION_TITLE="HTTPie deviation $(date +%s)"
+  echo "Test 11: Create deviation report"
+  DEVIATION_RESPONSE=$(http --ignore-stdin --check-status --body POST "$API_BASE/deviations?orgNumber=$ORG_NUMBER" \
+    Authorization:"Bearer $TOKEN" \
+    Content-Type:application/json \
+    reportType="INCIDENT" \
+    severity="MAJOR" \
+    title="$DEVIATION_TITLE" \
+    description="HTTPie smoke test deviation" \
+    locationText="Test location" \
+    discoveredByName="HTTPie" \
+    reportedToName="HTTPie" 2>/dev/null)
+
+  DEVIATION_ID=$(printf '%s' "$DEVIATION_RESPONSE" | jq -r '.reportId // empty')
+
   if [ -n "$DEVIATION_ID" ]; then
     echo "Test 14: Get deviation by ID"
     if http :8080/api/v1/deviations/$DEVIATION_ID orgNumber==937219997 Authorization:"Bearer $TOKEN" &>/dev/null; then
@@ -294,7 +297,6 @@ if [ -n "$TOKEN" ]; then
     else
       print_result 1 "Get deviation by ID"
     fi
-  fi
 
   # Test 15: Filter by status
   echo "Test 15: Filter deviations by status"
@@ -1590,17 +1592,10 @@ fi
 
 # ==================== SUMMARY ====================
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}    Test Results${NC}"
+echo -e "Passed: ${GREEN}$PASS${NC}"
+echo -e "Failed: ${RED}$FAIL${NC}"
 echo -e "${BLUE}========================================${NC}"
-echo -e "${GREEN}Passed: $PASS${NC}"
-echo -e "${RED}Failed: $FAIL${NC}"
-echo -e "${BLUE}Total:  $((PASS + FAIL))${NC}"
-echo ""
 
-if [ $FAIL -eq 0 ]; then
-  echo -e "${GREEN}✓ All tests passed!${NC}"
-  exit 0
-else
-  echo -e "${RED}✗ Some tests failed${NC}"
+if [ "$FAIL" -gt 0 ]; then
   exit 1
 fi

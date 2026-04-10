@@ -1,4 +1,4 @@
-import axios, { type InternalAxiosRequestConfig } from 'axios'
+import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 import { getOrgNumber } from '@/shared/utils/orgContext'
 
 // Extend Axios config type to allow _retry property
@@ -13,28 +13,32 @@ declare module 'axios' {
   }
 }
 
-const normalizeApiBaseUrl = (value: string | undefined): string => {
-  const fallback = 'http://localhost:8080/api/v1'
-  if (!value || value.trim().length === 0) {
-    return fallback
+export const normalizeRelativeApiPath = (path: string): string => {
+  if (/^https?:\/\//i.test(path)) {
+    return path
   }
 
-  const trimmed = value.trim().replace(/\/+$/, '')
-  if (trimmed.endsWith('/api/v1')) {
-    return trimmed
+  if (path.startsWith('/api/v1/')) {
+    return path.replace(/^\/api\/v1/, '')
   }
-  if (trimmed.endsWith('/api')) {
-    return `${trimmed}/v1`
+
+  if (path.startsWith('api/v1/')) {
+    return `/${path.replace(/^api\/v1\//, '')}`
   }
-  return `${trimmed}/api/v1`
+
+  if (path.startsWith('/api/')) {
+    return path.replace(/^\/api/, '')
+  }
+
+  if (path.startsWith('api/')) {
+    return `/${path.replace(/^api\//, '')}`
+  }
+
+  return path
 }
 
-const apiBaseUrl = import.meta.env.DEV
-  ? '/api/v1'
-  : normalizeApiBaseUrl(import.meta.env.VITE_API_URL as string | undefined)
-
 export const client = axios.create({
-  baseURL: apiBaseUrl,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -50,78 +54,9 @@ const shouldSkipAuthHeader = (url?: string): boolean => {
   return url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh')
 }
 
-const shouldAttachOrgContext = (url?: string): boolean => {
-  if (!url) return false
-  return !url.includes('/auth/')
-}
-
-const isFilesEndpoint = (url?: string): boolean => {
-  if (!url) return false
-  return url.includes('/files')
-}
-
-export const normalizeRelativeApiPath = (url?: string): string | undefined => {
-  if (!url) {
-    return url
-  }
-
-  if (/^https?:\/\//i.test(url)) {
-    return url
-  }
-
-  if (url === '/api/v1' || url === 'api/v1') {
-    return '/'
-  }
-
-  if (url.startsWith('/api/v1/')) {
-    return url.slice('/api/v1'.length)
-  }
-
-  if (url.startsWith('api/v1/')) {
-    return `/${url.slice('api/v1/'.length)}`
-  }
-
-  if (url === '/api' || url === 'api') {
-    return '/'
-  }
-
-  if (url.startsWith('/api/')) {
-    return url.slice('/api'.length)
-  }
-
-  if (url.startsWith('api/')) {
-    return `/${url.slice('api/'.length)}`
-  }
-
-  return url
-}
-
 const clearSessionTokens = () => {
   sessionStorage.removeItem('accessToken')
   sessionStorage.removeItem('refreshToken')
-}
-
-const summarizeResponseData = (data: unknown): string => {
-  if (typeof data === 'string') {
-    const compact = data.replace(/\s+/g, ' ').trim()
-    return compact.length > 180 ? `String(${compact.length} chars)` : compact
-  }
-
-  if (Array.isArray(data)) {
-    return `Array(${data.length})`
-  }
-
-  if (data && typeof data === 'object') {
-    const payload = data as Record<string, unknown>
-    if (Array.isArray(payload.content)) {
-      return `Object{content:Array(${payload.content.length})}`
-    }
-
-    const keys = Object.keys(payload).slice(0, 6)
-    return `Object{${keys.join(', ')}}`
-  }
-
-  return String(data)
 }
 
 const parseJwtPayload = (token: string): JwtPayload | null => {
@@ -193,10 +128,8 @@ const refreshAccessToken = async (): Promise<string | null> => {
 // Add JWT token to all requests
 client.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    config.url = normalizeRelativeApiPath(config.url)
-    console.log(`[HTTP] 📤 ${config.method?.toUpperCase()} ${config.url}`)
-    if (config.params) {
-      console.log('[HTTP]    Params:', config.params)
+    if (config.url) {
+      config.url = normalizeRelativeApiPath(config.url)
     }
 
     if (shouldSkipAuthHeader(config.url)) {
@@ -206,48 +139,36 @@ client.interceptors.request.use(
     let token = sessionStorage.getItem('accessToken')
 
     if (!token || isTokenExpiringSoon(token)) {
-      console.log('[HTTP]    Token expired/missing, refreshing...')
       token = await refreshAccessToken()
     }
 
     if (!token) {
-      console.error('[HTTP]    ❌ No token available after refresh attempt')
       clearSessionTokens()
       window.location.href = '/login'
       return Promise.reject(new Error('Missing Bearer token for protected endpoint'))
     }
 
     config.headers.Authorization = `Bearer ${token}`
-    console.log('[HTTP]    ✅ Authorization header set')
 
-    if (shouldAttachOrgContext(config.url)) {
-      const orgNumber = getOrgNumber()
-      config.params = {
-        ...(config.params || {}),
-        orgNumber,
-      }
+    if (!config.headers['X-Org-Number']) {
+      const orgNumberFromParams =
+        typeof config.params?.orgNumber === 'number' || typeof config.params?.orgNumber === 'string'
+          ? config.params.orgNumber
+          : null
 
-      if (isFilesEndpoint(config.url)) {
-        config.headers['X-Org-Number'] = String(orgNumber)
-      }
-
-      console.log(`[HTTP]    ✅ Org context set (orgNumber=${orgNumber})`)
+      config.headers['X-Org-Number'] = String(orgNumberFromParams ?? getOrgNumber())
     }
 
     return config
   },
-  (error) => {
-    console.error('[HTTP]    ❌ Request interceptor error:', error)
-    return Promise.reject(error)
-  }
+  (error) => Promise.reject(error)
 )
 
 // Handle 401 errors with automatic token refresh
 let isRefreshing = false
 let failedQueue: { resolve: (value: string) => void; reject: (reason: any) => void }[] = []
-const suppressed500LogUrls = new Set<string>()
 
-const processQueue = (error: unknown, token: string | null = null) => {
+const processQueue = (error: any, token: string | null = null) => {
   failedQueue.forEach((promise) => {
     if (error) {
       promise.reject(error)
@@ -259,36 +180,9 @@ const processQueue = (error: unknown, token: string | null = null) => {
 }
 
 client.interceptors.response.use(
-  (response) => {
-    console.log(`[HTTP] 📥 ${response.status} ${response.config.url}`)
-    if (response.data) {
-      if (Array.isArray(response.data)) {
-        console.log(`[HTTP]    ✅ Received ${response.data.length} items`)
-      } else {
-        console.log('[HTTP]    ✅ Response:', summarizeResponseData(response.data))
-      }
-    }
-    return response
-  },
+  (response) => response,
   async (error) => {
     const originalRequest: InternalAxiosRequestConfig = error.config
-    const status = error.response?.status
-    const isSuppressed500 = status === 500 && originalRequest.skipGlobalErrorLog === true
-
-    if (isSuppressed500) {
-      const key = originalRequest.url || 'unknown-url'
-      if (!suppressed500LogUrls.has(key)) {
-        suppressed500LogUrls.add(key)
-        console.warn(`[HTTP] ⚠️ ${status} ${key} (suppressed repeated logging; endpoint handled as optional)`)
-      }
-    } else {
-      console.error(`[HTTP] ❌ ${status || 'unknown'} ${originalRequest.url}`)
-      if (error.response?.data) {
-        console.error('[HTTP]    Error response:', error.response.data)
-      } else if (error.message) {
-        console.error('[HTTP]    Error:', error.message)
-      }
-    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Skip refresh for auth endpoints
