@@ -21,6 +21,12 @@ const router = createRouter({
       meta: { requiresAuth: false, title: 'Innlogging' },
     },
     {
+      path: '/register',
+      name: 'Register',
+      component: () => import('@/features/auth/views/RegisterView.vue'),
+      meta: { requiresAuth: false, title: 'Registrering' },
+    },
+    {
       path: '/',
       component: () => import('@/layouts/AppShell.vue'),
       meta: { requiresAuth: true },
