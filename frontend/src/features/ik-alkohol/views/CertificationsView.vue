@@ -1,4 +1,4 @@
-3<script setup lang="ts">
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import {
   certificateStatusForDate,
@@ -30,6 +30,9 @@ interface UserCertificationGroup {
     raw: CertificationRecord
   }>
 }
+
+// Only these training types are relevant to the alcohol module
+const ALCOHOL_TYPES = new Set(['RESPONSIBLE_ALCOHOL_SERVICE', 'AGE_VERIFICATION'])
 
 const {
   items: certifications,
@@ -70,10 +73,12 @@ const formState = ref({
 })
 
 const availableCertTypes = computed(() => {
-  return certificationCatalog.value.map((item) => ({
-    value: item.trainingType,
-    label: item.displayName,
-  }))
+  return certificationCatalog.value
+    .filter((item) => ALCOHOL_TYPES.has(item.trainingType))
+    .map((item) => ({
+      value: item.trainingType,
+      label: item.displayName,
+    }))
 })
 
 const certificationTypeLabels = computed<Record<string, string>>(() => Object.fromEntries(
@@ -85,7 +90,11 @@ const filteredCatalogTypes = computed(() => (
     : availableCertTypes.value.filter((type) => type.value === activeFilter.value)
 ))
 
-const totalCertificates = computed(() => certifications.value.length)
+const alcoholCertifications = computed(() =>
+  certifications.value.filter((cert) => ALCOHOL_TYPES.has(cert.trainingType))
+)
+
+const totalCertificates = computed(() => alcoholCertifications.value.length)
 
 const statusCount = computed(() => {
   const counts: Record<CertificateStatus, number> = {
@@ -94,7 +103,7 @@ const statusCount = computed(() => {
     Utgått: 0,
   }
 
-  certifications.value.forEach((cert) => {
+  alcoholCertifications.value.forEach((cert) => {
     const status = cert.expiresAt
       ? certificateStatusForDate(cert.expiresAt.slice(0, 10))
       : cert.status === 'COMPLETED'
@@ -116,36 +125,38 @@ const statusCount = computed(() => {
 const userGroups = computed<UserCertificationGroup[]>(() => {
   const certsByUser = new Map<number, UserCertificationGroup['certifications']>()
 
-  certifications.value.forEach((cert) => {
-    const userId = cert.user?.userId
-    if (!userId) {
-      return
-    }
+  certifications.value
+    .filter((cert) => ALCOHOL_TYPES.has(cert.trainingType))
+    .forEach((cert) => {
+      const userId = cert.user?.userId
+      if (!userId) {
+        return
+      }
 
-    const list = certsByUser.get(userId) ?? []
-    list.push({
-      id: cert.trainingRecordId,
-      title: cert.title,
-      trainingType: cert.trainingType,
-      status: cert.expiresAt
-        ? certificateStatusForDate(cert.expiresAt.slice(0, 10))
-        : cert.status === 'COMPLETED'
-          ? 'Gyldig'
-          : 'Mangler',
-      expires: cert.expiresAt ? formatDateValue(cert.expiresAt.slice(0, 10)) : '-',
-      completedAt: cert.completedAt ? formatDateValue(cert.completedAt.slice(0, 10)) : '-',
-      notes: cert.notes,
-      raw: cert,
+      const list = certsByUser.get(userId) ?? []
+      list.push({
+        id: cert.trainingRecordId,
+        title: cert.title,
+        trainingType: cert.trainingType,
+        status: cert.expiresAt
+          ? certificateStatusForDate(cert.expiresAt.slice(0, 10))
+          : cert.status === 'COMPLETED'
+            ? 'Gyldig'
+            : 'Mangler',
+        expires: cert.expiresAt ? formatDateValue(cert.expiresAt.slice(0, 10)) : '-',
+        completedAt: cert.completedAt ? formatDateValue(cert.completedAt.slice(0, 10)) : '-',
+        notes: cert.notes,
+        raw: cert,
+      })
+      certsByUser.set(userId, list)
     })
-    certsByUser.set(userId, list)
-  })
 
   return users.value.map((user) => ({
-      userId: user.userId,
-      employee: user.displayName,
-      email: user.email ?? null,
-      certifications: (certsByUser.get(user.userId) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title)),
-    }))
+    userId: user.userId,
+    employee: user.displayName,
+    email: user.email ?? null,
+    certifications: (certsByUser.get(user.userId) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title)),
+  }))
 })
 
 const filteredUserGroups = computed<UserCertificationGroup[]>(() => {
@@ -657,6 +668,8 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 .type-strip li {
   padding: 4px 8px;
   border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-gray-700);
   border-radius: 999px;
   background: var(--color-surface-muted);
 }

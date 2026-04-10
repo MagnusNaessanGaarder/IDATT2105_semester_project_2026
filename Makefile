@@ -50,7 +50,7 @@ dev:
 	@echo "[2/3] Starting backend..."
 	@cd backend && nohup ./mvnw -Plocal-run spring-boot:run -DskipTests -Dcheckstyle.skip > /tmp/backend.log 2>&1 &
 	@for i in $$(seq 1 60); do \
-		ss -ltnp 2>/dev/null | grep -q ':8080' && break; \
+		lsof -ti:8080 >/dev/null 2>&1 && break; \
 		if [ $$i -eq 60 ]; then \
 			echo "  ERROR: Backend failed to start (see /tmp/backend.log)"; \
 			exit 1; \
@@ -61,8 +61,15 @@ dev:
 	@echo ""
 
 	@echo "[3/3] Starting frontend..."
-	@cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &
-	@sleep 3
+	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
+	@for i in $$(seq 1 30); do \
+		lsof -ti:5173 >/dev/null 2>&1 && break; \
+		if [ $$i -eq 30 ]; then \
+			echo "  ERROR: Frontend failed to start (see /tmp/frontend.log)"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
 	@echo "  Frontend started on http://localhost:5173"
 	@echo ""
 

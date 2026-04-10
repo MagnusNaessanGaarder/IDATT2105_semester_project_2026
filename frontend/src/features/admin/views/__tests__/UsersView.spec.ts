@@ -191,7 +191,7 @@ describe('UsersView', () => {
     await Promise.resolve()
 
     expect(wrapper.find('.modal-stub').exists()).toBe(false)
-    await wrapper.find('.add-btn').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     expect(wrapper.find('.modal-stub').exists()).toBe(true)
     expect(wrapper.find('.modal-stub h2').text()).toBe('Legg til teammedlem')
   })
@@ -201,9 +201,9 @@ describe('UsersView', () => {
     const wrapper = mountView()
     await Promise.resolve()
 
-    await wrapper.find('.add-btn').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     await wrapper.find('#addEmail').setValue('new.person@example.com')
-    await wrapper.find('.btn-primary').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     await Promise.resolve()
 
     expect(client.post).toHaveBeenCalledWith(
@@ -224,9 +224,9 @@ describe('UsersView', () => {
     const wrapper = mountView()
     await Promise.resolve()
 
-    await wrapper.find('.add-btn').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     await wrapper.find('#addEmail').setValue('unknown@example.com')
-    await wrapper.find('.btn-primary').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     await Promise.resolve()
 
     expect(wrapper.find('.add-error').exists()).toBe(true)
@@ -242,9 +242,9 @@ describe('UsersView', () => {
     const wrapper = mountView()
     await Promise.resolve()
 
-    await wrapper.find('.add-btn').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     await wrapper.find('#addEmail').setValue('existing@example.com')
-    await wrapper.find('.btn-primary').trigger('click')
+    await wrapper.find('.btn--primary').trigger('click')
     await Promise.resolve()
 
     expect(wrapper.find('.add-error').text()).toContain('allerede medlem')

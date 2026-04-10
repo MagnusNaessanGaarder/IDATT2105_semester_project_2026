@@ -23,17 +23,35 @@ const checkOverrides = ref<Record<number, Record<number, boolean>>>({})
 
 // Client-side completed tracking — persisted to localStorage so it survives page refreshes.
 const LS_KEY = 'ikmat_completed_ids'
-const clientCompletedIds = ref<Set<number>>(
-  new Set(JSON.parse(localStorage.getItem(LS_KEY) ?? '[]') as number[])
-)
-watchEffect(() => {
-  localStorage.setItem(LS_KEY, JSON.stringify([...clientCompletedIds.value]))
-})
+const LS_META_KEY = 'ikmat_completion_meta'
+
+interface CompletionMeta { date: string; time: string; by: string }
+
+const readLS = (): number[] => { try { return JSON.parse(localStorage.getItem(LS_KEY) ?? '[]') } catch { return [] } }
+const writeLS = (ids: Set<number>) => { try { localStorage.setItem(LS_KEY, JSON.stringify([...ids])) } catch { /* noop */ } }
+const readMetaLS = (): Record<number, CompletionMeta> => { try { return JSON.parse(localStorage.getItem(LS_META_KEY) ?? '{}') } catch { return {} } }
+const writeMetaLS = (meta: Record<number, CompletionMeta>) => { try { localStorage.setItem(LS_META_KEY, JSON.stringify(meta)) } catch { /* noop */ } }
+
+const clientCompletedIds = ref<Set<number>>(new Set(readLS()))
+const clientCompletionMeta = ref<Record<number, CompletionMeta>>(readMetaLS())
+
+watchEffect(() => writeLS(clientCompletedIds.value))
+watchEffect(() => writeMetaLS(clientCompletionMeta.value))
 
 const applyOverrides = (list: Checklist[]): Checklist[] =>
   list.map(c => {
     const done = clientCompletedIds.value.has(c.id)
-    if (done) return { ...c, status: 'completed', items: c.items.map(t => ({ ...t, completed: true })) }
+    if (done) {
+      const meta = clientCompletionMeta.value[c.id]
+      return {
+        ...c,
+        status: 'completed',
+        items: c.items.map(t => ({ ...t, completed: true })),
+        completion_date: c.completion_date || meta?.date || null,
+        completion_time: c.completion_time || meta?.time || null,
+        completed_by: c.completed_by || meta?.by || null,
+      }
+    }
     const overrides = checkOverrides.value[c.id]
     if (!overrides) return c
     return { ...c, items: c.items.map(t => t.id in overrides ? { ...t, completed: overrides[t.id] } : t) }
@@ -176,12 +194,19 @@ const markComplete = async (checklist: Checklist) => {
     if (checklist.runId) {
       await completeRun(checklist.runId, getOrgNumber())
     }
-    // Mark completed client-side immediately — works even when GET /runs returns 500
+    // Record completion metadata (date, time, user) client-side
+    const now = new Date()
+    const meta: CompletionMeta = {
+      date: now.toISOString().slice(0, 10),
+      time: now.toTimeString().slice(0, 5),
+      by: useAuthStore().user?.name ?? useAuthStore().user?.email ?? 'Ukjent',
+    }
     clientCompletedIds.value = new Set([...clientCompletedIds.value, checklist.id])
+    clientCompletionMeta.value = { ...clientCompletionMeta.value, [checklist.id]: meta }
     // Update local state so status badge + progress reflect completion right away
     local.value = local.value.map(c =>
       c.id !== checklist.id ? c
-        : { ...c, status: 'completed', items: c.items.map(t => ({ ...t, completed: true })) }
+        : { ...c, status: 'completed', completion_date: meta.date, completion_time: meta.time, completed_by: meta.by, items: c.items.map(t => ({ ...t, completed: true })) }
     )
     // Clear overrides — checklist is done
     const overrides = { ...checkOverrides.value }
@@ -448,8 +473,33 @@ const handleDelete = async () => {
                   <p class="checklist-header__meta">
                     {{ freqLabel(checklist.frequency) }}
                     <template v-if="checklist.location"> · {{ checklist.location }}</template>
-                    <template v-if="checklist.due_date"> · Frist: {{ checklist.due_date }}</template>
                   </p>
+                  <div class="checklist-done-meta">
+                    <span v-if="checklist.completion_date" class="done-meta-chip done-meta-chip--date">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      {{ checklist.completion_date }}<template v-if="checklist.completion_time"> kl. {{ checklist.completion_time }}</template>
+                    </span>
+                    <span v-if="checklist.completed_by" class="done-meta-chip">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      {{ checklist.completed_by }}
+                    </span>
+                    <span v-if="checklist.assignedTo" class="done-meta-chip">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                      Tildelt: {{ checklist.assignedTo }}
+                    </span>
+                    <span class="done-meta-chip">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                      {{ checklist.items.filter(t => t.completed).length }}/{{ checklist.items.length }} oppgaver
+                    </span>
+                    <span v-if="checklist.items.some(t => t.isDeviation)" class="done-meta-chip done-meta-chip--deviation">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      {{ checklist.items.filter(t => t.isDeviation).length }} avvik
+                    </span>
+                    <span v-if="checklist.due_date" class="done-meta-chip done-meta-chip--due">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      Frist: {{ checklist.due_date }}
+                    </span>
+                  </div>
                 </div>
 
                 <div class="checklist-header__progress checklist-header__progress--good">
@@ -676,6 +726,18 @@ const handleDelete = async () => {
 .checklist-header__title-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .checklist-header__title { margin: 0; font-size: var(--font-size-base); font-weight: 600; color: var(--color-foreground); }
 .checklist-header__meta { margin: 0; font-size: var(--font-size-xs); color: var(--color-gray-500); }
+.checklist-done-meta {
+  display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.4rem;
+}
+.done-meta-chip {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  font-size: var(--font-size-xs); color: var(--color-gray-500);
+  background: var(--color-gray-100); border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+}
+.done-meta-chip--date { color: var(--color-success, #16a34a); background: color-mix(in srgb, var(--color-success, #16a34a) 10%, transparent); }
+.done-meta-chip--deviation { color: var(--color-warning, #d97706); background: color-mix(in srgb, var(--color-warning, #d97706) 10%, transparent); }
+.done-meta-chip--due { color: var(--color-gray-500); }
 
 /* Progress bar */
 .checklist-header__progress { display: flex; align-items: center; gap: 0.5rem; min-width: 8rem; flex-shrink: 0; }

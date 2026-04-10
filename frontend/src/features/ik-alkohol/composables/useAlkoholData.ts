@@ -62,6 +62,7 @@ export interface CertificationUser {
 
 export interface CertificationRecord {
   trainingRecordId: number
+  userId: number | null        // serialized directly from the FK — always present
   user: CertificationUser | null
   orgNumber: number
   trainingType: CertificationType

@@ -1141,44 +1141,80 @@ watch(currentOrgNumber, () => {
   justify-content: flex-end;
 }
 
-/* Button Styles */
+/* Button Styles - WCAG-forbedret med tydeligere kanter */
 .btn {
   min-height: 2.7rem;
   padding: 0.45rem 0.95rem;
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 600;
-  border: none;
+  border: 2px solid transparent;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
+/* Lagre endringer - Primærknapp med forsterket synlighet */
 .btn--primary {
   background: var(--color-foreground);
   color: var(--color-background);
+  border-color: var(--color-foreground);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn--primary:hover {
   background: var(--color-gray-900);
+  border-color: var(--color-gray-900);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
+.btn--primary:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Tilbake til standard / Tilbakestill endringer - Sekundærknapp med tydelig kant */
 .btn--secondary {
   background: var(--color-card);
   color: var(--color-gray-700);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn--secondary:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.btn--secondary:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-gray-500);
 }
 
 .btn--danger {
   background: var(--color-danger);
   color: white;
+  border-color: var(--color-danger);
 }
 
 .btn--danger:hover {
   background: var(--color-danger-hover, #dc2626);
+  border-color: var(--color-danger-hover, #dc2626);
+}
+
+.btn--danger:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  border-color: var(--color-gray-300);
+  transform: none;
+  box-shadow: none;
 }
 
 .error-message {

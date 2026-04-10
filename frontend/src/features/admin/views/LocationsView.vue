@@ -773,11 +773,47 @@ tr:last-child td { border-bottom: none; }
    Bruker delte klasser fra components.css:
    - .btn (base)
    - .btn--primary, .btn--ghost, .btn--danger (varianter)
+   
+   WCAG-forbedringer: Tydeligere kanter og kontrast for bedre synlighet
 */
 
-.btn { min-height: 2.25rem; }
-.btn--primary:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn--danger:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn { 
+  min-height: 2.25rem;
+  border: 2px solid transparent;
+}
+
+/* + Ny lokasjon - forsterket synlighet */
+.btn--primary {
+  border-color: var(--color-brand-deep-forest);
+  box-shadow: 0 2px 4px rgba(0, 39, 43, 0.15);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.btn--primary:hover {
+  border-color: var(--color-brand-dark-teal);
+  box-shadow: 0 4px 8px rgba(0, 39, 43, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn--primary:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-brand-deep-forest);
+}
+
+.btn--primary:disabled { 
+  opacity: 0.5; 
+  cursor: not-allowed;
+  border-color: var(--color-gray-400);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn--danger:disabled { 
+  opacity: 0.6; 
+  cursor: not-allowed; 
+}
 
 /*  Responsive  */
 @media (max-width: 48rem) {

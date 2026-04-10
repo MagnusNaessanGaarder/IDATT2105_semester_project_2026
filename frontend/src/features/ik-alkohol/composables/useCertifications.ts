@@ -24,14 +24,15 @@ export interface UseCertificationsReturn {
 }
 
 const hasError = (result: CertificationResult): result is { ok: false; error: { message: string; status: number | null; data: unknown } } =>
-  !result.ok
+    !result.ok
+
+// Module-level singleton state — shared across CertificationsView and TrainingView
+const items = ref<CertificationRecord[]>([])
+const isLoading = ref(false)
+const isSubmitting = ref(false)
+const error = ref<string | null>(null)
 
 export function useCertifications(): UseCertificationsReturn {
-  // Component-level state (fresh for each component instance)
-  const items = ref<CertificationRecord[]>([])
-  const isLoading = ref(false)
-  const isSubmitting = ref(false)
-  const error = ref<string | null>(null)
 
   const loadItems = async (orgNumber: number): Promise<void> => {
     isLoading.value = true
