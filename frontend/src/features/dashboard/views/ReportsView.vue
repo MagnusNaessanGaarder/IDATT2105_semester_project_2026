@@ -46,7 +46,6 @@ async function openPreview(job: ExportResponse) {
     const path = await exportApi.getDownloadUrl(orgNumber.value, job.exportJobId)
     const documentId = Number(path.split('/').pop())
     if (!documentId) throw new Error('Could not parse document ID from path: ' + path)
-
     const mimeType = job.format === 'JSON' ? 'application/json' : 'application/pdf'
     const response = await client.get<Blob>(`/files/download/${documentId}`, {
       headers: { 'X-Org-Number': String(orgNumber.value) },

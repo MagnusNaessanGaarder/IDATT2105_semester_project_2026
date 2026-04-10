@@ -61,6 +61,34 @@ let lastLoadedOrgNumber: number | null = null
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
+const toDateOnlyString = (value: unknown): string => {
+  if (Array.isArray(value) && value.length >= 3) {
+    const [year, month, day] = value
+    if (
+      typeof year === 'number' &&
+      typeof month === 'number' &&
+      typeof day === 'number' &&
+      Number.isFinite(year) &&
+      Number.isFinite(month) &&
+      Number.isFinite(day)
+    ) {
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    }
+  }
+
+  if (typeof value !== 'string' || !value) {
+    return ''
+  }
+
+  return value.includes('T') ? (value.split('T')[0] ?? '') : value.slice(0, 10)
+}
+
+const todayDateString = (): string => toDateOnlyString(new Date().toISOString())
+
+const isToday = (value: string | null | undefined): boolean => {
+  return toDateOnlyString(value ?? '') === todayDateString()
+}
+
 const frequencyLabel = (frequency: ChecklistTemplateApi['frequency']): Checklist['frequency'] => {
   if (frequency === 'DAILY') return 'Daglig'
   if (frequency === 'WEEKLY') return 'Ukentlig'
@@ -235,6 +263,8 @@ const loadData = async (): Promise<void> => {
           completion_time: completionSplit.time || null,
           due_date: dueSplit.date || null,
           status: latestRun ? checklistStatusFromRun(latestRun.status) : 'pending',
+          run_id: latestRun?.runId ?? null,
+          run_date: toDateOnlyString(latestRun?.runDate ?? null) || null,
         } satisfies Checklist
       })
 
@@ -261,7 +291,6 @@ const loadData = async (): Promise<void> => {
           const split = splitIsoDateTime(entry.measuredAt)
           const point = pointById.get(entry.logPointId)
           const location = entry.locationId ? locationById.get(entry.locationId) : point?.locationId ? locationById.get(point.locationId) : undefined
-          const tempDefaults = getOrganizationTempDefaults(orgNumber)
           const reporterName = reporterFromNote(entry.noteText) ?? entry.recordedByName
           return {
             id: entry.entryId,
@@ -270,8 +299,8 @@ const loadData = async (): Promise<void> => {
             location_id: entry.locationId ?? point?.locationId ?? null,
             location: entry.locationName ?? point?.locationName ?? location?.name ?? 'Ukjent lokasjon',
             temperature_c: Number(entry.temperatureC),
-            min_temp: Number(location?.tempMinC ?? tempDefaults.min ?? 0),
-            max_temp: Number(location?.tempMaxC ?? tempDefaults.max ?? 4),
+            min_temp: Number(location?.tempMinC ?? 0),
+            max_temp: Number(location?.tempMaxC ?? 4),
             recorded_by: reporterName ?? 'Ukjent',
             note_text: entry.noteText ?? null,
             recorded_date: split.date,
@@ -406,6 +435,30 @@ const reload = async () => {
   // Reset suppressed-endpoint flags so a recovered backend is retried
   resetOptionalEndpointFlags()
   await loadData()
+}
+
+const toggleChecklistItem = async (checklistId: number, itemId: number, completed: boolean): Promise<void> => {
+  const checklist = checklists.find((entry) => entry.id === checklistId)
+  if (!checklist) {
+    throw new Error(`Checklist ${checklistId} not found`)
+  }
+
+  let runId = checklist.run_id
+  if (!runId || !isToday(checklist.run_date)) {
+    const createdRun = await ikMatApi.createChecklistRun({
+      templateId: checklistId,
+      runDate: todayDateString(),
+    })
+    runId = createdRun.runId
+    checklist.run_id = runId
+    checklist.run_date = toDateOnlyString(createdRun.runDate) || todayDateString()
+  }
+
+  await ikMatApi.updateChecklistRunItem(runId, itemId, {
+    booleanValue: completed,
+  })
+
+  await reload()
 }
 
 const createTemperaturePoint = async (payload: TemperatureLogPointUpsertRequest): Promise<TemperatureLogPointApi> => {
@@ -590,6 +643,7 @@ export const useIkMatData = () => {
     haccpPlan,
     formatDate,
     completionForChecklist,
+    toggleChecklistItem,
     isTemperatureInRange,
     isLoading,
     error,

@@ -21,7 +21,6 @@ public class TemperatureRangeValidator implements ConstraintValidator<ValidTempe
         this.min = constraintAnnotation.min();
         this.max = constraintAnnotation.max();
 
-        // Validate that min < max
         if (min >= max) {
             throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
         }
@@ -30,7 +29,7 @@ public class TemperatureRangeValidator implements ConstraintValidator<ValidTempe
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
         if (value == null) {
-            return true; // Null values are handled by @NotNull
+            return true;
         }
 
         double temperature;
@@ -44,13 +43,11 @@ public class TemperatureRangeValidator implements ConstraintValidator<ValidTempe
             return false;
         }
 
-        // Check for NaN or Infinity
         if (Double.isNaN(temperature) || Double.isInfinite(temperature)) {
             return false;
         }
 
         boolean valid = temperature >= min && temperature <= max;
-
         if (!valid && context != null) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(

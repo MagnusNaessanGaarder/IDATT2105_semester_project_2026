@@ -1,17 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import ChecklistsView from '../ChecklistsView.vue'
 
-// Mock the composables
-const mockChecklists = [
+const createMockChecklists = () => ([
   {
     id: 1,
     name: 'Daily Cleaning',
     frequency: 'Daglig',
     location: 'HMS-1',
     description: 'Daily cleaning tasks',
+    run_id: null,
+    run_date: null,
     items: [
       { id: 1, task: 'Clean floor', completed: false, required: true, isDeviation: false, notes: null, runItemId: null },
       { id: 2, task: 'Clean tables', completed: true, required: true, isDeviation: false, notes: null, runItemId: null },
@@ -31,6 +32,8 @@ const mockChecklists = [
     frequency: 'Ukentlig',
     location: 'HMS-2',
     description: 'Weekly inspection tasks',
+    run_id: null,
+    run_date: null,
     items: [
       { id: 3, task: 'Check fire extinguisher', completed: false, required: true, isDeviation: false, notes: null, runItemId: null },
     ],
@@ -43,7 +46,9 @@ const mockChecklists = [
     category: 'Inspection',
     runId: null,
   },
-]
+])
+
+const mockChecklists = reactive(createMockChecklists())
 
 vi.mock('@/features/ik-mat/composables/useIkMatData', () => ({
   useIkMatData: () => ({
@@ -52,12 +57,21 @@ vi.mock('@/features/ik-mat/composables/useIkMatData', () => ({
       const completed = checklist.items.filter((i) => i.completed).length
       return Math.round((completed / checklist.items.length) * 100)
     },
+    toggleChecklistItem: async (checklistId: number, itemId: number, completed: boolean) => {
+      const checklist = mockChecklists.find((entry) => entry.id === checklistId)
+      const item = checklist?.items.find((entry) => entry.id === itemId)
+      if (item) {
+        item.completed = completed
+      }
+    },
+    reload: async () => {},
   }),
 }))
 
 describe('ChecklistsView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    mockChecklists.splice(0, mockChecklists.length, ...createMockChecklists())
   })
 
   it('renders the page title', () => {
@@ -162,6 +176,7 @@ describe('ChecklistsView', () => {
     expect((checkbox.element as HTMLInputElement).checked).toBe(false)
 
     await checkbox.trigger('change')
+    await wrapper.vm.$nextTick()
 
     // After toggle, the task should be marked as completed (optimistic update)
     expect((checkbox.element as HTMLInputElement).checked).toBe(true)

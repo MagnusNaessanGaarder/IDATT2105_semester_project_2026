@@ -32,10 +32,7 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     public OrganizationSettingsResponse getSettings(Integer orgNumber) {
         return settingsRepository.findById(orgNumber)
                 .map(this::mapToResponse)
-                .orElseGet(() -> {
-                    log.info("No settings found for org: {}. Creating defaults.", orgNumber);
-                    return createDefaultSettings(orgNumber);
-                });
+                .orElseGet(() -> createDefaultSettings(orgNumber));
     }
 
     @Override
@@ -100,7 +97,18 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
     public OrganizationSettingsResponse createDefaultSettings(Integer orgNumber) {
         if (settingsRepository.existsById(orgNumber)) {
             log.debug("Settings already exist for org: {}", orgNumber);
-            return getSettings(orgNumber);
+            return settingsRepository.findById(orgNumber)
+                    .map(this::mapToResponse)
+                    .orElseGet(() -> mapToResponse(settingsRepository.save(
+                            OrganizationSettings.builder()
+                                    .orgNumber(orgNumber)
+                                    .timezoneName("Europe/Oslo")
+                                    .localeCode("nb-NO")
+                                    .enableFoodModule(true)
+                                    .enableAlcoholModule(true)
+                                    .reminderEmailEnabled(true)
+                                    .build()
+                    )));
         }
 
         OrganizationSettings settings = OrganizationSettings.builder()
@@ -133,8 +141,12 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
                 .legalName(settings.getLegalName())
                 .contactEmail(settings.getContactEmail())
                 .contactPhone(settings.getContactPhone())
-                .retentionUserMonths(Math.toIntExact(settings.getRetentionUserMonths()))
-                .retentionAuditMonths(Math.toIntExact(settings.getRetentionAuditMonths()))
+                .retentionUserMonths(settings.getRetentionUserMonths() > 0
+                        ? Math.toIntExact(settings.getRetentionUserMonths())
+                        : null)
+                .retentionAuditMonths(settings.getRetentionAuditMonths() > 0
+                        ? Math.toIntExact(settings.getRetentionAuditMonths())
+                        : null)
                 .createdAt(settings.getCreatedAt())
                 .updatedAt(settings.getUpdatedAt())
                 .build();
