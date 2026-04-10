@@ -126,6 +126,10 @@ const updateSetting = (sectionId: string, itemId: string, nextValue: unknown) =>
   validation.validateField(itemId, nextValue, settingsState.value)
 }
 
+const invalidInputs = ref<Set<string>>(new Set())
+
+const tempRangeError = ref<string | null>(null)
+
 // Real-time validation for number inputs (temperature)
 const validateInputLive = (itemId: string, input: HTMLInputElement) => {
   const value = input.value
@@ -147,10 +151,6 @@ const validateInputLive = (itemId: string, input: HTMLInputElement) => {
     updateSetting('temperature', itemId, numValue)
   }
 }
-
-const invalidInputs = ref<Set<string>>(new Set())
-
-const tempRangeError = ref<string | null>(null)
 
 const validateAndUpdateNumber = (
   sectionId: string,
@@ -475,12 +475,14 @@ watch(currentOrgNumber, () => {
                   <input
                     :id="item.id"
                     class="setting-input"
+                    :class="{ 'setting-input--error': validation.getError(item.id) }"
                     :type="item.type"
                     :value="String(item.current_value ?? '')"
                     :placeholder="item.placeholder || ''"
                     :disabled="data.isLoading.value"
                     @input="updateSetting('profile', item.id, ($event.target as HTMLInputElement).value)"
                   >
+                  <p v-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
                 </div>
               </div>
             </div>
@@ -505,7 +507,7 @@ watch(currentOrgNumber, () => {
                   </div>
                 </div>
                 <div class="setting-control">
-                  <label v-if="item.type === 'toggle'" class="toggle-wrap">
+                  <label v-if="item.type === 'toggle'" class="toggle-wrap" :class="{ 'toggle-wrap--error': validation.getError(item.id) }">
                     <input
                       :id="item.id"
                       type="checkbox"
@@ -519,12 +521,14 @@ watch(currentOrgNumber, () => {
                     v-else
                     :id="item.id"
                     class="setting-input"
+                    :class="{ 'setting-input--error': validation.getError(item.id) }"
                     :type="item.type"
                     :value="String(item.current_value ?? '')"
                     :placeholder="item.placeholder || ''"
                     :disabled="data.isLoading.value"
                     @input="updateSetting('alerts_retention', item.id, ($event.target as HTMLInputElement).value)"
                   >
+                  <p v-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
                 </div>
               </div>
             </div>
@@ -556,6 +560,7 @@ watch(currentOrgNumber, () => {
                     v-if="item.type === 'select'"
                     :id="item.id"
                     class="setting-select"
+                    :class="{ 'setting-select--error': validation.getError(item.id) }"
                     :value="String(item.current_value)"
                     :disabled="data.isLoading.value"
                     @change="updateSetting('organization', item.id, ($event.target as HTMLSelectElement).value)"
@@ -568,12 +573,14 @@ watch(currentOrgNumber, () => {
                     v-else
                     :id="item.id"
                     class="setting-input"
+                    :class="{ 'setting-input--error': validation.getError(item.id) }"
                     :type="item.type"
                     :value="String(item.current_value ?? '')"
                     :placeholder="item.placeholder || ''"
                     :disabled="data.isLoading.value"
                     @input="updateSetting('organization', item.id, ($event.target as HTMLInputElement).value)"
                   >
+                  <p v-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
                 </div>
               </div>
             </div>
@@ -598,7 +605,7 @@ watch(currentOrgNumber, () => {
                   </div>
                 </div>
                 <div class="setting-control">
-                  <label class="toggle-wrap">
+                  <label class="toggle-wrap" :class="{ 'toggle-wrap--error': validation.getError(item.id) }">
                     <input
                       :id="item.id"
                       type="checkbox"
@@ -608,6 +615,7 @@ watch(currentOrgNumber, () => {
                     >
                     <span>{{ Boolean(item.current_value) ? 'På' : 'Av' }}</span>
                   </label>
+                  <p v-if="validation.getError(item.id)" class="field-error">{{ validation.getError(item.id) }}</p>
                 </div>
               </div>
             </div>
