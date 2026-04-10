@@ -716,8 +716,8 @@ tr:last-child td { border-bottom: none; }
   gap: 0.4rem;
   min-height: 2.25rem;
   padding: 0.4rem 1rem;
-  background: #dc2626;
-  color: #fff;
+  background: var(--color-danger);
+  color: var(--color-primary-foreground);
   border: none;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
@@ -770,8 +770,8 @@ tr:last-child td { border-bottom: none; }
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
-  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 28%, var(--color-border));
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   line-height: 1.5;
