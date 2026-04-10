@@ -1007,11 +1007,25 @@ watch(currentOrgNumber, () => {
   min-width: 14rem;
   padding: 0 0.7rem;
   background: var(--color-gray-50);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border-strong, var(--color-gray-300));
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   color: var(--color-foreground);
   box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.setting-select:hover,
+.setting-input:hover {
+  border-color: var(--color-gray-400);
+}
+
+.setting-select:focus,
+.setting-input:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: var(--color-surface-raised);
 }
 
 .toggle-wrap {
