@@ -1,22 +1,8 @@
 import { ref } from 'vue'
-import adminData from '@/data/admin.json'
 import { settingsApi, type BackendSettings, type BackendSettingsRequest } from '../api/settingsApi'
 
-export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF'
+export type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
 export type UserStatus = 'active' | 'inactive'
-
-export interface AdminUser {
-  id: number
-  name: string
-  email: string
-  role: UserRole
-  department: string
-  status: UserStatus
-  created_date: string
-  certifications: string[]
-  certifications_valid: boolean
-  last_login: string
-}
 
 export interface SettingItem {
   id: string
@@ -43,21 +29,6 @@ export interface SettingsState {
   backup: SettingSection
 }
 
-export interface AuditLogEntry {
-  id: number
-  timestamp: string
-  user: string
-  action: string
-  resource: string
-  details: string
-  ip_address: string
-  result: 'SUCCESS' | 'FAILED' | string
-}
-
-const users = adminData.users as AdminUser[]
-const rawSettings = adminData.settings as SettingsState
-const auditLog = adminData.audit_log_sample as AuditLogEntry[]
-
 const LOCAL_STORAGE_KEY_PREFIX = 'admin_settings_local_'
 const PERSISTENCE_BY_ITEM_ID: Record<string, SettingItem['persistence']> = {
   language: 'backend',
@@ -72,6 +43,134 @@ const PERSISTENCE_BY_ITEM_ID: Record<string, SettingItem['persistence']> = {
   last_backup: 'readonly',
   backup_retention: 'backend',
 }
+
+const createSettingsTemplate = (): SettingsState => ({
+  system: {
+    section_title: 'Systeminnstillinger',
+    items: [
+      {
+        id: 'language',
+        label: 'Språk',
+        description: 'Velg systemspråk',
+        type: 'select',
+        persistence: 'backend',
+        current_value: 'Norwegian',
+        options: ['Norwegian', 'English', 'Swedish'],
+      },
+      {
+        id: 'timezone',
+        label: 'Tidssone',
+        description: 'Velg tidssone for registreringer',
+        type: 'select',
+        persistence: 'backend',
+        current_value: 'Europe/Oslo',
+        options: ['Europe/Oslo', 'UTC', 'Europe/Stockholm', 'Europe/Copenhagen'],
+      },
+      {
+        id: 'date_format',
+        label: 'Datoformat',
+        description: 'Format for datovisning',
+        type: 'select',
+        persistence: 'local',
+        current_value: 'dd.MM.yyyy',
+        options: ['dd.MM.yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'],
+      },
+    ],
+  },
+  notification_preferences: {
+    section_title: 'Varslingsinnstillinger',
+    items: [
+      {
+        id: 'email_critical',
+        label: 'E-post for kritiske varsler',
+        description: 'Motta e-post ved kritiske hendelser',
+        type: 'toggle',
+        persistence: 'backend',
+        current_value: true,
+      },
+      {
+        id: 'email_updates',
+        label: 'E-post for systemoppdateringer',
+        description: 'Motta e-post ved systemvedlikehold',
+        type: 'toggle',
+        persistence: 'local',
+        current_value: false,
+      },
+      {
+        id: 'in_app_notifications',
+        label: 'Varsler i systemet',
+        description: 'Vis varsler i systemet',
+        type: 'toggle',
+        persistence: 'local',
+        current_value: true,
+      },
+    ],
+  },
+  security: {
+    section_title: 'Sikkerhet',
+    items: [
+      {
+        id: 'password_expires',
+        label: 'Passord utløper',
+        description: 'Sikkerhetspolicy administreres sentralt (skrivebeskyttet)',
+        type: 'info',
+        persistence: 'readonly',
+        current_value: true,
+      },
+      {
+        id: 'session_timeout',
+        label: 'Sesjonstimeout (minutter)',
+        description: 'Session policy administreres sentralt (skrivebeskyttet)',
+        type: 'info',
+        persistence: 'readonly',
+        current_value: 30,
+      },
+      {
+        id: 'two_factor',
+        label: 'To-faktor autentisering',
+        description: 'Autentiseringspolicy administreres sentralt (skrivebeskyttet)',
+        type: 'info',
+        persistence: 'readonly',
+        current_value: true,
+      },
+    ],
+  },
+  backup: {
+    section_title: 'Sikkerhetskopi',
+    items: [
+      {
+        id: 'last_backup',
+        label: 'Siste sikkerhetskopi',
+        type: 'info',
+        persistence: 'readonly',
+        current_value: '2024-06-01 02:00',
+        description: 'Automatisk sikkerhetskopi kjøres daglig',
+      },
+      {
+        id: 'backup_retention',
+        label: 'Oppbevar sikkerhetskopier i (dager)',
+        type: 'number',
+        persistence: 'backend',
+        current_value: 30,
+        min: 7,
+        max: 365,
+      },
+    ],
+  },
+})
+
+/**
+ * Persistence strategy:
+ * - Backend settings: Stored in database, shared across organization, requires Admin/Manager role
+ *   Includes: language, timezone, critical email alerts, backup retention
+ * - Local client settings: Stored in localStorage, user-specific non-sensitive UI preferences
+ *   Includes: date format, non-critical update preferences, in-app notifications
+ * - Read-only settings: Displayed to users but not editable on this page
+ *   Includes: security policy flags, last backup timestamp
+ */
+
+const isLoading = ref(false)
+const error = ref<string | null>(null)
 
 const roleLabel = (role: UserRole): string => {
   if (role === 'ADMIN') return 'Admin'
@@ -123,46 +222,6 @@ const formatDateTime = (value: string): string => {
   })
 }
 
-const sortedAuditLog = () => [...auditLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-
-const roleForUser = (role: string | undefined): UserRole => {
-  if (role === 'ADMIN') return 'ADMIN'
-  if (role === 'MANAGER') return 'MANAGER'
-  return 'STAFF'
-}
-
-const updateSetting = (id: string, patch: Partial<SettingItem>) => {
-  const sections = [
-    settings.system.items,
-    settings.notification_preferences.items,
-    settings.security.items,
-    settings.backup.items,
-  ]
-
-  for (const sectionItems of sections) {
-    const target = sectionItems.find((item) => item.id === id)
-    if (!target) {
-      continue
-    }
-
-    Object.assign(target, patch)
-    break
-  }
-}
-
-/**
- * Persistence strategy:
- * - Backend settings: Stored in database, shared across organization, requires Admin/Manager role
- *   Includes: language, timezone, critical email alerts, backup retention
- * - Local client settings: Stored in localStorage, user-specific non-sensitive UI preferences
- *   Includes: date format, non-critical update preferences, in-app notifications
- * - Read-only settings: Displayed to users but not editable on this page
- *   Includes: security policy flags, last backup timestamp
- */
-
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-
 const cloneSettings = (source: SettingsState): SettingsState => {
   return JSON.parse(JSON.stringify(source)) as SettingsState
 }
@@ -178,7 +237,7 @@ const applyPersistenceMetadata = (source: SettingsState): SettingsState => {
   return cloned
 }
 
-const settings = applyPersistenceMetadata(rawSettings)
+const settings = applyPersistenceMetadata(createSettingsTemplate())
 
 const localeToLanguageOption = (localeCode: string | undefined): string => {
   if (localeCode === 'en_US') return 'English'
@@ -254,120 +313,24 @@ const applyLocalSettings = (source: SettingsState, orgNumber: number): SettingsS
 const mapBackendSettingsToFrontend = (
   backendSettings: BackendSettings
 ): SettingsState => {
-  return {
-    system: {
-      section_title: 'Systeminnstillinger',
-      items: [
-        {
-          id: 'language',
-          label: 'Språk',
-          description: 'Velg systemspråk',
-          type: 'select',
-          persistence: 'backend',
-          current_value: localeToLanguageOption(backendSettings.localeCode),
-          options: ['Norwegian', 'English', 'Swedish'],
-        },
-        {
-          id: 'timezone',
-          label: 'Tidssone',
-          description: 'Velg tidssone for registreringer',
-          type: 'select',
-          persistence: 'backend',
-          current_value: backendSettings.timezoneName,
-          options: ['Europe/Oslo', 'UTC', 'Europe/Stockholm', 'Europe/Copenhagen'],
-        },
-        {
-          id: 'date_format',
-          label: 'Datoformat',
-          description: 'Format for datovisning',
-          type: 'select',
-          persistence: 'local',
-          current_value: 'dd.MM.yyyy',
-          options: ['dd.MM.yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'],
-        },
-      ],
-    },
-    notification_preferences: {
-      section_title: 'Varslingsinnstillinger',
-      items: [
-        {
-          id: 'email_critical',
-          label: 'E-post for kritiske varsler',
-          description: 'Motta e-post ved kritiske hendelser',
-          type: 'toggle',
-          persistence: 'backend',
-          current_value: backendSettings.reminderEmailEnabled,
-        },
-        {
-          id: 'email_updates',
-          label: 'E-post for systemoppdateringer',
-          description: 'Motta e-post ved systemvedlikehold',
-          type: 'toggle',
-          persistence: 'local',
-          current_value: false,
-        },
-        {
-          id: 'in_app_notifications',
-          label: 'Varsler i systemet',
-          description: 'Vis varsler i systemet',
-          type: 'toggle',
-          persistence: 'local',
-          current_value: true,
-        },
-      ],
-    },
-    security: {
-      section_title: 'Sikkerhet',
-      items: [
-        {
-          id: 'password_expires',
-          label: 'Passord utløper',
-          description: 'Sikkerhetspolicy administreres sentralt (skrivebeskyttet)',
-          type: 'info',
-          persistence: 'readonly',
-          current_value: true,
-        },
-        {
-          id: 'session_timeout',
-          label: 'Sesjonstimeout (minutter)',
-          description: 'Session policy administreres sentralt (skrivebeskyttet)',
-          type: 'info',
-          persistence: 'readonly',
-          current_value: 30,
-        },
-        {
-          id: 'two_factor',
-          label: 'To-faktor autentisering',
-          description: 'Autentiseringspolicy administreres sentralt (skrivebeskyttet)',
-          type: 'info',
-          persistence: 'readonly',
-          current_value: true,
-        },
-      ],
-    },
-    backup: {
-      section_title: 'Sikkerhetskopi',
-      items: [
-        {
-          id: 'last_backup',
-          label: 'Siste sikkerhetskopi',
-          type: 'info',
-          persistence: 'readonly',
-          current_value: '2024-06-01 02:00',
-          description: 'Automatisk sikkerhetskopi kjøres daglig',
-        },
-        {
-          id: 'backup_retention',
-          label: 'Oppbevar sikkerhetskopier i (dager)',
-          type: 'number',
-          persistence: 'backend',
-          current_value: backendSettings.retentionAuditMonths ? backendSettings.retentionAuditMonths * 30 : 30,
-          min: 7,
-          max: 365,
-        },
-      ],
-    },
+  const mapped = cloneSettings(settings)
+  const updateItem = (section: keyof SettingsState, id: string, value: unknown) => {
+    const item = mapped[section].items.find((entry) => entry.id === id)
+    if (item) {
+      item.current_value = value
+    }
   }
+
+  updateItem('system', 'language', localeToLanguageOption(backendSettings.localeCode))
+  updateItem('system', 'timezone', backendSettings.timezoneName)
+  updateItem('notification_preferences', 'email_critical', backendSettings.reminderEmailEnabled)
+  updateItem(
+    'backup',
+    'backup_retention',
+    backendSettings.retentionAuditMonths ? backendSettings.retentionAuditMonths * 30 : 30
+  )
+
+  return mapped
 }
 
 /**
@@ -423,14 +386,12 @@ const saveSettings = async (
   error.value = null
 
   try {
-    // Save to backend
     const backendRequest = mapFrontendSettingsToBackend(
       frontendSettings,
       backendSettings
     )
     const updatedBackendSettings = await settingsApi.updateSettings(orgNumber, backendRequest)
 
-    // Persist only non-sensitive local preferences.
     const localSettings = Object.fromEntries(
       Object.values(frontendSettings)
         .flatMap((section) => section.items)
@@ -490,7 +451,7 @@ const exportSettings = (
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `org-settings-${orgNumber}-${new Date().toISOString().split('T')[0]}.json`
+  link.download = `org-settings-${orgNumber}-${new Date().toISOString().split('T')[0]}`
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
@@ -518,17 +479,13 @@ const fetchSettingsFromBackend = async (orgNumber: number): Promise<BackendSetti
 }
 
 export const useAdminData = () => ({
-  users,
   settings,
-  auditLog,
-  sortedAuditLog,
   roleLabel,
   roleTone,
   roleDescription,
   statusLabel,
   formatDate,
   formatDateTime,
-  // New backend integration methods
   saveSettings,
   exportSettings,
   applyLocalSettings,

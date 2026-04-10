@@ -5,7 +5,7 @@ interface User {
   id: number
   name: string
   email: string
-  role: 'ADMIN' | 'MANAGER' | 'STAFF'
+  role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
   department: string
   status: 'active' | 'inactive'
   created_date: string

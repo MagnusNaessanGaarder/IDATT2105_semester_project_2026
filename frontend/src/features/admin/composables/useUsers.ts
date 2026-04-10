@@ -30,9 +30,9 @@ export function useUsers() {
     try {
       const data = await usersApi.getUsers(orgNumber)
       users.value = data
-    } catch (e: any) {
-      error.value = e.response?.data?.message ?? 'Kunne ikke hente brukere'
-      throw e
+    } catch (err: unknown) {
+      error.value = getActionErrorMessage(err, 'Kunne ikke hente brukere')
+      throw err
     } finally {
       isLoading.value = false
     }
@@ -43,12 +43,17 @@ export function useUsers() {
    * @param userData - The user creation data
    */
   async function createUser(userData: UserCreateRequest): Promise<User> {
-    const newUser = await createApi.execute(userData)
-    if (!newUser) {
-      throw new Error('Failed to create user')
+    try {
+      const newUser = await createApi.execute(userData)
+      if (!newUser) {
+        throw new Error('Failed to create user')
+      }
+      users.value.push(newUser)
+      return newUser
+    } catch (err: unknown) {
+      createApi.error.value = getActionErrorMessage(err, 'Kunne ikke opprette bruker')
+      throw err
     }
-    users.value.push(newUser)
-    return newUser
   }
 
   /**
@@ -62,15 +67,20 @@ export function useUsers() {
     orgNumber: number,
     userData: UserUpdateRequest
   ): Promise<User> {
-    const updatedUser = await updateApi.execute(userId, orgNumber, userData)
-    if (!updatedUser) {
-      throw new Error('Failed to update user')
+    try {
+      const updatedUser = await updateApi.execute(userId, orgNumber, userData)
+      if (!updatedUser) {
+        throw new Error('Failed to update user')
+      }
+      const index = users.value.findIndex((u) => u.userId === userId)
+      if (index !== -1) {
+        users.value[index] = updatedUser
+      }
+      return updatedUser
+    } catch (err: unknown) {
+      updateApi.error.value = getActionErrorMessage(err, 'Kunne ikke oppdatere bruker')
+      throw err
     }
-    const index = users.value.findIndex((u) => u.userId === userId)
-    if (index !== -1) {
-      users.value[index] = updatedUser
-    }
-    return updatedUser
   }
 
   /**
@@ -79,11 +89,16 @@ export function useUsers() {
    * @param orgNumber - The organization number
    */
   async function deleteUser(userId: number, orgNumber: number): Promise<void> {
-    await deleteApi.execute(userId, orgNumber)
-    // Remove user from local list or update status
-    const index = users.value.findIndex((u) => u.userId === userId)
-    if (index !== -1) {
-      users.value[index].isActive = false
+    try {
+      await deleteApi.execute(userId, orgNumber)
+      const index = users.value.findIndex((u) => u.userId === userId)
+      const target = users.value[index]
+      if (index !== -1 && target) {
+        target.isActive = false
+      }
+    } catch (err: unknown) {
+      deleteApi.error.value = getActionErrorMessage(err, 'Kunne ikke deaktivere bruker')
+      throw err
     }
   }
 
@@ -111,8 +126,9 @@ export function useUsers() {
    * @returns Role name or 'Unknown'
    */
   function getUserRole(user: User): string {
-    if (user.roles && user.roles.length > 0) {
-      return user.roles[0].roleName
+    const firstRole = user.roles?.[0]
+    if (firstRole) {
+      return firstRole.roleName
     }
     return 'Unknown'
   }
@@ -202,3 +218,12 @@ export function useUsers() {
     deleteError: deleteApi.error,
   }
 }
+  const getActionErrorMessage = (err: unknown, fallback: string): string => {
+    const status = (err as { response?: { status?: number } })?.response?.status
+    if (status === 400) return 'Ugyldig forespørsel. Kontroller feltene og prøv igjen.'
+    if (status === 403) return 'Du har ikke tilgang til å utføre denne handlingen.'
+    if (status === 404) return 'Brukeren ble ikke funnet.'
+    if (status === 409) return 'Handling kunne ikke fullføres på grunn av konflikt.'
+    const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+    return message ?? fallback
+  }

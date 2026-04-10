@@ -1,4 +1,6 @@
 package com.example.InternalControl.config;
+import com.example.InternalControl.AbstractIntegrationTest;
+
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -19,16 +21,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Integration tests for JacksonConfig.
  * Verifies Jackson ObjectMapper configuration for date/time handling.
  */
-@SpringBootTest
+
 @TestPropertySource(
         locations = "classpath:application-test.properties",
         properties = {
                 "spring.flyway.enabled=false",
-                "spring.jpa.hibernate.ddl-auto=create-drop"
+                "spring.jpa.hibernate.ddl-auto=create-drop",
         }
 )
 @DisplayName("JacksonConfig Tests")
-class JacksonConfigTest {
+class JacksonConfigTest extends AbstractIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;

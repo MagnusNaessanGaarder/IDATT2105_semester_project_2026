@@ -70,7 +70,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
     return null
   }
 
-  const refreshEndpoint = `${client.defaults.baseURL || '/api'}/auth/refresh`
+  const refreshEndpoint = `${client.defaults.baseURL || '/api/v1'}/auth/refresh`
 
   refreshPromise = axios
     .post(refreshEndpoint, { refreshToken })

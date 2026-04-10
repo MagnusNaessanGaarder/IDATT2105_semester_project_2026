@@ -22,7 +22,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,7 +43,7 @@ import java.util.stream.Collectors;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/api/admin/roles")
+@RequestMapping("/api/v1/admin/roles")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Role Management", description = "Manage roles and user role assignments")
@@ -53,8 +60,8 @@ public class RoleController {
      * @return list of roles
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get all roles", description = "Retrieve all available roles in the system (ADMIN only)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get all roles", description = "Retrieve all available roles in the system")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Successfully retrieved roles"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -67,8 +74,8 @@ public class RoleController {
         List<Role> roles = roleRepository.findAll();
 
         List<RoleResponse> response = roles.stream()
-                .map(this::mapToRoleResponse)
-                .collect(Collectors.toList());
+            .map(this::mapToRoleResponse)
+            .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
     }
@@ -80,8 +87,8 @@ public class RoleController {
      * @return the role
      */
     @GetMapping("/{roleId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get role by ID", description = "Retrieve a specific role by its ID (ADMIN only)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get role by ID", description = "Retrieve a specific role by its ID")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Successfully retrieved role"),
         @ApiResponse(responseCode = "404", description = "Role not found")
@@ -92,7 +99,7 @@ public class RoleController {
         log.info("Getting role: {}", roleId);
 
         Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleId));
+            .orElseThrow(() -> new EntityNotFoundException("Role not found: " + roleId));
 
         return ResponseEntity.ok(mapToRoleResponse(role));
     }
@@ -105,8 +112,8 @@ public class RoleController {
      * @return list of roles
      */
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get user roles", description = "Retrieve roles assigned to a specific user in an organization (ADMIN only)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or @userSecurity.isCurrentUser(#userId)")
+    @Operation(summary = "Get user roles", description = "Retrieve roles assigned to a specific user in an organization")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Successfully retrieved user roles"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -120,11 +127,11 @@ public class RoleController {
         log.info("Getting roles for user: {} in organization: {}", userId, orgNumber);
 
         List<UserOrganizationRole> userRoles = userOrgRoleRepository
-                .findByUserIdAndOrgNumber(userId, orgNumber);
+            .findByUserIdAndOrgNumber(userId, orgNumber);
 
         List<RoleResponse> response = userRoles.stream()
-                .map(uor -> mapToRoleResponse(uor.getRole()))
-                .collect(Collectors.toList());
+            .map(uor -> mapToRoleResponse(uor.getRole()))
+            .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
     }
@@ -153,22 +160,21 @@ public class RoleController {
         requireAnyRole("ROLE_ADMIN");
         log.info("Assigning role: {} to user: {} in organization: {}", roleId, userId, orgNumber);
 
-        // Check if role already assigned
         if (userOrgRoleRepository.existsByUserIdAndOrgNumberAndRoleId(userId, orgNumber, roleId)) {
             log.info("Role already assigned to user");
             return ResponseEntity.ok().build();
         }
 
         UserOrganizationRoleId id = UserOrganizationRoleId.builder()
-                .userId(userId)
-                .orgNumber(orgNumber)
-                .roleId(roleId)
-                .build();
+            .userId(userId)
+            .orgNumber(orgNumber)
+            .roleId(roleId)
+            .build();
 
         UserOrganizationRole userRole = UserOrganizationRole.builder()
-                .id(id)
-                .assignedAt(LocalDateTime.now())
-                .build();
+            .id(id)
+            .assignedAt(LocalDateTime.now())
+            .build();
 
         userOrgRoleRepository.save(userRole);
 
@@ -200,8 +206,8 @@ public class RoleController {
         log.info("Removing role: {} from user: {} in organization: {}", roleId, userId, orgNumber);
 
         UserOrganizationRole userRole = userOrgRoleRepository
-                .findByUserIdAndOrgNumberAndRoleId(userId, orgNumber, roleId)
-                .orElseThrow(() -> new EntityNotFoundException("User role assignment not found"));
+            .findByUserIdAndOrgNumberAndRoleId(userId, orgNumber, roleId)
+            .orElseThrow(() -> new EntityNotFoundException("User role assignment not found"));
 
         userOrgRoleRepository.delete(userRole);
 
@@ -229,20 +235,19 @@ public class RoleController {
     }
 
     private boolean hasAnyRole(String... roles) {
-        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
-                .getContext()
-                .getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getAuthorities() == null) {
             return false;
         }
 
         for (String role : roles) {
             boolean hasRole = authentication.getAuthorities().stream()
-                    .anyMatch(authority -> role.equals(authority.getAuthority()));
+                .anyMatch(authority -> role.equals(authority.getAuthority()));
             if (hasRole) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -251,10 +256,10 @@ public class RoleController {
             return null;
         }
         return RoleResponse.builder()
-                .roleId(role.getRoleId())
-                .roleName(role.getRoleName())
-                .description(role.getDescription())
-                .isSystemRole(role.getIsSystemRole())
-                .build();
+            .roleId(role.getRoleId())
+            .roleName(role.getRoleName())
+            .description(role.getDescription())
+            .isSystemRole(role.getIsSystemRole())
+            .build();
     }
 }
