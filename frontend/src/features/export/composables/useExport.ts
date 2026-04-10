@@ -1,8 +1,17 @@
 import { ref, computed } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { exportApi, type ExportRequest, type ExportResponse } from '../api'
+import axios from 'axios'
+
+type ApiErrorShape = {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
+import { useAuthStore } from '@/stores/auth.ts'
+import { exportApi, type ExportRequest, type ExportResponse } from '../api.ts'
 import {client} from "@/api/client.ts";
-import axios from "axios";
+
 
 const POLL_INTERVAL_RUNNING_MS = 3000
 const POLL_INTERVAL_PENDING_MS = 8000
@@ -80,9 +89,10 @@ export function useExport() {
       // Back off if still pending, poll faster if actively running
       const delay = job.status === 'PENDING' ? POLL_INTERVAL_PENDING_MS : POLL_INTERVAL_RUNNING_MS
       pollTimer = setTimeout(() => pollJobStatus(exportJobId), delay)
-    } catch (err: any) {
+    } catch (err: unknown) {
       isPolling.value = false
-      error.value = err?.response?.data?.message ?? 'Klarte ikke hente status for eksportjobb.'
+      const apiError = err as ApiErrorShape
+      error.value = apiError.response?.data?.message ?? 'Klarte ikke hente status for eksportjobb.'
       clearPoll()
     }
   }
@@ -106,8 +116,9 @@ export function useExport() {
       consecutivePendingCount = 0
       pollTimer = setTimeout(() => pollJobStatus(job.exportJobId), POLL_INTERVAL_PENDING_MS)
       return job
-    } catch (err: any) {
-      error.value = err?.response?.data?.message ?? 'Klarte ikke opprette eksportjobb.'
+    } catch (err: unknown) {
+      const apiError = err as ApiErrorShape
+      error.value = apiError.response?.data?.message ?? 'Klarte ikke opprette eksportjobb.'
       return null
     } finally {
       isCreating.value = false
@@ -119,10 +130,16 @@ export function useExport() {
 
     try {
       const path = await exportApi.getDownloadUrl(orgNumber.value, exportJobId)
-      const pathWithOrg = `${path}?orgNumber=${orgNumber.value}`
+      const hasOrgNumber = /(?:\?|&)orgNumber=/.test(path)
+      const separator = path.includes('?') ? '&' : '?'
+      const pathWithOrg = hasOrgNumber ? path : `${path}${separator}orgNumber=${orgNumber.value}`
 
       const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace('/api/v1', '')
-      const response = await axios.get(baseUrl + pathWithOrg, {
+      const downloadUrl = pathWithOrg.startsWith('http://') || pathWithOrg.startsWith('https://')
+        ? pathWithOrg
+        : `${baseUrl}${pathWithOrg}`
+
+      const response = await axios.get(downloadUrl, {
         responseType: 'blob',
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`,
@@ -142,8 +159,9 @@ export function useExport() {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
-    } catch (err: any) {
-      error.value = err?.response?.data?.message ?? 'Klarte ikke laste ned eksport.'
+    } catch (err: unknown) {
+      const apiError = err as ApiErrorShape
+      error.value = apiError.response?.data?.message ?? 'Klarte ikke laste ned eksport.'
     }
   }
 
@@ -156,8 +174,9 @@ export function useExport() {
     try {
       const page = await exportApi.listExports(orgNumber.value)
       exports.value = page.content
-    } catch (err: any) {
-      error.value = err?.response?.data?.message ?? 'Klarte ikke laste eksporthistorikk.'
+    } catch (err: unknown) {
+      const apiError = err as ApiErrorShape
+      error.value = apiError.response?.data?.message ?? 'Klarte ikke laste eksporthistorikk.'
     } finally {
       isLoadingList.value = false
     }

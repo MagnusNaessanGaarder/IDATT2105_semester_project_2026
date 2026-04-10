@@ -25,7 +25,7 @@ const handleLogin = async () => {
     // redirect to dashboard
     const redirect = route.query.redirect as string
     router.push(redirect || { name: 'Dashboard' })
-  } catch (e) {
+  } catch {
     error.value = 'Ugyldig e-post eller passord'
   } finally {
     isLoading.value = false
@@ -35,18 +35,25 @@ const handleLogin = async () => {
 
 <template>
   <div class="login-page">
-    <div class="login-container">
+    <div
+        class="login-container"
+        v-motion
+        :initial="{ opacity: 0, y: 10 }"
+        :enter="{ opacity: 1, y: 0, transition: { duration: 300 } }"
+    >
       <form class="login-form" @submit.prevent="handleLogin">
+        <p class="login-kicker">Internkontroll</p>
         <h2>Logg inn</h2>
+        <p class="login-subtitle">Få oversikt over rutiner, avvik og dokumentasjon.</p>
 
         <div v-if="error" class="error-message" role="alert">
           <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
           >
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -58,24 +65,24 @@ const handleLogin = async () => {
         <div class="form-group">
           <label for="email">E-post</label>
           <input
-            id="email"
-            v-model="email"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="din@epost.no"
+              id="email"
+              v-model="email"
+              type="email"
+              required
+              autocomplete="email"
+              placeholder="din@epost.no"
           />
         </div>
 
         <div class="form-group">
           <label for="password">Passord</label>
           <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            autocomplete="current-password"
-            placeholder="passord"
+              id="password"
+              v-model="password"
+              type="password"
+              required
+              autocomplete="current-password"
+              placeholder="passord"
           />
         </div>
 
@@ -83,6 +90,11 @@ const handleLogin = async () => {
           <span v-if="isLoading">Logger inn...</span>
           <span v-else>Logg inn</span>
         </button>
+
+        <p class="register-link">
+          Ny bruker?
+          <router-link :to="{ name: 'Register' }">Opprett konto</router-link>
+        </p>
       </form>
 
       <footer class="login-footer"></footer>
@@ -96,48 +108,70 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f0f0;
-  padding: 24px;
+  background:
+      radial-gradient(circle at 8% 14%, var(--color-surface-tint), transparent 32%),
+      radial-gradient(circle at 90% 88%, var(--color-surface-tint-strong), transparent 35%),
+      linear-gradient(180deg, var(--color-card-muted) 0%, var(--color-background) 100%);
+  padding: var(--content-padding);
 }
 
 .login-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 28rem;
 }
 
 /* Form */
 .login-form {
-  background: var(--color-card);
+  background: linear-gradient(180deg, var(--color-card) 0%, var(--color-card-muted) 100%);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 32px;
+  border-radius: var(--radius-xl);
+  padding: clamp(1.75rem, 4vw, 2.25rem);
   box-shadow: var(--shadow-md);
 }
 
+.login-kicker {
+  margin-bottom: 0.375rem;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gray-600);
+  font-weight: var(--font-weight-semibold);
+}
+
 .login-form h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-display);
+  font-size: clamp(1.6rem, 2vw, var(--font-size-2xl));
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-heading);
   color: var(--color-foreground);
-  margin-bottom: 24px;
-  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+  margin-bottom: 1.5rem;
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
 }
 
 /* Error Message */
 .error-message {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
+  gap: var(--spacing-sm);
+  padding: 0.75rem 1rem;
+  margin-bottom: var(--spacing-md);
   background-color: var(--color-danger-bg);
   color: var(--color-danger-fg);
   border-radius: var(--radius-md);
+  border: 1px solid var(--color-danger-border);
   font-size: var(--font-size-sm);
 }
 
 /* Form Group */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 1rem;
 }
 
 .form-group label {
@@ -150,19 +184,19 @@ const handleLogin = async () => {
 
 .form-group input {
   width: 100%;
-  padding: 10px 12px;
+  padding: var(--input-padding);
   font-size: var(--font-size-base);
   color: var(--color-foreground);
-  background: var(--color-gray-50);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  min-height: var(--touch-target);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
 .form-group input:focus {
-  outline: none;
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: var(--shadow-focus);
   background: var(--color-card);
 }
 
@@ -173,20 +207,21 @@ const handleLogin = async () => {
 /* Login Button */
 .login-btn {
   width: 100%;
-  padding: 12px 20px;
-  margin-top: 8px;
+  padding: var(--button-padding-md);
+  margin-top: var(--spacing-xs);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary-foreground);
-  background: var(--color-foreground);
+  background: var(--color-primary);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .login-btn:hover:not(:disabled) {
-  background: var(--color-gray-800);
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -196,18 +231,27 @@ const handleLogin = async () => {
 }
 
 .login-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
 /* Responsive */
 @media (max-width: 480px) {
   .login-form {
-    padding: 24px;
+    padding: 1.5rem;
   }
+}
 
-  .mock-users-info {
-    padding: 16px;
-  }
+.register-link {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+}
+
+.register-link a {
+  color: var(--color-foreground);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
 }
 </style>

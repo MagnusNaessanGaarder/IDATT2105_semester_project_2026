@@ -103,6 +103,7 @@ The shared Axios client in src/api/client.ts:
 - reads JWT token from sessionStorage
 - attaches Authorization header
 - handles 401 globally by clearing session and redirecting to login
+- normalizes `VITE_API_URL` to a versioned base (`.../api/v1`) so feature API calls can use consistent relative paths (for example `/users`, `/organizations/{orgNumber}/settings`)
 
 ---
 
@@ -298,7 +299,14 @@ Responsibility:
 
 Data access:
 
-- useAdminData composable wraps admin.json and provides role/status/date helpers
+- `useUsers` handles user CRUD from backend API
+- `useAdminData` handles settings mapping/persistence (backend + local preferences)
+- `useAuditLog` handles audit-log retrieval from backend API
+
+Role policy:
+- `Users` route is ADMIN-only.
+- `Settings` route is ADMIN + MANAGER.
+- Unauthorized access is routed to the `Forbidden` page to provide explicit feedback instead of silent redirects.
 
 ---
 

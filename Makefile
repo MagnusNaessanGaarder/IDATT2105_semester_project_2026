@@ -1,7 +1,7 @@
-.PHONY: help dev stop restart status logs test clean clean-db clean-full install
+.PHONY: help dev stop restart status logs logs-backend logs-frontend test clean clean-db clean-full install wait-mysql
 
-# Java 21 Configuration
-JAVA_HOME := /usr/lib/jvm/java-21-openjdk
+# Java 21 Configuration (auto-detect from javac symlink)
+JAVA_HOME := $(shell dirname $$(dirname $$(readlink -f $$(command -v javac))))
 PATH := $(JAVA_HOME)/bin:$(PATH)
 export JAVA_HOME PATH
 
@@ -11,7 +11,10 @@ help:
 	@echo "  make stop        - Stop all services"
 	@echo "  make restart     - Restart all services"
 	@echo "  make status      - Check service status"
+	@echo "  make wait-mysql  - Wait for MySQL to be ready (useful for VPN)"
 	@echo "  make logs        - Show all logs"
+	@echo "  make logs-backend - Show backend logs only"
+	@echo "  make logs-frontend - Show frontend logs only"
 	@echo "  make install     - Install dependencies"
 	@echo "  make test        - Run tests"
 	@echo "  make clean       - Clean build files"
@@ -31,17 +34,38 @@ dev:
 	@echo ""
 	@echo "[1/3] Starting MySQL (Docker)..."
 	@docker compose -f compose-dev.yaml up -d mysql 2>/dev/null || docker start backend-mysql-1 2>/dev/null || true
-	@sleep 5
+	@for i in $$(seq 1 30); do \
+		docker exec backend-mysql-1 mysqladmin ping -h 127.0.0.1 -uik_root -pik_pwd >/dev/null 2>&1 && break; \
+		if [ $$i -eq 30 ]; then \
+			echo "  ERROR: MySQL did not become ready"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
 	@echo "  MySQL started"
 	@echo ""
 	@echo "[2/3] Starting backend..."
-	@(cd backend && ./mvnw spring-boot:run -DskipTests -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
-	@sleep 15
+	@(cd backend && nohup ./mvnw -Plocal-run spring-boot:run -Dmaven.test.skip=true -Dcheckstyle.skip=true > /tmp/backend.log 2>&1 &)
+	@for i in $$(seq 1 60); do \
+		ss -ltnp 2>/dev/null | grep -q ':8080' && break; \
+		if [ $$i -eq 60 ]; then \
+			echo "  ERROR: Backend failed to start (see /tmp/backend.log)"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
 	@echo "  Backend started"
 	@echo ""
-	@echo "[3/3] Starting frontend..."
+	@echo "[3/4] Starting frontend..."
 	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
-	@sleep 3
+	@for i in $$(seq 1 30); do \
+		ss -ltnp 2>/dev/null | grep -q ':5173' && break; \
+		if [ $$i -eq 30 ]; then \
+			echo "  ERROR: Frontend failed to start (see /tmp/frontend.log)"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
 	@echo "  Frontend started"
 	@echo ""
 	@echo "========================================"
@@ -77,7 +101,7 @@ stop:
 	@# Stop Docker
 	@-docker stop backend-mysql-1 2>/dev/null || true
 	@-docker rm backend-mysql-1 2>/dev/null || true
-	@-docker compose -f compose-dev.yaml down -v 
+	@-docker compose -f compose-dev.yaml down -v
 	@echo "  All services stopped"
 	@echo ""
 
@@ -92,7 +116,7 @@ status:
 	@printf "Frontend (port 5173): "
 	@if lsof -ti:5173 > /dev/null 2>&1; then echo "Running"; else echo "Stopped"; fi
 	@printf "MySQL (port 3306):    "
-	@if lsof -ti:3306 > /dev/null 2>&1; then echo "Running"; else echo "Stopped"; fi
+	@if lsof -ti:3306 > /dev/null 2>&1 || (command -v docker > /dev/null 2>&1 && [ "$$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' backend-mysql-1 2>/dev/null)" = "healthy" ]); then echo "Running"; else echo "Stopped"; fi
 	@echo ""
 	@echo "URLs:"
 	@echo "  Backend:  http://localhost:8080"
@@ -136,9 +160,22 @@ clean-db:
 	@docker system prune -f 2>/dev/null || true
 	@echo "Database reset - run 'make dev' to start fresh"
 
-clean-full: clean
+clean-full: clean clean-db
 	@docker compose down -v 2>/dev/null || true
 	@docker system prune -af --volumes 2>/dev/null || true
 	@find . -type d -name ".idea" -exec rm -rf {} + 2>/dev/null || true
 	@find . -type d -name ".vscode" -exec rm -rf {} + 2>/dev/null || true
 	@echo "Full cleanup completed"
+
+wait-mysql:
+	@echo "Waiting for MySQL to be ready..."
+	@for i in 1 2 3 4 5 6 7 8 9 10; do \
+		if nc -z localhost 3306 2>/dev/null; then \
+			echo "MySQL is ready!"; \
+			exit 0; \
+		fi; \
+		echo "Attempt $$i: MySQL not ready yet..."; \
+		sleep 5; \
+	done; \
+	echo "MySQL failed to start within 50 seconds"; \
+	exit 1

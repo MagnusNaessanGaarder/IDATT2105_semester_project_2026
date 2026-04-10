@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Request DTO for updating a checklist run item (answering a question).
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "ChecklistRunItemUpdateRequest", description = "DTO for ChecklistRunItemUpdateRequest")
 public class ChecklistRunItemUpdateRequest {
 
     private Boolean booleanValue;

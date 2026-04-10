@@ -47,7 +47,7 @@ public class TemperatureLogController {
   @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   public ResponseEntity<TemperatureLogPointResponse> createLogPoint(
       @Valid @RequestBody TemperatureLogPointRequest request,
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
@@ -56,9 +56,14 @@ public class TemperatureLogController {
 
   @GetMapping("/points")
   @Operation(summary = "List all temperature log points")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved log points"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogPointResponse>> listLogPoints(
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
@@ -67,9 +72,14 @@ public class TemperatureLogController {
 
   @GetMapping("/points/active")
   @Operation(summary = "List active temperature log points")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved active log points"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogPointResponse>> listActiveLogPoints(
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
@@ -78,6 +88,12 @@ public class TemperatureLogController {
 
   @GetMapping("/points/{pointId}")
   @Operation(summary = "Get specific log point")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved log point"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Log point not found")
+  })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<TemperatureLogPointResponse> getLogPoint(
       @Parameter(description = "Log point ID") @PathVariable Long pointId,
@@ -90,6 +106,13 @@ public class TemperatureLogController {
 
   @PutMapping("/points/{pointId}")
   @Operation(summary = "Update log point")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Log point updated successfully"),
+      @ApiResponse(responseCode = "400", description = "Invalid request"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Log point not found")
+  })
   @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   public ResponseEntity<TemperatureLogPointResponse> updateLogPoint(
       @Parameter(description = "Log point ID") @PathVariable Long pointId,
@@ -103,6 +126,12 @@ public class TemperatureLogController {
 
   @DeleteMapping("/points/{pointId}")
   @Operation(summary = "Delete log point")
+  @ApiResponses({
+      @ApiResponse(responseCode = "204", description = "Log point deleted successfully"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Log point not found")
+  })
   @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   public ResponseEntity<Void> deleteLogPoint(
       @Parameter(description = "Log point ID") @PathVariable Long pointId,
@@ -111,6 +140,19 @@ public class TemperatureLogController {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
     temperatureLogService.deleteLogPoint(pointId, orgNumber);
+    return ResponseEntity.noContent().build();
+  }
+
+  @DeleteMapping("/points/{pointId}/entries")
+  @Operation(summary = "Clear measurements for log point")
+  @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+  public ResponseEntity<Void> clearPointEntries(
+      @Parameter(description = "Log point ID") @PathVariable Long pointId,
+      @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    temperatureLogService.clearEntriesForPoint(pointId, orgNumber);
     return ResponseEntity.noContent().build();
   }
 
@@ -124,18 +166,36 @@ public class TemperatureLogController {
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<TemperatureLogEntryResponse> recordEntry(
       @Valid @RequestBody TemperatureLogEntryRequest request,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long userId = userDetails.getUserId();
+    validateUserOrganizationAccess(userId, orgNumber);
+    return ResponseEntity.status(201).body(temperatureLogService.recordEntry(request, orgNumber, userId));
+  }
+
+  @PutMapping("/entries/{entryId}")
+  @Operation(summary = "Update temperature reading")
+  @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+  public ResponseEntity<TemperatureLogEntryResponse> updateEntry(
+      @PathVariable Long entryId,
+      @Valid @RequestBody TemperatureLogEntryRequest request,
       @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
-    return ResponseEntity.status(HttpStatus.CREATED).body(temperatureLogService.recordEntry(request, orgNumber, userId));
+    return ResponseEntity.ok(temperatureLogService.updateEntry(entryId, request, orgNumber, userId));
   }
 
   @GetMapping("/entries")
   @Operation(summary = "List temperature entries")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved entries"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listEntries(
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);
@@ -144,9 +204,14 @@ public class TemperatureLogController {
 
   @GetMapping("/entries/paginated")
   @Operation(summary = "List temperature entries (paginated)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved entries"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<Page<TemperatureLogEntryResponse>> listEntriesPaginated(
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       Pageable pageable,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
@@ -156,6 +221,12 @@ public class TemperatureLogController {
 
   @GetMapping("/entries/by-point/{pointId}")
   @Operation(summary = "List entries for specific log point")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved entries"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Log point not found")
+  })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listEntriesByPoint(
       @Parameter(description = "Log point ID") @PathVariable Long pointId,
@@ -168,9 +239,15 @@ public class TemperatureLogController {
 
   @GetMapping("/entries/by-date")
   @Operation(summary = "List entries by date range")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved entries"),
+      @ApiResponse(responseCode = "400", description = "Invalid date range"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listEntriesByDateRange(
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @RequestParam LocalDateTime from,
       @RequestParam LocalDateTime to,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -181,6 +258,12 @@ public class TemperatureLogController {
 
   @GetMapping("/entries/{entryId}")
   @Operation(summary = "Get specific temperature entry")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved entry"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden"),
+      @ApiResponse(responseCode = "404", description = "Entry not found")
+  })
   @PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'ADMIN')")
   public ResponseEntity<TemperatureLogEntryResponse> getEntry(
       @Parameter(description = "Entry ID") @PathVariable Long entryId,
@@ -193,9 +276,14 @@ public class TemperatureLogController {
 
   @GetMapping("/alerts")
   @Operation(summary = "Get all temperature alerts (out-of-range)")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved alerts"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Forbidden")
+  })
   @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
   public ResponseEntity<List<TemperatureLogEntryResponse>> listAlerts(
-      @RequestParam Integer orgNumber,
+      @Parameter(description = "The orgNumber parameter") @RequestParam Integer orgNumber,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
     Long userId = userDetails.getUserId();
     validateUserOrganizationAccess(userId, orgNumber);

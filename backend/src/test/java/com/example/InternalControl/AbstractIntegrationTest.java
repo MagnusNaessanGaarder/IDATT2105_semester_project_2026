@@ -1,10 +1,13 @@
 package com.example.InternalControl;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Assumptions;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -20,36 +23,55 @@ import org.testcontainers.utility.DockerImageName;
 @TestPropertySource(locations = "classpath:application-test.properties")
 public abstract class AbstractIntegrationTest {
 
-    private static final MySQLContainer<?> mysql;
+    static MySQLContainer<?> mysql;
 
-    static {
-        // Configure Testcontainers only on Linux and only if not already set
-        if (isLinux()) {
-            setPropertyIfAbsent("docker.host", "unix:///var/run/docker.sock");
-            setPropertyIfAbsent("testcontainers.docker.socket.override", "/var/run/docker.sock");
-        }
-        setPropertyIfAbsent("testcontainers.ryuk.disabled", "true");
-        
+    @BeforeAll
+    static void startContainerIfAvailable() {
+        // If SPRING_DATASOURCE_URL is set, use external database (e.g., from make dev)
         if (System.getenv("SPRING_DATASOURCE_URL") != null) {
-            // Use external database if configured
             mysql = null;
-        } else {
-            mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
+            return;
+        }
+
+        // Check if Docker is available
+        if (!isDockerAvailable()) {
+            Assumptions.assumeTrue(false, "Docker is not available; skipping integration tests");
+            return;
+        }
+
+        // Force using environment variables for Docker
+        System.setProperty("testcontainers.docker.client.strategy", "org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy");
+        
+        // Configure Docker client for Linux
+        if (isLinux()) {
+            System.setProperty("docker.host", "unix:///var/run/docker.sock");
+        }
+        
+        // Disable ryuk for faster tests
+        System.setProperty("testcontainers.ryuk.disabled", "true");
+        
+        // Set Docker API version
+        System.setProperty("api.version", "1.40");
+
+        try {
+            mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.4"))
                     .withDatabaseName("testdb")
                     .withUsername("test")
                     .withPassword("test")
                     .withReuse(true);
             mysql.start();
+        } catch (Exception e) {
+            System.err.println("Failed to start MySQL container: " + e.getMessage());
+            Assumptions.assumeTrue(false, "Failed to start Docker container: " + e.getMessage());
         }
     }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        if (mysql != null) {
+        if (mysql != null && mysql.isRunning()) {
             registry.add("spring.datasource.url", mysql::getJdbcUrl);
             registry.add("spring.datasource.username", mysql::getUsername);
             registry.add("spring.datasource.password", mysql::getPassword);
-            registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
         }
     }
 
@@ -58,14 +80,12 @@ public abstract class AbstractIntegrationTest {
         return osName != null && osName.toLowerCase().contains("linux");
     }
 
-    private static void setPropertyIfAbsent(String propertyName, String value) {
-        if (System.getProperty(propertyName) != null) {
-            return;
+    private static boolean isDockerAvailable() {
+        try {
+            return DockerClientFactory.instance().isDockerAvailable();
+        } catch (Exception exception) {
+            System.err.println("Docker not available: " + exception.getMessage());
+            return false;
         }
-        String envVarName = propertyName.toUpperCase().replace('.', '_');
-        if (System.getenv(envVarName) != null) {
-            return;
-        }
-        System.setProperty(propertyName, value);
     }
 }

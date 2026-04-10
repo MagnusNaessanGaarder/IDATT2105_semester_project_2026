@@ -19,6 +19,8 @@ public interface TemperatureLogEntryRepository extends JpaRepository<Temperature
 
   List<TemperatureLogEntry> findByOrgNumberAndLogPointIdOrderByMeasuredAtDesc(Integer orgNumber, Long logPointId);
 
+  List<TemperatureLogEntry> findByOrgNumberAndLogPointId(Integer orgNumber, Long logPointId);
+
   List<TemperatureLogEntry> findByOrgNumberAndMeasuredAtBetween(Integer orgNumber, LocalDateTime from, LocalDateTime to);
 
   List<TemperatureLogEntry> findByOrgNumberAndIsAlertTrueOrderByMeasuredAtDesc(Integer orgNumber);
@@ -26,6 +28,8 @@ public interface TemperatureLogEntryRepository extends JpaRepository<Temperature
   Page<TemperatureLogEntry> findByOrgNumberOrderByMeasuredAtDesc(Integer orgNumber, Pageable pageable);
 
   Optional<TemperatureLogEntry> findByEntryIdAndOrgNumber(Long entryId, Integer orgNumber);
+
+  void deleteByOrgNumberAndLogPointId(Integer orgNumber, Long logPointId);
 
   @Query("SELECT e FROM TemperatureLogEntry e LEFT JOIN FETCH e.logPoint WHERE e.orgNumber = :orgNumber ORDER BY e.measuredAt DESC")
   List<TemperatureLogEntry> findByOrgNumberWithLogPointOrderByMeasuredAtDesc(@Param("orgNumber") Integer orgNumber);

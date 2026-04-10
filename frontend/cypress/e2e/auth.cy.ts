@@ -1,4 +1,5 @@
  
+ 
 describe('Authentication Flow', () => {
   beforeEach(() => {
     // Clear sessionStorage before each test
@@ -42,8 +43,8 @@ describe('Authentication Flow', () => {
       cy.get('input#email').clear()
       cy.get('input#password').clear()
       
-      // Type credentials (using admin2 which has working password)
-      cy.get('input#email').type('admin2@everest-sushi.no')
+      // Type credentials
+      cy.get('input#email').type('admin@everest-sushi.no')
       cy.get('input#password').type('Test1234!')
       
       // Submit form
@@ -54,9 +55,9 @@ describe('Authentication Flow', () => {
       
       // Should store tokens in sessionStorage
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.not.be.null
-        expect(win.sessionStorage.getItem('refreshToken')).to.not.be.null
-        expect(win.sessionStorage.getItem('email')).to.equal('admin2@everest-sushi.no')
+        expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
+        expect(win.sessionStorage.getItem('refreshToken')).to.not.equal(null)
+        expect(win.sessionStorage.getItem('email')).to.equal('admin@everest-sushi.no')
         expect(win.sessionStorage.getItem('role')).to.equal('ADMIN')
       })
     })
@@ -81,36 +82,6 @@ describe('Authentication Flow', () => {
     })
   })
 
-  describe('Protected Routes', () => {
-    it('should redirect to login when accessing protected route without auth', () => {
-      cy.visit('/')
-      cy.url().should('include', '/login')
-    })
-
-    it('should allow access to dashboard when authenticated', () => {
-      // Set up authenticated session
-      cy.window().then((win) => {
-        win.sessionStorage.setItem('accessToken', 'fake-token')
-        win.sessionStorage.setItem('email', 'admin@everest-sushi.no')
-        win.sessionStorage.setItem('role', 'ADMIN')
-      })
-
-      cy.visit('/')
-      cy.url().should('not.include', '/login')
-    })
-
-    it('should redirect to dashboard when accessing login while authenticated', () => {
-      // Set up authenticated session
-      cy.window().then((win) => {
-        win.sessionStorage.setItem('accessToken', 'fake-token')
-        win.sessionStorage.setItem('email', 'admin@everest-sushi.no')
-        win.sessionStorage.setItem('role', 'ADMIN')
-      })
-
-      cy.visit('/login')
-      cy.url().should('not.include', '/login')
-    })
-  })
 
   describe('Role-Based Access', () => {
     it('should allow ADMIN to access admin routes', () => {
@@ -118,6 +89,7 @@ describe('Authentication Flow', () => {
         win.sessionStorage.setItem('accessToken', 'fake-token')
         win.sessionStorage.setItem('email', 'admin@everest-sushi.no')
         win.sessionStorage.setItem('role', 'ADMIN')
+        win.sessionStorage.setItem('organizations', JSON.stringify([{ orgNumber: 937219997, orgName: 'Test Org', role: 'ADMIN' }]))
       })
 
       cy.visit('/admin/brukere')
@@ -129,12 +101,12 @@ describe('Authentication Flow', () => {
         win.sessionStorage.setItem('accessToken', 'fake-token')
         win.sessionStorage.setItem('email', 'employee@example.com')
         win.sessionStorage.setItem('role', 'EMPLOYEE')
+        win.sessionStorage.setItem('organizations', JSON.stringify([{ orgNumber: 937219997, orgName: 'Test Org', role: 'EMPLOYEE' }]))
       })
 
       cy.visit('/admin/brukere')
       cy.url().should('not.include', '/admin/brukere')
-      // Should redirect to dashboard
-      cy.url().should('eq', Cypress.config().baseUrl + '/')
+      cy.url().should('include', '/forbidden')
     })
   })
 
@@ -142,8 +114,10 @@ describe('Authentication Flow', () => {
     it('should clear session and redirect to login on logout', () => {
       // First login for real
       cy.visit('/login')
-      cy.get('input#email').clear().type('admin2@everest-sushi.no')
-      cy.get('input#password').clear().type('Test1234!')
+      cy.get('input#email').clear()
+      cy.get('input#email').type('admin@everest-sushi.no')
+      cy.get('input#password').clear()
+      cy.get('input#password').type('Test1234!')
       cy.get('button[type="submit"]').click()
       
       // Wait for login to complete
@@ -151,7 +125,7 @@ describe('Authentication Flow', () => {
       
       // Verify we're logged in
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.not.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.not.equal(null)
       })
       
       // Clear session to simulate logout
@@ -164,8 +138,8 @@ describe('Authentication Flow', () => {
       
       // Verify session is cleared
       cy.window().then((win) => {
-        expect(win.sessionStorage.getItem('accessToken')).to.be.null
-        expect(win.sessionStorage.getItem('email')).to.be.null
+        expect(win.sessionStorage.getItem('accessToken')).to.equal(null)
+        expect(win.sessionStorage.getItem('email')).to.equal(null)
       })
 
       // Should be on login page

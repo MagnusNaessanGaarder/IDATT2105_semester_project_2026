@@ -9,7 +9,7 @@ interface User {
   role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
 }
 
-const props = defineProps<{
+defineProps<{
   user: User
 }>()
 
@@ -97,7 +97,7 @@ const handleLogout = async () => {
   font-size: 13px;
   border-radius: var(--radius-lg);
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .user-details {

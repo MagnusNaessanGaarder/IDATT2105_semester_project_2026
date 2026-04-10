@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Response DTO for checklist run.
@@ -18,6 +19,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "ChecklistRunResponse", description = "DTO for ChecklistRunResponse")
 public class ChecklistRunResponse {
 
     private Long runId;

@@ -5,9 +5,15 @@ import com.example.InternalControl.model.deviation.DeviationReport;
 import com.example.InternalControl.model.enums.DeviationStatus;
 import com.example.InternalControl.model.enums.ReportType;
 import com.example.InternalControl.model.enums.Severity;
+import com.example.InternalControl.model.organization.Organization;
 import com.example.InternalControl.model.user.AppUser;
+import com.example.InternalControl.model.user.UserOrganization;
+import com.example.InternalControl.model.user.UserOrganizationId;
 import com.example.InternalControl.repository.deviation.DeviationReportRepository;
+import com.example.InternalControl.repository.organization.OrganizationRepository;
 import com.example.InternalControl.repository.user.AppUserRepository;
+import com.example.InternalControl.repository.user.UserOrganizationRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,20 +39,38 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
     @Autowired
     private AppUserRepository appUserRepository;
 
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
+    private UserOrganizationRepository userOrganizationRepository;
+    private Integer testOrgNumber;
+
+    @BeforeEach
+    void setUp() {
+        testOrgNumber = Math.toIntExact((System.nanoTime() % 1_000_000) + 1_000_000);
+        organizationRepository.save(Organization.builder()
+                .orgNumber(testOrgNumber)
+                .legalName("Test Organization " + testOrgNumber)
+                .displayName("Test Org")
+                .isActive(true)
+                .build());
+    }
+
     @Test
     @DisplayName("Should find deviation reports by organization number")
     void shouldFindByOrgNumber() {
         // Given
         AppUser user = createAndSaveTestUser("deviation@test.com", "Test User");
-        DeviationReport report = createTestReport(999001, user, Severity.MINOR, DeviationStatus.REPORTED);
+        DeviationReport report = createTestReport(testOrgNumber, user, Severity.MINOR, DeviationStatus.REPORTED);
         deviationReportRepository.save(report);
 
         // When
-        List<DeviationReport> reports = deviationReportRepository.findByOrgNumber(999001);
+        List<DeviationReport> reports = deviationReportRepository.findByOrgNumber(testOrgNumber);
 
         // Then
         assertThat(reports).hasSize(1);
-        assertThat(reports.get(0).getOrgNumber()).isEqualTo(999001);
+        assertThat(reports).extracting(DeviationReport::getTitle).contains("Test Deviation Report");
         assertThat(reports.get(0).getTitle()).isEqualTo("Test Deviation Report");
     }
 
@@ -55,13 +79,13 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
     void shouldFindByOrgNumberAndStatus() {
         // Given
         AppUser user = createAndSaveTestUser("status@test.com", "Test User");
-        DeviationReport report1 = createTestReport(999002, user, Severity.MAJOR, DeviationStatus.REPORTED);
-        DeviationReport report2 = createTestReport(999002, user, Severity.CRITICAL, DeviationStatus.CLOSED);
+        DeviationReport report1 = createTestReport(testOrgNumber, user, Severity.MAJOR, DeviationStatus.REPORTED);
+        DeviationReport report2 = createTestReport(testOrgNumber, user, Severity.CRITICAL, DeviationStatus.CLOSED);
         deviationReportRepository.save(report1);
         deviationReportRepository.save(report2);
 
         // When
-        List<DeviationReport> reportedReports = deviationReportRepository.findByOrgNumberAndStatus(999002, DeviationStatus.REPORTED);
+        List<DeviationReport> reportedReports = deviationReportRepository.findByOrgNumberAndStatus(testOrgNumber, DeviationStatus.REPORTED);
 
         // Then
         assertThat(reportedReports).hasSize(1);
@@ -73,13 +97,13 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
     void shouldFindByOrgNumberAndSeverity() {
         // Given
         AppUser user = createAndSaveTestUser("severity@test.com", "Test User");
-        DeviationReport report1 = createTestReport(999003, user, Severity.MINOR, DeviationStatus.REPORTED);
-        DeviationReport report2 = createTestReport(999003, user, Severity.CRITICAL, DeviationStatus.REPORTED);
+        DeviationReport report1 = createTestReport(testOrgNumber, user, Severity.MINOR, DeviationStatus.REPORTED);
+        DeviationReport report2 = createTestReport(testOrgNumber, user, Severity.CRITICAL, DeviationStatus.REPORTED);
         deviationReportRepository.save(report1);
         deviationReportRepository.save(report2);
 
         // When
-        List<DeviationReport> criticalReports = deviationReportRepository.findByOrgNumberAndSeverity(999003, Severity.CRITICAL);
+        List<DeviationReport> criticalReports = deviationReportRepository.findByOrgNumberAndSeverity(testOrgNumber, Severity.CRITICAL);
 
         // Then
         assertThat(criticalReports).hasSize(1);
@@ -92,12 +116,12 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
         // Given
         AppUser reporter = createAndSaveTestUser("reporter@test.com", "Reporter");
         AppUser assignee = createAndSaveTestUser("assignee@test.com", "Assignee");
-        DeviationReport report = createTestReport(999004, reporter, Severity.MAJOR, DeviationStatus.REPORTED);
+        DeviationReport report = createTestReport(testOrgNumber, reporter, Severity.MAJOR, DeviationStatus.REPORTED);
         report.setAssignedTo(assignee);
         deviationReportRepository.save(report);
 
         // When
-        List<DeviationReport> assignedReports = deviationReportRepository.findByAssignedToUserIdAndOrgNumber(assignee.getUserId(), 999004);
+        List<DeviationReport> assignedReports = deviationReportRepository.findByAssignedToUserIdAndOrgNumber(assignee.getUserId(), testOrgNumber);
 
         // Then
         assertThat(assignedReports).hasSize(1);
@@ -109,11 +133,11 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
     void shouldFindByReportIdAndOrgNumber() {
         // Given
         AppUser user = createAndSaveTestUser("id@test.com", "Test User");
-        DeviationReport report = createTestReport(999005, user, Severity.MINOR, DeviationStatus.REPORTED);
+        DeviationReport report = createTestReport(testOrgNumber, user, Severity.MINOR, DeviationStatus.REPORTED);
         DeviationReport saved = deviationReportRepository.save(report);
 
         // When
-        Optional<DeviationReport> found = deviationReportRepository.findByReportIdAndOrgNumber(saved.getReportId(), 999005);
+        Optional<DeviationReport> found = deviationReportRepository.findByReportIdAndOrgNumber(saved.getReportId(), testOrgNumber);
 
         // Then
         assertThat(found).isPresent();
@@ -125,12 +149,12 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
     void shouldCheckExistsByReportIdAndOrgNumber() {
         // Given
         AppUser user = createAndSaveTestUser("exists@test.com", "Test User");
-        DeviationReport report = createTestReport(999006, user, Severity.MAJOR, DeviationStatus.REPORTED);
+        DeviationReport report = createTestReport(testOrgNumber, user, Severity.MAJOR, DeviationStatus.REPORTED);
         DeviationReport saved = deviationReportRepository.save(report);
 
         // When & Then
-        assertThat(deviationReportRepository.existsByReportIdAndOrgNumber(saved.getReportId(), 999006)).isTrue();
-        assertThat(deviationReportRepository.existsByReportIdAndOrgNumber(999999L, 999006)).isFalse();
+        assertThat(deviationReportRepository.existsByReportIdAndOrgNumber(saved.getReportId(), testOrgNumber)).isTrue();
+        assertThat(deviationReportRepository.existsByReportIdAndOrgNumber(999999L, testOrgNumber)).isFalse();
     }
 
     @Test
@@ -138,15 +162,15 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
     void shouldCountOpenByOrgNumber() {
         // Given
         AppUser user = createAndSaveTestUser("count@test.com", "Test User");
-        DeviationReport openReport1 = createTestReport(999007, user, Severity.MINOR, DeviationStatus.REPORTED);
-        DeviationReport openReport2 = createTestReport(999007, user, Severity.MAJOR, DeviationStatus.UNDER_INVESTIGATION);
-        DeviationReport closedReport = createTestReport(999007, user, Severity.CRITICAL, DeviationStatus.CLOSED);
+        DeviationReport openReport1 = createTestReport(testOrgNumber, user, Severity.MINOR, DeviationStatus.REPORTED);
+        DeviationReport openReport2 = createTestReport(testOrgNumber, user, Severity.MAJOR, DeviationStatus.UNDER_INVESTIGATION);
+        DeviationReport closedReport = createTestReport(testOrgNumber, user, Severity.CRITICAL, DeviationStatus.CLOSED);
         deviationReportRepository.save(openReport1);
         deviationReportRepository.save(openReport2);
         deviationReportRepository.save(closedReport);
 
         // When
-        Long openCount = deviationReportRepository.countOpenByOrgNumber(999007);
+        Long openCount = deviationReportRepository.countOpenByOrgNumber(testOrgNumber);
 
         // Then
         assertThat(openCount).isEqualTo(2);
@@ -157,16 +181,16 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
     void shouldSearchReports() {
         // Given
         AppUser user = createAndSaveTestUser("search@test.com", "Test User");
-        DeviationReport report1 = createTestReport(999008, user, Severity.MINOR, DeviationStatus.REPORTED);
+        DeviationReport report1 = createTestReport(testOrgNumber, user, Severity.MINOR, DeviationStatus.REPORTED);
         report1.setReportDate(LocalDate.now().minusDays(1));
-        DeviationReport report2 = createTestReport(999008, user, Severity.MAJOR, DeviationStatus.UNDER_INVESTIGATION);
+        DeviationReport report2 = createTestReport(testOrgNumber, user, Severity.MAJOR, DeviationStatus.UNDER_INVESTIGATION);
         report2.setReportDate(LocalDate.now());
         deviationReportRepository.save(report1);
         deviationReportRepository.save(report2);
 
         // When - search by severity only
         List<DeviationReport> results = deviationReportRepository.searchReports(
-                999008, null, Severity.MINOR, null, null, null);
+                testOrgNumber, null, Severity.MINOR, null, null, null);
 
         // Then
         assertThat(results).hasSize(1);
@@ -178,16 +202,16 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
     void shouldSearchReportsByDateRange() {
         // Given
         AppUser user = createAndSaveTestUser("datefilter@test.com", "Test User");
-        DeviationReport oldReport = createTestReport(999009, user, Severity.MINOR, DeviationStatus.REPORTED);
+        DeviationReport oldReport = createTestReport(testOrgNumber, user, Severity.MINOR, DeviationStatus.REPORTED);
         oldReport.setReportDate(LocalDate.now().minusDays(10));
-        DeviationReport recentReport = createTestReport(999009, user, Severity.MAJOR, DeviationStatus.REPORTED);
+        DeviationReport recentReport = createTestReport(testOrgNumber, user, Severity.MAJOR, DeviationStatus.REPORTED);
         recentReport.setReportDate(LocalDate.now().minusDays(2));
         deviationReportRepository.save(oldReport);
         deviationReportRepository.save(recentReport);
 
         // When
         List<DeviationReport> results = deviationReportRepository.searchReports(
-                999009, null, null, null, LocalDate.now().minusDays(5), null);
+                testOrgNumber, null, null, null, LocalDate.now().minusDays(5), null);
 
         // Then
         assertThat(results).hasSize(1);
@@ -196,11 +220,23 @@ class DeviationReportRepositoryTest extends AbstractIntegrationTest {
 
     private AppUser createAndSaveTestUser(String email, String displayName) {
         AppUser user = AppUser.builder()
-                .email(email)
+                .email(email.replace("@", "+" + System.nanoTime() + "@"))
                 .displayName(displayName)
                 .isActive(true)
                 .build();
-        return appUserRepository.save(user);
+        AppUser savedUser = appUserRepository.save(user);
+
+        Organization organization = organizationRepository.findById(testOrgNumber)
+                .orElseThrow(() -> new IllegalStateException("Missing organization " + testOrgNumber + " in test data"));
+
+        userOrganizationRepository.save(UserOrganization.builder()
+                .id(new UserOrganizationId(savedUser.getUserId(), testOrgNumber))
+                .user(savedUser)
+                .organization(organization)
+                .isActive(true)
+                .build());
+
+        return savedUser;
     }
 
     private DeviationReport createTestReport(Integer orgNumber, AppUser reportedBy, Severity severity, DeviationStatus status) {

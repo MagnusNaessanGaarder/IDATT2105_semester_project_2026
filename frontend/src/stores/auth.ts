@@ -10,8 +10,47 @@ interface AuthError {
   code?: string
 }
 
+interface ApiError {
+  response?: {
+    data?: {
+      error?: string
+      fieldErrors?: Record<string, string>
+    }
+  }
+  message?: string
+}
+
 interface JwtPayload {
   exp?: number
+  orgNumber?: number | string
+  org_number?: number | string
+  organizationNumber?: number | string
+  organization_number?: number | string
+}
+
+const parseOrgNumber = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed
+    }
+  }
+
+  return null
+}
+
+type ErrorShape = {
+  message?: string
+  response?: {
+    data?: {
+      error?: string
+      fieldErrors?: Record<string, string>
+    }
+  }
 }
 
 const getStoredOrganizations = (): OrganizationRole[] => {
@@ -59,7 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.login(credentials)
       setAuthData(response)
       return response
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -67,7 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(userData: { email: string; password: string; fullName?: string }) {
+  async function register(userData: { email: string; password: string; fullName: string; phone?: string }) {
     loading.value = true
     error.value = null
 
@@ -75,12 +114,12 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authApi.register({
         email: userData.email,
         password: userData.password,
-        fullName: userData.fullName || userData.email.split('@')[0] || 'User',
-        phone: undefined,
+        fullName: userData.fullName,
+        phone: userData.phone,
       })
       setAuthData(response)
       return response
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = parseError(err)
       throw err
     } finally {
@@ -99,6 +138,9 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('email')
     sessionStorage.removeItem('role')
     sessionStorage.removeItem('organizations')
+    sessionStorage.removeItem('orgNumber')
+    sessionStorage.removeItem('selectedOrgNumber')
+    sessionStorage.removeItem('currentOrgNumber')
   }
 
   async function checkAuth() {
@@ -181,17 +223,33 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem('email', response.email)
     sessionStorage.setItem('role', response.role)
     sessionStorage.setItem('organizations', JSON.stringify(response.organizations || []))
+
+    const orgFromList = parseOrgNumber(response.organizations?.[0]?.orgNumber)
+    const payload = decodeJwtPayload(response.accessToken)
+    const orgFromToken = parseOrgNumber(payload?.orgNumber)
+        ?? parseOrgNumber(payload?.org_number)
+        ?? parseOrgNumber(payload?.organizationNumber)
+        ?? parseOrgNumber(payload?.organization_number)
+
+    const resolvedOrg = orgFromList ?? orgFromToken
+    if (resolvedOrg) {
+      sessionStorage.setItem('orgNumber', String(resolvedOrg))
+      sessionStorage.setItem('selectedOrgNumber', String(resolvedOrg))
+      sessionStorage.setItem('currentOrgNumber', String(resolvedOrg))
+    }
   }
 
-  function parseError(err: any): AuthError {
-    if (err.response?.data?.error) {
-      return { message: err.response.data.error }
+  function parseError(err: unknown): AuthError {
+
+    const error = err as ApiError
+    if (error.response?.data?.error) {
+      return { message: error.response.data.error }
     }
-    if (err.response?.data?.fieldErrors) {
-      return { message: Object.values(err.response.data.fieldErrors).join(', ') }
+    if (error.response?.data?.fieldErrors) {
+      return { message: Object.values(error.response.data.fieldErrors).join(', ') }
     }
-    if (err.message) {
-      return { message: err.message }
+    if (error.message) {
+      return { message: error.message }
     }
     return { message: 'Something went wrong. Please try again.' }
   }

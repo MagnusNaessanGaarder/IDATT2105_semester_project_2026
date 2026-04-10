@@ -45,6 +45,7 @@ public class AuditLogController {
     })
     @GetMapping
     public ResponseEntity<List<AuditLog>> getAuditLogs(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUserId();
@@ -60,6 +61,7 @@ public class AuditLogController {
     })
     @GetMapping("/entity/{entityType}/{entityId}")
     public ResponseEntity<List<AuditLog>> getEntityAuditLogs(
+            @Parameter(description = "Identifier of the entityType")
             @PathVariable String entityType,
             @PathVariable Long entityId,
             @RequestParam Integer orgNumber,
@@ -77,6 +79,7 @@ public class AuditLogController {
     })
     @GetMapping("/date-range")
     public ResponseEntity<List<AuditLog>> getAuditLogsByDateRange(
+            @Parameter(description = "The orgNumber parameter")
             @RequestParam Integer orgNumber,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
@@ -94,6 +97,7 @@ public class AuditLogController {
     })
     @GetMapping("/action/{actionType}")
     public ResponseEntity<List<AuditLog>> getAuditLogsByActionType(
+            @Parameter(description = "Identifier of the actionType")
             @PathVariable ActionType actionType,
             @RequestParam Integer orgNumber,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

@@ -11,6 +11,9 @@ const {
   completionForChecklist,
   isTemperatureInRange,
   formatDate,
+  isLoading,
+  error,
+  reload,
 } = useIkMatData()
 
 const openDeviations = computed(() => deviations.filter((item) => item.status !== 'resolved'))
@@ -42,7 +45,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 </script>
 
 <template>
-  <div class="ik-mat-dashboard">
+  <div class="view-page ik-mat-dashboard">
     <header class="page-header">
       <h1>IK-MAT</h1>
       <p class="subtitle">Everest Sushi &amp; Fusion - internkontroll for matsikkerhet og hygiene</p>
@@ -55,6 +58,18 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
           {{ stat.value }}<span v-if="stat.unit" class="stat-card__unit">{{ stat.unit }}</span>
         </p>
       </article>
+    </section>
+
+    <section v-if="error" class="panel-card" aria-label="API-feil">
+      <header class="panel-card__header">
+        <h2>Kunne ikke hente IK-MAT data</h2>
+        <button type="button" class="status-chip status-chip--warn" @click="reload">Prøv igjen</button>
+      </header>
+      <p class="item-row__meta">{{ error }}</p>
+    </section>
+
+    <section v-else-if="isLoading" class="panel-card" aria-label="Laster IK-MAT data">
+      <p class="item-row__meta">Laster IK-MAT data...</p>
     </section>
 
     <section class="quick-actions" aria-label="Snarveier">
@@ -118,7 +133,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
       <article class="panel-card details-grid__span-2">
         <header class="panel-card__header">
-          <h2>Ãpne avvik</h2>
+          <h2>Åpne avvik</h2>
           <span class="status-chip" :class="openDeviations.length > 0 ? 'status-chip--warn' : 'status-chip--good'">
             {{ openDeviations.length }} aktive
           </span>
@@ -131,7 +146,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
               <p class="item-row__meta">{{ deviation.location }} · meldt {{ formatDate(deviation.reported_date) }} kl. {{ deviation.reported_time }}</p>
             </div>
             <span class="status-chip" :class="deviation.severity === 'high' ? 'status-chip--danger' : 'status-chip--warn'">
-              {{ deviation.severity === 'high' ? 'Hoy' : 'Medium' }}
+              {{ deviation.severity === 'high' ? 'Høy' : 'Medium' }}
             </span>
           </li>
         </ul>
@@ -142,17 +157,17 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
 <style scoped>
 .ik-mat-dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
+  display: grid;
+  gap: var(--spacing-lg);
 }
 
 .page-header {
-  margin-bottom: 1.75rem;
+  margin-bottom: 0;
 }
 
 .page-header h1 {
   margin: 0;
-  font-size: var(--font-size-2xl);
+  font-size: clamp(1.7rem, 2.2vw, var(--font-size-2xl));
   color: var(--ik-mat-primary);
 }
 
@@ -165,15 +180,16 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: 0.9rem;
-  margin-bottom: 1.25rem;
+  gap: var(--spacing-md);
+  margin-bottom: 0;
 }
 
 .stat-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 0.95rem;
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-card--success {
@@ -210,23 +226,26 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 0.9rem;
-  margin-bottom: 1.25rem;
+  gap: var(--spacing-md);
+  margin-bottom: 0;
 }
 
 .action-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: 1rem;
   color: inherit;
   text-decoration: none;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: var(--shadow-sm);
 }
 
 .action-card:hover {
   border-color: color-mix(in srgb, var(--ik-mat-primary) 35%, var(--color-border));
   background: color-mix(in srgb, var(--ik-mat-bg) 45%, var(--color-card));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .action-card h2 {
@@ -244,7 +263,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 .details-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.9rem;
+  gap: var(--spacing-md);
 }
 
 .details-grid__span-2 {
@@ -253,9 +272,10 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 
 .panel-card {
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-card);
-  padding: 0.9rem;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .panel-card__header {
@@ -286,9 +306,9 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   gap: 0.75rem;
   align-items: center;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 0.7rem;
-  background: color-mix(in srgb, var(--color-accent) 50%, var(--color-card));
+  border-radius: var(--radius-md);
+  padding: 0.8rem;
+  background: color-mix(in srgb, var(--color-accent) 40%, var(--color-card));
 }
 
 .item-row__title {
@@ -307,7 +327,7 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 .status-chip {
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  padding: 0.2rem 0.45rem;
+  padding: 0.25rem 0.5rem;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;

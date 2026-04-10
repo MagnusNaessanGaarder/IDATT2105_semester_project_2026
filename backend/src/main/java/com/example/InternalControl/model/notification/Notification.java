@@ -1,6 +1,7 @@
 package com.example.InternalControl.model.notification;
 
 import com.example.InternalControl.model.user.AppUser;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -33,6 +34,7 @@ public class Notification {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
+  @JsonIgnore
   private AppUser user;
 
   @Column(name = "notification_type", nullable = false)
