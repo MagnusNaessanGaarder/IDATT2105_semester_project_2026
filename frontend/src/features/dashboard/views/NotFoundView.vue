@@ -27,8 +27,11 @@ const goHome = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-background);
-  padding: 24px;
+  background:
+    radial-gradient(circle at 18% 16%, var(--color-surface-tint), transparent 30%),
+    radial-gradient(circle at 82% 84%, var(--color-surface-tint-strong), transparent 30%),
+    linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
+  padding: var(--content-padding);
 }
 
 .not-found-content {
@@ -37,24 +40,24 @@ const goHome = () => {
 }
 
 .not-found-content h1 {
-  font-size: 96px;
+  font-size: clamp(4.5rem, 10vw, 6rem);
   font-weight: var(--font-weight-bold);
-  color: var(--color-gray-200);
+  color: color-mix(in srgb, var(--color-foreground) 12%, transparent);
   line-height: 1;
-  margin-bottom: 16px;
+  margin-bottom: var(--spacing-md);
 }
 
 .not-found-content h2 {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-foreground);
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .not-found-content p {
   font-size: var(--font-size-base);
   color: var(--color-gray-500);
-  margin-bottom: 32px;
+  margin-bottom: var(--spacing-2xl);
 }
 
 .home-btn {
@@ -64,7 +67,7 @@ const goHome = () => {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--color-primary-foreground);
-  background: var(--color-foreground);
+  background: var(--color-primary);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -72,7 +75,7 @@ const goHome = () => {
 }
 
 .home-btn:hover {
-  background: var(--color-gray-800);
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }

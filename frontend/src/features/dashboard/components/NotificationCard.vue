@@ -58,43 +58,45 @@ const typeIcon = () => {
 .notification-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-left: 0.25rem solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-brand-mid-teal);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: all var(--transition-base);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-sm);
 }
 
 .notification-card--unread {
-  background: rgba(59, 130, 246, 0.02);
+  background: color-mix(in srgb, var(--color-brand-ice-teal) 38%, var(--color-card));
 }
 
 .notification-card--warning {
-  border-left-color: #f59e0b;
+  border-left-color: var(--color-warning);
 }
 
 .notification-card--info {
-  border-left-color: #3b82f6;
+  border-left-color: var(--color-info);
 }
 
 .notification-card--success {
-  border-left-color: #10b981;
+  border-left-color: var(--color-cta);
 }
 
 .notification-card--error {
-  border-left-color: #ef4444;
+  border-left-color: var(--color-danger);
 }
 
 .notification-card:hover {
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .notification-card__header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -106,7 +108,7 @@ const typeIcon = () => {
 .notification-card__title {
   margin: 0;
   flex: 1;
-  font-size: var(--text-base);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-foreground);
 }
@@ -123,22 +125,24 @@ const typeIcon = () => {
   cursor: pointer;
   color: var(--color-gray-600);
   font-size: 1.25rem;
-  transition: color var(--transition-fast);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+  border-radius: var(--radius-sm);
 }
 
 .notification-card__dismiss:hover {
-  color: var(--color-foreground);
+  color: var(--color-primary);
+  background: var(--color-info-bg);
 }
 
 .notification-card__body {
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
 }
 
 .notification-card__message {
   margin: 0;
-  font-size: var(--text-sm);
+  font-size: var(--font-size-sm);
   color: var(--color-gray-700);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .notification-card__footer {
@@ -146,13 +150,13 @@ const typeIcon = () => {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--color-accent);
+  padding: 0.75rem 1.25rem;
+  background: color-mix(in srgb, var(--color-brand-ice-teal) 34%, var(--color-card));
   border-top: 1px solid var(--color-border);
 }
 
 .notification-card__time {
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   color: var(--color-gray-600);
 }
 
@@ -164,11 +168,11 @@ const typeIcon = () => {
 
 .notification-card__action-btn {
   padding: 0.375rem 0.75rem;
-  background: var(--color-foreground);
-  color: var(--color-background);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
   border: none;
   border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   cursor: pointer;
   transition: background-color var(--transition-fast);
@@ -176,24 +180,24 @@ const typeIcon = () => {
 }
 
 .notification-card__action-btn:hover {
-  background: var(--color-gray-900);
+  background: var(--color-primary-hover);
 }
 
 .notification-card__mark-read {
   padding: 0.375rem 0.75rem;
   background: transparent;
-  color: var(--color-foreground);
+  color: var(--color-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
 }
 
 .notification-card__mark-read:hover {
-  border-color: var(--color-foreground);
-  background: var(--color-accent);
+  border-color: var(--color-brand-light-teal);
+  background: var(--color-info-bg);
 }
 
 @media (max-width: 48rem) {
