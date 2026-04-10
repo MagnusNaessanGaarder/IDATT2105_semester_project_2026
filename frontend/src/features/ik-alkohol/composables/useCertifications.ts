@@ -24,14 +24,15 @@ export interface UseCertificationsReturn {
 }
 
 const hasError = (result: CertificationResult): result is { ok: false; error: { message: string; status: number | null; data: unknown } } =>
-  !result.ok
+    !result.ok
+
+// Module-level singleton state — shared across CertificationsView and TrainingView
+const items = ref<CertificationRecord[]>([])
+const isLoading = ref(false)
+const isSubmitting = ref(false)
+const error = ref<string | null>(null)
 
 export function useCertifications(): UseCertificationsReturn {
-  // Component-level state (fresh for each component instance)
-  const items = ref<CertificationRecord[]>([])
-  const isLoading = ref(false)
-  const isSubmitting = ref(false)
-  const error = ref<string | null>(null)
 
   const loadItems = async (orgNumber: number): Promise<void> => {
     isLoading.value = true
@@ -60,8 +61,8 @@ export function useCertifications(): UseCertificationsReturn {
   }
 
   const addItem = async (
-    data: CreateCertificationRequest,
-    orgNumber: number,
+      data: CreateCertificationRequest,
+      orgNumber: number,
   ): Promise<boolean> => {
     isSubmitting.value = true
     error.value = null
@@ -86,9 +87,9 @@ export function useCertifications(): UseCertificationsReturn {
   }
 
   const editItem = async (
-    id: number,
-    data: UpdateCertificationRequest,
-    orgNumber: number,
+      id: number,
+      data: UpdateCertificationRequest,
+      orgNumber: number,
   ): Promise<boolean> => {
     isSubmitting.value = true
     error.value = null
@@ -135,9 +136,9 @@ export function useCertifications(): UseCertificationsReturn {
   }
 
   const completeItem = async (
-    id: number,
-    orgNumber: number,
-    certificateDocumentId?: number | null,
+      id: number,
+      orgNumber: number,
+      certificateDocumentId?: number | null,
   ): Promise<boolean> => {
     isSubmitting.value = true
     error.value = null
