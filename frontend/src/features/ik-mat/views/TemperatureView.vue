@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useIkMatData } from '../composables/useIkMatData'
 import { getUsers } from '@/features/admin/api/users'
 import type { TemperatureRecord } from '../types/domain'
+import DeviationReportForm from '@/shared/components/DeviationReportForm.vue'
+import { client } from '@/api/client'
 
 //  composable
 const {
@@ -18,7 +19,6 @@ const {
   error,
 } = useIkMatData()
 
-const router    = useRouter()
 const authStore = useAuthStore()
 
 // Fetch employees directly - orgUsers in useIkMatData is never populated
@@ -125,7 +125,7 @@ const pointOptions = computed(() =>
     })
 )
 
-//  log modal 
+//  log modal
 const modalOpen   = ref(false)
 const isSubmitting = ref(false)
 const actionError  = ref<string | null>(null)
@@ -178,7 +178,7 @@ function measuredAt(): string {
 }
 
 const currentRange = computed(() => {
-  if (!form.pointId) return null
+  if (form.pointId === null) return null
   const point = activePoints.value.find((p) => p.logPointId === form.pointId)
   if (!point) return null
   const loc = locationById.value.get(point.locationId)
@@ -186,17 +186,33 @@ const currentRange = computed(() => {
   return { min: loc.tempMinC, max: loc.tempMaxC, name: point.name }
 })
 
+const isValidTemp = computed(() => {
+  const s = form.temperatureC.trim()
+  if (!s) return false
+  const t = Number(s)
+  return Number.isFinite(t)
+})
+
 const tempOutOfRange = computed(() => {
-  const t = Number(form.temperatureC)
-  if (!Number.isFinite(t) || !currentRange.value) return false
+  if (!isValidTemp.value || !currentRange.value) return false
+  const t = Number(form.temperatureC.trim())
   const { min, max } = currentRange.value
   return (min != null && t < min) || (max != null && t > max)
 })
 
+function onPointChange(e: Event) {
+  const val = (e.target as HTMLSelectElement).value
+  form.pointId = val ? Number(val) : null
+}
+
+function onEmployeeChange(e: Event) {
+  const val = (e.target as HTMLSelectElement).value
+  form.employeeId = val ? Number(val) : null
+}
+
 async function submit() {
-  if (!form.pointId || !form.temperatureC.trim()) return
-  const t = Number(form.temperatureC)
-  if (!Number.isFinite(t)) return
+  if (form.pointId === null || !isValidTemp.value) return
+  const t = Number(form.temperatureC.trim())
 
   isSubmitting.value = true
   actionError.value  = null
@@ -207,7 +223,7 @@ async function submit() {
       logPointId:        form.pointId,
       temperatureC:      t,
       measuredAt:        measuredAt(),
-      noteText:          emp ? `Målt av: ${emp.label}` : undefined,
+      noteText:          emp ? `Malt av: ${emp.label}` : undefined,
       recordedByUserId:  form.employeeId ?? undefined,
     }
 
@@ -224,24 +240,53 @@ async function submit() {
   }
 }
 
-//  deviation flow 
-function goToDeviation(row: LocationRow) {
-  const temp = row.latest ? `${row.latest.temperature_c}°C` : 'ukjent'
+//  deviation flow
+// ─── deviation modal ──────────────────────────────────────────────────────────
+const deviationOpen = ref(false)
+const deviationPrefill = ref<{
+  reportType?: 'INCIDENT' | 'DISCREPANCY'
+  severity?: 'MINOR' | 'MAJOR' | 'CRITICAL'
+  title?: string
+  description?: string
+  locationId?: number
+  occurredDate?: string
+  occurredTime?: string
+  discoveredByUserId?: number
+} | undefined>(undefined)
+const deviationSubmitting = ref(false)
+
+function openDeviationModal(row: LocationRow) {
+  const temp = row.latest ? `${row.latest.temperature_c}°C` : 'ukjent temperatur'
   const range = `${row.minTemp ?? '?'}°C til ${row.maxTemp ?? '?'}°C`
-  void router.push({
-    name: 'Deviations',
-    query: {
-      openCreate: '1',
-      source: 'temperature',
-      title: `Temperaturavvik - ${row.locationName}`,
-      location: row.locationName,
-      description: `Temperatur ved ${row.locationName} ble målt til ${temp}. Gyldig område: ${range}.`,
-      severity: 'MAJOR',
-    },
-  })
+
+  deviationPrefill.value = {
+    reportType:   'INCIDENT',
+    severity:     'MAJOR',
+    title:        `Temperaturavvik – ${row.locationName}`,
+    description:  `Temperatur ved ${row.locationName} ble målt til ${temp}. Gyldig område: ${range}.`,
+    locationId:   row.locationId ?? undefined,
+    occurredDate: row.latest?.recorded_date ?? undefined,
+    occurredTime: row.latest?.recorded_time?.slice(0, 5) ?? undefined,
+    discoveredByUserId: selfEmployeeId.value ?? undefined,
+  }
+  deviationOpen.value = true
 }
 
-//  helpers 
+async function submitDeviation(payload: { reportType: string; severity: string; title: string; description: string; [key: string]: unknown }) {
+  const orgNumber = authStore.currentOrg?.orgNumber
+  if (!orgNumber) return
+  deviationSubmitting.value = true
+  try {
+    await client.post('/deviations', { ...payload, orgNumber })
+    deviationOpen.value = false
+  } catch {
+    // DeviationReportForm handles its own error display; re-throw so it knows
+  } finally {
+    deviationSubmitting.value = false
+  }
+}
+
+//  helpers
 function fmtTemp(t: number | null | undefined) {
   return t == null ? '-' : `${t}°C`
 }
@@ -378,7 +423,7 @@ function statusTone(row: LocationRow) {
                   v-if="row.isAlert"
                   class="row-btn row-btn--danger"
                   type="button"
-                  @click="goToDeviation(row)"
+                  @click="openDeviationModal(row)"
               >
                 Meld avvik
               </button>
@@ -409,7 +454,7 @@ function statusTone(row: LocationRow) {
             <th>Lokasjon / Punkt</th>
             <th>Temperatur</th>
             <th>Tidspunkt</th>
-            <th>Målt av</th>
+            <th>Malt av</th>
             <th>Status</th>
             <th v-if="canManage"></th>
           </tr>
@@ -475,8 +520,13 @@ function statusTone(row: LocationRow) {
             <!-- Point selector -->
             <div class="field">
               <label for="m-point">Målested</label>
-              <select id="m-point" v-model.number="form.pointId" required>
-                <option :value="null" disabled>Velg punkt</option>
+              <select
+                  id="m-point"
+                  :value="form.pointId ?? ''"
+                  required
+                  @change="onPointChange($event)"
+              >
+                <option value="" disabled>- Velg punkt -</option>
                 <option v-for="opt in pointOptions" :key="opt.id" :value="opt.id">
                   {{ opt.label }}
                 </option>
@@ -495,10 +545,10 @@ function statusTone(row: LocationRow) {
               <input
                   id="m-temp"
                   v-model="form.temperatureC"
-                  type="number"
-                  step="0.1"
-                  placeholder="f.eks. 3.5"
-                  required
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="f.eks. 3.5 eller -18"
+                  autocomplete="off"
                   :class="{ 'input--warn': tempOutOfRange }"
               />
               <p v-if="tempOutOfRange" class="field-warn">⚠ Utenfor gyldig område</p>
@@ -534,9 +584,13 @@ function statusTone(row: LocationRow) {
 
             <!-- Employee -->
             <div class="field">
-              <label for="m-emp">Målt av</label>
-              <select id="m-emp" v-model.number="form.employeeId">
-                <option :value="null">- Velg ansatt -</option>
+              <label for="m-emp">Malt av</label>
+              <select
+                  id="m-emp"
+                  :value="form.employeeId ?? ''"
+                  @change="onEmployeeChange($event)"
+              >
+                <option value="">- Velg ansatt -</option>
                 <option v-for="e in employeeOptions" :key="e.id" :value="e.id">
                   {{ e.label }}
                 </option>
@@ -552,7 +606,7 @@ function statusTone(row: LocationRow) {
             <button
                 class="btn-primary"
                 type="button"
-                :disabled="isSubmitting || !form.pointId || !form.temperatureC.trim()"
+                :disabled="isSubmitting || form.pointId === null || !isValidTemp"
                 @click="submit"
             >
               {{ isSubmitting ? 'Lagrer…' : editingEntryId ? 'Oppdater' : 'Lagre' }}
@@ -564,6 +618,15 @@ function statusTone(row: LocationRow) {
     </Teleport>
 
   </div>
+
+  <!-- Deviation report modal -->
+  <DeviationReportForm
+      :open="deviationOpen"
+      :prefill="deviationPrefill"
+      @submit="submitDeviation"
+      @cancel="deviationOpen = false"
+  />
+
 </template>
 
 <style scoped>
@@ -762,7 +825,7 @@ tr:last-child td { border-bottom: none; }
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -776,7 +839,7 @@ tr:last-child td { border-bottom: none; }
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
   width: 100%;
-  max-width: 28rem;
+  max-width: 26rem;
   display: flex;
   flex-direction: column;
   max-height: 90vh;
@@ -787,145 +850,188 @@ tr:last-child td { border-bottom: none; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.1rem 1.25rem 0.75rem;
+  padding: 1rem 1.25rem 0.85rem;
   border-bottom: 1px solid var(--color-border);
 }
-.modal__header h2 { margin: 0; font-size: var(--font-size-lg); font-weight: 600; }
+.modal__header h2 {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-foreground);
+}
 .modal__close {
-  width: 2rem; height: 2rem;
-  border: none; background: none;
-  color: var(--color-gray-500);
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: none;
+  color: var(--color-gray-400);
   border-radius: var(--radius-sm);
-  cursor: pointer; font-size: 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .modal__close:hover { background: var(--color-gray-100); color: var(--color-foreground); }
 
 .modal__body {
-  padding: 1.1rem 1.25rem;
+  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .modal__footer {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem 1.1rem;
+  padding: 0.75rem 1.25rem;
   border-top: 1px solid var(--color-border);
 }
 
 /*  Form fields  */
-.field { display: flex; flex-direction: column; gap: 0.3rem; }
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
 .field label {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-gray-700);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-gray-500);
 }
 .field select,
-.field input[type="number"],
-.field input[type="date"],
-.field input[type="time"] {
+.field input {
   min-height: 2.5rem;
   padding: 0 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
-  background: var(--color-card);
+  font-family: inherit;
+  background: var(--color-background);
   color: var(--color-foreground);
   box-sizing: border-box;
   width: 100%;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 .field select:focus,
 .field input:focus {
   outline: none;
   border-color: var(--color-focus);
   box-shadow: var(--shadow-focus);
+  background: var(--color-card);
 }
-.input--warn { border-color: var(--color-warning) !important; }
-.field-warn { margin: 0; font-size: var(--font-size-xs); color: var(--color-warning); }
+.field select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  cursor: pointer;
+}
+.input--warn {
+  border-color: var(--color-warning) !important;
+  background: color-mix(in srgb, var(--color-warning) 5%, var(--color-card));
+}
+.field-warn {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-warning);
+  font-weight: 500;
+}
 
 .range-hint {
-  margin: -0.25rem 0 0;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.7rem;
   background: var(--color-gray-50);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
   color: var(--color-gray-600);
+  line-height: 1.5;
 }
 
 /*  Time toggle  */
 .time-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.4rem;
 }
 .now-btn {
-  flex: 1;
   min-height: 2.5rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-card);
-  color: var(--color-gray-600);
+  background: var(--color-background);
+  color: var(--color-gray-500);
   font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
+.now-btn:hover:not(.now-btn--active) {
+  border-color: var(--color-gray-400);
+  color: var(--color-foreground);
+}
 .now-btn--active {
-  border-color: var(--color-foreground);
-  background: var(--color-foreground);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
   color: var(--color-primary-foreground);
   font-weight: 600;
 }
 .now-label {
   margin: 0;
   font-size: var(--font-size-xs);
-  color: var(--color-gray-500);
-  font-style: italic;
+  color: var(--color-gray-400);
 }
 .time-inputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
-  margin-top: 0.4rem;
+  margin-top: 0.3rem;
 }
 
 .form-error {
   margin: 0;
-  padding: 0.6rem 0.75rem;
+  padding: 0.55rem 0.75rem;
   background: var(--color-danger-bg);
   color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 25%, var(--color-border));
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
 }
 
 /*  Buttons  */
 .btn-ghost {
   min-height: 2.25rem;
-  padding: 0.4rem 0.9rem;
+  padding: 0.4rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--color-card);
   color: var(--color-gray-700);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
+  transition: background var(--transition-fast);
 }
 .btn-ghost:hover { background: var(--color-gray-50); }
 
 .btn-primary {
   min-height: 2.25rem;
-  padding: 0.4rem 1.1rem;
+  padding: 0.4rem 1.25rem;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--color-primary);
   color: var(--color-primary-foreground);
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-primary:not(:disabled):hover { opacity: 0.88; }
+.btn-primary:not(:disabled):hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /*  Responsive  */
 @media (max-width: 48rem) {
