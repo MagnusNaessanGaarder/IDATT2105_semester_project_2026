@@ -4,6 +4,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi, type OrganizationRole } from '@/features/auth/api'
+import { clearOrganizationSettingsCache } from '@/shared/utils/orgSettings'
 
 interface AuthError {
   message: string
@@ -141,6 +142,7 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem('orgNumber')
     sessionStorage.removeItem('selectedOrgNumber')
     sessionStorage.removeItem('currentOrgNumber')
+    clearOrganizationSettingsCache()
   }
 
   async function checkAuth() {

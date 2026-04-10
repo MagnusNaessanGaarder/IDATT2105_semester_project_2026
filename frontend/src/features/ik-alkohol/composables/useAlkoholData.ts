@@ -1,6 +1,7 @@
 import { reactive, ref, computed } from 'vue'
 import { client } from '@/api/client'
 import { withOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 export interface DailyControlItem {
   id: number
@@ -162,7 +163,7 @@ export const formatDateValue = (value: string): string => {
     return value
   }
 
-  return parsedDate.toLocaleDateString('nb-NO')
+  return formatDateForOrganization(parsedDate)
 }
 
 export const useAlkoholData = () => {

@@ -7,6 +7,7 @@ import com.example.InternalControl.model.training.TrainingStatus;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.training.TrainingRecordService;
 import com.example.InternalControl.service.training.TrainingCatalogService;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -46,6 +47,7 @@ public class TrainingRecordController {
   private final TrainingRecordService trainingRecordService;
   private final TrainingCatalogService trainingCatalogService;
   private final UserOrganizationService userOrgService;
+  private final OrganizationModuleAccessService moduleAccessService;
 
   @Operation(summary = "Get all training records for organization")
   @ApiResponses({
@@ -249,5 +251,6 @@ public class TrainingRecordController {
     if (!userOrgService.isUserInOrganization(userId, orgNumber)) {
       throw new EntityNotFoundException("Organization not found or user does not have access");
     }
+    moduleAccessService.ensureAlcoholModuleEnabled(orgNumber);
   }
 }

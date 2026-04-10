@@ -11,7 +11,6 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 -- LOCATIONS
 -- ---------------------------------------------------------
-
 INSERT INTO location (org_number, name, description, location_type, temp_min_c, temp_max_c, is_active, created_at,
                       updated_at)
 VALUES (937219997, 'Kjøleskap 1 (fersk fisk)', 'Kjøleskap for frisk fisk og sjømat', 'FRIDGE', 0, 4, 1, NOW(), NOW()),

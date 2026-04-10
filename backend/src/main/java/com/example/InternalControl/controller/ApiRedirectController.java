@@ -38,8 +38,22 @@ public class ApiRedirectController {
 
         // Append query string if present
         String queryString = request.getQueryString();
-        if (queryString != null) {
+        if (queryString != null && !queryString.isEmpty()) {
             versionedUri += "?" + queryString;
+        } else if (request.getParameterMap() != null && !request.getParameterMap().isEmpty()) {
+            // Fallback for MockMvc or when getQueryString() returns null
+            StringBuilder params = new StringBuilder();
+            request.getParameterMap().forEach((key, values) -> {
+                for (String value : values) {
+                    if (params.length() > 0) {
+                        params.append("&");
+                    }
+                    params.append(key).append("=").append(value);
+                }
+            });
+            if (params.length() > 0) {
+                versionedUri += "?" + params;
+            }
         }
 
         // Send deprecation warning header

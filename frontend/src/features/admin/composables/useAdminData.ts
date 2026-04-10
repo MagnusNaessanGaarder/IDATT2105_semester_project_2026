@@ -1,5 +1,11 @@
 import { ref } from 'vue'
-import { settingsApi, type BackendSettings, type BackendSettingsRequest } from '../api/settingsApi'
+import {
+  settingsApi,
+  type BackendSettings,
+  type BackendSettingsRequest,
+} from '../api/settingsApi'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization, formatDateTimeForOrganization } from '@/shared/utils/orgSettings'
 
 export type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE'
 export type UserStatus = 'active' | 'inactive'
@@ -8,166 +14,192 @@ export interface SettingItem {
   id: string
   label: string
   description?: string
-  type: 'select' | 'toggle' | 'number' | 'info'
-  persistence: 'backend' | 'local' | 'readonly'
+  type: 'select' | 'toggle' | 'number' | 'email' | 'text' | 'tel'
   current_value: unknown
-  active?: boolean
   options?: string[]
   min?: number
   max?: number
+  step?: number
+  placeholder?: string
 }
 
 export interface SettingSection {
+  id: string
   section_title: string
   items: SettingItem[]
 }
 
 export interface SettingsState {
-  system: SettingSection
-  notification_preferences: SettingSection
-  security: SettingSection
-  backup: SettingSection
-}
-
-const LOCAL_STORAGE_KEY_PREFIX = 'admin_settings_local_'
-const PERSISTENCE_BY_ITEM_ID: Record<string, SettingItem['persistence']> = {
-  language: 'backend',
-  timezone: 'backend',
-  date_format: 'local',
-  email_critical: 'backend',
-  email_updates: 'local',
-  in_app_notifications: 'local',
-  password_expires: 'readonly',
-  session_timeout: 'readonly',
-  two_factor: 'readonly',
-  last_backup: 'readonly',
-  backup_retention: 'backend',
+  profile: SettingSection
+  organization: SettingSection
+  modules: SettingSection
+  temperature: SettingSection
+  alerts_retention: SettingSection
 }
 
 const createSettingsTemplate = (): SettingsState => ({
-  system: {
-    section_title: 'Systeminnstillinger',
+  profile: {
+    id: 'profile',
+    section_title: 'Organisasjonsprofil',
     items: [
       {
-        id: 'language',
-        label: 'Språk',
-        description: 'Velg systemspråk',
-        type: 'select',
-        persistence: 'backend',
-        current_value: 'Norwegian',
-        options: ['Norwegian', 'English', 'Swedish'],
+        id: 'display_name',
+        label: 'Visningsnavn',
+        description: 'Navnet som vises i applikasjonen',
+        type: 'text',
+        current_value: '',
+        placeholder: 'Bedrift AS',
       },
       {
-        id: 'timezone',
+        id: 'legal_name',
+        label: 'Juridisk navn',
+        description: 'Offisielt registrert navn på organisasjonen',
+        type: 'text',
+        current_value: '',
+        placeholder: 'Bedrift AS',
+      },
+      {
+        id: 'contact_email',
+        label: 'Kontakt e-post',
+        description: 'Hovede-postadresse for organisasjonen',
+        type: 'email',
+        current_value: '',
+        placeholder: 'kontakt@bedrift.no',
+      },
+      {
+        id: 'contact_phone',
+        label: 'Kontakt telefon',
+        description: 'Telefonnummer for organisasjonen',
+        type: 'tel',
+        current_value: '',
+        placeholder: '+47 123 45 678',
+      },
+    ],
+  },
+  organization: {
+    id: 'organization',
+    section_title: 'Språk og tidssone',
+    items: [
+      {
+        id: 'locale_code',
+        label: 'Locale',
+        description: 'Felles locale (språk og regionformat) for organisasjonen',
+        type: 'select',
+        current_value: 'nb-NO',
+        options: ['nb-NO', 'nn-NO', 'en-US', 'en-GB', 'sv-SE', 'da-DK', 'fi-FI', 'de-DE', 'fr-FR', 'pl-PL'],
+      },
+      {
+        id: 'timezone_name',
         label: 'Tidssone',
-        description: 'Velg tidssone for registreringer',
+        description: 'Tidssone brukt i tidsstempler og registreringer',
         type: 'select',
-        persistence: 'backend',
         current_value: 'Europe/Oslo',
-        options: ['Europe/Oslo', 'UTC', 'Europe/Stockholm', 'Europe/Copenhagen'],
-      },
-      {
-        id: 'date_format',
-        label: 'Datoformat',
-        description: 'Format for datovisning',
-        type: 'select',
-        persistence: 'local',
-        current_value: 'dd.MM.yyyy',
-        options: ['dd.MM.yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'],
+        options: [
+          'Europe/Oslo',
+          'Europe/Stockholm',
+          'Europe/Copenhagen',
+          'Europe/Helsinki',
+          'Europe/London',
+          'Europe/Berlin',
+          'Europe/Paris',
+          'Europe/Warsaw',
+          'UTC',
+          'America/New_York',
+          'America/Chicago',
+          'America/Denver',
+          'America/Los_Angeles',
+        ],
       },
     ],
   },
-  notification_preferences: {
-    section_title: 'Varslingsinnstillinger',
+  modules: {
+    id: 'modules',
+    section_title: 'Moduler',
     items: [
       {
-        id: 'email_critical',
-        label: 'E-post for kritiske varsler',
-        description: 'Motta e-post ved kritiske hendelser',
+        id: 'enable_food_module',
+        label: 'Aktiver IK-Mat',
+        description: 'Skru av/på IK-Mat-modulen for organisasjonen',
         type: 'toggle',
-        persistence: 'backend',
         current_value: true,
       },
       {
-        id: 'email_updates',
-        label: 'E-post for systemoppdateringer',
-        description: 'Motta e-post ved systemvedlikehold',
+        id: 'enable_alcohol_module',
+        label: 'Aktiver IK-Alkohol',
+        description: 'Skru av/på IK-Alkohol-modulen for organisasjonen',
         type: 'toggle',
-        persistence: 'local',
-        current_value: false,
-      },
-      {
-        id: 'in_app_notifications',
-        label: 'Varsler i systemet',
-        description: 'Vis varsler i systemet',
-        type: 'toggle',
-        persistence: 'local',
         current_value: true,
       },
     ],
   },
-  security: {
-    section_title: 'Sikkerhet',
+  temperature: {
+    id: 'temperature',
+    section_title: 'Temperaturstandard',
     items: [
       {
-        id: 'password_expires',
-        label: 'Passord utløper',
-        description: 'Sikkerhetspolicy administreres sentralt (skrivebeskyttet)',
-        type: 'info',
-        persistence: 'readonly',
-        current_value: true,
-      },
-      {
-        id: 'session_timeout',
-        label: 'Sesjonstimeout (minutter)',
-        description: 'Session policy administreres sentralt (skrivebeskyttet)',
-        type: 'info',
-        persistence: 'readonly',
-        current_value: 30,
-      },
-      {
-        id: 'two_factor',
-        label: 'To-faktor autentisering',
-        description: 'Autentiseringspolicy administreres sentralt (skrivebeskyttet)',
-        type: 'info',
-        persistence: 'readonly',
-        current_value: true,
-      },
-    ],
-  },
-  backup: {
-    section_title: 'Sikkerhetskopi',
-    items: [
-      {
-        id: 'last_backup',
-        label: 'Siste sikkerhetskopi',
-        type: 'info',
-        persistence: 'readonly',
-        current_value: '2024-06-01 02:00',
-        description: 'Automatisk sikkerhetskopi kjøres daglig',
-      },
-      {
-        id: 'backup_retention',
-        label: 'Oppbevar sikkerhetskopier i (dager)',
+        id: 'default_temp_min_c',
+        label: 'Standard min temperatur (°C)',
+        description: 'Minimumstemperatur brukt som standard for nye temperaturpunkter',
         type: 'number',
-        persistence: 'backend',
-        current_value: 30,
-        min: 7,
-        max: 365,
+        current_value: 2,
+        min: -25,
+        max: 25,
+        step: 0.5,
+      },
+      {
+        id: 'default_temp_max_c',
+        label: 'Standard maks temperatur (°C)',
+        description: 'Maksimumstemperatur brukt som standard for nye temperaturpunkter',
+        type: 'number',
+        current_value: 8,
+        min: -25,
+        max: 25,
+        step: 0.5,
+      },
+    ],
+  },
+  alerts_retention: {
+    id: 'alerts_retention',
+    section_title: 'Varsling og lagring',
+    items: [
+      {
+        id: 'reminder_email_enabled',
+        label: 'E-postpåminnelser aktivert',
+        description: 'Send automatiske e-postpåminnelser om kommende kontroller',
+        type: 'toggle',
+        current_value: true,
+      },
+      {
+        id: 'notification_email',
+        label: 'E-post for varsler',
+        description: 'Mottaker for kritiske varslingshendelser',
+        type: 'email',
+        current_value: '',
+        placeholder: 'din.epost@bedrift.no',
+      },
+      {
+        id: 'retention_user_months',
+        label: 'Behold brukerdata (måneder)',
+        description: 'Hvor lenge brukerdata (brukeraktivitet, pålogginger) lagres før automatisk sletting',
+        type: 'number',
+        current_value: 12,
+        min: 1,
+        max: 120,
+        step: 1,
+      },
+      {
+        id: 'retention_audit_months',
+        label: 'Behold revisjonsdata (måneder)',
+        description: 'Hvor lenge revisjonslogger og sporbarhetsdata beholdes (GDPR-krav: minimum 5 år)',
+        type: 'number',
+        current_value: 60,
+        min: 12,
+        max: 120,
+        step: 1,
       },
     ],
   },
 })
-
-/**
- * Persistence strategy:
- * - Backend settings: Stored in database, shared across organization, requires Admin/Manager role
- *   Includes: language, timezone, critical email alerts, backup retention
- * - Local client settings: Stored in localStorage, user-specific non-sensitive UI preferences
- *   Includes: date format, non-critical update preferences, in-app notifications
- * - Read-only settings: Displayed to users but not editable on this page
- *   Includes: security policy flags, last backup timestamp
- */
 
 const isLoading = ref(false)
 const error = ref<string | null>(null)
@@ -195,12 +227,7 @@ const statusLabel = (status: UserStatus): string => {
 }
 
 const formatDate = (value: string): string => {
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return value
-  }
-
-  return parsed.toLocaleDateString('nb-NO', {
+  return formatDateForOrganization(value, getOrgNumber(), {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -208,12 +235,7 @@ const formatDate = (value: string): string => {
 }
 
 const formatDateTime = (value: string): string => {
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return value
-  }
-
-  return parsed.toLocaleString('nb-NO', {
+  return formatDateTimeForOrganization(value, getOrgNumber(), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -226,243 +248,141 @@ const cloneSettings = (source: SettingsState): SettingsState => {
   return JSON.parse(JSON.stringify(source)) as SettingsState
 }
 
-const applyPersistenceMetadata = (source: SettingsState): SettingsState => {
-  const cloned = cloneSettings(source)
-  ;(Object.keys(cloned) as (keyof SettingsState)[]).forEach((sectionKey) => {
-    cloned[sectionKey].items = cloned[sectionKey].items.map((item) => ({
-      ...item,
-      persistence: PERSISTENCE_BY_ITEM_ID[item.id] ?? 'readonly',
-    }))
-  })
-  return cloned
+const settings = createSettingsTemplate()
+
+const normalizeLocaleCode = (value: string | null | undefined): string => {
+  if (!value) {
+    return 'nb-NO'
+  }
+  if (value === 'nb_NO') return 'nb-NO'
+  if (value === 'en_US') return 'en-US'
+  if (value === 'sv_SE') return 'sv-SE'
+  return value
 }
 
-const settings = applyPersistenceMetadata(createSettingsTemplate())
-
-const localeToLanguageOption = (localeCode: string | undefined): string => {
-  if (localeCode === 'en_US') return 'English'
-  if (localeCode === 'sv_SE') return 'Swedish'
-  return 'Norwegian'
+const toBackendLocaleCode = (value: unknown): string => {
+  if (value === 'nb_NO') return 'nb-NO'
+  if (value === 'en_US') return 'en-US'
+  if (value === 'sv_SE') return 'sv-SE'
+  return typeof value === 'string' && value.trim().length > 0 ? value : 'nb-NO'
 }
 
-const languageOptionToLocale = (value: unknown): string => {
-  if (value === 'English' || value === 'en_US') return 'en_US'
-  if (value === 'Swedish' || value === 'sv_SE') return 'sv_SE'
-  return 'nb_NO'
+const findItem = (source: SettingsState, section: keyof SettingsState, id: string): SettingItem | undefined => {
+  return source[section].items.find((entry) => entry.id === id)
 }
 
-const readLocalSettings = (orgNumber: number): Record<string, unknown> => {
-  if (typeof localStorage === 'undefined') {
-    return {}
+const getItemValue = (source: SettingsState, section: keyof SettingsState, id: string): unknown => {
+  return findItem(source, section, id)?.current_value
+}
+
+const toNullableNumber = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === '') {
+    return null
   }
 
-  const raw = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}${orgNumber}`)
-  if (!raw) {
-    return {}
-  }
-
-  try {
-    const parsed = JSON.parse(raw)
-    if (parsed && typeof parsed === 'object') {
-      return parsed as Record<string, unknown>
-    }
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to read local settings'
-  }
-
-  return {}
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : null
 }
 
-const writeLocalSettings = (orgNumber: number, localSettings: Record<string, unknown>) => {
-  if (typeof localStorage === 'undefined') {
-    return
+const toNullableInteger = (value: unknown): number | null => {
+  const numeric = toNullableNumber(value)
+  if (numeric === null) {
+    return null
   }
 
-  localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${orgNumber}`, JSON.stringify(localSettings))
+  return Math.round(numeric)
 }
 
-const applyLocalSettings = (source: SettingsState, orgNumber: number): SettingsState => {
-  const localSettings = readLocalSettings(orgNumber)
-  const cloned = cloneSettings(source)
-
-  ;(Object.keys(cloned) as (keyof SettingsState)[]).forEach((sectionKey) => {
-    cloned[sectionKey].items = cloned[sectionKey].items.map((item) => {
-      if (item.persistence !== 'local') {
-        return item
-      }
-
-      if (!(item.id in localSettings)) {
-        return item
-      }
-
-      return {
-        ...item,
-        current_value: localSettings[item.id],
-      }
-    })
-  })
-
-  return cloned
-}
-
-/**
- * Map backend settings to frontend SettingItem structure
- * @param backendSettings Backend settings from API
- * @returns Frontend settings structure
- */
-const mapBackendSettingsToFrontend = (
-  backendSettings: BackendSettings
-): SettingsState => {
+const mapBackendSettingsToFrontend = (backendSettings: BackendSettings): SettingsState => {
   const mapped = cloneSettings(settings)
-  const updateItem = (section: keyof SettingsState, id: string, value: unknown) => {
-    const item = mapped[section].items.find((entry) => entry.id === id)
+
+  const applyValue = (section: keyof SettingsState, id: string, value: unknown) => {
+    const item = findItem(mapped, section, id)
     if (item) {
       item.current_value = value
     }
   }
 
-  updateItem('system', 'language', localeToLanguageOption(backendSettings.localeCode))
-  updateItem('system', 'timezone', backendSettings.timezoneName)
-  updateItem('notification_preferences', 'email_critical', backendSettings.reminderEmailEnabled)
-  updateItem(
-    'backup',
-    'backup_retention',
-    backendSettings.retentionAuditMonths ? backendSettings.retentionAuditMonths * 30 : 30
-  )
+  applyValue('organization', 'locale_code', normalizeLocaleCode(backendSettings.localeCode))
+  applyValue('organization', 'timezone_name', backendSettings.timezoneName)
+  applyValue('modules', 'enable_food_module', backendSettings.enableFoodModule)
+  applyValue('modules', 'enable_alcohol_module', backendSettings.enableAlcoholModule)
+  applyValue('temperature', 'default_temp_min_c', backendSettings.defaultTempMinC)
+  applyValue('temperature', 'default_temp_max_c', backendSettings.defaultTempMaxC)
+  applyValue('alerts_retention', 'reminder_email_enabled', backendSettings.reminderEmailEnabled)
+  applyValue('alerts_retention', 'notification_email', backendSettings.notificationEmail ?? '')
+  applyValue('profile', 'display_name', backendSettings.displayName ?? '')
+  applyValue('profile', 'legal_name', backendSettings.legalName ?? '')
+  applyValue('profile', 'contact_email', backendSettings.contactEmail ?? '')
+  applyValue('profile', 'contact_phone', backendSettings.contactPhone ?? '')
+  applyValue('alerts_retention', 'retention_user_months', backendSettings.retentionUserMonths)
+  applyValue('alerts_retention', 'retention_audit_months', backendSettings.retentionAuditMonths)
 
   return mapped
 }
 
-/**
- * Convert frontend settings back to backend request format
- * @param frontendSettings Frontend settings structure
- * @param currentBackendSettings Current backend settings (for unmapped fields)
- * @returns Request object for backend API
- */
-const mapFrontendSettingsToBackend = (
-  frontendSettings: SettingsState,
-  currentBackendSettings: BackendSettings
-): BackendSettingsRequest => {
-  const systemItems = frontendSettings.system.items
-  const notificationItems = frontendSettings.notification_preferences.items
-  const backupItems = frontendSettings.backup.items
+const mapFrontendSettingsToBackend = (frontendSettings: SettingsState): BackendSettingsRequest => {
+  const notificationEmailRaw = getItemValue(frontendSettings, 'alerts_retention', 'notification_email')
+  const notificationEmail = typeof notificationEmailRaw === 'string' ? notificationEmailRaw.trim() : ''
 
-  const languageValue = systemItems.find(i => i.id === 'language')?.current_value ?? 'Norwegian'
-  const localeCode = languageOptionToLocale(languageValue)
-
-  const timezone = systemItems.find(i => i.id === 'timezone')?.current_value || 'Europe/Oslo'
-  const reminderEnabled = notificationItems.find(i => i.id === 'email_critical')?.current_value === true
-  const retentionDays = Number(backupItems.find(i => i.id === 'backup_retention')?.current_value)
-  const retentionAuditMonths = Number.isFinite(retentionDays)
-    ? Math.max(1, Math.round(retentionDays / 30))
-    : currentBackendSettings.retentionAuditMonths
+  const displayNameRaw = getItemValue(frontendSettings, 'profile', 'display_name')
+  const legalNameRaw = getItemValue(frontendSettings, 'profile', 'legal_name')
+  const contactEmailRaw = getItemValue(frontendSettings, 'profile', 'contact_email')
+  const contactPhoneRaw = getItemValue(frontendSettings, 'profile', 'contact_phone')
 
   return {
-    timezoneName: String(timezone),
-    localeCode,
-    enableFoodModule: currentBackendSettings.enableFoodModule,
-    enableAlcoholModule: currentBackendSettings.enableAlcoholModule,
-    defaultTempMinC: currentBackendSettings.defaultTempMinC,
-    defaultTempMaxC: currentBackendSettings.defaultTempMaxC,
-    reminderEmailEnabled: reminderEnabled,
-    notificationEmail: currentBackendSettings.notificationEmail,
-    retentionUserMonths: currentBackendSettings.retentionUserMonths,
-    retentionAuditMonths,
+    timezoneName: String(getItemValue(frontendSettings, 'organization', 'timezone_name') ?? 'Europe/Oslo'),
+    localeCode: toBackendLocaleCode(getItemValue(frontendSettings, 'organization', 'locale_code')),
+    enableFoodModule: getItemValue(frontendSettings, 'modules', 'enable_food_module') === true,
+    enableAlcoholModule: getItemValue(frontendSettings, 'modules', 'enable_alcohol_module') === true,
+    defaultTempMinC: toNullableNumber(getItemValue(frontendSettings, 'temperature', 'default_temp_min_c')),
+    defaultTempMaxC: toNullableNumber(getItemValue(frontendSettings, 'temperature', 'default_temp_max_c')),
+    reminderEmailEnabled: getItemValue(frontendSettings, 'alerts_retention', 'reminder_email_enabled') === true,
+    notificationEmail: notificationEmail.length > 0 ? notificationEmail : null,
+    displayName: typeof displayNameRaw === 'string' && displayNameRaw.trim().length > 0 ? displayNameRaw.trim() : null,
+    legalName: typeof legalNameRaw === 'string' && legalNameRaw.trim().length > 0 ? legalNameRaw.trim() : null,
+    contactEmail: typeof contactEmailRaw === 'string' && contactEmailRaw.trim().length > 0 ? contactEmailRaw.trim() : null,
+    contactPhone: typeof contactPhoneRaw === 'string' && contactPhoneRaw.trim().length > 0 ? contactPhoneRaw.trim() : null,
+    retentionUserMonths: toNullableInteger(getItemValue(frontendSettings, 'alerts_retention', 'retention_user_months')),
+    retentionAuditMonths: toNullableInteger(getItemValue(frontendSettings, 'alerts_retention', 'retention_audit_months')),
   }
 }
 
-/**
- * Save settings to backend and localStorage
- * @param frontendSettings Updated settings from UI
- * @param backendSettings Current backend settings
- * @param orgNumber Organization number
- */
 const saveSettings = async (
   frontendSettings: SettingsState,
-  backendSettings: BackendSettings,
   orgNumber: number
-) => {
+): Promise<BackendSettings | null> => {
   isLoading.value = true
   error.value = null
 
   try {
-    const backendRequest = mapFrontendSettingsToBackend(
-      frontendSettings,
-      backendSettings
-    )
+    const backendRequest = mapFrontendSettingsToBackend(frontendSettings)
     const updatedBackendSettings = await settingsApi.updateSettings(orgNumber, backendRequest)
-
-    const localSettings = Object.fromEntries(
-      Object.values(frontendSettings)
-        .flatMap((section) => section.items)
-        .filter((item) => item.persistence === 'local')
-        .map((item) => [item.id, item.current_value])
-    )
-    writeLocalSettings(orgNumber, localSettings)
-
     return updatedBackendSettings
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to save settings'
+  } catch (err: unknown) {
+    const axiosError = err as { response?: { status?: number; data?: { message?: string } } }
+    const status = axiosError?.response?.status
+    const message = axiosError?.response?.data?.message
+
+    if (status === 401) {
+      error.value = 'Du må logge inn på nytt for å lagre innstillinger.'
+    } else if (status === 403) {
+      error.value = 'Du har ikke tilgang til å lagre innstillinger.'
+    } else if (status === 400 && message) {
+      error.value = `Valideringsfeil: ${message}`
+    } else if (status === 422 && message) {
+      error.value = `Ugyldige data: ${message}`
+    } else if (status && status >= 500) {
+      error.value = 'Serverfeil. Prøv igjen senere eller kontakt support.'
+    } else {
+      error.value = 'Kunne ikke lagre innstillinger. Sjekk nettverksforbindelsen og prøv igjen.'
+    }
     return null
   } finally {
     isLoading.value = false
   }
 }
 
-/**
- * Export all settings as JSON file
- * @param frontendSettings Settings to export
- * @param backendSettings Backend settings for reference
- * @param orgNumber Organization number
- */
-const exportSettings = (
-  frontendSettings: SettingsState,
-  backendSettings: BackendSettings,
-  orgNumber: number
-) => {
-  const allItems = Object.values(frontendSettings).flatMap((section) => section.items)
-  const localSettings = readLocalSettings(orgNumber)
-  const backendPayload = mapFrontendSettingsToBackend(frontendSettings, backendSettings)
-
-  const exportData = {
-    organization: orgNumber,
-    exportedAt: new Date().toISOString(),
-    persistenceStrategy: {
-      backend: allItems.filter((item) => item.persistence === 'backend').map((item) => item.id),
-      local: allItems.filter((item) => item.persistence === 'local').map((item) => item.id),
-      readonly: allItems.filter((item) => item.persistence === 'readonly').map((item) => item.id),
-    },
-    backendSettings: {
-      ...backendPayload,
-      orgNumber: backendSettings.orgNumber,
-      createdAt: backendSettings.createdAt,
-      updatedAt: backendSettings.updatedAt,
-    },
-    localSettings,
-    readonlySnapshot: Object.fromEntries(
-      allItems
-        .filter((item) => item.persistence === 'readonly')
-        .map((item) => [item.id, item.current_value])
-    ),
-  }
-
-  const jsonString = JSON.stringify(exportData, null, 2)
-  const blob = new Blob([jsonString], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `org-settings-${orgNumber}-${new Date().toISOString().split('T')[0]}`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
-
-/**
- * Fetch settings from backend
- * @param orgNumber Organization number
- * @returns Backend settings
- */
 const fetchSettingsFromBackend = async (orgNumber: number): Promise<BackendSettings | null> => {
   isLoading.value = true
   error.value = null
@@ -470,8 +390,19 @@ const fetchSettingsFromBackend = async (orgNumber: number): Promise<BackendSetti
   try {
     const backendSettings = await settingsApi.getSettings(orgNumber)
     return backendSettings
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to fetch settings'
+  } catch (err: unknown) {
+    const axiosError = err as { response?: { status?: number } }
+    const status = axiosError?.response?.status
+
+    if (status === 401) {
+      error.value = 'Du må logge inn på nytt for å se innstillinger.'
+    } else if (status === 403) {
+      error.value = 'Du har ikke tilgang til å se innstillinger.'
+    } else if (status === 404) {
+      error.value = 'Innstillinger ikke funnet for denne organisasjonen.'
+    } else {
+      error.value = 'Kunne ikke laste inn innstillinger. Sjekk nettverksforbindelsen og prøv igjen.'
+    }
     return null
   } finally {
     isLoading.value = false
@@ -487,8 +418,6 @@ export const useAdminData = () => ({
   formatDate,
   formatDateTime,
   saveSettings,
-  exportSettings,
-  applyLocalSettings,
   fetchSettingsFromBackend,
   mapBackendSettingsToFrontend,
   mapFrontendSettingsToBackend,

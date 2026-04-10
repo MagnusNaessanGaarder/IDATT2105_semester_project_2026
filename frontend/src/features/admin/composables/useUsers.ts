@@ -4,6 +4,8 @@
  */
 import { ref, computed } from 'vue'
 import { useApi } from '@/shared/composables/useApi'
+import { getOrgNumber } from '@/shared/utils/orgContext'
+import { formatDateForOrganization, formatDateTimeForOrganization } from '@/shared/utils/orgSettings'
 import * as usersApi from '../api/users'
 import type { User, UserCreateRequest, UserUpdateRequest } from '../api/users'
 
@@ -160,7 +162,7 @@ export function useUsers() {
     if (!dateString) return '-'
     const date = new Date(dateString)
     if (Number.isNaN(date.getTime())) return dateString
-    return date.toLocaleDateString('nb-NO', {
+    return formatDateForOrganization(date, getOrgNumber(), {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -176,7 +178,7 @@ export function useUsers() {
     if (!dateString) return '-'
     const date = new Date(dateString)
     if (Number.isNaN(date.getTime())) return dateString
-    return date.toLocaleString('nb-NO', {
+    return formatDateTimeForOrganization(date, getOrgNumber(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

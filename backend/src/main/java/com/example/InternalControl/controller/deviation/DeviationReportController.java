@@ -9,6 +9,7 @@ import com.example.InternalControl.model.enums.DeviationStatus;
 import com.example.InternalControl.model.enums.Severity;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.deviation.DeviationReportService;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -50,6 +51,7 @@ public class DeviationReportController {
 
   private final DeviationReportService deviationReportService;
   private final UserOrganizationService userOrgService;
+  private final OrganizationModuleAccessService moduleAccessService;
 
   @Operation(summary = "Get all deviation reports for organization")
   @ApiResponses({
@@ -390,5 +392,6 @@ public class DeviationReportController {
     if (!userOrgService.isUserInOrganization(userId, orgNumber)) {
       throw new EntityNotFoundException("Organization not found or user does not have access");
     }
+    moduleAccessService.ensureFoodModuleEnabled(orgNumber);
   }
 }

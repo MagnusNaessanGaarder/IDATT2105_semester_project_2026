@@ -3,6 +3,7 @@ package com.example.InternalControl.repository.audit;
 import com.example.InternalControl.model.audit.AuditLog;
 import com.example.InternalControl.model.user.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -28,4 +29,9 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     List<AuditLog> findByEntityTypeAndEntityId(String entityType, Long entityId);
 
     List<AuditLog> findByActedByUserOrderByCreatedAtDesc(AppUser actedByUser);
+
+    @Modifying
+    @Query("DELETE FROM AuditLog al WHERE al.orgNumber = :orgNumber AND al.createdAt < :cutoff")
+    int deleteByOrgNumberAndCreatedAtBefore(@Param("orgNumber") Integer orgNumber,
+                                            @Param("cutoff") LocalDateTime cutoff);
 }

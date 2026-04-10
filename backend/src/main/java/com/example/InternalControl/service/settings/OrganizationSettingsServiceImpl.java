@@ -6,7 +6,9 @@ import com.example.InternalControl.model.audit.ActionType;
 import com.example.InternalControl.model.audit.Audited;
 import com.example.InternalControl.model.organization.OrganizationSettings;
 import com.example.InternalControl.repository.organization.OrganizationSettingsRepository;
-
+import com.example.InternalControl.service.audit.AuditLogService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,23 +24,38 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrganizationSettingsServiceImpl implements OrganizationSettingsService {
 
     private final OrganizationSettingsRepository settingsRepository;
+    private final AuditLogService auditLogService;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(readOnly = true)
     public OrganizationSettingsResponse getSettings(Integer orgNumber) {
         return settingsRepository.findById(orgNumber)
                 .map(this::mapToResponse)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
-                        "Organization settings not found for org: " + orgNumber));
+                .orElseGet(() -> {
+                    log.info("No settings found for org: {}. Creating defaults.", orgNumber);
+                    return createDefaultSettings(orgNumber);
+                });
     }
 
     @Override
     @Transactional
-    @Audited(action = ActionType.UPDATE, entityType = "OrganizationSettings")
     public OrganizationSettingsResponse updateSettings(Integer orgNumber, OrganizationSettingsRequest request, Long userId) {
         OrganizationSettings settings = settingsRepository.findById(orgNumber)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
-                        "Organization settings not found for org: " + orgNumber));
+                .orElseGet(() -> {
+                    log.info("No settings found for org: {}. Creating defaults before update.", orgNumber);
+                    OrganizationSettings newSettings = OrganizationSettings.builder()
+                            .orgNumber(orgNumber)
+                            .timezoneName("Europe/Oslo")
+                            .localeCode("nb-NO")
+                            .enableFoodModule(true)
+                            .enableAlcoholModule(true)
+                            .reminderEmailEnabled(true)
+                            .build();
+                    return settingsRepository.save(newSettings);
+                });
+
+        OrganizationSettingsResponse oldValues = mapToResponse(settings);
 
         if (request.getTimezoneName() != null) {
             settings.setTimezoneName(request.getTimezoneName());
@@ -52,18 +69,16 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
         if (request.getEnableAlcoholModule() != null) {
             settings.setEnableAlcoholModule(request.getEnableAlcoholModule());
         }
-        if (request.getDefaultTempMinC() != null || settings.getDefaultTempMinC() == null) {
-            settings.setDefaultTempMinC(request.getDefaultTempMinC());
-        }
-        if (request.getDefaultTempMaxC() != null || settings.getDefaultTempMaxC() == null) {
-            settings.setDefaultTempMaxC(request.getDefaultTempMaxC());
-        }
+        settings.setDefaultTempMinC(request.getDefaultTempMinC());
+        settings.setDefaultTempMaxC(request.getDefaultTempMaxC());
         if (request.getReminderEmailEnabled() != null) {
             settings.setReminderEmailEnabled(request.getReminderEmailEnabled());
         }
-        if (request.getNotificationEmail() != null || settings.getNotificationEmail() == null) {
-            settings.setNotificationEmail(request.getNotificationEmail());
-        }
+        settings.setNotificationEmail(request.getNotificationEmail());
+        settings.setDisplayName(request.getDisplayName());
+        settings.setLegalName(request.getLegalName());
+        settings.setContactEmail(request.getContactEmail());
+        settings.setContactPhone(request.getContactPhone());
         if (request.getRetentionUserMonths() != null) {
             settings.setRetentionUserMonths(request.getRetentionUserMonths());
         }
@@ -74,14 +89,15 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
         OrganizationSettings updated = settingsRepository.save(settings);
         log.info("Updated organization settings for org: {} by user: {}", orgNumber, userId);
 
-        return mapToResponse(updated);
+        OrganizationSettingsResponse response = mapToResponse(updated);
+        logSettingsUpdateAudit(orgNumber, userId, oldValues, response);
+        return response;
     }
 
     @Override
     @Transactional
     @Audited(action = ActionType.CREATE, entityType = "OrganizationSettings")
     public OrganizationSettingsResponse createDefaultSettings(Integer orgNumber) {
-        // Check if settings already exist
         if (settingsRepository.existsById(orgNumber)) {
             log.debug("Settings already exist for org: {}", orgNumber);
             return getSettings(orgNumber);
@@ -113,10 +129,36 @@ public class OrganizationSettingsServiceImpl implements OrganizationSettingsServ
                 .defaultTempMaxC(settings.getDefaultTempMaxC())
                 .reminderEmailEnabled(settings.isReminderEmailEnabled())
                 .notificationEmail(settings.getNotificationEmail())
+                .displayName(settings.getDisplayName())
+                .legalName(settings.getLegalName())
+                .contactEmail(settings.getContactEmail())
+                .contactPhone(settings.getContactPhone())
                 .retentionUserMonths(Math.toIntExact(settings.getRetentionUserMonths()))
                 .retentionAuditMonths(Math.toIntExact(settings.getRetentionAuditMonths()))
                 .createdAt(settings.getCreatedAt())
                 .updatedAt(settings.getUpdatedAt())
                 .build();
+    }
+
+    private void logSettingsUpdateAudit(Integer orgNumber,
+                                        Long userId,
+                                        OrganizationSettingsResponse oldValues,
+                                        OrganizationSettingsResponse newValues) {
+        try {
+            String oldValuesJson = objectMapper.writeValueAsString(oldValues);
+            String newValuesJson = objectMapper.writeValueAsString(newValues);
+            auditLogService.logAction(
+                    orgNumber,
+                    userId,
+                    ActionType.UPDATE,
+                    "OrganizationSettings",
+                    orgNumber != null ? orgNumber.longValue() : null,
+                    oldValuesJson,
+                    newValuesJson,
+                    null,
+                    null);
+        } catch (JsonProcessingException e) {
+            log.warn("Could not serialize organization settings audit payload for org: {}", orgNumber, e);
+        }
     }
 }

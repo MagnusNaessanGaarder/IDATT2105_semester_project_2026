@@ -3,6 +3,7 @@ package com.example.InternalControl.controller.organization;
 import com.example.InternalControl.model.organization.Location;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.service.organization.LocationService;
+import com.example.InternalControl.service.settings.OrganizationModuleAccessService;
 import com.example.InternalControl.service.user.UserOrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,6 +31,7 @@ public class LocationController {
 
   private final LocationService locationService;
   private final UserOrganizationService userOrgService;
+  private final OrganizationModuleAccessService moduleAccessService;
 
   @GetMapping
   @Operation(summary = "Get all locations for organization")
@@ -142,5 +144,6 @@ public class LocationController {
     if (!userOrgService.isUserInOrganization(userId, orgNumber)) {
       throw new EntityNotFoundException("Organization not found or user does not have access");
     }
+    moduleAccessService.ensureFoodModuleEnabled(orgNumber);
   }
 }

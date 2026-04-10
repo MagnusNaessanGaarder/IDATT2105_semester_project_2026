@@ -7,6 +7,7 @@ import {
     relatedEntityRoute,
     type AppNotification,
 } from '../api/notifications'
+import { formatDateForOrganization } from '@/shared/utils/orgSettings'
 
 export function useNotifications() {
     const authStore = useAuthStore()
@@ -92,7 +93,11 @@ export function useNotifications() {
         if (diffHours < 24) return `${diffHours} t siden`
         if (diffDays < 7)   return `${diffDays} d siden`
 
-        return d.toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })
+        return formatDateForOrganization(d, orgNumber.value ?? undefined, {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        })
     }
 
     onMounted(fetchNotifications)

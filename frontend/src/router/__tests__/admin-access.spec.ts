@@ -5,11 +5,22 @@ const authState = {
   hasCheckedAuth: true,
   organizations: [{ orgNumber: 937219997, orgName: 'Test Org', role: 'ADMIN' }],
   user: { role: 'ADMIN' as 'ADMIN' | 'MANAGER' | 'EMPLOYEE' },
+  currentOrg: { orgNumber: 937219997 },
   checkAuth: vi.fn().mockResolvedValue(true),
 }
 
 vi.mock('@/stores/auth', () => ({
   useAuthStore: () => authState,
+}))
+
+const moduleFlags = {
+  food: true,
+  alcohol: true,
+}
+
+vi.mock('@/shared/utils/orgSettings', () => ({
+  ensureOrganizationSettings: vi.fn().mockResolvedValue(null),
+  isModuleEnabled: (moduleKey: 'food' | 'alcohol') => moduleFlags[moduleKey],
 }))
 
 import router from '../index'
@@ -20,7 +31,10 @@ describe('router admin access guard', () => {
     authState.hasCheckedAuth = true
     authState.organizations = [{ orgNumber: 937219997, orgName: 'Test Org', role: 'ADMIN' }]
     authState.user = { role: 'ADMIN' }
+    authState.currentOrg = { orgNumber: 937219997 }
     authState.checkAuth.mockReset().mockResolvedValue(true)
+    moduleFlags.food = true
+    moduleFlags.alcohol = true
     await router.push('/')
   })
 
@@ -65,5 +79,13 @@ describe('router admin access guard', () => {
     await router.push('/admin/brukere')
 
     expect(router.currentRoute.value.name).toBe('Users')
+  })
+
+  it('blocks IK-Mat routes when food module is disabled', async () => {
+    moduleFlags.food = false
+
+    await router.push('/ikmat')
+
+    expect(router.currentRoute.value.name).toBe('Forbidden')
   })
 })
