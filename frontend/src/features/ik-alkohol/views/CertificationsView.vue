@@ -4,7 +4,6 @@ import {
   certificateStatusForDate,
   formatDateValue,
   type CertificationType,
-  type CertificateStatus,
 } from '@/features/ik-alkohol/composables/useAlkoholData'
 import { useCertifications } from '@/features/ik-alkohol/composables/useCertifications'
 import { getCertificationCatalog, type CertificationCatalogItem } from '@/features/ik-alkohol/api/certificationCatalog'
@@ -13,6 +12,7 @@ import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import BaseModal from '@/shared/components/BaseModal.vue'
 import BaseSpinner from '@/shared/components/BaseSpinner.vue'
+import type { CertificateStatus } from '../types'
 import type { CertificationRecord } from '../composables/useAlkoholData'
 
 interface UserCertificationGroup {
@@ -111,7 +111,8 @@ const statusCount = computed(() => {
         : null
 
     if (status) {
-      counts[status] += 1
+      const currentCount = counts[status] ?? 0
+      counts[status] = currentCount + 1
     }
   })
 

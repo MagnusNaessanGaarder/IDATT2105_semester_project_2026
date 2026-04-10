@@ -3,6 +3,7 @@ package com.example.InternalControl.controller.checklist;
 import com.example.InternalControl.dto.checklist.request.ChecklistRunCreateRequest;
 import com.example.InternalControl.model.checklist.ChecklistRun;
 import com.example.InternalControl.model.enums.RunStatus;
+import com.example.InternalControl.repository.checklist.ChecklistTemplateItemRepository;
 import com.example.InternalControl.security.CustomUserDetails;
 import com.example.InternalControl.security.JwtService;
 import com.example.InternalControl.service.checklist.ChecklistRunService;
@@ -55,6 +56,9 @@ class ChecklistRunControllerTest {
     private UserOrganizationService userOrgService;
 
     @MockBean
+    private ChecklistTemplateItemRepository templateItemRepository;
+
+    @MockBean
     private JwtService jwtService;
 
     @BeforeEach
@@ -66,6 +70,18 @@ class ChecklistRunControllerTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
         
         when(userOrgService.isUserInOrganization(anyLong(), anyInt())).thenReturn(true);
+    }
+
+    private void authenticateAs(String role) {
+        CustomUserDetails userDetails = new CustomUserDetails(
+                1L,
+                "test@example.com",
+                "password",
+                Collections.singletonList(new SimpleGrantedAuthority(role))
+        );
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
     @Test
@@ -129,6 +145,7 @@ class ChecklistRunControllerTest {
     @Test
     void createRun_WithValidRequest_ReturnsCreatedRun() throws Exception {
         // Given
+        authenticateAs("ROLE_MANAGER");
         ChecklistRunCreateRequest request = ChecklistRunCreateRequest.builder()
                 .templateId(1L)
                 .runDate(LocalDate.now())
@@ -161,7 +178,7 @@ class ChecklistRunControllerTest {
                 .orgNumber(123456789)
                 .build();
 
-        when(runService.completeRun(1L, 123456789))
+        when(runService.completeRun(1L, 123456789, 1L))
                 .thenReturn(completed);
 
         // When & Then

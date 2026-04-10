@@ -28,11 +28,9 @@ class TemperatureRangeValidatorTest {
     }
 
     static class TestTemperature {
-        @ValidTemperatureRange
-        Double temperature;
+        private Double temperature;
 
-        @ValidTemperatureRange(min = 0.0, max = 10.0)
-        Double fridgeTemp;
+        private Double fridgeTemp;
 
         TestTemperature(Double temperature) {
             this.temperature = temperature;
@@ -41,6 +39,16 @@ class TemperatureRangeValidatorTest {
         TestTemperature(Double temperature, Double fridgeTemp) {
             this.temperature = temperature;
             this.fridgeTemp = fridgeTemp;
+        }
+
+        @ValidTemperatureRange
+        public Double getTemperature() {
+            return temperature;
+        }
+
+        @ValidTemperatureRange(min = 0.0, max = 10.0)
+        public Double getFridgeTemp() {
+            return fridgeTemp;
         }
     }
 

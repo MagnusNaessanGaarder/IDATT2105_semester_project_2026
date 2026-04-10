@@ -2,7 +2,9 @@
 import { computed, ref } from 'vue'
 import { useDocuments } from '../composables/useDocuments'
 import UploadDocumentModal from '../components/UploadDocumentModal.vue'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const {
   documents, isLoading, error,
   showUploadModal, versionTargetDoc, isUploading, uploadError,
@@ -17,6 +19,7 @@ const {
 const selectedCategory = ref<string>('all')
 const query = ref('')
 const openMenuId = ref<number | null>(null)
+const canManageDocuments = computed(() => authStore.hasRole('ADMIN', 'MANAGER'))
 
 const categories = computed(() => {
   const unique = new Set(documents.value.map((d) => d.documentType))
@@ -80,7 +83,7 @@ function clearCloseMenuTimeout() {
         <h1>Dokumenter</h1>
         <p class="subtitle">Sentralisert lagring av retningslinjer, prosedyrer og opplæringsfiler</p>
       </div>
-      <button class="upload-btn" type="button" @click="openUploadNew">
+      <button v-if="canManageDocuments" class="upload-btn" type="button" @click="openUploadNew">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Last opp dokument
       </button>
@@ -201,6 +204,7 @@ function clearCloseMenuTimeout() {
 
                 <div v-if="openMenuId === doc.documentId" class="row-menu__dropdown" role="menu" @mouseenter="clearCloseMenuTimeout" @mouseleave="scheduleCloseMenu">
                   <button
+                      v-if="canManageDocuments"
                       class="row-menu__item"
                       type="button"
                       role="menuitem"
@@ -281,7 +285,12 @@ function clearCloseMenuTimeout() {
               <button class="action-btn action-btn--ghost" type="button" @click="downloadDocument(previewDoc)">
                 Last ned
               </button>
-              <button class="action-btn action-btn--ghost" type="button" @click="() => { closePreview(); openUploadVersion(previewDoc!) }">
+              <button
+                v-if="canManageDocuments"
+                class="action-btn action-btn--ghost"
+                type="button"
+                @click="() => { closePreview(); openUploadVersion(previewDoc!) }"
+              >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
                 Ny versjon
               </button>

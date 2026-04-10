@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of ChecklistTemplateService.
@@ -59,6 +62,31 @@ public class ChecklistTemplateServiceImpl implements ChecklistTemplateService {
     }
     if (template.getFrequency() != null) {
       existing.setFrequency(template.getFrequency());
+    }
+    if (template.getItems() != null && !template.getItems().isEmpty()) {
+      Map<Integer, ChecklistTemplateItem> existingItemsBySortOrder = existing.getItems().stream()
+          .collect(Collectors.toMap(ChecklistTemplateItem::getSortOrder, Function.identity(), (left, right) -> left));
+
+      for (ChecklistTemplateItem item : template.getItems()) {
+        ChecklistTemplateItem target = existingItemsBySortOrder.get(item.getSortOrder());
+
+        if (target == null) {
+          target = ChecklistTemplateItem.builder()
+              .sortOrder(item.getSortOrder())
+              .build();
+          existing.addItem(target);
+        }
+
+        target.setSortOrder(item.getSortOrder());
+        target.setLabel(item.getLabel());
+        target.setDescription(item.getDescription());
+        target.setItemType(item.getItemType());
+        target.setIsRequired(item.getIsRequired());
+        target.setExpectedText(item.getExpectedText());
+        target.setExpectedNumericMin(item.getExpectedNumericMin());
+        target.setExpectedNumericMax(item.getExpectedNumericMax());
+        target.setChoiceOptionsJson(item.getChoiceOptionsJson());
+      }
     }
 
     // Merge items in-place to avoid FK constraint violations from orphanRemoval.

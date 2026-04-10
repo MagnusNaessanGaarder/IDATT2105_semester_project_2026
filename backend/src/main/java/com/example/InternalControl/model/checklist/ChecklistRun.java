@@ -77,7 +77,7 @@ public class ChecklistRun {
      * Checks if this run can be edited.
      */
     public boolean isEditable() {
-        return status == RunStatus.DRAFT || status == RunStatus.IN_PROGRESS;
+        return status == RunStatus.DRAFT || status == RunStatus.IN_PROGRESS || status == RunStatus.OVERDUE;
     }
 
     /**
@@ -96,5 +96,14 @@ public class ChecklistRun {
     public void markAsCompleted() {
         this.status = RunStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Reopens a completed run so its items can be edited again.
+     * Restores overdue status when the due time has already passed.
+     */
+    public void markAsIncomplete() {
+        this.completedAt = null;
+        this.status = isOverdue() ? RunStatus.OVERDUE : RunStatus.DRAFT;
     }
 }
