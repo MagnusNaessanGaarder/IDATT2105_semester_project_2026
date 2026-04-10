@@ -31,10 +31,8 @@ public class ChecklistTemplateCreateRequest {
     @Size(max = 1000, message = "Description must be less than 1000 characters")
     private String description;
 
-    @NotNull(message = "Module type is required")
     private ModuleType moduleType;
 
-    @NotNull(message = "Frequency is required")
     private Frequency frequency;
 
     private List<ChecklistTemplateItemCreateRequest> items;

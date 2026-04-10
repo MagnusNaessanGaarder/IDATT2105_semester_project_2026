@@ -244,7 +244,7 @@ CREATE TABLE organization_document_version
     document_id         BIGINT UNSIGNED NOT NULL,
     version_number      INT UNSIGNED    NOT NULL,
     azure_container     VARCHAR(63)     NOT NULL,
-    azure_blob_name     VARCHAR(512)   NOT NULL,
+    azure_blob_name     VARCHAR(1024)   NOT NULL,
     original_filename   VARCHAR(255)    NOT NULL,
     mime_type           VARCHAR(100)    NOT NULL,
     file_size_bytes     BIGINT UNSIGNED NOT NULL,

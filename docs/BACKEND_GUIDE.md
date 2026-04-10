@@ -159,7 +159,7 @@ public ChecklistTemplateResponse createTemplate(
 
 ```java
 @RestController
-@RequestMapping("/api/checklists/templates")
+@RequestMapping("/api/v1/checklists/templates")
 @RequiredArgsConstructor
 public class ChecklistTemplateController {
     private final ChecklistTemplateService templateService;
@@ -233,7 +233,7 @@ public interface ChecklistTemplateRepository
 ### 5.1 JWT Authentication
 
 **Token Flow:**
-1. Client sends credentials to `/api/auth/login`
+1. Client sends credentials to `/api/v1/auth/login`
 2. Server validates and returns JWT + refresh token
 3. Client stores JWT in sessionStorage
 4. Client sends JWT in `Authorization: Bearer <token>` header

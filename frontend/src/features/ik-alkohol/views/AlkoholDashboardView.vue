@@ -18,10 +18,10 @@ const {
   reload,
 } = useAlkoholData()
 
-const latestControls = computed(() => dailyControls.slice(0, 5))
+const latestControls = computed(() => dailyControls.value.slice(0, 5))
 
 const staffRows = computed(() => {
-  return employees.map((employee) => {
+  return employees.value.map((employee) => {
     const latestCertificate = employee.certifications
       .slice()
       .sort((a, b) => b.expire_date.localeCompare(a.expire_date))[0]

@@ -152,6 +152,6 @@ public class ExportServiceImpl implements ExportService {
   }
 
   private String generateDownloadUrl(ExportJob job) {
-    return "/api/files/download/" + job.getResultDocumentId();
+    return "/api/v1/files/download/" + job.getResultDocumentId();
   }
 }

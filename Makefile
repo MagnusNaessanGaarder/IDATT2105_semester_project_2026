@@ -35,7 +35,7 @@ dev:
 	@echo "[1/3] Starting MySQL (Docker)..."
 	@docker compose -f compose-dev.yaml up -d mysql 2>/dev/null || docker start backend-mysql-1 2>/dev/null || true
 	@for i in $$(seq 1 30); do \
-		docker exec backend-mysql-1 mysqladmin ping -h 127.0.0.1 -uik_root -pik_pwd >/dev/null 2>&1 && break; \
+		lsof -ti:3306 >/dev/null 2>&1 && break; \
 		if [ $$i -eq 30 ]; then \
 			echo "  ERROR: MySQL did not become ready"; \
 			exit 1; \
@@ -57,7 +57,7 @@ dev:
 	@echo "  Backend started"
 	@echo ""
 	@echo "[3/3] Starting frontend..."
-	@(cd frontend && nohup npm run dev > /tmp/frontend.log 2>&1 &)
+	@(cd frontend && nohup npm run dev -- --host 127.0.0.1 > /tmp/frontend.log 2>&1 &)
 	@for i in $$(seq 1 30); do \
 		lsof -ti:5173 >/dev/null 2>&1 && break; \
 		if [ $$i -eq 30 ]; then \
