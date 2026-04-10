@@ -1,7 +1,7 @@
 import { reactive, ref } from 'vue'
 import { getOrgNumber } from '@/shared/utils/orgContext'
 import { getOrganizationTempDefaults } from '@/shared/utils/orgSettings'
-import { ikMatApi } from '../api/ikMatApi'
+import { ikMatApi, resetOptionalEndpointFlags } from '../api/ikMatApi'
 import { completionForChecklist, formatDate, isTemperatureInRange } from './useIkMatFormatters'
 import type {
   Checklist,
@@ -206,28 +206,34 @@ const loadData = async (): Promise<void> => {
           const answer = itemByTemplateId.get(item.itemId)
           return {
             id: item.itemId,
+            runItemId: answer?.runItemId ?? null,
             task: item.label,
             required: Boolean(item.isRequired),
-            completed: Boolean(answer?.hasAnswer),
+            completed: answer?.hasAnswer === true && answer?.booleanValue === true,
+            isDeviation: Boolean(answer?.isDeviation),
             notes: answer?.commentText ?? item.description ?? null,
           }
         })
 
         const completionDate = latestRun?.completedAt ?? latestRun?.runDate ?? null
         const completionSplit = splitIsoDateTime(completionDate)
+        const dueSplit = splitIsoDateTime(latestRun?.dueAt ?? null)
+        const location = latestRun?.locationId ? locationById.get(latestRun.locationId)?.name ?? null : null
 
         return {
           id: template.templateId,
+          runId: latestRun?.runId ?? null,
           name: template.title,
           category: 'IK-MAT',
           frequency: frequencyLabel(template.frequency),
           description: template.description ?? 'Ingen beskrivelse registrert',
-          created_date: latestRun?.runDate ?? '',
-          law_unit: 'NARINGSMIDDELHYGIENE',
+          location,
+          assignedTo: latestRun?.assignedToUserId ? `Bruker ${latestRun.assignedToUserId}` : null,
           items,
           completed_by: latestRun?.performedByUserId ? `Bruker ${latestRun.performedByUserId}` : null,
           completion_date: completionSplit.date || null,
           completion_time: completionSplit.time || null,
+          due_date: dueSplit.date || null,
           status: latestRun ? checklistStatusFromRun(latestRun.status) : 'pending',
         } satisfies Checklist
       })
@@ -397,6 +403,8 @@ const loadData = async (): Promise<void> => {
 
 const reload = async () => {
   hasLoaded = false
+  // Reset suppressed-endpoint flags so a recovered backend is retried
+  resetOptionalEndpointFlags()
   await loadData()
 }
 

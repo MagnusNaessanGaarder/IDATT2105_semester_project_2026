@@ -1,4 +1,3 @@
--- Add more daily control points for the alcohol checklist template
 
 INSERT INTO checklist_template_item (
     template_id,

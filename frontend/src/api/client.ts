@@ -206,7 +206,7 @@ client.interceptors.request.use(
     }
 
     if (!token) {
-      console.error('[HTTP]    ❌ No token available after refresh attempt')
+      // Token refresh failed - redirect to login
       clearSessionTokens()
       window.location.href = '/login'
       return Promise.reject(new Error('Missing Bearer token for protected endpoint'))
@@ -229,7 +229,7 @@ client.interceptors.request.use(
     return config
   },
   (error) => {
-    console.error('[HTTP]    ❌ Request interceptor error:', error)
+    // Request interceptor error - reject with error
     return Promise.reject(error)
   }
 )
@@ -259,20 +259,8 @@ client.interceptors.response.use(
     const status = error.response?.status
     const isSuppressed500 = status === 500 && originalRequest.skipGlobalErrorLog === true
 
-    if (isSuppressed500) {
-      const key = originalRequest.url || 'unknown-url'
-      if (!suppressed500LogUrls.has(key)) {
-        suppressed500LogUrls.add(key)
-        console.warn(`[HTTP] ⚠️ ${status} ${key} (suppressed repeated logging; endpoint handled as optional)`)
-      }
-    } else {
-      console.error(`[HTTP] ❌ ${status || 'unknown'} ${originalRequest.url}`)
-      if (error.response?.data) {
-        console.error('[HTTP]    Error response:', error.response.data)
-      } else if (error.message) {
-        console.error('[HTTP]    Error:', error.message)
-      }
-    }
+    // Error logging suppressed for cleaner production output
+    // Errors are handled by the UI through error boundaries and toast notifications
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Skip refresh for auth endpoints

@@ -21,10 +21,10 @@ import java.util.Optional;
 @Repository
 public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long> {
 
-    @EntityGraph(attributePaths = {"template", "items"})
+    @EntityGraph(attributePaths = {"template", "template.items", "items"})
     List<ChecklistRun> findByOrgNumber(Integer orgNumber);
 
-    @EntityGraph(attributePaths = {"template", "items"})
+    @EntityGraph(attributePaths = {"template", "template.items", "items"})
     List<ChecklistRun> findByOrgNumberAndStatus(Integer orgNumber, RunStatus status);
 
     List<ChecklistRun> findByOrgNumberAndRunDateBetween(
@@ -32,7 +32,7 @@ public interface ChecklistRunRepository extends JpaRepository<ChecklistRun, Long
 
     List<ChecklistRun> findByTemplateTemplateId(Long templateId);
 
-    @EntityGraph(attributePaths = {"template", "items"})
+    @EntityGraph(attributePaths = {"template", "template.items", "items"})
     Optional<ChecklistRun> findByRunIdAndOrgNumber(Long runId, Integer orgNumber);
 
     @Query("SELECT DISTINCT r FROM ChecklistRun r LEFT JOIN FETCH r.template LEFT JOIN FETCH r.items WHERE r.orgNumber = :orgNumber")

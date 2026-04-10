@@ -1,6 +1,4 @@
--- =========================================================
--- Seed preconfigured users from admin.json with certificates
--- =========================================================
+-- More test users from admin.json with training certificates
 
 -- Insert users from admin.json
 INSERT INTO app_user (display_name, email, phone, is_active, created_at, updated_at) VALUES
@@ -33,9 +31,6 @@ WHERE email IN ('anna.nielsen@everest.no', 'per.hansen@everest.no', 'maria.b@eve
                 'karin.o@everest.no', 'rune.s@everest.no');
 
 -- Insert role assignments based on role from admin.json
--- ADMIN -> ADMIN role
--- MANAGER -> MANAGER role
--- EMPLOYEE -> EMPLOYEE role
 INSERT INTO user_organization_role (user_id, org_number, role_id, assigned_at, assigned_by_user_id)
 SELECT u.user_id, 937219997, r.role_id, NOW(), u.user_id
 FROM app_user u
@@ -48,8 +43,6 @@ WHERE (u.email = 'anna.nielsen@everest.no' AND r.role_name = 'ADMIN')
 
 -- Insert training records (certificates) for users with certifications
 -- Map certification names to training types:
--- 'Kunnskapsprøve alkoholloven' -> 'RESPONSIBLE_ALCOHOL_SERVICE'
--- 'Grunnleggende hygieneopplæring' -> 'FOOD_HYGIENE'
 -- Valid for 5 years from created_date, status COMPLETED for users with certifications_valid=true
 
 -- Anna Nielsen: Kunnskapsprøve alkoholloven + Grunnleggende hygieneopplæring
@@ -103,8 +96,3 @@ SELECT u.user_id, 937219997, 'FOOD_HYGIENE', 'Grunnleggende hygieneopplæring',
        u.created_at, DATE_ADD(u.created_at, INTERVAL 5 YEAR), 'COMPLETED', 'Valid certificate', NOW()
 FROM app_user u WHERE u.email = 'lars.p@everest.no';
 
--- Karin Olsen: No certificates (inactive user with empty certifications array)
--- No training records inserted
-
--- Rune Solberg: No certificates (empty certifications array)
--- No training records inserted

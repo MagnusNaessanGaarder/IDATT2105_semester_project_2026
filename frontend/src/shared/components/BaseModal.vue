@@ -2,8 +2,14 @@
   BaseModal - Gjenbrukbar modal/dialog-komponent
   
   Brukes for dialoger, bekreftelser og popup-vinduer.
-  Støtter Escape-tast for lukking, klikk utenfor for lukking
-  Har Teleport til body for riktig z-index
+  
+  Tilgjengelighetsfunksjoner:
+  - Trap focus: Tab-navigasjon holdes innenfor modalen
+  - Escape-tast lukker modalen
+  - Klikk utenfor lukker modalen
+  - Fokus gjenopprettes til trigger-element ved lukking
+  - ARIA-attributter for skjermlesere
+  - Teleport til body for riktig z-index
   
   Eksempel:
   <BaseModal :open="showModal" title="Bekreft sletting" @close="showModal = false">
@@ -14,7 +20,8 @@
   </BaseModal>
 -->
 <script setup lang="ts">
-  import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+  import { onMounted, onUnmounted, watch } from 'vue'
+  import { useFocusTrap } from '../composables/useFocusTrap'
 
   interface Props {
     open: boolean
@@ -27,28 +34,8 @@
     close: []
   }>()
 
-  const modalRef = ref<HTMLElement | null>(null)
-  const previouslyFocusedElement = ref<HTMLElement | null>(null)
-
-  const getFocusableElements = () => {
-    const root = modalRef.value
-    if (!root) {
-      return [] as HTMLElement[]
-    }
-
-    return Array.from(
-      root.querySelectorAll<HTMLElement>(
-        [
-          'button:not([disabled])',
-          '[href]',
-          'input:not([disabled])',
-          'select:not([disabled])',
-          'textarea:not([disabled])',
-          '[tabindex]:not([tabindex="-1"])',
-        ].join(', ')
-      )
-    )
-  }
+  // Focus trap composable for keyboard accessibility
+  const { trapRef, activate, deactivate } = useFocusTrap()
 
   const handleKeydown = (event: KeyboardEvent) => {
     if (!props.open) {
@@ -59,51 +46,28 @@
       emit('close')
       return
     }
-
-    if (event.key !== 'Tab') {
-      return
-    }
-
-    const focusableElements = getFocusableElements()
-    if (focusableElements.length === 0) {
-      event.preventDefault()
-      return
-    }
-
-    const firstElement = focusableElements[0]
-    const lastElement = focusableElements[focusableElements.length - 1]
-    const activeElement = document.activeElement as HTMLElement | null
-
-    if (event.shiftKey && activeElement === firstElement) {
-      event.preventDefault()
-      lastElement.focus()
-    } else if (!event.shiftKey && activeElement === lastElement) {
-      event.preventDefault()
-      firstElement.focus()
-    }
   }
 
-  watch(
-    () => props.open,
-    async (isOpen) => {
-      if (isOpen) {
-        previouslyFocusedElement.value = document.activeElement as HTMLElement | null
-        await nextTick()
-        const focusableElements = getFocusableElements()
-        focusableElements[0]?.focus()
-        return
-      }
-
-      previouslyFocusedElement.value?.focus?.()
+  // Watch for modal open/close to activate/deactivate focus trap
+  watch(() => props.open, (isOpen) => {
+    if (isOpen) {
+      activate()
+    } else {
+      deactivate()
     }
-  )
+  })
 
   onMounted(() => {
     document.addEventListener('keydown', handleKeydown)
+    // Activate immediately if modal is already open on mount
+    if (props.open) {
+      activate()
+    }
   })
 
   onUnmounted(() => {
     document.removeEventListener('keydown', handleKeydown)
+    deactivate()
   })
 </script>
 
@@ -115,10 +79,11 @@
       @click="emit('close')"
     >
       <div
-        ref="modalRef"
+        ref="trapRef"
         class="modal"
         role="dialog"
         aria-modal="true"
+        tabindex="-1"
         :aria-label="title"
         @click.stop
       >

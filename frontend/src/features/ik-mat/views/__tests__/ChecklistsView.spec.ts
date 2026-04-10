@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { ref } from 'vue'
 import ChecklistsView from '../ChecklistsView.vue'
 
 // Mock the composables
@@ -9,30 +10,44 @@ const mockChecklists = [
     id: 1,
     name: 'Daily Cleaning',
     frequency: 'Daglig',
-    law_unit: 'HMS-1',
+    location: 'HMS-1',
     description: 'Daily cleaning tasks',
     items: [
-      { id: 1, task: 'Clean floor', completed: false, required: true, notes: null },
-      { id: 2, task: 'Clean tables', completed: true, required: true, notes: null },
+      { id: 1, task: 'Clean floor', completed: false, required: true, isDeviation: false, notes: null, runItemId: null },
+      { id: 2, task: 'Clean tables', completed: true, required: true, isDeviation: false, notes: null, runItemId: null },
     ],
     status: 'pending',
+    assignedTo: null,
+    completed_by: null,
+    completion_date: null,
+    completion_time: null,
+    due_date: null,
+    category: 'Cleaning',
+    runId: null,
   },
   {
     id: 2,
     name: 'Weekly Inspection',
     frequency: 'Ukentlig',
-    law_unit: 'HMS-2',
+    location: 'HMS-2',
     description: 'Weekly inspection tasks',
     items: [
-      { id: 3, task: 'Check fire extinguisher', completed: false, required: true, notes: null },
+      { id: 3, task: 'Check fire extinguisher', completed: false, required: true, isDeviation: false, notes: null, runItemId: null },
     ],
     status: 'pending',
+    assignedTo: null,
+    completed_by: null,
+    completion_date: null,
+    completion_time: null,
+    due_date: null,
+    category: 'Inspection',
+    runId: null,
   },
 ]
 
 vi.mock('@/features/ik-mat/composables/useIkMatData', () => ({
   useIkMatData: () => ({
-    checklists: mockChecklists,
+    checklists: ref(mockChecklists),
     completionForChecklist: (checklist: typeof mockChecklists[0]) => {
       const completed = checklist.items.filter((i) => i.completed).length
       return Math.round((completed / checklist.items.length) * 100)
@@ -72,11 +87,14 @@ describe('ChecklistsView', () => {
 
   it('displays checklist name and meta info', () => {
     const wrapper = mount(ChecklistsView)
+    const text = wrapper.text()
 
-    expect(wrapper.text()).toContain('Daily Cleaning')
-    expect(wrapper.text()).toContain('Daglig · HMS-1')
-    expect(wrapper.text()).toContain('Weekly Inspection')
-    expect(wrapper.text()).toContain('Ukentlig · HMS-2')
+    expect(text).toContain('Daily Cleaning')
+    expect(text).toContain('Daglig')
+    expect(text).toContain('HMS-1')
+    expect(text).toContain('Weekly Inspection')
+    expect(text).toContain('Ukentlig')
+    expect(text).toContain('HMS-2')
   })
 
   it('displays completion percentage', () => {
@@ -131,21 +149,21 @@ describe('ChecklistsView', () => {
   it('toggles task completion', async () => {
     const wrapper = mount(ChecklistsView)
 
-    // Find the first checklist card (Weekly Inspection - 0% completion, comes first)
+    // Find the Weekly Inspection card (0% completion, sorted first)
     const cards = wrapper.findAll('.checklist-card')
-    const firstCard = cards[0]!
-    const header = firstCard.find('.checklist-header__content')
+    const weeklyCard = cards.find((card) => card.text().includes('Weekly Inspection'))!
+    const header = weeklyCard.find('.checklist-header__content')
 
-    // Expand first checklist
+    // Expand the card
     await header.trigger('click')
 
-    // Find first checkbox within the expanded card and toggle it
-    const checkbox = firstCard.find('input[type="checkbox"]')
+    // Find the checkbox and verify it is unchecked
+    const checkbox = weeklyCard.find('input[type="checkbox"]')
     expect((checkbox.element as HTMLInputElement).checked).toBe(false)
 
     await checkbox.trigger('change')
 
-    // After toggle, checkbox should be checked
+    // After toggle, the task should be marked as completed (optimistic update)
     expect((checkbox.element as HTMLInputElement).checked).toBe(true)
   })
 
@@ -201,14 +219,14 @@ describe('ChecklistsView', () => {
     const taskRows = dailyCleaningCard!.findAll('.task-row')
     expect(taskRows.length).toBe(2)
 
-    // Check first task (not completed)
+    // Check first task (not completed) — task text is inside .task-label__body > span
     const firstTaskRow = taskRows[0]!
     const secondTaskRow = taskRows[1]!
-    const firstTaskSpan = firstTaskRow.find('span')
+    const firstTaskSpan = firstTaskRow.find('.task-label__body > span')
     expect(firstTaskSpan.classes()).not.toContain('task-done')
 
     // Check second task (completed)
-    const secondTaskSpan = secondTaskRow.find('span')
+    const secondTaskSpan = secondTaskRow.find('.task-label__body > span')
     expect(secondTaskSpan.classes()).toContain('task-done')
   })
 
@@ -250,11 +268,11 @@ describe('ChecklistsView', () => {
     expect(headers[1]?.attributes('aria-expanded')).toBe('true')
   })
 
-  it('options menu is not visible for non-admin users', () => {
+  it('edit/delete actions are not visible for non-admin users', () => {
     const wrapper = mount(ChecklistsView)
-    
-    // Options menu should not be rendered when isAdmin is false
-    expect(wrapper.find('.options-menu').exists()).toBe(false)
+
+    // Admin action buttons should not be rendered when isAdmin is false
+    expect(wrapper.find('.card-actions').exists()).toBe(false)
   })
 
   it('has proper keyboard accessibility on expandable headers', () => {

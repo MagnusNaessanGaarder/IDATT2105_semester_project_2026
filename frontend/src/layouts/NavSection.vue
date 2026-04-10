@@ -30,8 +30,15 @@ const emit = defineEmits<{
   navigateScreen: [routeName: string]
 }>()
 
+const hasActiveChild = computed(() => {
+  // True when any child item is active
+  return props.section.items.some(item => props.currentScreen === item.route)
+})
+
 const isMainActive = computed(() => {
-  return props.currentScreen === props.section.dashboardRoute
+  // Only show main as "active page" when on the dashboard route
+  // AND no child item is active (child takes priority)
+  return props.currentScreen === props.section.dashboardRoute && !hasActiveChild.value
 })
 
 const sectionBadgeCount = computed(() => {
@@ -62,7 +69,10 @@ const navigateToScreen = (routeName: string) => {
 <template>
   <motion.div
     class="nav-section"
-    :class="{ 'nav-section--active': isMainActive }"
+    :class="{
+      'nav-section--active': isMainActive,
+      'nav-section--has-active-child': hasActiveChild
+    }"
   >
     <NavMenuItem
       variant="main"
@@ -70,6 +80,7 @@ const navigateToScreen = (routeName: string) => {
       :icon="section.icon"
       :badge="sectionBadgeCount"
       :active="isMainActive"
+      :has-active-child="hasActiveChild"
       :expanded="isExpanded"
       @select="handleHeaderClick"
     >

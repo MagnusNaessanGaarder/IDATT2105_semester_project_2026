@@ -649,6 +649,18 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
 }
 
 .type-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.type-strip li {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+}
+
 .filter-strip {
   display: flex;
   flex-wrap: wrap;
@@ -680,6 +692,8 @@ watch(() => currentOrg.value?.orgNumber, (newOrgNumber, previousOrgNumber) => {
   background: color-mix(in srgb, var(--color-brand-pale-lavender) 40%, var(--color-card));
   font-size: var(--font-size-xs);
   color: var(--color-brand-deep-violet);
+}
+
 .matrix-section {
   background: var(--color-card);
   border: 1px solid var(--color-border);

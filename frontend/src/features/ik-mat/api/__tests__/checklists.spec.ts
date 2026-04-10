@@ -47,7 +47,7 @@ describe('checklists API', () => {
 
       const result = await getTemplates(123456789)
 
-      expect(client.get).toHaveBeenCalledWith('/api/v1/checklists/templates', {
+      expect(client.get).toHaveBeenCalledWith('/checklists/templates', {
         params: { orgNumber: 123456789 },
       })
       expect(result).toEqual([mockTemplate])
@@ -75,7 +75,7 @@ describe('checklists API', () => {
 
       const result = await getTemplate(1, 123456789)
 
-      expect(client.get).toHaveBeenCalledWith('/api/v1/checklists/templates/1', {
+      expect(client.get).toHaveBeenCalledWith('/checklists/templates/1', {
         params: { orgNumber: 123456789 },
       })
       expect(result).toEqual(mockTemplate)
@@ -110,7 +110,7 @@ describe('checklists API', () => {
       const result = await createTemplate(123456789, createRequest)
 
       expect(client.post).toHaveBeenCalledWith(
-        '/api/v1/checklists/templates',
+        '/checklists/templates',
         createRequest,
         { params: { orgNumber: 123456789 } }
       )
@@ -140,7 +140,7 @@ describe('checklists API', () => {
       const result = await updateTemplate(1, 123456789, updateData)
 
       expect(client.put).toHaveBeenCalledWith(
-        '/api/v1/checklists/templates/1',
+        '/checklists/templates/1',
         updateData,
         { params: { orgNumber: 123456789 } }
       )
@@ -160,7 +160,7 @@ describe('checklists API', () => {
 
       await deleteTemplate(1, 123456789)
 
-      expect(client.delete).toHaveBeenCalledWith('/api/v1/checklists/templates/1', {
+      expect(client.delete).toHaveBeenCalledWith('/checklists/templates/1', {
         params: { orgNumber: 123456789 },
       })
     })
@@ -187,7 +187,7 @@ describe('checklists API', () => {
 
       const result = await getRuns(123456789)
 
-      expect(client.get).toHaveBeenCalledWith('/api/v1/checklists/runs', {
+      expect(client.get).toHaveBeenCalledWith('/checklists/runs', {
         params: { orgNumber: 123456789 },
       })
       expect(result).toEqual(mockRuns)
@@ -213,7 +213,7 @@ describe('checklists API', () => {
       const result = await createRun(123456789, runData)
 
       expect(client.post).toHaveBeenCalledWith(
-        '/api/v1/checklists/runs',
+        '/checklists/runs',
         runData,
         { params: { orgNumber: 123456789 } }
       )
@@ -241,7 +241,7 @@ describe('checklists API', () => {
       const result = await completeRun(1, 123456789)
 
       expect(client.put).toHaveBeenCalledWith(
-        '/api/v1/checklists/runs/1/complete',
+        '/checklists/runs/1/complete',
         null,
         { params: { orgNumber: 123456789 } }
       )
@@ -255,23 +255,23 @@ describe('checklists API', () => {
         runItemId: 1,
         runId: 1,
         templateItemId: 1,
-        answerValue: 'Yes',
-        isAnswered: true,
+        booleanValue: true,
+        hasAnswer: true,
         isDeviation: false,
       }
       vi.mocked(client.put).mockResolvedValue({ data: mockItem })
 
       const result = await updateRunItem(1, 1, 123456789, {
-        answerValue: 'Yes',
-        notes: 'Test note',
+        booleanValue: true,
+        commentText: 'Test note',
         isDeviation: false,
       })
 
       expect(client.put).toHaveBeenCalledWith(
-        '/api/v1/checklists/runs/1/items/1',
+        '/checklists/runs/1/items/1',
         {
-          answerValue: 'Yes',
-          notes: 'Test note',
+          booleanValue: true,
+          commentText: 'Test note',
           isDeviation: false,
         },
         { params: { orgNumber: 123456789 } }

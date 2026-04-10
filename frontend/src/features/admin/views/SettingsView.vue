@@ -391,6 +391,7 @@ watch(currentOrgNumber, () => {
 
 <template>
   <div class="view-page settings-view" role="main" aria-labelledby="settings-heading">
+    <!-- SettingsView bruker .view-page fra components.css for konsistent layout -->
     <header class="page-header">
       <div>
         <h1 id="settings-heading">Innstillinger</h1>
@@ -723,7 +724,15 @@ watch(currentOrgNumber, () => {
 </template>
 
 <style scoped>
+/* Bruker delte klasser fra components.css:
+   - .view-page (wrapper)
+   - .page-header (header layout)
+   - .btn, .btn--primary, .btn--secondary, .btn--danger (knapper)
+   Se components.css for detaljer.
+*/
+
 .settings-view {
+  /* Tilleggsspissifikk styling for innstillinger */
   display: grid;
   gap: 1rem;
 }

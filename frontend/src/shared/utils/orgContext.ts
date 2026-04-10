@@ -109,7 +109,7 @@ export const getOrgNumber = (): number => {
     return fromEnv
   }
 
-  console.warn('[OrgContext] ⚠️  Using FALLBACK orgNumber:', FALLBACK_ORG_NUMBER)
+  // Fallback org number for development - should be set in production
   return FALLBACK_ORG_NUMBER
 }
 

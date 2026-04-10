@@ -6,12 +6,14 @@ const props = withDefaults(
     variant: 'main' | 'sub'
     label: string
     active?: boolean
+    hasActiveChild?: boolean
     badge?: number
     icon?: string
     expanded?: boolean
-  }> (), 
+  }> (),
   {
     active: false,
+    hasActiveChild: false,
     badge: 0,
     icon: '',
     expanded: false,
@@ -34,6 +36,7 @@ const handleSelect = () => {
     :class="[
       `menu-item--${props.variant}`,
       { 'menu-item--active': props.active },
+      { 'menu-item--has-active-child': props.hasActiveChild },
     ]"
     :initial="{ opacity: 0, y: 4 }"
     :animate="{ opacity: 1, y: 0, transition: { duration: 0.18 } }"
@@ -157,10 +160,28 @@ const handleSelect = () => {
   color: var(--color-surface-raised);
 }
 
+/* Has active child - parent of current page (subtle indicator) */
+.menu-item--has-active-child .menu-item__button {
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.5);
+}
+
+.menu-item--has-active-child .menu-item__label {
+  color: white;
+  font-weight: 500;
+}
+
+.menu-item--has-active-child .menu-item__icon,
+.menu-item--has-active-child .menu-item__chevron {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Full active state - current page (overrides has-active-child) */
 .menu-item--active .menu-item__button {
   background-color: var(--color-background);
   color: var(--color-foreground);
   box-shadow: none;
+  border-left: none;
 }
 
 .menu-item--active .menu-item__label,
@@ -169,10 +190,6 @@ const handleSelect = () => {
 }
 
 .menu-item--active .menu-item__icon {
-  color: var(--color-foreground);
-}
-
-.menu-item--active .menu-item__chevron {
   color: var(--color-foreground);
 }
 

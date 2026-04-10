@@ -228,7 +228,7 @@ const availableRoles = [
 </script>
 
 <template>
-  <div class="users-view">
+  <div class="view-page users-view">
 
     <!-- Header -->
     <header class="page-header">
@@ -236,7 +236,7 @@ const availableRoles = [
         <h1>Teamadministrasjon</h1>
         <p class="subtitle">Administrer tilgang, roller og teammedlemmer</p>
       </div>
-      <button v-if="isAdmin" class="add-btn" type="button" @click="openAddModal">
+      <button v-if="isAdmin" class="btn btn--primary" type="button" @click="openAddModal">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
@@ -320,7 +320,7 @@ const availableRoles = [
       </div>
 
       <!-- User table -->
-      <div v-else class="table-card">
+      <div v-else class="table-card app-surface">
         <table>
           <thead>
           <tr>
@@ -364,10 +364,10 @@ const availableRoles = [
             </td>
             <td v-if="isAdmin">
               <div class="row-actions">
-                <button class="btn-ghost" @click="openEdit(user)">Rediger</button>
+                <button class="btn btn--ghost btn--sm" @click="openEdit(user)">Rediger</button>
                 <button
-                    class="btn-ghost"
-                    :class="user.isActive ? 'btn-ghost--warn' : 'btn-ghost--ok'"
+                    class="btn btn--ghost btn--sm"
+                    :class="user.isActive ? 'btn--ghost-warn' : 'btn--ghost-ok'"
                     @click="confirmToggle(user)"
                 >
                   {{ user.isActive ? 'Deaktiver' : 'Aktiver' }}
@@ -415,9 +415,9 @@ const availableRoles = [
       </div>
 
       <template #footer>
-        <button class="btn-ghost" @click="showAddModal = false">Avbryt</button>
+        <button class="btn btn--ghost" @click="showAddModal = false">Avbryt</button>
         <button
-            class="btn-primary"
+            class="btn btn--primary"
             :disabled="addSubmitLoading || !addEmail.trim()"
             @click="submitAddToOrg"
         >
@@ -450,8 +450,8 @@ const availableRoles = [
         <div v-if="editError" class="add-error">{{ editError }}</div>
       </form>
       <template #footer>
-        <button type="button" class="btn-ghost" @click="showEditModal = false">Avbryt</button>
-        <button type="submit" form="editUserForm" class="btn-primary" :disabled="editLoading">
+        <button type="button" class="btn btn--ghost" @click="showEditModal = false">Avbryt</button>
+        <button type="submit" form="editUserForm" class="btn btn--primary" :disabled="editLoading">
           <BaseSpinner v-if="editLoading" size="sm" />
           <span v-else>Lagre</span>
         </button>
@@ -461,8 +461,8 @@ const availableRoles = [
     <BaseModal :open="showConfirm" :title="confirmTitle" @close="showConfirm = false">
       <p>{{ confirmMsg }}</p>
       <template #footer>
-        <button class="btn-ghost" @click="showConfirm = false">Avbryt</button>
-        <button class="btn-danger" :disabled="confirmLoading" @click="runConfirm">
+        <button class="btn btn--ghost" @click="showConfirm = false">Avbryt</button>
+        <button class="btn btn--danger" :disabled="confirmLoading" @click="runConfirm">
           <BaseSpinner v-if="confirmLoading" size="sm" />
           <span v-else>Bekreft</span>
         </button>
@@ -473,50 +473,33 @@ const availableRoles = [
 </template>
 
 <style scoped>
-.users-view {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
+/* 
+  Bruker delte klasser fra components.css:
+  - .view-page (wrapper)
+  - .page-header (header layout)
+  - .btn, .btn--primary, .btn--ghost, .btn--danger (knapper)
+  - .app-surface (kort/flater)
+  
+  WCAG 2.1 AA krav:
+  - Kontrast 4.5:1 for tekst
+  - Kontrast 3:1 for UI-komponenter
+  - Fokus-indikatorer synlige
+  - Touch-targets minimum 44x44px
+*/
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1rem;
+.users-view {
+  /* Tilleggsspissifikk styling for brukere */
 }
 
 .page-header h1 {
-  font-size: clamp(1.6rem, 2.4vw, var(--font-size-3xl));
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  margin: 0;
+  font-family: var(--font-family-display);
+  line-height: var(--line-height-heading);
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
   margin-top: 0.35rem;
-  color: var(--color-gray-500);
-  font-size: var(--font-size-sm);
 }
-
-.add-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-height: var(--touch-target);
-  padding: var(--button-padding-md);
-  background: var(--color-primary);
-  color: var(--color-primary-foreground);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-}
-.add-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-.add-btn:active { transform: none; }
 
 .feedback {
   padding: 0.7rem 1rem;
@@ -602,17 +585,10 @@ const availableRoles = [
   align-items: center;
   gap: 0.75rem;
   padding: 3.5rem 1rem;
-  color: var(--color-gray-400);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
+  color: var(--color-gray-500);
 }
 
 .table-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
@@ -696,54 +672,11 @@ tr:last-child td { border-bottom: none; }
 
 .row-actions { display: flex; gap: 0.35rem; justify-content: flex-end; }
 
-.btn-ghost {
-  min-height: 2.1rem;
-  padding: 0.3rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-card);
-  color: var(--color-gray-700);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-.btn-ghost:hover { background: var(--color-gray-50); }
-.btn-ghost--warn { color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border)); }
-.btn-ghost--ok   { color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border)); }
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 2.25rem;
-  padding: 0.4rem 1rem;
-  background: var(--color-primary);
-  color: var(--color-primary-foreground);
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-primary:not(:disabled):hover { opacity: 0.88; }
-
-.btn-danger {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 2.25rem;
-  padding: 0.4rem 1rem;
-  background: var(--color-danger);
-  color: var(--color-primary-foreground);
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+/* Knapper - bruker delte klasser fra components.css */
+.btn { min-height: 2.25rem; }
+.btn--sm { min-height: 2.1rem; padding: 0.3rem 0.75rem; font-size: var(--font-size-xs); }
+.btn--ghost-warn { color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border)); }
+.btn--ghost-ok   { color: var(--color-success); border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border)); }
 
 .loading-state {
   display: flex; flex-direction: column; align-items: center;
@@ -800,7 +733,7 @@ tr:last-child td { border-bottom: none; }
 
 @media (max-width: 48rem) {
   .page-header { flex-direction: column; align-items: flex-start; }
-  .add-btn { width: 100%; justify-content: center; }
+  .btn--primary { width: 100%; justify-content: center; }
   th:nth-child(5), td:nth-child(5) { display: none; }  /* hide phone col */
   .td-email { max-width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
