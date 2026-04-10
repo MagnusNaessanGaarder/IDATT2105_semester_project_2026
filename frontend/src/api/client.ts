@@ -194,10 +194,6 @@ const refreshAccessToken = async (): Promise<string | null> => {
 client.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     config.url = normalizeRelativeApiPath(config.url)
-    console.log(`[HTTP] 📤 ${config.method?.toUpperCase()} ${config.url}`)
-    if (config.params) {
-      console.log('[HTTP]    Params:', config.params)
-    }
 
     if (shouldSkipAuthHeader(config.url)) {
       return config
@@ -206,7 +202,6 @@ client.interceptors.request.use(
     let token = sessionStorage.getItem('accessToken')
 
     if (!token || isTokenExpiringSoon(token)) {
-      console.log('[HTTP]    Token expired/missing, refreshing...')
       token = await refreshAccessToken()
     }
 
@@ -218,7 +213,6 @@ client.interceptors.request.use(
     }
 
     config.headers.Authorization = `Bearer ${token}`
-    console.log('[HTTP]    ✅ Authorization header set')
 
     if (shouldAttachOrgContext(config.url)) {
       const orgNumber = getOrgNumber()
@@ -230,8 +224,6 @@ client.interceptors.request.use(
       if (isFilesEndpoint(config.url)) {
         config.headers['X-Org-Number'] = String(orgNumber)
       }
-
-      console.log(`[HTTP]    ✅ Org context set (orgNumber=${orgNumber})`)
     }
 
     return config
@@ -260,14 +252,6 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 client.interceptors.response.use(
   (response) => {
-    console.log(`[HTTP] 📥 ${response.status} ${response.config.url}`)
-    if (response.data) {
-      if (Array.isArray(response.data)) {
-        console.log(`[HTTP]    ✅ Received ${response.data.length} items`)
-      } else {
-        console.log('[HTTP]    ✅ Response:', summarizeResponseData(response.data))
-      }
-    }
     return response
   },
   async (error) => {

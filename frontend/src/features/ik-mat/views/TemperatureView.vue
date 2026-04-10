@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import BaseModal from '@/shared/components/BaseModal.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useIkMatData } from '../composables/useIkMatData'
 import { getOrganizationTempDefaults } from '@/shared/utils/orgSettings'
@@ -14,12 +16,17 @@ const {
   temperaturePoints,
   locations,
   isTemperatureInRange,
+  createTemperaturePointWithLocation,
+  updateTemperaturePointAndLocation,
+  deleteTemperaturePoint,
+  clearTemperatureMeasurementsForPoint,
   createTemperatureMeasurement,
   updateTemperatureMeasurement,
   isLoading,
   error,
 } = useIkMatData()
 
+const router = useRouter()
 const authStore = useAuthStore()
 
 // Fetch employees directly - orgUsers in useIkMatData is never populated
@@ -43,8 +50,40 @@ onMounted(async () => {
 type Tab = 'locations' | 'logs'
 const activeTab = ref<Tab>('locations')
 
+type PointModalMode = 'add' | 'edit'
+
+interface TemperatureInstance {
+  pointId: number
+  title: string
+  locationId: number
+  locationName: string
+  minTemp: number
+  maxTemp: number
+  latestEntryId: number | null
+  latestTemp: number | null
+  latestRecordedBy: string
+  latestDate: string
+  latestTime: string
+  isAlert: boolean
+}
+
 //  derived data
 const canManage = computed(() => authStore.hasRole('ADMIN', 'MANAGER'))
+const isMobile = ref(false)
+const desktopMenuPointId = ref<number | null>(null)
+const selectedMobileCardId = ref<number | null>(null)
+
+const pointModalOpen = ref(false)
+const pointModalMode = ref<PointModalMode>('add')
+const editingPointId = ref<number | null>(null)
+const editingLocationId = ref<number | null>(null)
+const originalRange = ref<{ min: number | null; max: number | null }>({ min: null, max: null })
+const pointForm = reactive({
+  name: '',
+  locationName: '',
+  minTempC: '',
+  maxTempC: '',
+})
 
 const activePoints = computed(() =>
     temperaturePoints.filter((p) => p.isActive !== false)
@@ -135,11 +174,72 @@ const resetPointForm = () => {
   editingLocationId.value = null
   originalRange.value = { min: defaults.min, max: defaults.max }
 }
+
+const instances = computed<TemperatureInstance[]>(() => {
+  return locationRows.value.map((row) => ({
+    pointId: row.pointId,
+    title: row.pointName,
+    locationId: row.locationId,
+    locationName: row.locationName,
+    minTemp: row.minTemp ?? 0,
+    maxTemp: row.maxTemp ?? 4,
+    latestEntryId: row.latest?.id ?? null,
+    latestTemp: row.latest?.temperature_c ?? null,
+    latestRecordedBy: row.latest?.recorded_by ?? '-',
+    latestDate: row.latest?.recorded_date ?? '-',
+    latestTime: row.latest?.recorded_time ?? '-',
+    isAlert: row.isAlert,
+  }))
+})
+
+const selectedLocationLabel = computed(() => {
+  if (!pointForm.locationName.trim()) {
+    return null
+  }
+  return `${pointForm.locationName.trim()} (${pointForm.minTempC || '-'} til ${pointForm.maxTempC || '-'}°C)`
+})
 //  log modal
 const modalOpen   = ref(false)
 const isSubmitting = ref(false)
 const actionError  = ref<string | null>(null)
 const editingEntryId = ref<number | null>(null)
+
+const measurementModalOpen = modalOpen
+const editingMeasurementEntryId = editingEntryId
+const measurementForm = reactive({
+  get temperatureC() {
+    return form.temperatureC
+  },
+  set temperatureC(value: string) {
+    form.temperatureC = value
+  },
+  get measuredDate() {
+    return form.date
+  },
+  set measuredDate(value: string) {
+    form.date = value
+  },
+  get measuredTime() {
+    return form.time
+  },
+  set measuredTime(value: string) {
+    form.time = value
+  },
+  get employeeId() {
+    return form.employeeId
+  },
+  set employeeId(value: number | null) {
+    form.employeeId = value
+  },
+  get employeeName() {
+    const selected = employeeOptions.value.find((employee) => employee.id === form.employeeId)
+    return selected?.label ?? ''
+  },
+  set employeeName(value: string) {
+    const selected = employeeOptions.value.find((employee) => employee.label === value)
+    form.employeeId = selected?.id ?? null
+  },
+})
 
 const form = reactive({
   pointId:     null as number | null,
@@ -181,6 +281,22 @@ function openModal(pointId?: number, existing?: TemperatureRecord | null) {
 function closeModal() {
   modalOpen.value = false
 }
+
+const openMeasurementModal = (pointId: number) => {
+  openModal(pointId)
+  desktopMenuPointId.value = null
+}
+
+const closeMeasurementModal = () => {
+  closeModal()
+  selectedMobileCardId.value = null
+}
+
+const submitMeasurement = submit
+
+const currentMeasurementPoint = computed(() => {
+  return instances.value.find((item) => item.pointId === form.pointId) ?? null
+})
 
 function measuredAt(): string {
   if (form.useNow) return new Date().toISOString()
@@ -312,6 +428,162 @@ function statusTone(row: LocationRow) {
   if (!row.latest) return 'none'
   return row.isAlert ? 'danger' : 'ok'
 }
+
+const openDeviationFlow = (instance: TemperatureInstance) => {
+  const measuredLabel = instance.latestTemp === null ? 'ukjent temperatur' : `${instance.latestTemp}°C`
+  const description = `Temperatur ved ${instance.title} (${instance.locationName}) ble målt til ${measuredLabel}. Gyldig område er ${instance.minTemp}°C til ${instance.maxTemp}°C.`
+
+  void router.push({
+    name: 'Deviations',
+    query: {
+      openCreate: '1',
+      source: 'temperature',
+      title: `Temperaturavvik - ${instance.title}`,
+      location: instance.locationName,
+      description,
+      severity: 'MAJOR',
+      discoverer: authStore.user?.name ?? '',
+      sourceEntryId: instance.latestEntryId != null ? String(instance.latestEntryId) : undefined,
+    },
+  })
+}
+
+const toggleDesktopMenu = (pointId: number) => {
+  desktopMenuPointId.value = desktopMenuPointId.value === pointId ? null : pointId
+}
+
+const toggleMobileActions = (pointId: number) => {
+  selectedMobileCardId.value = selectedMobileCardId.value === pointId ? null : pointId
+}
+
+const openAddPointModal = () => {
+  pointModalMode.value = 'add'
+  editingPointId.value = null
+  resetPointForm()
+  actionError.value = null
+  pointModalOpen.value = true
+}
+
+const openEditPointModal = (pointId: number) => {
+  const point = temperaturePoints.find((item) => item.logPointId === pointId)
+  if (!point) {
+    return
+  }
+  const location = locationById.value.get(point.locationId)
+
+  pointModalMode.value = 'edit'
+  editingPointId.value = pointId
+  pointForm.name = point.name
+  pointForm.locationName = location?.name ?? point.locationName ?? ''
+  pointForm.minTempC = location?.tempMinC != null ? String(location.tempMinC) : ''
+  pointForm.maxTempC = location?.tempMaxC != null ? String(location.tempMaxC) : ''
+  originalRange.value = {
+    min: location?.tempMinC != null ? Number(location.tempMinC) : null,
+    max: location?.tempMaxC != null ? Number(location.tempMaxC) : null,
+  }
+  editingLocationId.value = point.locationId
+  actionError.value = null
+  pointModalOpen.value = true
+  desktopMenuPointId.value = null
+  selectedMobileCardId.value = null
+}
+
+const closePointModal = () => {
+  pointModalOpen.value = false
+}
+
+const savePoint = async () => {
+  const minTemp = Number(pointForm.minTempC)
+  const maxTemp = Number(pointForm.maxTempC)
+
+  if (!canManage.value || !pointForm.name.trim() || !pointForm.locationName.trim()) {
+    return
+  }
+
+  if (!Number.isFinite(minTemp) || !Number.isFinite(maxTemp)) {
+    return
+  }
+
+  actionError.value = null
+  isSubmitting.value = true
+
+  try {
+    const locationPayload = {
+      name: pointForm.locationName.trim(),
+      locationType: 'OTHER' as const,
+      tempMinC: minTemp,
+      tempMaxC: maxTemp,
+      isActive: true,
+    }
+
+    const pointPayload = {
+      name: pointForm.name.trim(),
+      isActive: true,
+    }
+
+    if (pointModalMode.value === 'add') {
+      await createTemperaturePointWithLocation(locationPayload, pointPayload)
+    } else if (editingPointId.value !== null && editingLocationId.value !== null) {
+      const didChangeRange = originalRange.value.min !== minTemp || originalRange.value.max !== maxTemp
+
+      await updateTemperaturePointAndLocation(editingPointId.value, editingLocationId.value, locationPayload, {
+        ...pointPayload,
+        locationId: editingLocationId.value,
+      })
+
+      if (didChangeRange) {
+        await clearTemperatureMeasurementsForPoint(editingPointId.value)
+      }
+    }
+
+    pointModalOpen.value = false
+  } catch {
+    actionError.value = 'Kunne ikke lagre temperaturpunkt. Prøv igjen.'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const removePoint = async (pointId: number) => {
+  if (!canManage.value) {
+    return
+  }
+
+  const shouldDelete = window.confirm('Slette temperaturpunktet?')
+  if (!shouldDelete) {
+    return
+  }
+
+  actionError.value = null
+  isSubmitting.value = true
+
+  try {
+    await deleteTemperaturePoint(pointId)
+    desktopMenuPointId.value = null
+    selectedMobileCardId.value = null
+  } catch {
+    actionError.value = 'Kunne ikke slette temperaturpunkt. Prøv igjen.'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const updateViewport = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  isMobile.value = window.matchMedia('(max-width: 47.99rem)').matches
+}
+
+onMounted(() => {
+  updateViewport()
+  window.addEventListener('resize', updateViewport)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateViewport)
+})
 </script>
 
 <template>
@@ -346,8 +618,9 @@ function statusTone(row: LocationRow) {
       </div>
       <div class="stat stat--warn">
         <strong>{{ alerts.length }}</strong>
-      </article>
-    </section>
+        <span>Avvik</span>
+      </div>
+    </div>
 
     <section v-if="error" class="inline-error">{{ error }}</section>
     <section v-else-if="actionError" class="inline-error">{{ actionError }}</section>
@@ -396,7 +669,7 @@ function statusTone(row: LocationRow) {
             >
               {{ instance.isAlert ? 'Registrer avvik' : instance.latestEntryId ? 'Rediger maling' : 'Registrer maling' }}
             </button>
-          </footer>
+          
 
             <div v-if="canManage" class="options-menu">
               <button

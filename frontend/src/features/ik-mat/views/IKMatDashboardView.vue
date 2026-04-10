@@ -159,13 +159,6 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
   color: var(--color-foreground);
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
 .stat-card {
   display: flex;
   flex-direction: column;
@@ -327,12 +320,6 @@ const cardTone = (color: 'success' | 'warning' | 'info') => {
 @media (max-width: 56rem) {
   .details-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 47.99rem) {
-  .stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>
