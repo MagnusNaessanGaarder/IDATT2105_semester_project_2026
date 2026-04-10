@@ -161,3 +161,117 @@
     align-items: stretch;
   }
 }
+
+/* Borderless surfaces across views */
+:where(
+  .app-surface,
+  .view-page__placeholder,
+  .panel,
+  .panel__item,
+  .action-card,
+  .settings-section,
+  .summary-card,
+  .table-card,
+  .docs-card,
+  .desktop-list,
+  .documents-toolbar,
+  .reports-toolbar,
+  .table-wrapper,
+  .report-item,
+  .documents-stat,
+  .reports-stat,
+  .stat-card
+) {
+  border: none !important;
+}
+
+/* Stat cards use background color emphasis instead of border accents */
+:where(.stat-card, .summary-card, .reports-stat, .documents-stat) {
+  background: var(--color-secondary) !important;
+  color: var(--color-secondary-foreground) !important;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+:where(.stat-card, .summary-card, .reports-stat, .documents-stat)
+  :is(.stat-card__value-row) {
+  align-items: center !important;
+}
+
+:where(.stat-card--success, .summary-card--good) {
+  background: var(--color-primary) !important;
+  color: var(--color-primary-foreground) !important;
+}
+
+:where(.stat-card--warning, .summary-card--warn) {
+  background: var(--color-cta) !important;
+  color: var(--color-cta-foreground) !important;
+}
+
+:where(.stat-card--info, .summary-card--info) {
+  background: var(--color-secondary) !important;
+  color: var(--color-secondary-foreground) !important;
+}
+
+:where(
+  .stat-card--success,
+  .stat-card--warning,
+  .stat-card--info,
+  .summary-card--good,
+  .summary-card--warn,
+  .summary-card--info
+) {
+  border-left: none !important;
+}
+
+:where(.stat-card, .summary-card, .reports-stat, .documents-stat)
+  :is(.stat-card__value, .stat-card__trend, strong) {
+  color: currentColor !important;
+}
+
+:where(.stat-card, .summary-card, .reports-stat, .documents-stat)
+  :is(.stat-card__label, .stat-card__meta, span, p) {
+  color: color-mix(in srgb, currentColor 84%, transparent) !important;
+}
+
+:where(.dashboard__stats, .stats-grid, .summary-grid, .documents-stats, .reports-stats, .settings-summary)
+  > :is(.stat-card, .summary-card, .reports-stat, .documents-stat):nth-child(3n + 1):not(.stat-card--success):not(.stat-card--warning):not(.stat-card--info):not(.summary-card--good):not(.summary-card--warn):not(.summary-card--info) {
+  background: var(--color-primary) !important;
+  color: var(--color-primary-foreground) !important;
+}
+
+:where(.dashboard__stats, .stats-grid, .summary-grid, .documents-stats, .reports-stats, .settings-summary)
+  > :is(.stat-card, .summary-card, .reports-stat, .documents-stat):nth-child(3n + 2):not(.stat-card--success):not(.stat-card--warning):not(.stat-card--info):not(.summary-card--good):not(.summary-card--warn):not(.summary-card--info) {
+  background: var(--color-secondary) !important;
+  color: var(--color-secondary-foreground) !important;
+}
+
+:where(.dashboard__stats, .stats-grid, .summary-grid, .documents-stats, .reports-stats, .settings-summary)
+  > :is(.stat-card, .summary-card, .reports-stat, .documents-stat):nth-child(3n):not(.stat-card--success):not(.stat-card--warning):not(.stat-card--info):not(.summary-card--good):not(.summary-card--warn):not(.summary-card--info) {
+  background: var(--color-cta) !important;
+  color: var(--color-cta-foreground) !important;
+}
+
+/* White main-content containers get subtle elevation for separation */
+:where(
+  .surface-card,
+  .app-surface,
+  .panel,
+  .panel-card,
+  .action-card,
+  .detail-card,
+  .settings-section,
+  .table-card,
+  .docs-card,
+  .desktop-list,
+  .documents-toolbar,
+  .reports-toolbar,
+  .table-wrapper,
+  .report-item,
+  .view-page__placeholder
+) {
+  background: var(--color-surface-raised) !important;
+  box-shadow: var(--shadow-sm);
+}

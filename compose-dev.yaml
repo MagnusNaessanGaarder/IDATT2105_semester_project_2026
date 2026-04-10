@@ -16,10 +16,10 @@ services:
     #   - La 'network_mode: host' være kommentert ut
 
     # VPN-modus
-    network_mode: host
+    # network_mode: host
 
-    # ports:
-    #   - "3306:3306"
+    ports:
+      - "3306:3306"
 
     volumes:
       - mysql-dev-data:/var/lib/mysql

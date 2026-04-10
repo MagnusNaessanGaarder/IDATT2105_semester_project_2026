@@ -29,6 +29,9 @@
   --color-primary-hover: var(--color-brand-dark-teal);
   --color-primary-active: var(--color-brand-mid-teal);
   --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-brand-medium-violet);
+  --color-secondary-hover: var(--color-brand-deep-violet);
+  --color-secondary-foreground: #ffffff;
 
   --color-background: var(--color-surface);
   --color-background-soft: var(--color-surface-muted);
@@ -51,12 +54,17 @@
 
   --color-success: var(--color-brand-deep-forest);
   --color-success-bg: var(--color-brand-cta-lime);
+  --color-success-scale-1: color-mix(in srgb, var(--color-success-bg) 85%, var(--color-success));
+  --color-success-scale-2: color-mix(in srgb, var(--color-success-bg) 65%, var(--color-success));
+  --color-success-scale-3: color-mix(in srgb, var(--color-success-bg) 45%, var(--color-success));
+  --color-success-scale-4: color-mix(in srgb, var(--color-success-bg) 25%, var(--color-success));
+  --color-success-scale-5: var(--color-success);
   --color-warning: var(--color-brand-near-black-violet);
   --color-warning-bg: var(--color-brand-soft-violet);
-  --color-danger: #ff6666;
-  --color-danger-hover: #e65050;
+  --color-danger: #b42318;
+  --color-danger-hover: #8f1b13;
   --color-danger-fg: #ffffff;
-  --color-danger-bg: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface-raised));
+  --color-danger-bg: color-mix(in srgb, var(--color-danger) 24%, var(--color-surface-raised));
   --color-danger-border: color-mix(in srgb, var(--color-danger) 28%, var(--color-border));
   --color-info: var(--color-brand-dark-teal);
   --color-info-bg: var(--color-brand-ice-teal);
@@ -127,7 +135,7 @@
   --ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  --sidebar-width: 240px;
+  --sidebar-width: 314px;
   --topbar-height: 64px;
   --touch-target: 44px;
   --content-max-width: 1200px;
